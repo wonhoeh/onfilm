@@ -1,7 +1,9 @@
-package toyproject.onfilm.domain;
+package toyproject.onfilm.domain.director;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import toyproject.onfilm.domain.Profile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,16 +19,14 @@ import java.util.List;
  * - 전공 분야 (메인감독, 조감독, 촬영감독...)
  */
 
-@Entity
-@Data
-public class Scenarist {
+/*@Getter
+@NoArgsConstructor
+@Entity*/
+public class Director {
 
     @Id @GeneratedValue
-    @Column(name = "sceanarist_id")
+    @Column(name = "director_id")
     private Long id;
-
-    @OneToMany(mappedBy = "scenarist")
-    private List<Casting> filmography = new ArrayList<>();
 
     @Embedded
     private Profile profile;

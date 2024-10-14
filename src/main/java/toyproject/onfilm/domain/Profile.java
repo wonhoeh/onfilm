@@ -1,11 +1,14 @@
 package toyproject.onfilm.domain;
 
 import jakarta.persistence.Embeddable;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Getter
+@NoArgsConstructor
 @Embeddable
-@Getter @Setter
 public class Profile {
 
     private String name;
@@ -13,11 +16,12 @@ public class Profile {
     private String phoneNumber;
     private String email;
 
-    public Profile() {};
-
-    public Profile(String name, int age) {
+    @Builder
+    public Profile(String name, int age, String phoneNumber, String email) {
         this.name = name;
         this.age = age;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
     }
 
 }
