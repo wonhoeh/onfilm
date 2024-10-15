@@ -25,7 +25,7 @@ import toyproject.onfilm.domain.movie.Movie;
 @Entity
 public class MovieActor {
     @Id @GeneratedValue
-    @Column(name = "casting_id")
+    @Column(name = "movieactor_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -36,11 +36,11 @@ public class MovieActor {
     @JoinColumn(name = "actor_id")
     private Actor actor;
 
-    //배역 정보
-    private String actorsRole;    // 배우의 배역 정보 (롸다주 -> 토니 스타크)
+    //배우의 배역 정보 (롸다주 -> 토니 스타크)
+    private String actorsRole;
 
 
-    //=== 연관 관계 메서드 ===
+    //=== 연관관계 편의메서드 ===
     public void setMovie(Movie movie) {
         this.movie = movie;
         movie.getMovieActors().add(this);
@@ -61,12 +61,8 @@ public class MovieActor {
         return movieActor;
     }
 
-    /*
-    public void setDirector(Director director) {
-        this.director = director;
-        director.getFilmography().add(this);
-    }
 
+    /*
     public void setScenarist(Scenarist scenarist) {
         this.scenarist = scenarist;
         scenarist.getFilmography().add(this);

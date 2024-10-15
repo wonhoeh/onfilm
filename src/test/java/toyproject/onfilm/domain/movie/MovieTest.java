@@ -16,13 +16,6 @@ import static org.assertj.core.api.Assertions.*;
 public class MovieTest {
 
     @Autowired MovieRepository movieRepository;
-/*
-
-    @AfterEach
-    public void cleanup() {
-        movieRepository.deleteAll();
-    }
-*/
 
     @Test
     @Transactional
@@ -46,6 +39,5 @@ public class MovieTest {
         //then
         Movie findMovie = movieList.get(0);
         assertThat(findMovie.getTitle()).isEqualTo(movie.getTitle());
-
     }
 }

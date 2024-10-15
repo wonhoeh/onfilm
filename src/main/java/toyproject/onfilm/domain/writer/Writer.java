@@ -1,9 +1,14 @@
 package toyproject.onfilm.domain.writer;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import toyproject.onfilm.domain.Profile;
+import toyproject.onfilm.domain.moviewriter.MovieWriter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Director 엔티티
@@ -16,9 +21,9 @@ import toyproject.onfilm.domain.Profile;
  * - 전공 분야 (메인감독, 조감독, 촬영감독...)
  */
 
-/*@Getter
+@Getter
 @NoArgsConstructor
-@Entity*/
+@Entity
 public class Writer {
 
     @Id @GeneratedValue
@@ -27,4 +32,12 @@ public class Writer {
 
     @Embedded
     private Profile profile;
+
+    @OneToMany(mappedBy = "writer")
+    private List<MovieWriter> filmography = new ArrayList<>();
+
+    @Builder
+    public Writer(Profile profile) {
+        this.profile = profile;
+    }
 }

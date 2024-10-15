@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import toyproject.onfilm.domain.movieactor.MovieActor;
+import toyproject.onfilm.domain.moviedirector.MovieDirector;
+import toyproject.onfilm.domain.moviewriter.MovieWriter;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -38,7 +40,19 @@ public class Movie {
     @OneToMany(mappedBy = "movie")
     private List<MovieActor> movieActors = new ArrayList<>();
 
+    //영화 제작에 참여한 감독들
+    @OneToMany(mappedBy = "movie")
+    private List<MovieDirector> movieDirectors = new ArrayList<>();
+
+    //시나리오 집필한 작가들
+    @OneToMany(mappedBy = "movie")
+    private List<MovieWriter> movieWriters = new ArrayList<>();
+
+    //제목
     private String title;
+
+    //장르
+    //TODO: String -> List
     private String genre;
 
     //상영일
@@ -56,6 +70,4 @@ public class Movie {
         this.releaseDate = releaseDate;
         this.closeDate = closeDate;
     }
-
-
 }

@@ -13,12 +13,13 @@ import java.util.List;
 
 /**
  * Actor 엔티티
- * 배우의 개인 정보
+ * 배우의 정보
  * - 이름
  * - 나이
  * - 참여한 작품(필모그래피)
- * - 핸드폰 번호
- * - 이메일 주소
+ * - 신체(키, 몸무게) nullable
+ * - SNS
+ * - 학력
  * - Entity 클래스와 기본 Entity Repository 함께 위치 시키기 위해 패키지별로 나눔
  */
 @Getter
@@ -39,8 +40,7 @@ public class Actor {
 
     //생성자
     @Builder
-    public Actor(Profile profile, MovieActor movieActor) {
+    public Actor(Profile profile) {
         this.profile = profile;
-        this.getFilmography().add(movieActor);
     }
 }

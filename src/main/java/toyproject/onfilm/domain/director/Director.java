@@ -1,9 +1,11 @@
 package toyproject.onfilm.domain.director;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import toyproject.onfilm.domain.Profile;
+import toyproject.onfilm.domain.moviedirector.MovieDirector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,9 +21,9 @@ import java.util.List;
  * - 전공 분야 (메인감독, 조감독, 촬영감독...)
  */
 
-/*@Getter
+@Getter
 @NoArgsConstructor
-@Entity*/
+@Entity
 public class Director {
 
     @Id @GeneratedValue
@@ -30,4 +32,13 @@ public class Director {
 
     @Embedded
     private Profile profile;
+
+    @OneToMany(mappedBy = "director")
+    List<MovieDirector> filmography = new ArrayList<>();
+
+    @Builder
+    public Director(Profile profile) {
+        this.profile = profile;
+    }
+
 }
