@@ -22,7 +22,7 @@ public class MovieDirector {
     @JoinColumn(name = "movie_id")
     private Movie movie;
 
-    //=== 연관관계 편의메서드 ===
+    //=== 연관 관계 편의 메서드 ===
     public void setDirector(Director director) {
         this.director = director;
         director.getFilmography().add(this);

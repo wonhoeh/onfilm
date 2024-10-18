@@ -22,7 +22,7 @@ public class MovieWriter {
     @JoinColumn(name = "movie_id")
     private Movie movie;
 
-    //=== 연관관계 편의메서드 ===
+    //=== 연관관계 편의 메서드 ===
     public void setWriter(Writer writer) {
         this.writer = writer;
         writer.getFilmography().add(this);

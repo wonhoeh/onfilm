@@ -1,46 +1,73 @@
 package toyproject.onfilm.domain.actor;
 
-import org.assertj.core.api.Assertions;
+import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
-import toyproject.onfilm.domain.Profile;
+import toyproject.onfilm.domain.BaseProfileEntity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
+@Slf4j
 public class ActorTest {
 
-    @Autowired ActorRepository actorRepository;
+    @Autowired
+    ActorRepository actorRepository;
 
-    @Test
+
     @Transactional
-    void actorTest() {
+    @Test
+    void actorTest_모든컬럼저장() {
         //given
         String name = "토니 스타크";
         int age = 40;
-        String phoneNumber = "010-1234-5678";
-        String email = "tonyMk2@gmail.com";
-
-
-        Profile profile = Profile.builder()
-                .name(name)
-                .age(age)
-                .phoneNumber(phoneNumber)
-                .email(email)
-                .build();
+        int height = 180;
+        int weight = 70;
+        String sns = "www.instagram.com/hello";
 
         Actor actor = actorRepository.save(Actor.builder()
-                .profile(profile)
+                .name(name)
+                .age(age)
+                .height(height)
+                .weight(weight)
+                .sns(sns)
                 .build());
 
-        //when
-        List<Actor> actors = actorRepository.findAll();
-        Actor findActor = actors.get(0);
+        log.info("actor.name = {}", actor.getName());
 
-        assertThat(findActor.getProfile().getName()).isEqualTo(actor.getProfile().getName());
+        //when
+        Actor findActor = actorRepository.findAll().get(0);
+
+        assertThat(findActor.getName()).isEqualTo(actor.getName());
+    }
+
+    @Transactional
+    @Test
+    void actorTest_NotNULL() {
+        //given
+        int age = 40;
+        int height = 180;
+        int weight = 70;
+        String sns = "www.instagram.com/hello";
+
+        Actor actor = actorRepository.save(Actor.builder()
+                .age(age)
+                .height(height)
+                .weight(weight)
+                .sns(sns)
+                .build());
+
+        //when & then
+        assertThatThrownBy(() -> actorRepository.findAll().get(0))
+                .isInstanceOf(DataIntegrityViolationException.class);
+
+
     }
 }

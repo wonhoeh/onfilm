@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import toyproject.onfilm.domain.Profile;
+import toyproject.onfilm.domain.BaseProfileEntity;
 import toyproject.onfilm.domain.moviedirector.MovieDirector;
 
 import java.util.ArrayList;
@@ -30,15 +30,12 @@ public class Director {
     @Column(name = "director_id")
     private Long id;
 
-    @Embedded
-    private Profile profile;
-
     @OneToMany(mappedBy = "director")
     List<MovieDirector> filmography = new ArrayList<>();
 
     @Builder
-    public Director(Profile profile) {
-        this.profile = profile;
+    public Director(BaseProfileEntity baseProfileEntity) {
+        this.baseProfileEntity = baseProfileEntity;
     }
 
 }

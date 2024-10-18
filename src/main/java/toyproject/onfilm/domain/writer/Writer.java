@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import toyproject.onfilm.domain.Profile;
+import toyproject.onfilm.domain.BaseProfileEntity;
 import toyproject.onfilm.domain.moviewriter.MovieWriter;
 
 import java.util.ArrayList;
@@ -31,13 +31,13 @@ public class Writer {
     private Long id;
 
     @Embedded
-    private Profile profile;
+    private BaseProfileEntity baseProfileEntity;
 
     @OneToMany(mappedBy = "writer")
     private List<MovieWriter> filmography = new ArrayList<>();
 
     @Builder
-    public Writer(Profile profile) {
-        this.profile = profile;
+    public Writer(BaseProfileEntity baseProfileEntity) {
+        this.baseProfileEntity = baseProfileEntity;
     }
 }

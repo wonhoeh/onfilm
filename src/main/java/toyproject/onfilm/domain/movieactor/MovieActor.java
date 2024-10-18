@@ -14,8 +14,8 @@ import toyproject.onfilm.domain.movie.Movie;
  * Actor: 배우에 대한 정보를 가지고 있음
  *
  * N:N의 관계... MovieActor 엔티티로 다대다 관계를 풀어줘야함
- * Movie는 영화 자체의 내용들
- * MovieActor는 작품의 내용들 (출연한 배우, 감독, 영화의 정보)
+ * Movie 영화 자체의 내용들
+ * MovieActor 작품의 내용들 (출연한 배우, 감독, 영화의 정보)
  * MovieActor에는 N명의 배우가 있고 N명의 감독이 있음
  *
  */
@@ -40,7 +40,7 @@ public class MovieActor {
     private String actorsRole;
 
 
-    //=== 연관관계 편의메서드 ===
+    //=== 연관관계 편의 메서드 ===
     public void setMovie(Movie movie) {
         this.movie = movie;
         movie.getMovieActors().add(this);
@@ -60,12 +60,4 @@ public class MovieActor {
 
         return movieActor;
     }
-
-
-    /*
-    public void setScenarist(Scenarist scenarist) {
-        this.scenarist = scenarist;
-        scenarist.getFilmography().add(this);
-    }
-    */
 }
