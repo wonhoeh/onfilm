@@ -1,9 +1,11 @@
 package toyproject.onfilm.domain.director;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import toyproject.onfilm.domain.BaseProfileEntity;
 import toyproject.onfilm.domain.moviedirector.MovieDirector;
 
@@ -22,20 +24,16 @@ import java.util.List;
  */
 
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SuperBuilder
 @Entity
-public class Director {
+public class Director extends BaseProfileEntity {
 
     @Id @GeneratedValue
     @Column(name = "director_id")
     private Long id;
 
-    @OneToMany(mappedBy = "director")
+    @OneToMany(mappedBy = "director", cascade = CascadeType.ALL)
+    @Builder.Default
     List<MovieDirector> filmography = new ArrayList<>();
-
-    @Builder
-    public Director(BaseProfileEntity baseProfileEntity) {
-        this.baseProfileEntity = baseProfileEntity;
-    }
-
 }

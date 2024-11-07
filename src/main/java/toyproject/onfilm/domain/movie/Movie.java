@@ -1,11 +1,15 @@
 package toyproject.onfilm.domain.movie;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import toyproject.onfilm.domain.comment.Comment;
+import toyproject.onfilm.domain.like.Like;
 import toyproject.onfilm.domain.movieactor.MovieActor;
 import toyproject.onfilm.domain.moviedirector.MovieDirector;
+import toyproject.onfilm.domain.moviegenre.MovieGenre;
 import toyproject.onfilm.domain.moviewriter.MovieWriter;
 
 import java.time.LocalDate;
@@ -27,7 +31,7 @@ import java.util.List;
  */
 
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 public class Movie {
 
@@ -37,23 +41,33 @@ public class Movie {
     private Long id;
 
     //영화에 출연한 배우들
-    @OneToMany(mappedBy = "movie")
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MovieActor> movieActors = new ArrayList<>();
 
     //영화 제작에 참여한 감독들
-    @OneToMany(mappedBy = "movie")
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MovieDirector> movieDirectors = new ArrayList<>();
 
     //시나리오 집필한 작가들
-    @OneToMany(mappedBy = "movie")
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MovieWriter> movieWriters = new ArrayList<>();
+
+    //영화의 장르
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
+    private List<MovieGenre> genres = new ArrayList<>();
+
+    //영화에 달린 댓글
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
+    private List<Comment> comments = new ArrayList<>();
+
+    //영화의 좋아요 수
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
+    private List<Like> likes = new ArrayList<>();
+
+
 
     //제목
     private String title;
-
-    //장르
-    //TODO: String -> List
-    private String genre;
 
     //상영일
     private LocalDate releaseDate;
@@ -64,10 +78,12 @@ public class Movie {
 
     //=== 생성자 ===
     @Builder
-    public Movie(String title, String genre, LocalDate releaseDate, LocalDate closeDate) {
+    public Movie(String title, LocalDate releaseDate, LocalDate closeDate, List<MovieActor> movieActors, List<MovieDirector> movieDirectors, List<MovieWriter> movieWriters) {
         this.title = title;
-        this.genre = genre;
         this.releaseDate = releaseDate;
         this.closeDate = closeDate;
+        this.movieActors = movieActors;
+        this.movieDirectors = movieDirectors;
+        this.movieWriters = movieWriters;
     }
 }

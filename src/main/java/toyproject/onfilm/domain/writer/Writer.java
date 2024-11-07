@@ -1,9 +1,11 @@
 package toyproject.onfilm.domain.writer;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import toyproject.onfilm.domain.BaseProfileEntity;
 import toyproject.onfilm.domain.moviewriter.MovieWriter;
 
@@ -22,22 +24,16 @@ import java.util.List;
  */
 
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SuperBuilder
 @Entity
-public class Writer {
+public class Writer extends BaseProfileEntity {
 
     @Id @GeneratedValue
     @Column(name = "writer_id")
     private Long id;
 
-    @Embedded
-    private BaseProfileEntity baseProfileEntity;
-
     @OneToMany(mappedBy = "writer")
+    @Builder.Default
     private List<MovieWriter> filmography = new ArrayList<>();
-
-    @Builder
-    public Writer(BaseProfileEntity baseProfileEntity) {
-        this.baseProfileEntity = baseProfileEntity;
-    }
 }

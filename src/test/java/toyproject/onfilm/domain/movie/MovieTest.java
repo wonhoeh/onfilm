@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
@@ -22,13 +23,15 @@ public class MovieTest {
     void testMovie() {
         //given
         String title = "Avengers";
-        String genre = "action";
+        List<String> genres = new ArrayList<>();
+        genres.add("action");
+        genres.add("comic");
         LocalDate releaseDate = LocalDate.of(2020, 1, 24);
         LocalDate closeDate = LocalDate.of(2020, 2, 24);
 
         Movie movie = movieRepository.save(Movie.builder()
                 .title(title)
-                .genre(genre)
+                .genres(genres)
                 .releaseDate(releaseDate)
                 .closeDate(closeDate)
                 .build());

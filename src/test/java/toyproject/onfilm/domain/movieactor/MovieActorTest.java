@@ -4,6 +4,7 @@ package toyproject.onfilm.domain.movieactor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import toyproject.onfilm.domain.BaseProfileEntity;
 import toyproject.onfilm.domain.actor.Actor;
@@ -42,20 +43,26 @@ public class MovieActorTest {
                 .height(height)
                 .weight(weight)
                 .sns(sns)
+                .filmography(new ArrayList<>())
                 .build());
 
 
         //=== Movie 생성 ===
         String title = "Avengers";
-        String genre = "action";
+        List<String> genres = new ArrayList<>();
+        genres.add("action");
+        genres.add("comic");
         LocalDate releaseDate = LocalDate.of(2020, 1, 24);
         LocalDate closeDate = LocalDate.of(2020, 2, 24);
 
         Movie movie = movieRepository.save(Movie.builder()
                 .title(title)
-                .genre(genre)
+                .genres(genres)
                 .releaseDate(releaseDate)
                 .closeDate(closeDate)
+                .movieActors(new ArrayList<>())
+                .movieDirectors(new ArrayList<>())
+                .movieWriters(new ArrayList<>())
                 .build());
 
 
