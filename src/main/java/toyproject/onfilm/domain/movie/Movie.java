@@ -11,6 +11,7 @@ import toyproject.onfilm.domain.movieactor.MovieActor;
 import toyproject.onfilm.domain.moviedirector.MovieDirector;
 import toyproject.onfilm.domain.moviegenre.MovieGenre;
 import toyproject.onfilm.domain.moviewriter.MovieWriter;
+import toyproject.onfilm.domain.rating.Rating;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import java.util.List;
  * - 종료일
  * - 자막: LONGTEXT(42억 바이트 = 4GB)
  * - 동영상: LONGBLOB(42억 바이트 = 4GB)
+ * - 엔티티
  */
 
 @Getter
@@ -36,9 +38,24 @@ import java.util.List;
 public class Movie {
 
     //감독, 출연, 각본, 장르, 영화 특징, 관람등급
-    @Id @GeneratedValue
-    @Column(name = "movie_id")
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "movie_id", nullable = false)
     private Long id;
+
+    //제목
+    private String title;
+
+    //런타임
+    private String runtime;
+
+    //관람 등급
+    private String rating;
+
+    //상영일
+    private LocalDate releaseDate;
+
+    //종료일
+    private LocalDate closeDate;
 
     //영화에 출연한 배우들
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -64,21 +81,17 @@ public class Movie {
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
     private List<Like> likes = new ArrayList<>();
 
-
-
-    //제목
-    private String title;
-
-    //상영일
-    private LocalDate releaseDate;
-
-    //종료일
-    private LocalDate closeDate;
-
+    /**
+     * 하나의 영화는 하나의 관람등급이 있다
+     * 하나의 관람등급은 여러 개의 영화에 포함된다
+     * 영화:관람등급 = N:1
+     */
 
     //=== 생성자 ===
     @Builder
-    public Movie(String title, LocalDate releaseDate, LocalDate closeDate, List<MovieActor> movieActors, List<MovieDirector> movieDirectors, List<MovieWriter> movieWriters) {
+    public Movie(String title, LocalDate releaseDate, LocalDate closeDate,
+                 List<MovieActor> movieActors, List<MovieDirector> movieDirectors,
+                 List<MovieWriter> movieWriters) {
         this.title = title;
         this.releaseDate = releaseDate;
         this.closeDate = closeDate;

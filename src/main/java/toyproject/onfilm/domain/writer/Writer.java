@@ -29,7 +29,7 @@ import java.util.List;
 @Entity
 public class Writer extends BaseProfileEntity {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "writer_id")
     private Long id;
 

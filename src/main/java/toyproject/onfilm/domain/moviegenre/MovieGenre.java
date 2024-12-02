@@ -12,7 +12,7 @@ import toyproject.onfilm.domain.movie.Movie;
 @Entity
 public class MovieGenre {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "movie_genre_id")
     private Long id;
 

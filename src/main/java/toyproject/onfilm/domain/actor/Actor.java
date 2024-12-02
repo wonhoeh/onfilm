@@ -26,7 +26,7 @@ import java.util.List;
 @Entity
 public class Actor extends BaseProfileEntity {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "actor_id")
     private Long id;
 

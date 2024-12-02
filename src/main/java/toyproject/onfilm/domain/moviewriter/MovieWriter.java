@@ -11,7 +11,7 @@ import toyproject.onfilm.domain.writer.Writer;
 @Entity
 public class MovieWriter {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

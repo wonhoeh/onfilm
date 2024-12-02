@@ -14,7 +14,7 @@ import java.util.List;
 @Entity
 public class Genre {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "genre_id")
     private Long id;
     private String name;

@@ -29,7 +29,7 @@ import java.util.List;
 @Entity
 public class Director extends BaseProfileEntity {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "director_id")
     private Long id;
 

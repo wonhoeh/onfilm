@@ -24,7 +24,7 @@ import toyproject.onfilm.domain.movie.Movie;
 @NoArgsConstructor
 @Entity
 public class MovieActor {
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "movieactor_id")
     private Long id;
 

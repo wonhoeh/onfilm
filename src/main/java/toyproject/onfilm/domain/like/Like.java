@@ -12,7 +12,7 @@ import toyproject.onfilm.domain.user.User;
 @Entity
 public class Like {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name ="like_id")
     private Long id;
 
@@ -24,5 +24,13 @@ public class Like {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    //=== 메서드 ===
+    public int likes(Movie movie) {
+        int totalLike = 0;
+        //매개변수로 입력받은 영화의 좋아요 수를 구한다
+        //영화의 id값의 갯수가 좋아요 갯수임
+        return totalLike;
+    }
 
 }
