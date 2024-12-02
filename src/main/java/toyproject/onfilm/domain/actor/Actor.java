@@ -19,6 +19,7 @@ import java.util.List;
  * - 신체(키, 몸무게) nullable = true
  * - SNS nullable = true
  * - Entity, Entity Repository 함께 위치 시키기 위해 패키지별로 나눔
+ * test
  */
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
