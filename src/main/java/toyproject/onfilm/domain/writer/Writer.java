@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import toyproject.onfilm.domain.BaseProfileEntity;
+import toyproject.onfilm.domain.Profile;
 import toyproject.onfilm.domain.moviewriter.MovieWriter;
 
 import java.util.ArrayList;
@@ -25,15 +26,18 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SuperBuilder
+//@SuperBuilder
 @Entity
-public class Writer extends BaseProfileEntity {
+public class Writer {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "writer_id")
     private Long id;
 
+    @Embedded
+    private Profile profile;
+
     @OneToMany(mappedBy = "writer")
-    @Builder.Default
+    //@Builder.Default
     private List<MovieWriter> filmography = new ArrayList<>();
 }

@@ -14,7 +14,5 @@ public abstract class BaseProfileEntity  {
     @Column(nullable = false)
     private String name;
     private Integer age;
-    private Integer height;
-    private Integer weight;
     private String sns;
 }

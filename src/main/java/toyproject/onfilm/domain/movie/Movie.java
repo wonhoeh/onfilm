@@ -11,7 +11,6 @@ import toyproject.onfilm.domain.movieactor.MovieActor;
 import toyproject.onfilm.domain.moviedirector.MovieDirector;
 import toyproject.onfilm.domain.moviegenre.MovieGenre;
 import toyproject.onfilm.domain.moviewriter.MovieWriter;
-import toyproject.onfilm.domain.rating.Rating;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

@@ -10,6 +10,7 @@ import toyproject.onfilm.domain.user.User;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@Table(name = "Likes")
 public class Like {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

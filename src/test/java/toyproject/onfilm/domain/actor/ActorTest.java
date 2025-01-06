@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 import toyproject.onfilm.domain.BaseProfileEntity;
+import toyproject.onfilm.domain.Profile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,48 +27,21 @@ public class ActorTest {
     @Test
     void actorTest_모든컬럼저장() {
         //given
-        String name = "토니 스타크";
-        int age = 40;
-        int height = 180;
-        int weight = 70;
-        String sns = "www.instagram.com/hello";
+        Profile tonyProfile = Profile.builder()
+                .name("토니 스타크")
+                .age(40)
+                .sns("www.instagram.com/mark404")
+                .build();
 
-        Actor actor = actorRepository.save(Actor.builder()
-                .name(name)
-                .age(age)
-                .height(height)
-                .weight(weight)
-                .sns(sns)
+        Actor tony = actorRepository.save(Actor.builder()
+                .profile(tonyProfile)
                 .build());
 
-        log.info("actor.name = {}", actor.getName());
+        log.info("actor.name = {}", tony.getProfile().getName());
 
         //when
         Actor findActor = actorRepository.findAll().get(0);
 
-        assertThat(findActor.getName()).isEqualTo(actor.getName());
-    }
-
-    @Transactional
-    @Test
-    void actorTest_NotNULL() {
-        //given
-        int age = 40;
-        int height = 180;
-        int weight = 70;
-        String sns = "www.instagram.com/hello";
-
-        Actor actor = actorRepository.save(Actor.builder()
-                .age(age)
-                .height(height)
-                .weight(weight)
-                .sns(sns)
-                .build());
-
-        //when & then
-        assertThatThrownBy(() -> actorRepository.findAll().get(0))
-                .isInstanceOf(DataIntegrityViolationException.class);
-
-
+        assertThat(findActor.getProfile().getName()).isEqualTo(tony.getProfile().getName());
     }
 }

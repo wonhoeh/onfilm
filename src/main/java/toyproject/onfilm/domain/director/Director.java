@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import toyproject.onfilm.domain.BaseProfileEntity;
+import toyproject.onfilm.domain.Profile;
 import toyproject.onfilm.domain.moviedirector.MovieDirector;
 
 import java.util.ArrayList;
@@ -25,15 +26,19 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SuperBuilder
+//@SuperBuilder
 @Entity
-public class Director extends BaseProfileEntity {
+public class Director {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "director_id")
     private Long id;
 
+    @Embedded
+    private Profile profile;
+
     @OneToMany(mappedBy = "director", cascade = CascadeType.ALL)
-    @Builder.Default
+    //@Builder.Default
     List<MovieDirector> filmography = new ArrayList<>();
+
 }

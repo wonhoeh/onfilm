@@ -23,12 +23,12 @@ public class Comment {
 
     //=== 연관 관계 ===
 
-    /**
-     * 한 명의 유저는 여러 개의 댓글을 달수있다
-     * 하나의 댓글은 한 명의 유저에 의해 쓰여진다
-     * 유저 : 댓글 = 1 : N
-     */
     //댓글을 작성한 유저
+    /**
+     * 한 명의 유저는 여러 개의 댓글을 작성할 수 있다
+     * 하나의 댓글은 한 명의 유저에 의해 작성된다
+     * 댓글 : 유저 = N : 1
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
@@ -37,7 +37,7 @@ public class Comment {
     /**
      * 한편의 영화는 여러 개의 댓글이 있다
      * 한 개의 댓글은 한 개의 영화에 작성된다
-     * 영화:댓글 = 1 : N
+     * 댓글 : 영화 = N : 1
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name ="movie_id")

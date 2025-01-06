@@ -3,10 +3,10 @@ package toyproject.onfilm.domain.actor;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import toyproject.onfilm.domain.Profile;
 import toyproject.onfilm.domain.BaseProfileEntity;
 import toyproject.onfilm.domain.movieactor.MovieActor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -23,16 +23,24 @@ import java.util.List;
  */
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SuperBuilder
+//@SuperBuilder
 @Entity
-public class Actor extends BaseProfileEntity {
+public class Actor {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "actor_id")
     private Long id;
 
+    @Embedded
+    private Profile profile;
+
     //=== 연관 관계 ===
     //배우가 출연한 모든 영화와의 관계
     @OneToMany(mappedBy = "actor", cascade = CascadeType.ALL)
     private List<MovieActor> filmography;
+
+    @Builder
+    public Actor(Profile profile) {
+        this.profile = profile;
+    }
 }
