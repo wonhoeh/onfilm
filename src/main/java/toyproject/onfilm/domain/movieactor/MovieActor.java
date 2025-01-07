@@ -40,15 +40,24 @@ public class MovieActor {
     private String actorsRole;
 
 
-    //=== 연관관계 편의 메서드 ===
+//    //=== 연관관계 편의 메서드 ===
+//    public void setMovie(Movie movie) {
+//        this.movie = movie;
+//        movie.getMovieActors().add(this);
+//    }
+//
+//    public void setActor(Actor actor) {
+//        this.actor = actor;
+//        actor.getFilmography().add(this);
+//    }
+
+    //=== 양방향 설정 메서드 ===//
     public void setMovie(Movie movie) {
         this.movie = movie;
-        movie.getMovieActors().add(this);
     }
 
     public void setActor(Actor actor) {
         this.actor = actor;
-        actor.getFilmography().add(this);
     }
 
     //=== 생성 메서드 ===
@@ -60,4 +69,6 @@ public class MovieActor {
 
         return movieActor;
     }
+
+
 }

@@ -2,7 +2,6 @@ package toyproject.onfilm.domain.movie;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import toyproject.onfilm.domain.comment.Comment;
@@ -13,6 +12,7 @@ import toyproject.onfilm.domain.moviegenre.MovieGenre;
 import toyproject.onfilm.domain.moviewriter.MovieWriter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,16 +45,16 @@ public class Movie {
     private String title;
 
     //런타임
-    private String runtime;
+    private int runtime;
 
     //관람 등급
     private String rating;
 
     //상영일
-    private LocalDate releaseDate;
+    private LocalDateTime releaseDate;
 
-    //종료일
-    private LocalDate closeDate;
+//    //종료일
+//    private LocalDate closeDate;
 
     //영화에 출연한 배우들
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -86,16 +86,23 @@ public class Movie {
      * 영화:관람등급 = N:1
      */
 
-    //=== 생성자 ===
-    @Builder
-    public Movie(String title, LocalDate releaseDate, LocalDate closeDate,
-                 List<MovieActor> movieActors, List<MovieDirector> movieDirectors,
-                 List<MovieWriter> movieWriters) {
+    //=== 연관 관계 메서드 ===//
+    public void addActor(MovieActor movieActor) {
+        movieActors.add(movieActor);
+        movieActor.setMovie(this);
+    }
+
+    public void setMovieInfo(String title, int runtime, String rating, LocalDateTime releaseDate) {
         this.title = title;
+        this.runtime = runtime;
+        this.rating = rating;
         this.releaseDate = releaseDate;
-        this.closeDate = closeDate;
-        this.movieActors = movieActors;
-        this.movieDirectors = movieDirectors;
-        this.movieWriters = movieWriters;
+    }
+
+    //=== 생성 메서드 ===//
+    public static Movie createMovie(String title, int runtime, String rating, LocalDateTime releaseDate) {
+        Movie movie = new Movie();
+        movie.setMovieInfo(title, runtime, rating, releaseDate);
+        return movie;
     }
 }
