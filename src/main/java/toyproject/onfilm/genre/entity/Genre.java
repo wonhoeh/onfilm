@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import toyproject.onfilm.domain.moviegenre.MovieGenre;
 import toyproject.onfilm.moviegenre.dto.MovieGenre;
 
 import java.util.ArrayList;

@@ -5,8 +5,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import toyproject.onfilm.comment.entity.Comment;
-import toyproject.onfilm.domain.comment.Comment;
-import toyproject.onfilm.domain.like.Like;
 import toyproject.onfilm.like.entity.Like;
 
 import java.util.ArrayList;

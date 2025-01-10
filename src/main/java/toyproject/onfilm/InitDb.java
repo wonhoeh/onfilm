@@ -7,11 +7,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import toyproject.onfilm.actor.entity.Actor;
 import toyproject.onfilm.common.Profile;
-import toyproject.onfilm.domain.Profile;
-import toyproject.onfilm.domain.actor.Actor;
-import toyproject.onfilm.domain.movieactor.MovieActor;
 import toyproject.onfilm.movie.entity.Movie;
 import toyproject.onfilm.movieactor.entity.MovieActor;
+import toyproject.onfilm.movietrailer.dto.MovieTrailerDto;
+import toyproject.onfilm.movietrailer.entity.MovieTrailer;
 
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -55,9 +54,14 @@ public class InitDb {
             em.persist(movieActor2);
             em.persist(movieActor3);
 
-            movie.addActor(movieActor1);
-            movie.addActor(movieActor2);
-            movie.addActor(movieActor3);
+            movie.setActor(movieActor1);
+            movie.setActor(movieActor2);
+            movie.setActor(movieActor3);
+
+            String trailerUrl = "https://example.com/1.mp4";
+            String thumbnailUrl = "https://example.com/1.jpg";
+
+            movie.setTrailer(new MovieTrailer(trailerUrl, thumbnailUrl));
 
             em.persist(movie);
         }
@@ -78,8 +82,13 @@ public class InitDb {
             em.persist(movieActor1);
             em.persist(movieActor2);
 
-            movie.addActor(movieActor1);
-            movie.addActor(movieActor2);
+            movie.setActor(movieActor1);
+            movie.setActor(movieActor2);
+
+            String trailerUrl = "https://example.com/2.mp4";
+            String thumbnailUrl = "https://example.com/2.jpg";
+
+            movie.setTrailer(new MovieTrailer(trailerUrl, thumbnailUrl));
 
             em.persist(movie);
         }

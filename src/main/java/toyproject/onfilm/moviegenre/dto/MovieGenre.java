@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import toyproject.onfilm.domain.genre.Genre;
-import toyproject.onfilm.domain.movie.Movie;
 import toyproject.onfilm.genre.entity.Genre;
 import toyproject.onfilm.movie.entity.Movie;
 

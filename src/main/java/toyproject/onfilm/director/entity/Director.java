@@ -5,8 +5,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import toyproject.onfilm.common.Profile;
-import toyproject.onfilm.domain.Profile;
-import toyproject.onfilm.domain.moviedirector.MovieDirector;
 import toyproject.onfilm.moviedirector.entity.MovieDirector;
 
 import java.util.ArrayList;

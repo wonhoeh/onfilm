@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import toyproject.onfilm.director.entity.Director;
-import toyproject.onfilm.domain.director.Director;
-import toyproject.onfilm.domain.movie.Movie;
 import toyproject.onfilm.movie.entity.Movie;
 
 @Getter

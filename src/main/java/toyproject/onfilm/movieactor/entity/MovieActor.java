@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import toyproject.onfilm.actor.entity.Actor;
-import toyproject.onfilm.domain.actor.Actor;
-import toyproject.onfilm.domain.movie.Movie;
 import toyproject.onfilm.movie.entity.Movie;
 
 /**
@@ -42,17 +40,6 @@ public class MovieActor {
     private String actorsRole;
 
 
-//    //=== 연관관계 편의 메서드 ===
-//    public void setMovie(Movie movie) {
-//        this.movie = movie;
-//        movie.getMovieActors().add(this);
-//    }
-//
-//    public void setActor(Actor actor) {
-//        this.actor = actor;
-//        actor.getFilmography().add(this);
-//    }
-
     //=== 양방향 설정 메서드 ===//
     public void setMovie(Movie movie) {
         this.movie = movie;
@@ -71,6 +58,4 @@ public class MovieActor {
 
         return movieActor;
     }
-
-
 }

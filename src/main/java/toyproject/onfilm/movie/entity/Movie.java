@@ -5,13 +5,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import toyproject.onfilm.comment.entity.Comment;
-import toyproject.onfilm.domain.comment.Comment;
-import toyproject.onfilm.domain.like.Like;
-import toyproject.onfilm.domain.movieactor.MovieActor;
-import toyproject.onfilm.domain.moviedirector.MovieDirector;
-import toyproject.onfilm.domain.moviegenre.MovieGenre;
-import toyproject.onfilm.domain.movietrailer.MovieTrailer;
-import toyproject.onfilm.domain.moviewriter.MovieWriter;
 import toyproject.onfilm.like.entity.Like;
 import toyproject.onfilm.movieactor.entity.MovieActor;
 import toyproject.onfilm.moviedirector.entity.MovieDirector;
@@ -50,13 +43,10 @@ public class Movie {
 
     //제목
     private String title;
-
     //런타임
     private int runtime;
-
     //관람 등급
     private String ageRating;
-
     //상영일
     private LocalDateTime releaseDate;
 
@@ -98,9 +88,14 @@ public class Movie {
      */
 
     //=== 연관 관계 메서드 ===//
-    public void addActor(MovieActor movieActor) {
+    public void setActor(MovieActor movieActor) {
         movieActors.add(movieActor);
         movieActor.setMovie(this);
+    }
+
+    public void setTrailer(MovieTrailer movieTrailer) {
+        movieTrailers.add(movieTrailer);
+        movieTrailer.setMovie(this);
     }
 
     public void setMovieInfo(String title, int runtime, String ageRating, LocalDateTime releaseDate) {

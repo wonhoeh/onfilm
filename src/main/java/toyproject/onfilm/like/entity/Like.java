@@ -4,9 +4,8 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import toyproject.onfilm.domain.movie.Movie;
-import toyproject.onfilm.domain.user.User;
 import toyproject.onfilm.movie.entity.Movie;
+import toyproject.onfilm.user.entity.User;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

@@ -3,8 +3,6 @@ package toyproject.onfilm.moviewriter.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import toyproject.onfilm.domain.movie.Movie;
-import toyproject.onfilm.domain.writer.Writer;
 import toyproject.onfilm.movie.entity.Movie;
 import toyproject.onfilm.wrtier.entity.Writer;
 
