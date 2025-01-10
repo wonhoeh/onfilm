@@ -5,10 +5,13 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import toyproject.onfilm.actor.entity.Actor;
+import toyproject.onfilm.common.Profile;
 import toyproject.onfilm.domain.Profile;
 import toyproject.onfilm.domain.actor.Actor;
-import toyproject.onfilm.domain.movie.Movie;
 import toyproject.onfilm.domain.movieactor.MovieActor;
+import toyproject.onfilm.movie.entity.Movie;
+import toyproject.onfilm.movieactor.entity.MovieActor;
 
 import java.time.LocalDateTime;
 import java.time.Month;
