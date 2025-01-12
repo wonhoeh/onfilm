@@ -9,11 +9,11 @@ import toyproject.onfilm.actor.entity.Actor;
 import toyproject.onfilm.common.Profile;
 import toyproject.onfilm.movie.entity.Movie;
 import toyproject.onfilm.movieactor.entity.MovieActor;
-import toyproject.onfilm.movietrailer.dto.MovieTrailerDto;
 import toyproject.onfilm.movietrailer.entity.MovieTrailer;
 
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -42,9 +42,11 @@ public class InitDb {
             em.persist(actor2);
             em.persist(actor3);
 
+            String movieFileUrl = UUID.randomUUID() + "_" + "광해";
 
             Movie movie = Movie.createMovie("광해", 120, "15+",
-                    LocalDateTime.of(2025, Month.JANUARY, 10, 15, 30));
+                    LocalDateTime.of(2025, Month.JANUARY, 10, 15, 30),
+                    movieFileUrl);
 
             MovieActor movieActor1 = MovieActor.createCasting(movie, actor1, "광해군");
             MovieActor movieActor2 = MovieActor.createCasting(movie, actor2, "하선");
@@ -72,9 +74,11 @@ public class InitDb {
             em.persist(actor1);
             em.persist(actor2);
 
+            String movieFileUrl = UUID.randomUUID() + "_" + "얼린미역국";
 
             Movie movie = Movie.createMovie("얼린미역국", 120, "15+",
-                    LocalDateTime.of(2025, Month.JANUARY, 30, 15, 30));
+                    LocalDateTime.of(2025, Month.JANUARY, 30, 15, 30),
+                    movieFileUrl);
 
             MovieActor movieActor1 = MovieActor.createCasting(movie, actor1, "과장");
             MovieActor movieActor2 = MovieActor.createCasting(movie, actor2, "사원");

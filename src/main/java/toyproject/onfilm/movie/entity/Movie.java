@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import toyproject.onfilm.comment.entity.Comment;
 import toyproject.onfilm.like.entity.Like;
 import toyproject.onfilm.movieactor.entity.MovieActor;
@@ -41,20 +42,18 @@ public class Movie {
     @Column(name = "movie_id", nullable = false)
     private Long id;
 
-    //제목
-    private String title;
-    //런타임
-    private int runtime;
-    //관람 등급
-    private String ageRating;
-    //상영일
-    private LocalDateTime releaseDate;
+    private String title; //제목
+    private int runtime;    //상영 시간
+    private String ageRating; //관람 등급
+    private LocalDateTime releaseDate; //개봉일
+    private String movieFileUrl; //영화 파일 url
 
 //    //종료일
 //    private LocalDate closeDate;
 
     //영화에 출연한 배우들
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 10)   //한 번에 10개의 MovieActor를 로드
     private List<MovieActor> movieActors = new ArrayList<>();
 
     //영화 제작에 참여한 감독들
@@ -79,6 +78,7 @@ public class Movie {
 
     //예고편, 섬네일
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
+    @BatchSize(size = 10) //한 번에 10개의 MovieActor를 로드
     private List<MovieTrailer> movieTrailers = new ArrayList<>();
 
     /**
@@ -98,17 +98,18 @@ public class Movie {
         movieTrailer.setMovie(this);
     }
 
-    public void setMovieInfo(String title, int runtime, String ageRating, LocalDateTime releaseDate) {
+    public void setMovieInfo(String title, int runtime, String ageRating, LocalDateTime releaseDate, String movieFileUrl) {
         this.title = title;
         this.runtime = runtime;
         this.ageRating = ageRating;
         this.releaseDate = releaseDate;
+        this.movieFileUrl = movieFileUrl;
     }
 
     //=== 생성 메서드 ===//
-    public static Movie createMovie(String title, int runtime, String rating, LocalDateTime releaseDate) {
+    public static Movie createMovie(String title, int runtime, String rating, LocalDateTime releaseDate, String movieFileUrl) {
         Movie movie = new Movie();
-        movie.setMovieInfo(title, runtime, rating, releaseDate);
+        movie.setMovieInfo(title, runtime, rating, releaseDate, movieFileUrl);
         return movie;
     }
 }

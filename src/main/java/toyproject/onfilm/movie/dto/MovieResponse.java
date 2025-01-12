@@ -1,9 +1,9 @@
 package toyproject.onfilm.movie.dto;
 
-import lombok.Builder;
 import lombok.Getter;
-import toyproject.onfilm.movieactor.dto.MovieActorDto;
-import toyproject.onfilm.movietrailer.dto.MovieTrailerDto;
+import toyproject.onfilm.movie.entity.Movie;
+import toyproject.onfilm.movieactor.dto.MovieActorResponse;
+import toyproject.onfilm.movietrailer.dto.MovieTrailerResponse;
 
 import java.util.List;
 
@@ -23,20 +23,19 @@ import java.util.List;
  * }
  */
 @Getter
-public class MovieDto {
+public class MovieResponse {
     private Long id;
     private String title;
     private int runtime;
     private String ageRating;
-    private List<MovieActorDto> movieActors;
-    private List<MovieTrailerDto> movieTrailers;
+    private List<MovieActorResponse> movieActors;
+    private List<MovieTrailerResponse> movieTrailers;
 
-    @Builder
-    public MovieDto(Long id, String title, int runtime, String ageRating, List<MovieActorDto> movieActors, List<MovieTrailerDto> movieTrailers) {
-        this.id = id;
-        this.title = title;
-        this.runtime = runtime;
-        this.ageRating = ageRating;
+    public MovieResponse(Movie movie, List<MovieActorResponse> movieActors, List<MovieTrailerResponse> movieTrailers) {
+        this.id = movie.getId();
+        this.title = movie.getTitle();
+        this.runtime = movie.getRuntime();
+        this.ageRating = movie.getAgeRating();
         this.movieActors = movieActors;
         this.movieTrailers = movieTrailers;
     }

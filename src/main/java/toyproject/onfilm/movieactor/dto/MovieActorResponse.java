@@ -1,0 +1,31 @@
+package toyproject.onfilm.movieactor.dto;
+
+import lombok.Getter;
+import toyproject.onfilm.movie.dto.MovieDetailsDto;
+import toyproject.onfilm.movieactor.entity.MovieActor;
+
+@Getter
+public class MovieActorResponse {
+
+    private String name;
+    private int age;
+    private String sns;
+    private String actorsRole;
+
+    public MovieActorResponse(MovieActor movieActor) {
+        this.name = movieActor.getActor().getProfile().getName();
+        this.age = movieActor.getActor().getProfile().getAge();
+        this.sns = movieActor.getActor().getProfile().getSns();
+        this.actorsRole = movieActor.getActorsRole();
+    }
+
+    /**
+     * DTO로 직접 받을 때 사용
+     */
+    public MovieActorResponse(MovieDetailsDto movieDetailsDto) {
+        this.name = movieDetailsDto.getName();
+        this.age = movieDetailsDto.getAge();
+        this.sns = movieDetailsDto.getSns();
+        this.actorsRole = movieDetailsDto.getActorsRole();
+    }
+}
