@@ -2,6 +2,7 @@ package toyproject.onfilm.wrtier.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import toyproject.onfilm.common.Profile;
@@ -37,4 +38,9 @@ public class Writer {
     @OneToMany(mappedBy = "writer")
     //@Builder.Default
     private List<MovieWriter> filmography = new ArrayList<>();
+
+    @Builder
+    public Writer(Profile profile) {
+        this.profile = profile;
+    }
 }

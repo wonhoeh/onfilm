@@ -133,9 +133,9 @@ public class MovieService {
 
         //2. Movie 엔티티 생성
         Movie movie = Movie.createMovie(request.getTitle(), request.getRuntime(),
-                request.getAgeRating(), request.getReleaseDate(),
+                request.getAgeRating(), request.getReleaseDate(), request.getSynopsis(),
                 movieFileUrl);
-        movie.setTrailer(new MovieTrailer(trailerUrl, thumbnailUrl));
+        movie.addTrailer(new MovieTrailer(trailerUrl, thumbnailUrl));
 
         //3. 출연 배우 정보 설정
         List<MovieActor> movieActors = request.getActors().stream().map(actorRequest -> {
@@ -150,7 +150,7 @@ public class MovieService {
 
         //영화와 배우 관계 설정
         for(MovieActor movieActor : movieActors) {
-            movie.setActor(movieActor);
+            movie.addActor(movieActor);
         }
 
         //4. 데이터베이스에 저장

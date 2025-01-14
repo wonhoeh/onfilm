@@ -12,16 +12,18 @@ public class CreateMovieRequest {
     private int runtime;
     private String ageRating;
     private LocalDateTime releaseDate;
+    private String synopsis;
     private List<MovieActorRequest> actors; //출연 배우 정보
     private String movieFile;
     private String thumbnailFile;
     private String trailerFile;
 
-    public CreateMovieRequest(String title, int runtime, String ageRating, LocalDateTime releaseDate, List<MovieActorRequest> actors, String movieFile, String thumbnailFile, String trailerFile) {
+    public CreateMovieRequest(String title, int runtime, String ageRating, LocalDateTime releaseDate, String synopsis, List<MovieActorRequest> actors, String movieFile, String thumbnailFile, String trailerFile) {
         this.title = title;
         this.runtime = runtime;
         this.ageRating = ageRating;
         this.releaseDate = releaseDate;
+        this.synopsis = synopsis;
         this.actors = actors;
         this.movieFile = movieFile;
         this.thumbnailFile = thumbnailFile;

@@ -23,12 +23,12 @@ public class MovieDirector {
     private Movie movie;
 
     //=== 연관 관계 편의 메서드 ===
-    public void setDirector(Director director) {
+    public void addDirector(Director director) {
         this.director = director;
         director.getFilmography().add(this);
     }
 
-    public void setMovie(Movie movie) {
+    public void addMovie(Movie movie) {
         this.movie = movie;
         movie.getMovieDirectors().add(this);
     }
@@ -36,8 +36,8 @@ public class MovieDirector {
     //=== 생성자 메서드 ===
     public static MovieDirector createMovieDirector(Director director, Movie movie) {
         MovieDirector movieDirector = new MovieDirector();
-        movieDirector.setDirector(director);
-        movieDirector.setMovie(movie);
+        movieDirector.addDirector(director);
+        movieDirector.addMovie(movie);
 
         return movieDirector;
     }

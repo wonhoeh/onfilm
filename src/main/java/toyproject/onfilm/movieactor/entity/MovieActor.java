@@ -41,19 +41,19 @@ public class MovieActor {
 
 
     //=== 양방향 설정 메서드 ===//
-    public void setMovie(Movie movie) {
+    public void addMovie(Movie movie) {
         this.movie = movie;
     }
 
-    public void setActor(Actor actor) {
+    public void addActor(Actor actor) {
         this.actor = actor;
     }
 
     //=== 생성 메서드 ===
     public static MovieActor createCasting(Movie movie, Actor actor, String actorsRole) {
         MovieActor movieActor = new MovieActor();
-        movieActor.setMovie(movie);
-        movieActor.setActor(actor);
+        movieActor.addMovie(movie);
+        movieActor.addActor(actor);
         movieActor.actorsRole = actorsRole;
 
         return movieActor;

@@ -2,6 +2,7 @@ package toyproject.onfilm.director.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import toyproject.onfilm.common.Profile;
@@ -38,4 +39,8 @@ public class Director {
     //@Builder.Default
     List<MovieDirector> filmography = new ArrayList<>();
 
+    @Builder
+    public Director(Profile profile) {
+        this.profile = profile;
+    }
 }

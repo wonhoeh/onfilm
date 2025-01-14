@@ -23,12 +23,12 @@ public class MovieWriter {
     private Movie movie;
 
     //=== 연관관계 편의 메서드 ===
-    public void setWriter(Writer writer) {
+    public void addWriter(Writer writer) {
         this.writer = writer;
         writer.getFilmography().add(this);
     }
 
-    public void setMovie(Movie movie) {
+    public void addMovie(Movie movie) {
         this.movie = movie;
         movie.getMovieWriters().add(this);
     }
@@ -36,8 +36,8 @@ public class MovieWriter {
     //=== 생성자 메서드 ===
     public static MovieWriter createMovieWriter(Writer writer, Movie movie) {
         MovieWriter movieWriter = new MovieWriter();
-        movieWriter.setWriter(writer);
-        movieWriter.setMovie(movie);
+        movieWriter.addWriter(writer);
+        movieWriter.addMovie(movie);
 
         return movieWriter;
     }
