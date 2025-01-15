@@ -148,6 +148,11 @@ public class MovieService {
             return movieActor;
         }).collect(Collectors.toList());
 
+        //4. 감독 정보 설정
+
+
+        //5. 작가 정보 설정
+
         //영화와 배우 관계 설정
         for(MovieActor movieActor : movieActors) {
             movie.addActor(movieActor);

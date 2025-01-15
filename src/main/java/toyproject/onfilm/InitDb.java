@@ -126,8 +126,8 @@ public class InitDb {
             em.persist(movieWriter1);
             em.persist(movieWriter2);
 
-            MovieActor movieActor1 = MovieActor.createCasting(movie, actor1, "과장");
-            MovieActor movieActor2 = MovieActor.createCasting(movie, actor2, "사원");
+            MovieActor movieActor1 = MovieActor.createCasting(movie, actor1, "팀장");
+            MovieActor movieActor2 = MovieActor.createCasting(movie, actor2, "대리");
             em.persist(movieActor1);
             em.persist(movieActor2);
 
