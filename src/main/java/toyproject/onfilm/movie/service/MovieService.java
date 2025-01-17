@@ -8,7 +8,10 @@ import toyproject.onfilm.actor.entity.Actor;
 import toyproject.onfilm.actor.repository.ActorRepository;
 import toyproject.onfilm.common.Profile;
 import toyproject.onfilm.exception.MovieNotFoundException;
+import toyproject.onfilm.genre.entity.Genre;
+import toyproject.onfilm.genre.repository.GenreRepository;
 import toyproject.onfilm.movie.dto.CreateMovieRequest;
+import toyproject.onfilm.movie.dto.MovieGenreDto;
 import toyproject.onfilm.movie.dto.MovieThumbnailResponse;
 import toyproject.onfilm.movie.dto.MovieResponse;
 import toyproject.onfilm.movie.entity.Movie;
@@ -30,6 +33,7 @@ public class MovieService {
     private final MovieRepository movieRepository;
     private final ActorRepository actorRepository;
     private final DummyS3Service dummyS3Service;
+    private final GenreRepository genreRepository;
 
     /**
      * 카르테시안 곱 문제 발생
@@ -126,18 +130,18 @@ public class MovieService {
      */
     @Transactional
     public Long createMovie(CreateMovieRequest request) {
-        //1. 영화 파일 및 섬네일 업로드
+        // 영화 파일 및 섬네일 업로드
         String movieFileUrl = dummyS3Service.uploadFile(request.getMovieFile());
         String thumbnailUrl = dummyS3Service.uploadFile(request.getThumbnailFile());
         String trailerUrl = dummyS3Service.uploadFile(request.getTrailerFile());
 
-        //2. Movie 엔티티 생성
+        // Movie 엔티티 생성
         Movie movie = Movie.createMovie(request.getTitle(), request.getRuntime(),
                 request.getAgeRating(), request.getReleaseDate(), request.getSynopsis(),
                 movieFileUrl);
         movie.addTrailer(new MovieTrailer(trailerUrl, thumbnailUrl));
 
-        //3. 출연 배우 정보 설정
+        // 출연 배우 정보 설정
         List<MovieActor> movieActors = request.getActors().stream().map(actorRequest -> {
             //배우 정보 저장 (중복 체크)
             Actor actor = actorRepository.findByProfileName(actorRequest.getName())
@@ -148,10 +152,10 @@ public class MovieService {
             return movieActor;
         }).collect(Collectors.toList());
 
-        //4. 감독 정보 설정
+        // 감독 정보 설정
 
 
-        //5. 작가 정보 설정
+        // 작가 정보 설정
 
         //영화와 배우 관계 설정
         for(MovieActor movieActor : movieActors) {
@@ -165,4 +169,20 @@ public class MovieService {
         return movie.getId();
     }
 
+    //영화와 장르 가져오기
+//    @Transactional
+//    public MovieGenreDto getMovieWithGenres(Long movieId) {
+//        //RDB에서 Movie 데이터 조회
+//        Movie movie = movieRepository.findById(movieId)
+//                .orElseThrow(() -> new MovieNotFoundException("영화를 찾을 수 없습니다"));
+//
+//        //MongoDB에서 Genre 데이터 조회
+//        List<Genre> genre = movie.getGenreIds().stream()
+//                .map(genreId -> genreRepository.findById(genreId)
+//                        .
+//                .collect(Collectors.toList());
+//
+//        //Movie + Genre 정보를 MovieGenreDto로 변환
+//        return new MovieGenreDto(movie, genre);
+//    }
 }

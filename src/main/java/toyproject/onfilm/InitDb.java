@@ -3,11 +3,17 @@ package toyproject.onfilm;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import toyproject.onfilm.actor.entity.Actor;
 import toyproject.onfilm.common.Profile;
 import toyproject.onfilm.director.entity.Director;
+import toyproject.onfilm.genre.entity.Genre;
+import toyproject.onfilm.genre.repository.GenreRepository;
 import toyproject.onfilm.movie.entity.Movie;
 import toyproject.onfilm.movieactor.entity.MovieActor;
 import toyproject.onfilm.moviedirector.entity.MovieDirector;
@@ -17,6 +23,8 @@ import toyproject.onfilm.wrtier.entity.Writer;
 
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -25,18 +33,29 @@ public class InitDb {
 
     private final InitService initService;
 
+
+
     @PostConstruct
     public void init() {
+        initService.dbInit0();
         initService.dbInit1();
         initService.dbInit2();
     }
 
+    @Slf4j
     @Component
     @Transactional
     @RequiredArgsConstructor
     static class InitService {
 
         private final EntityManager em;
+        private final MongoTemplate mongoTemplate;
+
+        public void dbInit0() {
+            mongoTemplate.dropCollection("genres");
+            mongoTemplate.save(new Genre("드라마"));
+            mongoTemplate.save(new Genre("스릴러"));
+        }
 
         public void dbInit1() {
             Director director = createDirector("추창민", 50, "instagram/ccm_m");
@@ -48,6 +67,7 @@ public class InitDb {
             em.persist(writer1);
             em.persist(writer2);
 
+            //=== 배우 등록 ===//
             Actor actor1 = createActor("이병헌", 50, "instagram/lbhZzz");
             Actor actor2 = createActor("이병헌", 50, "instagram/lbhZzz");
             Actor actor3 = createActor("류승룡", 50, "instagram/ysyVVV");
@@ -55,21 +75,29 @@ public class InitDb {
             em.persist(actor2);
             em.persist(actor3);
 
+            //=== 영화 파일 URL, 시놉시스 작성 ===//
             String movieFileUrl = UUID.randomUUID() + "_" + "광해";
             String synopsis = "조선의 왕 광해와 광해군을 대신하여 나라를 다스린 하선의 이야기입니다.";
 
+            //=== 영화 생성 ===//
             Movie movie = Movie.createMovie("광해", 120, "15+",
                     LocalDateTime.of(2025, Month.JANUARY, 10, 15, 30),
                     synopsis, movieFileUrl);
 
+            //=== 생성자에 movie가 필요한 것들 ===//
+
+            //=== 감독 등록 ===//
             MovieDirector movieDirector = MovieDirector.createMovieDirector(director, movie);
             em.persist(movieDirector);
 
+
+            //=== 작가 등록 ===//
             MovieWriter movieWriter1 = MovieWriter.createMovieWriter(writer1, movie);
             MovieWriter movieWriter2 = MovieWriter.createMovieWriter(writer2, movie);
             em.persist(movieWriter1);
             em.persist(movieWriter2);
 
+            //=== 출연 배우 등록 ===//
             MovieActor movieActor1 = MovieActor.createCasting(movie, actor1, "광해군");
             MovieActor movieActor2 = MovieActor.createCasting(movie, actor2, "하선");
             MovieActor movieActor3 = MovieActor.createCasting(movie, actor3, "허균");
@@ -90,6 +118,13 @@ public class InitDb {
             String thumbnailUrl = "https://example.com/1.jpg";
 
             movie.addTrailer(new MovieTrailer(trailerUrl, thumbnailUrl));
+
+            Query query = new Query();
+            query.addCriteria(Criteria.where("name").is("드라마"));
+            Genre genre = mongoTemplate.findOne(query, Genre.class);
+            movie.addGenre(genre.getId());
+
+            log.info("movie.genreId = {}", movie.getGenreIds().get(0));
 
             em.persist(movie);
         }

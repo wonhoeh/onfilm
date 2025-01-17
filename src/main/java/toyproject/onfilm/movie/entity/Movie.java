@@ -9,7 +9,6 @@ import toyproject.onfilm.comment.entity.Comment;
 import toyproject.onfilm.like.entity.Like;
 import toyproject.onfilm.movieactor.entity.MovieActor;
 import toyproject.onfilm.moviedirector.entity.MovieDirector;
-import toyproject.onfilm.moviegenre.dto.MovieGenre;
 import toyproject.onfilm.movietrailer.entity.MovieTrailer;
 import toyproject.onfilm.moviewriter.entity.MovieWriter;
 
@@ -67,8 +66,10 @@ public class Movie {
     private List<MovieWriter> movieWriters = new ArrayList<>();
 
     //영화의 장르
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
-    private List<MovieGenre> genres = new ArrayList<>();
+//    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
+//    private List<MovieGenre> genres = new ArrayList<>();
+    @ElementCollection
+    private List<String> genreIds = new ArrayList<>();  //MongoDB Genre 컬렉션의 ID를 저장
 
     //영화에 달린 댓글
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
@@ -108,6 +109,10 @@ public class Movie {
     public void addTrailer(MovieTrailer movieTrailer) {
         movieTrailers.add(movieTrailer);
         movieTrailer.setMovie(this);
+    }
+
+    public void addGenre(String genreId) {
+        genreIds.add(genreId);
     }
 
     public void addMovieInfo(String title, int runtime, String ageRating, LocalDateTime releaseDate, String synopsis, String movieFileUrl) {

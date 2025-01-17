@@ -1,25 +1,30 @@
 package toyproject.onfilm.genre.entity;
 
-import jakarta.persistence.*;
-import lombok.AccessLevel;
+import jakarta.persistence.Id;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import toyproject.onfilm.moviegenre.dto.MovieGenre;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Entity
+@Document(collection = "genres")
 public class Genre {
+    @Id
+    private String id;
+    private String name;    //장르 이름
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "genre_id")
-    private Long id;
-    private String name;
+    private void addGenreName(String name) {
+        this.name = name;
+    }
 
-    //=== 연관 관계 ===
-    @OneToMany(mappedBy = "genre")
-    private List<MovieGenre> movieGenres = new ArrayList<>();
+    public static Genre createGenre(String name) {
+        Genre genre = new Genre();
+        genre.addGenreName(name);
+        return genre;
+    }
+
+    public Genre(String name) {
+        this.name = name;
+    }
+
+    public Genre() {}
 }

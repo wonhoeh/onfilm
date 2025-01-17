@@ -1,7 +1,14 @@
 package toyproject.onfilm.genre.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 import toyproject.onfilm.genre.entity.Genre;
 
-public interface GenreRepository extends JpaRepository<Genre, Long> {
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface GenreRepository extends MongoRepository<Genre, String> {
+    Optional<Genre> findById(String id);
+    Optional<Genre> findByName(String name);
 }
