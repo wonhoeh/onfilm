@@ -13,7 +13,6 @@ import toyproject.onfilm.actor.entity.Actor;
 import toyproject.onfilm.common.Profile;
 import toyproject.onfilm.director.entity.Director;
 import toyproject.onfilm.genre.entity.Genre;
-import toyproject.onfilm.genre.repository.GenreRepository;
 import toyproject.onfilm.movie.entity.Movie;
 import toyproject.onfilm.movieactor.entity.MovieActor;
 import toyproject.onfilm.moviedirector.entity.MovieDirector;
@@ -23,8 +22,6 @@ import toyproject.onfilm.wrtier.entity.Writer;
 
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Component

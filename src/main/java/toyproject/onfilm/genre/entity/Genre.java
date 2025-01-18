@@ -12,19 +12,7 @@ public class Genre {
     private String id;
     private String name;    //장르 이름
 
-    private void addGenreName(String name) {
-        this.name = name;
-    }
-
-    public static Genre createGenre(String name) {
-        Genre genre = new Genre();
-        genre.addGenreName(name);
-        return genre;
-    }
-
     public Genre(String name) {
         this.name = name;
     }
-
-    public Genre() {}
 }

@@ -1,7 +1,12 @@
 package toyproject.onfilm.like.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import toyproject.onfilm.like.entity.Like;
 
-public interface LikeRepository extends JpaRepository<Like, Long> {
+import java.util.Optional;
+
+public interface LikeRepository extends MongoRepository<Like, String> {
+    Optional<Like> findByMovieIdAndClientId(Long movieId, String clientId);
+    long countByMovieId(Long movieId);
+    void deleteByMovieIdAndClientId(Long movieId, String clientId);
 }

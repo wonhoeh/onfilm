@@ -1,7 +1,10 @@
 package toyproject.onfilm.comment.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import toyproject.onfilm.comment.entity.Comment;
 
-public interface CommentRepository extends JpaRepository<Comment, Long> {
+import java.util.List;
+
+public interface CommentRepository extends MongoRepository<Comment, String> {
+    List<Comment> findByMovieId(Long movieId);    //특정 영화의 댓글 목록 조회
 }

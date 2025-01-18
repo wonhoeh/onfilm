@@ -28,10 +28,10 @@ public class User {
 
     //=== 연관 관계 ===
     //유저가 작성한 댓글 목록
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    List<Comment> comments = new ArrayList<>();
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+//    List<Comment> comments = new ArrayList<>();
 
     //유저가 누른 좋아요
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    List<Like> likes = new ArrayList<>();
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+//    List<Like> likes = new ArrayList<>();
 }

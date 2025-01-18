@@ -1,46 +1,29 @@
 package toyproject.onfilm.comment.entity;
 
-import jakarta.persistence.*;
-import lombok.AccessLevel;
+import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import toyproject.onfilm.movie.entity.Movie;
-import toyproject.onfilm.user.entity.User;
+import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Entity
+@NoArgsConstructor
+@Document(collection = "comments")
 public class Comment {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name ="comment_id")
-    private Long id;
-    private String comment;
-    private LocalDateTime createAt;
+    @Id
+    private String id;          //MongoDB의 ObjectId
+    private Long movieId;     //연관된 영화 ID
+    private String username;    //댓글 작성자
+    private String content;     //댓글 내용
+    private LocalDateTime createAt; //작성 시간
 
-
-    //=== 연관 관계 ===
-
-    //댓글을 작성한 유저
-    /**
-     * 한 명의 유저는 여러 개의 댓글을 작성할 수 있다
-     * 하나의 댓글은 한 명의 유저에 의해 작성된다
-     * 댓글 : 유저 = N : 1
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    //댓글을 작성한 영화
-    /**
-     * 한편의 영화는 여러 개의 댓글이 있다
-     * 한 개의 댓글은 한 개의 영화에 작성된다
-     * 댓글 : 영화 = N : 1
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name ="movie_id")
-    private Movie movie;
-
+    public Comment(Long movieId, String username, String content) {
+        this.movieId = movieId;
+        this.username = username;
+        this.content = content;
+        this.createAt = LocalDateTime.now();    //댓글 작성 시 자동으로 시간 설정
+    }
 }

@@ -72,12 +72,16 @@ public class Movie {
     private List<String> genreIds = new ArrayList<>();  //MongoDB Genre 컬렉션의 ID를 저장
 
     //영화에 달린 댓글
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
-    private List<Comment> comments = new ArrayList<>();
+//    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
+//    private List<Comment> comments = new ArrayList<>();
+    @ElementCollection
+    private List<String> comments = new ArrayList<>();
 
     //영화의 좋아요 수
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
-    private List<Like> likes = new ArrayList<>();
+//    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
+//    private List<Like> likes = new ArrayList<>();
+    @ElementCollection
+    private List<String> likes = new ArrayList<>();
 
     //예고편, 섬네일
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
@@ -113,6 +117,18 @@ public class Movie {
 
     public void addGenre(String genreId) {
         genreIds.add(genreId);
+    }
+
+    public void addComment(String commentId) {
+        comments.add(commentId);
+    }
+
+    public void addLike(String likeId) {
+        likes.add(likeId);
+    }
+
+    public void removeLike(String likeId) {
+        likes.remove(likeId);
     }
 
     public void addMovieInfo(String title, int runtime, String ageRating, LocalDateTime releaseDate, String synopsis, String movieFileUrl) {
