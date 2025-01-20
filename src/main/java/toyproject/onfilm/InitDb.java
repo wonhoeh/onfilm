@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import toyproject.onfilm.actor.entity.Actor;
+import toyproject.onfilm.comment.repository.CommentRepository;
 import toyproject.onfilm.common.Profile;
 import toyproject.onfilm.director.entity.Director;
 import toyproject.onfilm.genre.entity.Genre;
@@ -30,8 +31,6 @@ public class InitDb {
 
     private final InitService initService;
 
-
-
     @PostConstruct
     public void init() {
         initService.dbInit0();
@@ -50,6 +49,8 @@ public class InitDb {
 
         public void dbInit0() {
             mongoTemplate.dropCollection("genres");
+            mongoTemplate.dropCollection("likes");
+            mongoTemplate.dropCollection("comments");
             mongoTemplate.save(new Genre("드라마"));
             mongoTemplate.save(new Genre("스릴러"));
         }

@@ -16,11 +16,18 @@ public class LikeController {
     private final LikeService likeService;
     private static final String CLIENT_ID_COOKIE_NAME = "clientId";
 
+    //영화의 좋아요 조회
+    @GetMapping("/{id}")
+    public ResponseEntity<Long> getLikeCount(@PathVariable Long id) {
+        long likeCount = likeService.getLikeCount(id);
+        return ResponseEntity.ok(likeCount);
+    }
+
     //좋아요 추가
-    @PostMapping()
-    public ResponseEntity<String> addLike(@RequestParam Long movieId, HttpServletRequest request) {
+    @PostMapping("/{id}")
+    public ResponseEntity<String> addLike(@PathVariable Long id, HttpServletRequest request) {
         String clientId = getClientIdFromCookies(request);
-        boolean success = likeService.addLike(movieId, clientId);
+        boolean success = likeService.addLike(id, clientId);
         if (success) {
             return ResponseEntity.ok("좋아요 추가 성공");
         } else {
@@ -29,22 +36,17 @@ public class LikeController {
     }
 
     //좋아요 취소
-    @DeleteMapping
-    public ResponseEntity<String> removeLike(@RequestParam Long movieId, HttpServletRequest request) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> removeLike(@PathVariable Long id, HttpServletRequest request) {
         String clientId = getClientIdFromCookies(request);
-        boolean success = likeService.removeLike(movieId, clientId);
+        boolean success = likeService.removeLike(id, clientId);
         if (success) {
             return ResponseEntity.ok("좋아요 삭제 성공");
         }
         else return ResponseEntity.ok("좋아요 삭제 실패: 좋아요를 찾을 수 없습니다");
     }
 
-    //특정 영화의 좋아요 개수 조회
-    @GetMapping("/{movieId}/count")
-    public ResponseEntity<Long> getLikeCount(@PathVariable Long movieId) {
-        long likeCount = likeService.getLikeCount(movieId);
-        return ResponseEntity.ok(likeCount);
-    }
+
 
     private String getClientIdFromCookies(HttpServletRequest request) {
         if (request.getCookies() == null) {
