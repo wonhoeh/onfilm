@@ -3,31 +3,30 @@ package toyproject.onfilm.like.controller;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import toyproject.onfilm.like.service.LikeService;
+import toyproject.onfilm.like.service.CommentLikeService;
 
 @RequiredArgsConstructor
-@RequestMapping("/likes")
+@RequestMapping("/comment-likes")
 @RestController
-public class LikeController {
+public class CommentLikeController {
 
-    private final LikeService likeService;
+    private final CommentLikeService commentLikeService;
     private static final String CLIENT_ID_COOKIE_NAME = "clientId";
 
-    //영화의 좋아요 조회
+    //댓글의 좋아요 조회
     @GetMapping("/{id}")
-    public ResponseEntity<Long> getLikeCount(@PathVariable Long id) {
-        long likeCount = likeService.getLikeCount(id);
+    public ResponseEntity<Long> getLikeCount(@PathVariable String id) {
+        long likeCount = commentLikeService.getLikeCount(id);
         return ResponseEntity.ok(likeCount);
     }
 
     //좋아요 추가
     @PostMapping("/{id}")
-    public ResponseEntity<String> addLike(@PathVariable Long id, HttpServletRequest request) {
+    public ResponseEntity<String> addLike(@PathVariable String id, HttpServletRequest request) {
         String clientId = getClientIdFromCookies(request);
-        boolean success = likeService.addLike(id, clientId);
+        boolean success = commentLikeService.addLike(id, clientId);
         if (success) {
             return ResponseEntity.ok("좋아요 추가 성공");
         } else {
@@ -37,9 +36,9 @@ public class LikeController {
 
     //좋아요 취소
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> removeLike(@PathVariable Long id, HttpServletRequest request) {
+    public ResponseEntity<String> removeLike(@PathVariable String id, HttpServletRequest request) {
         String clientId = getClientIdFromCookies(request);
-        boolean success = likeService.removeLike(id, clientId);
+        boolean success = commentLikeService.removeLike(id, clientId);
         if (success) {
             return ResponseEntity.ok("좋아요 삭제 성공");
         }

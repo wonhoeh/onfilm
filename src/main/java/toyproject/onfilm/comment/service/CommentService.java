@@ -17,7 +17,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final MovieRepository movieRepository;
 
-    //댓글 추가
+    //댓글 작성
     public Comment addComment(Long movieId, String username, String content) {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new MovieNotFoundException("영화를 찾을 수 없습니다"));
@@ -28,8 +28,10 @@ public class CommentService {
         return comment;
     }
 
-    //특정 영화의 댓글 조회
+    //영화의 Id로 모든 댓글 조회
     public List<Comment> getCommentsByMovie(Long movieId) {
-        return commentRepository.findByMovieId(movieId);
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new MovieNotFoundException("영화를 찾을 수 없습니다"));
+        return commentRepository.findAllByMovieId(movie.getId());
     }
 }

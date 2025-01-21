@@ -10,10 +10,12 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import toyproject.onfilm.actor.entity.Actor;
+import toyproject.onfilm.comment.entity.Comment;
 import toyproject.onfilm.comment.repository.CommentRepository;
 import toyproject.onfilm.common.Profile;
 import toyproject.onfilm.director.entity.Director;
 import toyproject.onfilm.genre.entity.Genre;
+import toyproject.onfilm.like.entity.MovieLike;
 import toyproject.onfilm.movie.entity.Movie;
 import toyproject.onfilm.movieactor.entity.MovieActor;
 import toyproject.onfilm.moviedirector.entity.MovieDirector;
@@ -103,26 +105,47 @@ public class InitDb {
             em.persist(movieActor2);
             em.persist(movieActor3);
 
+            //=== 감독 추가 ===//
             movie.addDirector(movieDirector);
 
+
+            //=== 작가 추가 ===//
             movie.addWriter(movieWriter1);
             movie.addWriter(movieWriter2);
 
+            //=== 배우 추가 ===//
             movie.addActor(movieActor1);
             movie.addActor(movieActor2);
             movie.addActor(movieActor3);
 
+            //=== 섬네일, 트레일러 추가 ===//
             String trailerUrl = "https://example.com/1.mp4";
             String thumbnailUrl = "https://example.com/1.jpg";
-
             movie.addTrailer(new MovieTrailer(trailerUrl, thumbnailUrl));
 
+            //=== 장르 추가 ===//
             Query query = new Query();
             query.addCriteria(Criteria.where("name").is("드라마"));
             Genre genre = mongoTemplate.findOne(query, Genre.class);
             movie.addGenre(genre.getId());
 
-            log.info("movie.genreId = {}", movie.getGenreIds().get(0));
+            //=== 댓글 추가 ===//
+            Comment comment1 = new Comment(movie.getId(), "관람객1", "잘봤습니다!");
+            Comment comment2 = new Comment(movie.getId(), "관람객2", "재밌어요!");
+            mongoTemplate.save(comment1);
+            mongoTemplate.save(comment2);
+            movie.addComment(comment1.getId());
+            movie.addComment(comment2.getId());
+
+
+            //=== 좋아요 추가 ===//
+            MovieLike like1 = MovieLike.create(movie.getId(), "ABC123");
+            MovieLike like2 = MovieLike.create(movie.getId(), "DEF456");
+            mongoTemplate.save(like1);
+            mongoTemplate.save(like2);
+            movie.addLike(like1.getId());
+            movie.addLike(like2.getId());
+
 
             em.persist(movie);
         }

@@ -5,8 +5,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.BatchSize;
-import toyproject.onfilm.comment.entity.Comment;
-import toyproject.onfilm.like.entity.Like;
 import toyproject.onfilm.movieactor.entity.MovieActor;
 import toyproject.onfilm.moviedirector.entity.MovieDirector;
 import toyproject.onfilm.movietrailer.entity.MovieTrailer;
@@ -123,12 +121,12 @@ public class Movie {
         comments.add(commentId);
     }
 
-    public void addLike(String likeId) {
-        likes.add(likeId);
+    public void addLike(String movieLikeId) {
+        likes.add(movieLikeId);
     }
 
-    public void removeLike(String likeId) {
-        likes.remove(likeId);
+    public void removeLike(String movieLikeId) {
+        likes.remove(movieLikeId);
     }
 
     public void addMovieInfo(String title, int runtime, String ageRating, LocalDateTime releaseDate, String synopsis, String movieFileUrl) {

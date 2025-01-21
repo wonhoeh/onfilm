@@ -7,6 +7,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -14,11 +16,20 @@ import java.time.LocalDateTime;
 public class Comment {
 
     @Id
-    private String id;          //MongoDB의 ObjectId
-    private Long movieId;     //연관된 영화 ID
-    private String username;    //댓글 작성자
-    private String content;     //댓글 내용
-    private LocalDateTime createAt; //작성 시간
+    private String id;                   //MongoDB의 ObjectId
+    private Long movieId;                //연관된 영화 ID
+    private String username;             //댓글 작성자
+    private String content;              //댓글 내용
+    private LocalDateTime createAt;      //작성 시간
+    private List<String> likes = new ArrayList<>(); //댓글이 갖고 있는 좋아요 Id
+
+    public void addLike(String commentLikeId) {
+        likes.add(commentLikeId);
+    }
+
+    public void removeLike(String commentLikeId) {
+        likes.remove(commentLikeId);
+    }
 
     public Comment(Long movieId, String username, String content) {
         this.movieId = movieId;

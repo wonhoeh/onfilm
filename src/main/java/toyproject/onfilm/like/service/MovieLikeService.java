@@ -3,8 +3,8 @@ package toyproject.onfilm.like.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import toyproject.onfilm.exception.MovieNotFoundException;
-import toyproject.onfilm.like.entity.Like;
-import toyproject.onfilm.like.repository.LikeRepository;
+import toyproject.onfilm.like.entity.MovieLike;
+import toyproject.onfilm.like.repository.MovieLikeRepository;
 import toyproject.onfilm.movie.entity.Movie;
 import toyproject.onfilm.movie.repository.MovieRepository;
 
@@ -12,19 +12,19 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
-public class LikeService {
+public class MovieLikeService {
 
-    private final LikeRepository likeRepository;
+    private final MovieLikeRepository movieLikeRepository;
     private final MovieRepository movieRepository;
 
     //좋아요 추가
     public boolean addLike(Long movieId, String clientId) {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new MovieNotFoundException("영화를 찾을 수 없습니다"));
-        Optional<Like> existingLike = likeRepository.findByMovieIdAndClientId(movie.getId(), clientId);
+        Optional<MovieLike> existingLike = movieLikeRepository.findByMovieIdAndClientId(movie.getId(), clientId);
         if (existingLike.isEmpty()) {
-            Like like = new Like(movie.getId(), clientId);
-            likeRepository.save(like);
+            MovieLike like = MovieLike.create(movie.getId(), clientId);
+            movieLikeRepository.save(like);
             movie.addLike(like.getId());
             return true;    //좋아요 성공
         }
@@ -35,9 +35,9 @@ public class LikeService {
     public boolean removeLike(Long movieId, String clientId) {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new MovieNotFoundException("영화를 찾을 수 없습니다"));
-        Optional<Like> existingLike = likeRepository.findByMovieIdAndClientId(movie.getId(), clientId);
+        Optional<MovieLike> existingLike = movieLikeRepository.findByMovieIdAndClientId(movie.getId(), clientId);
         if (existingLike.isPresent()) {
-            likeRepository.deleteByMovieIdAndClientId(movie.getId(), clientId);
+            movieLikeRepository.deleteByMovieIdAndClientId(movie.getId(), clientId);
             movie.removeLike(existingLike.get().getId());
             return true;    //좋아요 취소 성공
         }
@@ -46,6 +46,6 @@ public class LikeService {
 
     //특정 영화의 좋아요 개수 조회
     public long getLikeCount(Long movieId) {
-        return likeRepository.countByMovieId(movieId);
+        return movieLikeRepository.countByMovieId(movieId);
     }
 }

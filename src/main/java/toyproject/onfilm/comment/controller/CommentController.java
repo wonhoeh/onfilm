@@ -24,7 +24,7 @@ public class CommentController {
         return ResponseEntity.ok().body(comment);
     }
 
-    //특정 영화의 댓글 조회
+    //영화의 ID로 댓글 조회
     @GetMapping("/{movieId}")
     public ResponseEntity<List<Comment>> getCommentsByMovie(@PathVariable Long movieId) {
         List<Comment> comments = commentService.getCommentsByMovie(movieId);
