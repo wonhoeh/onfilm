@@ -76,6 +76,6 @@
 //        //then
 //        assertThat(findMovieActor.getMovie().getTitle()).isEqualTo(movieActor.getMovie().getTitle());
 //        assertThat(findMovieActor.getActor().getName()).isEqualTo(movieActor.getActor().getName());
-//        assertThat(findMovieActor.getActorsRole()).isEqualTo(movieActor.getActorsRole());
+//        assertThat(findMovieActor.getactorRole()).isEqualTo(movieActor.getactorRole());
 //    }
 //}

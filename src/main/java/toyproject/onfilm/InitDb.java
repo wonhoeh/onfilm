@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import toyproject.onfilm.actor.entity.Actor;
 import toyproject.onfilm.comment.entity.Comment;
-import toyproject.onfilm.comment.repository.CommentRepository;
 import toyproject.onfilm.common.Profile;
 import toyproject.onfilm.director.entity.Director;
 import toyproject.onfilm.genre.entity.Genre;
@@ -21,7 +20,7 @@ import toyproject.onfilm.movieactor.entity.MovieActor;
 import toyproject.onfilm.moviedirector.entity.MovieDirector;
 import toyproject.onfilm.movietrailer.entity.MovieTrailer;
 import toyproject.onfilm.moviewriter.entity.MovieWriter;
-import toyproject.onfilm.wrtier.entity.Writer;
+import toyproject.onfilm.writer.entity.Writer;
 
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -58,16 +57,17 @@ public class InitDb {
         }
 
         public void dbInit1() {
+            //=== 감독의 인적 사항 ===//
             Director director = createDirector("추창민", 50, "instagram/ccm_m");
             em.persist(director);
 
-            //=== 작가 등록 ===//
+            //=== 작가의 인적 사항 ===//
             Writer writer1 = createWriter("황조윤", null, null);
             Writer writer2 = createWriter("안소정", null, null);
             em.persist(writer1);
             em.persist(writer2);
 
-            //=== 배우 등록 ===//
+            //=== 배우의 인적 사항 ===//
             Actor actor1 = createActor("이병헌", 50, "instagram/lbhZzz");
             Actor actor2 = createActor("이병헌", 50, "instagram/lbhZzz");
             Actor actor3 = createActor("류승룡", 50, "instagram/ysyVVV");
@@ -75,29 +75,28 @@ public class InitDb {
             em.persist(actor2);
             em.persist(actor3);
 
-            //=== 영화 파일 URL, 시놉시스 작성 ===//
-            String movieFileUrl = UUID.randomUUID() + "_" + "광해";
+            //=== 영화 파일 URL, 시놉시스 ===//
             String synopsis = "조선의 왕 광해와 광해군을 대신하여 나라를 다스린 하선의 이야기입니다.";
+            String movieUrl = UUID.randomUUID() + "_" + "광해";
 
-            //=== 영화 생성 ===//
+            //=== 영화 정보 ===//
             Movie movie = Movie.createMovie("광해", 120, "15+",
                     LocalDateTime.of(2025, Month.JANUARY, 10, 15, 30),
-                    synopsis, movieFileUrl);
+                    synopsis, movieUrl);
 
             //=== 생성자에 movie가 필요한 것들 ===//
 
-            //=== 감독 등록 ===//
-            MovieDirector movieDirector = MovieDirector.createMovieDirector(director, movie);
+            //=== 영화 감독 ===//
+            MovieDirector movieDirector = MovieDirector.createMovieDirector(movie, director);
             em.persist(movieDirector);
 
-
-            //=== 작가 등록 ===//
-            MovieWriter movieWriter1 = MovieWriter.createMovieWriter(writer1, movie);
-            MovieWriter movieWriter2 = MovieWriter.createMovieWriter(writer2, movie);
+            //=== 영화 작가 ===//
+            MovieWriter movieWriter1 = MovieWriter.createMovieWriter(movie, writer1);
+            MovieWriter movieWriter2 = MovieWriter.createMovieWriter(movie, writer2);
             em.persist(movieWriter1);
             em.persist(movieWriter2);
 
-            //=== 출연 배우 등록 ===//
+            //=== 출연 배우 ===//
             MovieActor movieActor1 = MovieActor.createCasting(movie, actor1, "광해군");
             MovieActor movieActor2 = MovieActor.createCasting(movie, actor2, "하선");
             MovieActor movieActor3 = MovieActor.createCasting(movie, actor3, "허균");
@@ -105,31 +104,30 @@ public class InitDb {
             em.persist(movieActor2);
             em.persist(movieActor3);
 
-            //=== 감독 추가 ===//
+            //=== 감독 입력 ===//
             movie.addDirector(movieDirector);
 
-
-            //=== 작가 추가 ===//
+            //=== 작가 입력 ===//
             movie.addWriter(movieWriter1);
             movie.addWriter(movieWriter2);
 
-            //=== 배우 추가 ===//
+            //=== 출연 배우 입력 ===//
             movie.addActor(movieActor1);
             movie.addActor(movieActor2);
             movie.addActor(movieActor3);
 
-            //=== 섬네일, 트레일러 추가 ===//
+            //=== 섬네일, 트레일러 입력 ===//
             String trailerUrl = "https://example.com/1.mp4";
             String thumbnailUrl = "https://example.com/1.jpg";
             movie.addTrailer(new MovieTrailer(trailerUrl, thumbnailUrl));
 
-            //=== 장르 추가 ===//
+            //=== 장르 입력 ===//
             Query query = new Query();
             query.addCriteria(Criteria.where("name").is("드라마"));
             Genre genre = mongoTemplate.findOne(query, Genre.class);
             movie.addGenre(genre.getId());
 
-            //=== 댓글 추가 ===//
+            //=== 댓글 입력 ===//
             Comment comment1 = new Comment(movie.getId(), "관람객1", "잘봤습니다!");
             Comment comment2 = new Comment(movie.getId(), "관람객2", "재밌어요!");
             mongoTemplate.save(comment1);
@@ -137,15 +135,13 @@ public class InitDb {
             movie.addComment(comment1.getId());
             movie.addComment(comment2.getId());
 
-
-            //=== 좋아요 추가 ===//
+            //=== 좋아요 입력 ===//
             MovieLike like1 = MovieLike.create(movie.getId(), "ABC123");
             MovieLike like2 = MovieLike.create(movie.getId(), "DEF456");
             mongoTemplate.save(like1);
             mongoTemplate.save(like2);
             movie.addLike(like1.getId());
             movie.addLike(like2.getId());
-
 
             em.persist(movie);
         }
@@ -174,11 +170,11 @@ public class InitDb {
                     LocalDateTime.of(2025, Month.JANUARY, 30, 15, 30),
                     synopsis, movieFileUrl);
 
-            MovieDirector movieDirector = MovieDirector.createMovieDirector(director, movie);
+            MovieDirector movieDirector = MovieDirector.createMovieDirector(movie, director);
             em.persist(movieDirector);
 
-            MovieWriter movieWriter1 = MovieWriter.createMovieWriter(writer1, movie);
-            MovieWriter movieWriter2 = MovieWriter.createMovieWriter(writer2, movie);
+            MovieWriter movieWriter1 = MovieWriter.createMovieWriter(movie, writer1);
+            MovieWriter movieWriter2 = MovieWriter.createMovieWriter(movie, writer2);
             em.persist(movieWriter1);
             em.persist(movieWriter2);
 
@@ -202,6 +198,7 @@ public class InitDb {
 
             em.persist(movie);
         }
+
 
         private static Director createDirector(String name, Integer age, String sns) {
             Profile profile = Profile.builder()

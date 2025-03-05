@@ -10,13 +10,13 @@ public class MovieActorResponse {
     private String name;
     private int age;
     private String sns;
-    private String actorsRole;
+    private String actorRole;
 
     public MovieActorResponse(MovieActor movieActor) {
         this.name = movieActor.getActor().getProfile().getName();
         this.age = movieActor.getActor().getProfile().getAge();
         this.sns = movieActor.getActor().getProfile().getSns();
-        this.actorsRole = movieActor.getActorsRole();
+        this.actorRole = movieActor.getActorRole();
     }
 
     /**
@@ -26,6 +26,6 @@ public class MovieActorResponse {
         this.name = movieDetailsDto.getName();
         this.age = movieDetailsDto.getAge();
         this.sns = movieDetailsDto.getSns();
-        this.actorsRole = movieDetailsDto.getActorsRole();
+        this.actorRole = movieDetailsDto.getActorRole();
     }
 }

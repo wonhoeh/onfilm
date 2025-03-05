@@ -45,8 +45,6 @@ public class CommentLikeController {
         else return ResponseEntity.ok("좋아요 삭제 실패: 좋아요를 찾을 수 없습니다");
     }
 
-
-
     private String getClientIdFromCookies(HttpServletRequest request) {
         if (request.getCookies() == null) {
             return null;
@@ -59,5 +57,4 @@ public class CommentLikeController {
         }
         return null;
     }
-
 }

@@ -37,7 +37,7 @@ public class MovieActor {
     private Actor actor;
 
     //배우의 배역 정보 (롸다주 -> 토니 스타크)
-    private String actorsRole;
+    private String actorRole;
 
 
     //=== 양방향 설정 메서드 ===//
@@ -50,11 +50,11 @@ public class MovieActor {
     }
 
     //=== 생성 메서드 ===
-    public static MovieActor createCasting(Movie movie, Actor actor, String actorsRole) {
+    public static MovieActor createCasting(Movie movie, Actor actor, String actorRole) {
         MovieActor movieActor = new MovieActor();
         movieActor.addMovie(movie);
         movieActor.addActor(actor);
-        movieActor.actorsRole = actorsRole;
+        movieActor.actorRole = actorRole;
 
         return movieActor;
     }

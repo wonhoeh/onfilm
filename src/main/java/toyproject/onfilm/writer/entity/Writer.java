@@ -1,4 +1,4 @@
-package toyproject.onfilm.wrtier.entity;
+package toyproject.onfilm.writer.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

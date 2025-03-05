@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import toyproject.onfilm.movie.entity.Movie;
-import toyproject.onfilm.wrtier.entity.Writer;
+import toyproject.onfilm.writer.entity.Writer;
 
 @Getter
 @NoArgsConstructor
@@ -34,7 +34,7 @@ public class MovieWriter {
     }
 
     //=== 생성자 메서드 ===
-    public static MovieWriter createMovieWriter(Writer writer, Movie movie) {
+    public static MovieWriter createMovieWriter(Movie movie, Writer writer) {
         MovieWriter movieWriter = new MovieWriter();
         movieWriter.addWriter(writer);
         movieWriter.addMovie(movie);

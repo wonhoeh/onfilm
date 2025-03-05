@@ -34,13 +34,11 @@ public class MovieDirector {
     }
 
     //=== 생성자 메서드 ===
-    public static MovieDirector createMovieDirector(Director director, Movie movie) {
+    public static MovieDirector createMovieDirector(Movie movie, Director director) {
         MovieDirector movieDirector = new MovieDirector();
-        movieDirector.addDirector(director);
         movieDirector.addMovie(movie);
+        movieDirector.addDirector(director);
 
         return movieDirector;
     }
-
-
 }
