@@ -14,7 +14,7 @@ public class MongoConfig {
     @Bean
     public MongoTemplate mongoTemplate() {
         //MongoDB 연결 문자열을 사용하여 MongoClient를 생성합니다.
-        MongoClient mongoClient = MongoClients.create("mongodb://43.200.18.126:27017");
+        MongoClient mongoClient = MongoClients.create("mongodb://onfilm.p-e.kr:27017");
         return new MongoTemplate(mongoClient, "admin");
     }
 }
