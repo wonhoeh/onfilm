@@ -4,7 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
-@EnableMongoRepositories
+@EnableMongoRepositories(basePackages = "toyproject.onfilm.like.repository", mongoTemplateRef = "mongoTemplate")
 @SpringBootApplication
 public class OnfilmApplication {
 
