@@ -352,6 +352,16 @@ public class MovieService {
 
     }
 
+    /**
+     * 영화 보기
+     */
+    public MovieWatchResponse watchMovie(Long movieId) {
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new MovieNotFoundException("영화를 찾을 수 없습니다: " + movieId));
+
+        return new MovieWatchResponse(movie.getTitle(), movie.getMovieUrl());
+    }
+
     //영화와 장르 가져오기
 //    @Transactional
 //    public MovieGenreDto getMovieWithGenres(Long movieId) {

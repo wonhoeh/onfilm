@@ -19,10 +19,9 @@ public class MovieTrailer {
     @JoinColumn(name ="movie_id")
     private Movie movie;
 
+    //=== 메타 데이터 ===//
     private String trailUrl;    //예고편 url
     private String thumbnailUrl; //섬네일 url
-
-    //=== 메타 데이터 ===//
 
     //=== 연관 관계 메서드 ===//
     public void setMovie(Movie movie) {
@@ -31,7 +30,7 @@ public class MovieTrailer {
 
     @Builder
     public MovieTrailer(String trailerUrl, String thumbnailUrl) {
-        this.trailUrl =trailerUrl;
+        this.trailUrl = trailerUrl;
         this.thumbnailUrl = thumbnailUrl;
     }
 }

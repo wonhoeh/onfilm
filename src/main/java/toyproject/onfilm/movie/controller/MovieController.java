@@ -127,5 +127,15 @@ public class MovieController {
         movieService.updateMovie(movieId, request);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * 영화 title, movieUrl 조회
+     */
+    @GetMapping("/watch/{movieId}")
+    public ResponseEntity<MovieWatchResponse> watchMovie(@PathVariable Long movieId) {
+        MovieWatchResponse movieWatchResponse = movieService.watchMovie(movieId);
+        return ResponseEntity.ok().body(movieWatchResponse);
+    }
+
 }
 

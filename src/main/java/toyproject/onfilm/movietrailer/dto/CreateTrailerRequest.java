@@ -1,15 +1,18 @@
 package toyproject.onfilm.movietrailer.dto;
 
 import lombok.Getter;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 public class CreateTrailerRequest {
 
-    private String trailUrl;    //예고편 url
-    private String thumbnailUrl; //섬네일 url
+    private Long movieId;              //영화 Id
+    private MultipartFile trailer;     //예고편 파일
+    private MultipartFile thumbnail;   //섬네일 파일
 
-    public CreateTrailerRequest(String trailUrl, String thumbnailUrl) {
-        this.trailUrl = trailUrl;
-        this.thumbnailUrl = thumbnailUrl;
+    public CreateTrailerRequest(Long movieId, MultipartFile trailer, MultipartFile thumbnail) {
+        this.movieId = movieId;
+        this.trailer = trailer;
+        this.thumbnail = thumbnail;
     }
 }
