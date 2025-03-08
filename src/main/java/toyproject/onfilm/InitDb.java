@@ -163,8 +163,8 @@ public class InitDb {
             em.persist(actor1);
             em.persist(actor2);
 
-            String movieFileUrl = UUID.randomUUID() + "_" + "얼린미역국";
-            String synopsis = "앶자돌이 동생이 촬영제작 알바하러 간 앶자돌이의 독립영화입니다.";
+            String movieFileUrl = "https://onfilm-static-files.s3.ap-northeast-2.amazonaws.com/movies/5e3086d2-c2bd-4d25-b738-ed50da268b77.mp4";
+            String synopsis = "시놉시스입니다. 여기에 간단하게 영화 소개글이 작성될 예정입니다.";
 
             Movie movie = Movie.createMovie("얼린미역국", 120, "15+",
                     LocalDateTime.of(2025, Month.JANUARY, 30, 15, 30),
