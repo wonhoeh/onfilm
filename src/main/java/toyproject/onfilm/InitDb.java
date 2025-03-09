@@ -152,7 +152,7 @@ public class InitDb {
             em.persist(director);
 
             //=== 작가 등록 ===//
-            Writer writer1 = createWriter("허중회", 37, "instagram/hjh_h");
+            Writer writer1 = createWriter("허중회", 37, "instagram/hjh_hh");
             Writer writer2 = createWriter("손정아", 34, "instagram/sjAahhh");
             em.persist(writer1);
             em.persist(writer2);
