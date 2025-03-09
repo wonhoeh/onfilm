@@ -39,7 +39,7 @@ dependencies {
 	implementation 'software.amazon.awssdk:s3:2.20.50'
 	// Multipart File Upload (Spring Boot 기본 제공)
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-	// Jackson (JSON 직렬화/역직렬화)
+	// Jackson (JSON 직렬화 / 역직렬화)
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
 	compileOnly 'org.projectlombok:lombok'
     // H2 Database!!
