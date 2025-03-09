@@ -37,7 +37,7 @@ jobs:
           target: /home/ubuntu/onfilm/tobe
 
       - name: SSH로 EC2에 접속하기
-        uses: appleboy/ssh-action@v1.2.1
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }} # EC2의 주소
           username: ${{ secrets.EC2_USERNAME }} # EC2 접속 username
