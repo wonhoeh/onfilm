@@ -37,4 +37,4 @@ out/
 .vscode/
 
 # application.properites
-application.properties
+.properties
