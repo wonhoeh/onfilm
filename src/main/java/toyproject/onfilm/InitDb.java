@@ -166,7 +166,7 @@ public class InitDb {
             String movieFileUrl = "https://onfilm-static-files.s3.ap-northeast-2.amazonaws.com/movies/5e3086d2-c2bd-4d25-b738-ed50da268b77.mp4";
             String synopsis = "시놉시스입니다. 여기에 간단하게 영화 소개글이 작성될 예정입니다.";
 
-            Movie movie = Movie.createMovie("얼린미역국", 30, "15+",
+            Movie movie = Movie.createMovie("얼린미역국", 33, "15+",
                     LocalDateTime.of(2025, Month.JANUARY, 30, 15, 30),
                     synopsis, movieFileUrl);
 
