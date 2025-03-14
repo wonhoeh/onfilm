@@ -12,7 +12,8 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @Configuration
 @EnableMongoRepositories(basePackages = {
         "toyproject.onfilm.like.repository",
-        "toyproject.onfilm.genre.repository"
+        "toyproject.onfilm.genre.repository",
+        "toyproject.onfilm.comment.repository"
 })
 public class MongoConfig {
 
