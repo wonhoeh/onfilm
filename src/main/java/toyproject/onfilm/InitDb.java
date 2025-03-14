@@ -129,7 +129,7 @@ public class InitDb {
 
             //=== 댓글 입력 ===//
             Comment comment1 = new Comment(movie.getId(), "관람객1", "잘봤습니다!");
-            Comment comment2 = new Comment(movie.getId(), "관람객2", "재밌어요!!!!");
+            Comment comment2 = new Comment(movie.getId(), "관람객2", "재밌어요!!!!!");
             mongoTemplate.save(comment1);
             mongoTemplate.save(comment2);
             movie.addComment(comment1.getId());
