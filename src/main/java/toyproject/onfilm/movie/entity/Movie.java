@@ -55,7 +55,7 @@ public class Movie {
 
     //영화에 출연한 배우들
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
-    @BatchSize(size = 10)   //한 번에 10개의 MovieActor를 로드
+    @BatchSize(size = 100)   //한 번에 100개의 MovieActor를 로드
     private List<MovieActor> movieActors = new ArrayList<>();
 
     //영화 제작에 참여한 감독들
@@ -68,7 +68,7 @@ public class Movie {
 
     //예고편, 섬네일
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
-    @BatchSize(size = 10) //한 번에 10개의 MovieActor를 로드
+    @BatchSize(size = 100) //한 번에 100개의 MovieActor를 로드
     private List<MovieTrailer> movieTrailers = new ArrayList<>();
 
     //장르

@@ -3,6 +3,10 @@ package toyproject.onfilm.movie.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import toyproject.onfilm.actor.entity.Actor;
@@ -214,6 +218,16 @@ public class MovieService {
         return movieRepository.findAllWithTrailers().stream()
                 .map(movie -> new MovieThumbnailResponse(movie))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 페이징 적용
+     * 최신 등록 기준
+     */
+    public Page<MovieThumbnailResponse> findAllByReleaseDate(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "releaseDate"));
+        Page<Movie> movies = movieRepository.findAllByOrderByReleaseDateDesc(pageable);
+        return movies.map(MovieThumbnailResponse::new);
     }
 
     /**

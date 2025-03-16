@@ -1,5 +1,7 @@
 package toyproject.onfilm.movie.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,8 +16,11 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     @Query("select m from Movie m join fetch m.movieActors where m.id = :id")
     Movie findMovieWithActors(@Param("id") Long id);
 
-    @Query("select m from Movie m Join FETCH m.movieTrailers")
+    @Query("select m from Movie m join fetch m.movieTrailers")
     List<Movie> findAllWithTrailers();
+
+    @Query("SELECT m FROM Movie m ORDER BY m.releaseDate DESC")
+    Page<Movie> findAllByOrderByReleaseDateDesc(Pageable pageable);
 
 //    @Query("select new toyproject.onfilm.movie.dto.MovieDetailsDto(m.id, m.title, m.runtime, m.ageRating, t.trailUrl, t.thumbnailUrl, a.actor.profile.name, a.actor.profile.age, a.actor.profile.sns, a.actorRole) " +
 //            "from Movie m " +

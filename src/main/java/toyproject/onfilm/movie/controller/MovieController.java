@@ -3,6 +3,7 @@ package toyproject.onfilm.movie.controller;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -10,6 +11,7 @@ import org.springframework.validation.ObjectError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import toyproject.onfilm.movie.dto.*;
+import toyproject.onfilm.movie.entity.Movie;
 import toyproject.onfilm.movie.service.MovieService;
 
 import java.util.Base64;
@@ -31,9 +33,22 @@ public class MovieController {
     @GetMapping()
     public ResponseEntity<List<MovieThumbnailResponse>> findAllMovies() {
         List<MovieThumbnailResponse> movies = movieService.findAllWithThumbnailUrl();
-        return ResponseEntity.ok()
-                .body(movies);
+        return ResponseEntity.ok().body(movies);
     }
+
+    /**
+     * 최신 등록 기준
+     * 썸네일, 제목
+     */
+    @GetMapping("/releaseDate")
+    public ResponseEntity<Page<MovieThumbnailResponse>> findAllMoviesByReleaseDate(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+
+        Page<MovieThumbnailResponse> movies = movieService.findAllByReleaseDate(page, size);
+        return ResponseEntity.ok().body(movies);
+    }
+
 
     @PostMapping()
     public ResponseEntity<Long> createMovie(@Valid @RequestBody CreateMovieRequest request) {
