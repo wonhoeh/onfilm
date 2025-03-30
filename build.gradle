@@ -41,6 +41,10 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	// Jackson (JSON 직렬화 / 역직렬화)
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	// Spring Boot에 ElasticSearch 의존성 추가
+	implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
+	implementation 'co.elastic.clients:elasticsearch-java:8.11.1'
+
 	compileOnly 'org.projectlombok:lombok'
     // H2 Database!!
 	//runtimeOnly 'com.h2database:h2'
