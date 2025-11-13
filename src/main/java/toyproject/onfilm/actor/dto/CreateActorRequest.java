@@ -1,9 +1,11 @@
 package toyproject.onfilm.actor.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 @Getter
 public class CreateActorRequest {
+    @NotNull
     private String name;
     private Integer age;
     private String sns;
