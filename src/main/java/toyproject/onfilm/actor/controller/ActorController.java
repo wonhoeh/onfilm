@@ -19,7 +19,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/actor")
+@RequestMapping("/actors")
 @RequiredArgsConstructor
 public class ActorController {
 
