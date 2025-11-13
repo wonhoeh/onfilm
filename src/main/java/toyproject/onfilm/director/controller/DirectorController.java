@@ -25,16 +25,7 @@ public class DirectorController {
     private final DirectorService directorService;
 
     @PostMapping()
-    public ResponseEntity<Long> createDirector(@RequestBody @Validated CreateDirectorRequest request, BindingResult bindingResult) {
-        if(bindingResult.hasErrors()) {
-            //수정 필요, 검증 오류 결과에서 필요한 데이터 뽑고 별도의 API 스펙 정의해서 JSON으로 반환
-            List<ObjectError> allErrors = bindingResult.getAllErrors();
-            for(ObjectError error : allErrors) {
-                log.info(String.valueOf(error));
-            }
-            Long bad = 1L;
-            return ResponseEntity.unprocessableEntity().body(bad);
-        }
+    public ResponseEntity<Long> createDirector(@RequestBody @Validated CreateDirectorRequest request) {
         Long directorId = directorService.createDirector(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(directorId);
     }

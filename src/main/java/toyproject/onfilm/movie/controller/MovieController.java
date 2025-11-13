@@ -52,15 +52,6 @@ public class MovieController {
 
     @PostMapping()
     public ResponseEntity<Long> createMovie(@Valid @RequestBody CreateMovieRequest request) {
-//        if(bindingResult.hasErrors()) {
-//            //수정 필요, 검증 오류 결과에서 필요한 데이터 뽑고 별도의 API 스펙 정의해서 JSON으로 반환
-//            List<ObjectError> allErrors = bindingResult.getAllErrors();
-//            for(ObjectError error : allErrors) {
-//
-//            }
-//            Long bad = 1L;
-//            return ResponseEntity.unprocessableEntity().body(bad);
-//        }
         Long movieId = movieService.createMovie(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(movieId);
     }
@@ -70,15 +61,6 @@ public class MovieController {
         movieService.deleteMovie(movieId);
         return ResponseEntity.noContent().build();
     }
-
-    //@RequestBody @Validated CreateMovieRequest request, BindingResult bindingResult
-    //if (bindingResult.hasErrors()) {
-    //log.info("검증 오류 발생 errors={}", bindingResult);
-    //return bindingResult.getAllErrors();
-    //}
-    //CreateMovieRequest -> Bean Validation 적용 (@NotNull ...)
-
-
 
     /**
      * 페치 조인을 두 번 나눠서 영화를 조회

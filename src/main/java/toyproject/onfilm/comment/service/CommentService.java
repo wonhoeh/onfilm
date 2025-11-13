@@ -2,6 +2,7 @@ package toyproject.onfilm.comment.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import toyproject.onfilm.comment.dto.CommentRequest;
 import toyproject.onfilm.comment.entity.Comment;
 import toyproject.onfilm.comment.repository.CommentRepository;
 import toyproject.onfilm.exception.MovieNotFoundException;
@@ -18,11 +19,11 @@ public class CommentService {
     private final MovieRepository movieRepository;
 
     //댓글 작성
-    public Comment addComment(Long movieId, String username, String content) {
-        Movie movie = movieRepository.findById(movieId)
+    public Comment addComment(CommentRequest request) {
+        Movie movie = movieRepository.findById(request.getMovieId())
                 .orElseThrow(() -> new MovieNotFoundException("영화를 찾을 수 없습니다"));
 
-        Comment comment = new Comment(movie.getId(), username, content);
+        Comment comment = new Comment(movie.getId(), request.getUsername(), request.getContent());
         commentRepository.save(comment);
         movie.addComment(comment.getId());
         return comment;

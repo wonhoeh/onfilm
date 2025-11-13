@@ -20,7 +20,7 @@ public class CommentController {
     //댓글 추가
     @PostMapping()
     public ResponseEntity<Comment> addComment(@RequestBody CommentRequest request) {
-        Comment comment = commentService.addComment(request.getMovieId(), request.getUsername(), request.getContent());
+        Comment comment = commentService.addComment(request);
         return ResponseEntity.ok().body(comment);
     }
 

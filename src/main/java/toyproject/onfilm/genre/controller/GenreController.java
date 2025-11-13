@@ -23,15 +23,7 @@ public class GenreController {
     private final GenreService genreService;
 
     @PostMapping()
-    public ResponseEntity<String> createGenre(@RequestBody @Validated CreateGenreRequest request, BindingResult bindingResult) {
-        if(bindingResult.hasErrors()) {
-            //수정 필요, 검증 오류 결과에서 필요한 데이터 뽑고 별도의 API 스펙 정의해서 JSON으로 반환
-            List<ObjectError> allErrors = bindingResult.getAllErrors();
-            for(ObjectError error : allErrors) {
-                log.info(String.valueOf(error));
-            }
-            return ResponseEntity.unprocessableEntity().body("bad");
-        }
+    public ResponseEntity<String> createGenre(@RequestBody @Validated CreateGenreRequest request) {
         String genreId = genreService.createGenre(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(genreId);
     }
