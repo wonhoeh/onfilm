@@ -35,8 +35,8 @@ public class Actor {
     @Embedded
     private Profile profile;
 
-    //=== 연관 관계 ===
-    //배우가 출연한 모든 영화와의 관계
+    // === 연관 관계 ===
+    // 배우가 출연한 모든 영화와의 관계
     @OneToMany(mappedBy = "actor", cascade = CascadeType.ALL)
     private List<MovieActor> filmography;
 
