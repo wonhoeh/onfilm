@@ -37,6 +37,7 @@ public class MovieActor {
     private Actor actor;
 
     //배우의 배역 정보 (롸다주 -> 토니 스타크)
+    @Column(name = "actorRole", nullable = false)
     private String actorRole;
 
 
