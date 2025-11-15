@@ -1,4 +1,4 @@
-package toyproject.onfilm.common;
+package toyproject.onfilm.config.error;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
