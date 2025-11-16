@@ -13,9 +13,9 @@ public class MovieActorResponse {
     private String actorRole;
 
     public MovieActorResponse(MovieActor movieActor) {
-        this.name = movieActor.getActor().getProfile().getName();
-        this.age = movieActor.getActor().getProfile().getAge();
-        this.sns = movieActor.getActor().getProfile().getSns();
+        this.name = movieActor.getActor().getName();
+        this.age = movieActor.getActor().getAge();
+        this.sns = movieActor.getActor().getSns();
         this.actorRole = movieActor.getActorRole();
     }
 

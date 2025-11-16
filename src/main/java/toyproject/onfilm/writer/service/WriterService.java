@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import toyproject.onfilm.common.Profile;
 import toyproject.onfilm.writer.dto.CreateWriterRequest;
 import toyproject.onfilm.writer.entity.Writer;
 import toyproject.onfilm.writer.repository.WriterRepository;
@@ -18,16 +17,14 @@ public class WriterService {
     private final WriterRepository writerRepository;
 
     public Long createWriter(CreateWriterRequest request) {
-        Profile profile = Profile.builder()
+        Writer writer = Writer.builder()
                 .name(request.getName())
                 .age(request.getAge())
                 .sns(request.getSns())
                 .build();
 
-        Writer writer = writerRepository.save(Writer.builder()
-                .profile(profile)
-                .build());
+        Writer savedWriter = writerRepository.save(writer);
 
-        return writer.getId();
+        return savedWriter.getId();
     }
 }

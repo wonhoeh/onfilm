@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import toyproject.onfilm.common.Profile;
 import toyproject.onfilm.director.dto.CreateDirectorRequest;
 import toyproject.onfilm.director.entity.Director;
 import toyproject.onfilm.director.repository.DirectorRepository;
@@ -19,16 +18,14 @@ public class DirectorService {
 
     @Transactional
     public Long createDirector(CreateDirectorRequest request) {
-        Profile profile = Profile.builder()
+        Director director = Director.builder()
                 .name(request.getName())
                 .age(request.getAge())
                 .sns(request.getSns())
                 .build();
 
-        Director director = directorRepository.save(Director.builder()
-                .profile(profile)
-                .build());
+        Director savedDirector = directorRepository.save(director);
 
-        return director.getId();
+        return savedDirector.getId();
     }
 }

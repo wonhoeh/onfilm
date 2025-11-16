@@ -8,6 +8,6 @@ public class MovieDirectorNameResponse {
     private String name;
 
     public MovieDirectorNameResponse(MovieDirector movieDirector) {
-        this.name = movieDirector.getDirector().getProfile().getName();
+        this.name = movieDirector.getDirector().getName();
     }
 }

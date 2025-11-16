@@ -11,7 +11,7 @@ public class MovieActorNameResponse {
     private String name;
 
     public MovieActorNameResponse(MovieActor movieActor) {
-        this.name = movieActor.getActor().getProfile().getName();
+        this.name = movieActor.getActor().getName();
     }
 
     /**

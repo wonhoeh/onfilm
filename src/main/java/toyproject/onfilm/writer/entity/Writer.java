@@ -5,7 +5,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import toyproject.onfilm.common.Profile;
 import toyproject.onfilm.moviewriter.entity.MovieWriter;
 
 import java.util.ArrayList;
@@ -32,15 +31,18 @@ public class Writer {
     @Column(name = "writer_id")
     private Long id;
 
-    @Embedded
-    private Profile profile;
+    @Column(nullable = false)
+    private String name;
+    private Integer age;
+    private String sns;
 
     @OneToMany(mappedBy = "writer")
-    //@Builder.Default
     private List<MovieWriter> filmography = new ArrayList<>();
 
     @Builder
-    public Writer(Profile profile) {
-        this.profile = profile;
+    public Writer(String name, Integer age, String sns) {
+        this.name = name;
+        this.age = age;
+        this.sns = sns;
     }
 }

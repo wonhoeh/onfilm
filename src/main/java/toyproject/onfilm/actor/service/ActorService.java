@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import toyproject.onfilm.actor.dto.CreateActorRequest;
 import toyproject.onfilm.actor.entity.Actor;
 import toyproject.onfilm.actor.repository.ActorRepository;
-import toyproject.onfilm.common.Profile;
 
 @Slf4j
 @Service
@@ -19,14 +18,10 @@ public class ActorService {
 
     @Transactional
     public Long createActor(CreateActorRequest request) {
-        Profile profile = Profile.builder()
+        Actor actor = actorRepository.save(Actor.builder()
                 .name(request.getName())
                 .age(request.getAge())
                 .sns(request.getSns())
-                .build();
-
-        Actor actor = actorRepository.save(Actor.builder()
-                .profile(profile)
                 .build());
 
         return actor.getId();

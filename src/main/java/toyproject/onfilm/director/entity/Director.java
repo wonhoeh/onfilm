@@ -5,7 +5,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import toyproject.onfilm.common.Profile;
 import toyproject.onfilm.moviedirector.entity.MovieDirector;
 
 import java.util.ArrayList;
@@ -24,7 +23,6 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-//@SuperBuilder
 @Entity
 public class Director {
 
@@ -32,15 +30,18 @@ public class Director {
     @Column(name = "director_id")
     private Long id;
 
-    @Embedded
-    private Profile profile;
+    @Column(nullable = false)
+    private String name;
+    private Integer age;
+    private String sns;
 
     @OneToMany(mappedBy = "director", cascade = CascadeType.ALL)
-    //@Builder.Default
     List<MovieDirector> filmography = new ArrayList<>();
 
     @Builder
-    public Director(Profile profile) {
-        this.profile = profile;
+    public Director(String name, Integer age, String sns) {
+        this.name = name;
+        this.age = age;
+        this.sns = sns;
     }
 }

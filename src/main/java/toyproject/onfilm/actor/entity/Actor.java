@@ -5,7 +5,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import toyproject.onfilm.common.Profile;
 import toyproject.onfilm.movieactor.entity.MovieActor;
 
 import java.util.List;
@@ -24,7 +23,6 @@ import java.util.List;
  */
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-//@SuperBuilder
 @Entity
 public class Actor {
 
@@ -32,8 +30,10 @@ public class Actor {
     @Column(name = "actor_id")
     private Long id;
 
-    @Embedded
-    private Profile profile;
+    @Column(nullable = false)
+    private String name;
+    private Integer age;
+    private String sns;
 
     // === 연관 관계 ===
     // 배우가 출연한 모든 영화와의 관계
@@ -41,7 +41,9 @@ public class Actor {
     private List<MovieActor> filmography;
 
     @Builder
-    public Actor(Profile profile) {
-        this.profile = profile;
+    public Actor(String name, Integer age, String sns) {
+        this.name = name;
+        this.age = age;
+        this.sns = sns;
     }
 }
