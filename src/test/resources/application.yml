@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create  # 매번 DB 새로 만듦
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        show_sql: true  # 콘솔에 쿼리 출력
+
+logging:
+  level:
+    org.hibernate.SQL: debug         # SQL 로그 출력
+    org.hibernate.type.descriptor.sql.BasicBinder: trace  # 바인딩 파라미터 출력

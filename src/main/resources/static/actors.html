@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>배우 목록 – IndieFilm Actor Hub</title>
+
+    <style>
+        :root{
+            --bg:#0b0c0f;
+            --panel:#12131a;
+            --panel-2:#161824;
+            --text:#e7e8ee;
+            --muted:#9aa0ad;
+            --line:rgba(255,255,255,.08);
+            --accent:#7c5cff;
+            --accent-2:#24d39a;
+            --radius-lg:14px;
+        }
+
+        *{ box-sizing:border-box; }
+        body{
+            margin:0;
+            font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;
+            background:
+                    radial-gradient(900px 400px at 80% 0%, rgba(124,92,255,.2), transparent 60%),
+                    radial-gradient(700px 350px at 10% 10%, rgba(36,211,154,.15), transparent 60%),
+                    var(--bg);
+            color:var(--text);
+        }
+        .container{ width:min(1100px,92vw); margin:0 auto; }
+
+        /* ==============================
+           HEADER (로고 | 검색 | 메뉴 | 프로필)
+        =============================== */
+        header{
+            position:sticky; top:0; z-index:10;
+            background:rgba(11,12,15,.85);
+            backdrop-filter:blur(8px);
+            border-bottom:1px solid var(--line);
+        }
+        .nav{
+            display:flex; align-items:center; justify-content:space-between;
+            padding:14px 0;
+            gap:20px;
+        }
+        /* Logo */
+        .logo{
+            display:flex; align-items:center; gap:8px;
+            font-weight:900; font-size:18px;
+        }
+        .logo-mark{
+            width:26px; height:26px;
+            border-radius:8px;
+            background:conic-gradient(from 220deg,var(--accent),#ff7adf,#ffd36e,var(--accent-2),var(--accent));
+            box-shadow:0 0 20px rgba(124,92,255,.4);
+        }
+
+        /* Search (center) */
+        .center-search{
+            flex:1;
+            max-width:480px;
+            margin:0 auto;
+        }
+        .search-wrapper{
+            display:flex; align-items:center;
+            background:var(--panel);
+            border:1px solid var(--line);
+            padding:0 10px;
+            border-radius:12px;
+            transition:.15s;
+        }
+        .search-wrapper:focus-within{
+            border-color:var(--accent);
+        }
+        .search-input{
+            flex:1; border:none; background:transparent;
+            padding:8px 6px;
+            font-size:14px; color:var(--text);
+        }
+        .search-input::placeholder{ color:var(--muted); }
+        .search-btn{
+            background:transparent; border:none;
+            cursor:pointer; font-size:16px;
+        }
+
+        /* Menu + Avatar */
+        .right-group{
+            display:flex; align-items:center; gap:18px;
+        }
+        nav ul{
+            display:flex; list-style:none; gap:18px;
+            padding:0; margin:0;
+            font-weight:600; color:var(--muted);
+        }
+        nav li.active{
+            color:var(--text); font-weight:700;
+        }
+        .avatar{
+            width:36px; height:36px; border-radius:50%;
+            background:linear-gradient(135deg,#444,#111);
+            border:1px solid var(--line);
+        }
+
+        /* ==============================
+           PAGE TITLE
+        =============================== */
+        .page-title{
+            margin:30px 0 10px;
+            font-size:28px;
+            font-weight:900;
+        }
+
+        /* ==============================
+           ACTOR GRID
+        =============================== */
+        .actor-grid{
+            margin-top:22px;
+            display:grid;
+            grid-template-columns:repeat(4,1fr);
+            gap:16px;
+        }
+        .actor-card{
+            background:var(--panel);
+            border:1px solid var(--line);
+            border-radius:var(--radius-lg);
+            overflow:hidden;
+            cursor:pointer;
+            transition:0.15s;
+        }
+        .actor-card:hover{
+            border-color:rgba(124,92,255,.5);
+            transform:translateY(-4px);
+        }
+        .actor-thumb{
+            aspect-ratio:4/5;
+            width:100%; object-fit:cover;
+            background:#0f1117;
+        }
+        .actor-body{
+            padding:12px;
+        }
+        .actor-name{
+            font-size:16px; font-weight:800;
+        }
+        .actor-meta{
+            margin-top:4px;
+            font-size:13px;
+            color:var(--muted);
+        }
+
+        /* ==============================
+           PAGINATION
+        =============================== */
+        .pagination{
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            gap:10px;
+            margin:34px 0 40px;
+            font-weight:700;
+        }
+        .page-btn{
+            padding:8px 14px;
+            border-radius:10px;
+            border:1px solid var(--line);
+            background:var(--panel);
+            color:var(--text);
+            cursor:pointer;
+            transition:0.15s;
+            font-size:14px;
+        }
+        .page-btn:hover{
+            border-color:var(--accent);
+            color:#fff;
+            transform:translateY(-2px);
+        }
+        .page-btn.active{
+            background:var(--accent);
+            border-color:var(--accent);
+            color:#fff;
+            font-weight:800;
+        }
+
+        @media(max-width:900px){
+            .actor-grid{ grid-template-columns:repeat(3,1fr); }
+        }
+        @media(max-width:650px){
+            .actor-grid{ grid-template-columns:repeat(2,1fr); }
+            nav ul{ display:none; }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="container nav">
+
+        <!-- LEFT: Logo -->
+        <div class="logo">
+            <div class="logo-mark"></div>
+            OnFilm
+        </div>
+
+        <!-- CENTER: Search -->
+        <div class="search-wrapper center-search">
+            <input type="text" placeholder="영화, 배우 검색…" class="search-input" />
+            <button class="search-btn">🔍</button>
+        </div>
+
+        <!-- RIGHT: Menu -->
+        <div class="right-group">
+            <nav>
+                <ul>
+                    <li>홈</li>
+                    <li class="active">배우</li>
+                    <li>영화</li>
+                </ul>
+            </nav>
+            <div class="avatar"></div>
+        </div>
+
+    </div>
+</header>
+
+<main class="container">
+
+    <h1 class="page-title">배우 목록</h1>
+
+    <!-- ACTOR LIST -->
+    <div class="actor-grid">
+
+        <article class="actor-card">
+            <img class="actor-thumb" src="https://images.unsplash.com/photo-1541647376583-8934aaf3448a?q=80&w=900">
+            <div class="actor-body">
+                <div class="actor-name">디카프리오</div>
+                <div class="actor-meta">필모 22편</div>
+            </div>
+        </article>
+
+        <article class="actor-card">
+            <img class="actor-thumb" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">
+            <div class="actor-body">
+                <div class="actor-name">홍길동</div>
+                <div class="actor-meta">필모 8편</div>
+            </div>
+        </article>
+
+        <article class="actor-card">
+            <img class="actor-thumb" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">
+            <div class="actor-body">
+                <div class="actor-name">최배우</div>
+                <div class="actor-meta">필모 6편</div>
+            </div>
+        </article>
+
+        <article class="actor-card">
+            <img class="actor-thumb" src="https://images.unsplash.com/photo-1502136969935-8d8eef54d77b?q=80&w=900">
+            <div class="actor-body">
+                <div class="actor-name">김배우</div>
+                <div class="actor-meta">필모 4편</div>
+            </div>
+        </article>
+
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="pagination">
+        <button class="page-btn">이전</button>
+
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <button class="page-btn">4</button>
+        <button class="page-btn">5</button>
+
+        <button class="page-btn">다음</button>
+    </div>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,780 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OnFilm – Indie Actor Hub</title>
+
+    <style>
+        /* ===========================================
+           ROOT VARIABLES
+        =========================================== */
+        :root{
+            --bg:#0b0c0f;
+            --panel:#12131a;
+            --panel-2:#161824;
+            --text:#e7e8ee;
+            --muted:#9aa0ad;
+            --line:rgba(255,255,255,.08);
+            --accent:#7c5cff;
+            --accent-2:#24d39a;
+            --radius-xl:20px;
+            --radius-lg:14px;
+            --radius-md:10px;
+            --shadow:0 10px 40px rgba(0,0,0,.55);
+        }
+
+        /* ===========================================
+           GLOBAL RESET
+        =========================================== */
+        * { box-sizing: border-box; margin:0; padding:0; }
+        body{
+            font-family: system-ui, -apple-system, "Noto Sans KR", sans-serif;
+            background:
+                    radial-gradient(1200px 600px at 80% -10%, rgba(124,92,255,.20), transparent 65%),
+                    radial-gradient(900px 500px at 10% 5%, rgba(36,211,154,.12), transparent 60%),
+                    var(--bg);
+            color: var(--text);
+            overflow-x:hidden;
+        }
+        a { color:inherit; text-decoration:none; }
+
+        .container { width:min(1100px, 92vw); margin:0 auto; }
+
+        /* ===========================================
+           HEADER
+        =========================================== */
+        header{
+            position:sticky;
+            top:0;
+            z-index:10;
+            background:rgba(11,12,15,.88);
+            border-bottom:1px solid var(--line);
+            backdrop-filter:blur(8px);
+        }
+        .nav{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:14px 0;
+            gap:20px;
+        }
+
+        /* LOGO */
+        .logo{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            font-weight:900;
+            font-size:18px;
+        }
+        .logo-mark{
+            width:26px;
+            height:26px;
+            border-radius:8px;
+            background:conic-gradient(from 220deg,var(--accent),#ff7adf,#ffd36e,var(--accent-2),var(--accent));
+            box-shadow:0 0 20px rgba(124,92,255,.4);
+        }
+
+        /* SEARCH */
+        .center-search{
+            flex:1;
+            max-width:500px;
+            margin:0 auto;
+        }
+        .search-wrapper{
+            background:var(--panel);
+            border:1px solid var(--line);
+            border-radius:12px;
+            padding:0 12px;
+            display:flex;
+            align-items:center;
+        }
+        .search-input{
+            flex:1;
+            padding:10px 8px;
+            background:transparent;
+            border:none;
+            color:var(--text);
+        }
+        .search-input::placeholder { color:var(--muted); }
+        .search-btn{
+            font-size:16px;
+            background:transparent;
+            border:none;
+            cursor:pointer;
+            color:var(--muted);
+        }
+
+        /* NAV RIGHT */
+        .right-group{
+            display:flex;
+            align-items:center;
+            gap:18px;
+        }
+        nav ul{
+            list-style:none;
+            display:flex;
+            gap:18px;
+            font-weight:600;
+            color:var(--muted);
+        }
+        nav li.active{
+            color:var(--text);
+            font-weight:800;
+        }
+
+        .avatar{
+            width:36px; height:36px;
+            border-radius:50%;
+            border:1px solid var(--line);
+            background:linear-gradient(135deg,#444,#111);
+        }
+
+        /* ===========================================
+           FULL-WIDTH HERO (그대로 유지)
+        =========================================== */
+        .hero-trailer-full{
+            width:100vw;
+            position:relative;
+            left:50%;
+            margin-left:-50vw;
+            margin-top:20px;
+        }
+        .hero-video-container-full{
+            position:relative;
+            width:100%;
+            height:620px;
+            overflow:hidden;
+        }
+        .hero-video-full,
+        .hero-thumbnail{
+            position:absolute;
+            inset:0;
+            width:100%;
+            height:100%;
+            object-fit:cover;
+        }
+        .hero-thumbnail{
+            z-index:2;
+            transition:opacity .3s ease;
+        }
+        .hero-overlay{
+            position:absolute;
+            inset:0;
+            z-index:3;
+            background:linear-gradient(to top,
+            rgba(0,0,0,.85) 0%,
+            rgba(0,0,0,.45) 40%,
+            rgba(0,0,0,.15) 70%,
+            rgba(0,0,0,0) 100%
+            );
+        }
+        .hero-left{
+            position:absolute;
+            bottom:120px;
+            left:80px;
+            z-index:5;
+            max-width:460px;
+        }
+        .hero-title{
+            font-size:48px; font-weight:900; margin-bottom:12px;
+        }
+        .hero-desc{
+            color:var(--muted);
+            font-size:17px;
+            margin-bottom:20px;
+            line-height:1.6;
+        }
+        .hero-buttons{ display:flex; gap:12px; }
+        .btn-play,
+        .btn-info{
+            padding:12px 18px;
+            border-radius:12px;
+            border:none;
+            font-weight:900;
+            cursor:pointer;
+        }
+        .btn-play{ background:white; color:black; }
+        .btn-info{ background:rgba(255,255,255,.25); color:white; }
+
+        .hero-right{
+            position:absolute;
+            bottom:40px; right:40px;
+            z-index:5;
+            display:flex;
+            gap:16px;
+        }
+        .mute-btn{
+            width:46px;
+            height:46px;
+            background:rgba(0,0,0,.55);
+            border-radius:50%;
+            border:1px solid rgba(255,255,255,.25);
+            backdrop-filter:blur(3px);
+            font-size:18px;
+            cursor:pointer;
+            color:white;
+        }
+        .age-badge{
+            padding:8px 14px;
+            background:rgba(255,0,0,.85);
+            border-radius:8px;
+            font-weight:900;
+            color:white;
+        }
+
+        /* ===========================================
+           SECTION TITLES
+        =========================================== */
+        .section-title{
+            font-size:18px;
+            font-weight:800;
+            margin:20px 0 12px;
+        }
+
+        /* ===========================================
+           FULL-WIDTH CONTENT SECTIONS
+        =========================================== */
+        .full-width-section{
+            width:100vw;
+            position:relative;
+            left:50%;
+            margin-left:-50vw;
+            padding:0 50px;
+            margin-top:25px;
+        }
+
+        /* ===========================================
+           SLIDER BASE
+        =========================================== */
+        .slider-container{
+            position:relative;
+            margin-bottom:40px;
+            overflow:visible;
+        }
+        .slider-wrapper{
+            overflow-x:hidden;
+            overflow-y:visible;
+        }
+        .slider{
+            display:flex;
+            gap:14px;
+            transition:transform .4s ease;
+        }
+
+        .slider-arrow{
+            position:absolute;
+            top:50%;
+            transform:translateY(-50%);
+            font-size:48px;
+            background:transparent;
+            border:none;
+            color:white;
+            opacity:0;
+            cursor:pointer;
+            transition:opacity .25s;
+            z-index:50;
+            padding:0 6px;
+        }
+        .slider-container:hover .slider-arrow{
+            opacity:1;
+        }
+        .slider-arrow.left{ left:-4px; }
+        .slider-arrow.right{ right:-4px; }
+        .slider-arrow:hover{
+            color:var(--accent);
+            transform:translateY(-50%) scale(1.1);
+        }
+
+        /* ===========================================
+           MOVIE CARD — 넷플릭스 / 쿠팡플레이 B안
+        =========================================== */
+        .movie-card{
+            width:260px;
+            flex-shrink:0;
+            cursor:pointer;
+            position:relative;
+        }
+        .movie-thumb{
+            width:100%;
+            aspect-ratio:16/9;
+            border-radius:12px;
+            overflow:hidden;
+            background:var(--panel);
+            border:1px solid var(--line);
+            position:relative;
+            box-shadow:0 6px 20px rgba(0,0,0,.35);
+        }
+        .movie-thumb img{
+            width:100%;
+            height:100%;
+            object-fit:cover;
+        }
+        .movie-body{
+            padding:8px 4px 0;
+            font-weight:800;
+            font-size:14px;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+        }
+
+        /* ===========================================
+           MOVIE POPUP (세로형, 쿠팡플레이 스타일)
+        =========================================== */
+        .movie-popup{
+            position:fixed;
+            z-index:999;
+            width:340px;
+            background:var(--panel-2);
+            border-radius:14px;
+            border:1px solid var(--line);
+            box-shadow:0 20px 60px rgba(0,0,0,.75);
+            overflow:hidden;
+            opacity:0;
+            pointer-events:none;
+            transform:scale(.7);
+            transition:opacity .18s ease, transform .18s ease;
+        }
+        .movie-popup.show{
+            opacity:1;
+            transform:scale(1);
+            pointer-events:auto;
+        }
+
+        .popup-video-box{
+            width:100%;
+            aspect-ratio:16/9;
+            background:black;
+            position:relative;
+        }
+        .popup-video-box video{
+            width:100%;
+            height:100%;
+            object-fit:cover;
+        }
+
+        .popup-mute-btn{
+            position:absolute;
+            bottom:10px;
+            right:10px;
+            width:38px; height:38px;
+            border-radius:50%;
+            background:rgba(0,0,0,.55);
+            border:1px solid rgba(255,255,255,.35);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+            color:white;
+            font-size:17px;
+        }
+
+        .popup-info{
+            padding:14px;
+        }
+        .popup-title{
+            font-size:18px;
+            font-weight:900;
+            margin-bottom:6px;
+        }
+        .popup-meta{
+            font-size:13px;
+            color:var(--muted);
+            margin-bottom:12px;
+        }
+        .popup-age{
+            background:rgba(255,0,0,.85);
+            padding:3px 6px;
+            border-radius:4px;
+            font-size:12px;
+            font-weight:800;
+            color:white;
+            margin-left:6px;
+        }
+
+        /* ===========================================
+           ACTOR CARD (세로형 유지)
+        =========================================== */
+        .actor-card{
+            width:180px;
+            flex-shrink:0;
+            background:var(--panel);
+            border:1px solid var(--line);
+            border-radius:var(--radius-lg);
+            overflow:hidden;
+            cursor:pointer;
+            transition:.15s ease;
+        }
+        .actor-card:hover{
+            transform:translateY(-3px);
+            border-color:var(--accent);
+        }
+        .actor-thumb{
+            width:100%;
+            height:240px;
+            object-fit:cover;
+        }
+        .actor-body{
+            padding:10px;
+        }
+        .actor-name{
+            font-weight:800;
+            font-size:14px;
+        }
+
+        /* ===========================================
+           FOOTER
+        =========================================== */
+        footer{
+            text-align:center;
+            padding-top:14px;
+            margin:40px 0;
+            color:var(--muted);
+            border-top:1px solid var(--line);
+            font-size:12px;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container nav">
+        <div class="logo">
+            <div class="logo-mark"></div>
+            OnFilm
+        </div>
+
+        <div class="search-wrapper center-search">
+            <input class="search-input" placeholder="영화, 배우 검색…" />
+            <button class="search-btn">🔍</button>
+        </div>
+
+        <div class="right-group">
+            <nav>
+                <ul>
+                    <li class="active">홈</li>
+                    <li>배우</li>
+                    <li>영화</li>
+                </ul>
+            </nav>
+            <div class="avatar"></div>
+        </div>
+    </div>
+</header>
+
+<main>
+
+    <!-- HERO -->
+    <section class="hero-trailer-full">
+        <div class="hero-video-container-full" id="heroArea">
+
+            <video class="hero-video-full" id="heroVideo" muted loop>
+                <source src="videos/trailer.mp4" type="video/mp4">
+            </video>
+
+            <img src="videos/thumbnail.png" class="hero-thumbnail" id="heroThumb">
+
+            <div class="hero-overlay"></div>
+
+            <div class="hero-left">
+                <h1 class="hero-title">반품</h1>
+                <p class="hero-desc">반품 하지마 이ㅆ</p>
+                <div class="hero-buttons">
+                    <button class="btn-play">▶ 재생</button>
+                    <button class="btn-info">ℹ 상세정보</button>
+                </div>
+            </div>
+
+            <div class="hero-right">
+                <button class="mute-btn" id="muteBtn">🔇</button>
+                <div class="age-badge">15</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- MOVIE LIST -->
+    <section class="full-width-section">
+        <h2 class="section-title">영화 목록</h2>
+
+        <div class="slider-container" id="movieSliderArea">
+            <button class="slider-arrow left" id="moviePrev">‹</button>
+
+            <div class="slider-wrapper">
+                <div class="slider" id="movieSlider">
+
+                    <!-- MOVIE #1 -->
+                    <div class="movie-card"
+                         data-title="인셉션"
+                         data-genre="SF / 스릴러"
+                         data-runtime="148분"
+                         data-age="15"
+                         data-video="videos/trailer.mp4"
+                         data-thumb="videos/thumbnail.png">
+
+                        <div class="movie-thumb">
+                            <img src="videos/thumbnail.png">
+                        </div>
+                        <div class="movie-body">인셉션</div>
+                    </div>
+
+                    <!-- MOVIE #2 -->
+                    <div class="movie-card"
+                         data-title="도어락"
+                         data-genre="스릴러"
+                         data-runtime="102분"
+                         data-age="15"
+                         data-video="videos/trailer.mp4"
+                         data-thumb="https://images.unsplash.com/photo-1517602302552-471fe67acf66?q=80">
+                        <div class="movie-thumb">
+                            <img src="https://images.unsplash.com/photo-1517602302552-471fe67acf66?q=80">
+                        </div>
+                        <div class="movie-body">도어락</div>
+                    </div>
+
+                    <!-- MOVIE #3 -->
+                    <div class="movie-card"
+                         data-title="파이트클럽"
+                         data-genre="드라마 · 스릴러"
+                         data-runtime="139분"
+                         data-age="19"
+                         data-video="videos/trailer.mp4"
+                         data-thumb="https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?q=80">
+                        <div class="movie-thumb">
+                            <img src="https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?q=80">
+                        </div>
+                        <div class="movie-body">파이트클럽</div>
+                    </div>
+
+                    <!-- MOVIE #4 -->
+                    <div class="movie-card"
+                         data-title="문라이트"
+                         data-genre="드라마"
+                         data-runtime="111분"
+                         data-age="15"
+                         data-video="videos/trailer.mp4"
+                         data-thumb="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80">
+                        <div class="movie-thumb">
+                            <img src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80">
+                        </div>
+                        <div class="movie-body">문라이트</div>
+                    </div>
+
+                    <!-- MOVIE #5 -->
+                    <div class="movie-card"
+                         data-title="더 로드"
+                         data-genre="스릴러 / 휴먼"
+                         data-runtime="112분"
+                         data-age="15"
+                         data-video="videos/trailer.mp4"
+                         data-thumb="https://images.unsplash.com/photo-1502136969935-8d8eef54d77b?q=80">
+                        <div class="movie-thumb">
+                            <img src="https://images.unsplash.com/photo-1502136969935-8d8eef54d77b?q=80">
+                        </div>
+                        <div class="movie-body">더 로드</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <button class="slider-arrow right" id="movieNext">›</button>
+        </div>
+    </section>
+
+    <!-- ACTOR LIST -->
+    <section class="full-width-section">
+        <h2 class="section-title">최근 업데이트된 배우</h2>
+
+        <div class="slider-container" id="actorSliderArea">
+            <button class="slider-arrow left" id="actorPrev">‹</button>
+
+            <div class="slider-wrapper">
+                <div class="slider" id="actorSlider">
+
+                    <div class="actor-card">
+                        <img class="actor-thumb" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80">
+                        <div class="actor-body"><div class="actor-name">홍길동</div></div>
+                    </div>
+
+                    <div class="actor-card">
+                        <img class="actor-thumb" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80">
+                        <div class="actor-body"><div class="actor-name">김배우</div></div>
+                    </div>
+
+                    <div class="actor-card">
+                        <img class="actor-thumb" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80">
+                        <div class="actor-body"><div class="actor-name">최배우</div></div>
+                    </div>
+
+                    <div class="actor-card">
+                        <img class="actor-thumb" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80">
+                        <div class="actor-body"><div class="actor-name">이배우</div></div>
+                    </div>
+
+                </div>
+            </div>
+
+            <button class="slider-arrow right" id="actorNext">›</button>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    © 2025 OnFilm · Indie Actor & Film Platform
+</footer>
+
+
+<!-- ===========================================
+     JS
+=========================================== -->
+<script>
+    /* HERO MUTE */
+    const heroVideo = document.getElementById("heroVideo");
+    document.getElementById("muteBtn").onclick = () => {
+        heroVideo.muted = !heroVideo.muted;
+        muteBtn.textContent = heroVideo.muted ? "🔇" : "🔊";
+    };
+
+    /* HERO HOVER */
+    document.getElementById("heroArea").addEventListener("mouseenter", () => {
+        heroThumb.style.opacity = "0";
+        heroVideo.play();
+    });
+    document.getElementById("heroArea").addEventListener("mouseleave", () => {
+        heroVideo.pause();
+        heroThumb.style.opacity = "1";
+    });
+
+    /* SLIDER 공통 */
+    function setupSlider(sliderId, prevId, nextId, visible=4){
+        const slider = document.getElementById(sliderId);
+        const prev = document.getElementById(prevId);
+        const next = document.getElementById(nextId);
+
+        let idx = 0;
+
+        function cardW(){
+            const c = slider.children[0];
+            return c.offsetWidth + 14;
+        }
+
+        next.onclick = () => {
+            const max = slider.children.length - visible;
+            if(idx < max) idx++;
+            slider.style.transform = `translateX(${-idx * cardW()}px)`;
+        };
+        prev.onclick = () => {
+            if(idx > 0) idx--;
+            slider.style.transform = `translateX(${-idx * cardW()}px)`;
+        };
+    }
+
+    setupSlider("movieSlider", "moviePrev", "movieNext", 4);
+    setupSlider("actorSlider", "actorPrev", "actorNext", 5);
+
+
+    /* ====================================================
+       MOVIE POPUP (쿠팡플레이 / 넷플릭스 스타일)
+    ==================================================== */
+    let popup;
+    let popupVisible = false;
+    let hideTimeout = null;
+
+    function createPopup(){
+        popup = document.createElement("div");
+        popup.className = "movie-popup";
+
+        popup.innerHTML = `
+        <div class="popup-video-box">
+            <video muted loop></video>
+            <div class="popup-mute-btn">🔇</div>
+        </div>
+        <div class="popup-info">
+            <div class="popup-title"></div>
+            <div class="popup-meta"></div>
+        </div>
+    `;
+        document.body.appendChild(popup);
+
+        // 팝업 위에 마우스가 올라가면 유지
+        popup.addEventListener("mouseenter", () => {
+            if (hideTimeout) clearTimeout(hideTimeout);
+        });
+
+        // 팝업에서 나가면 사라짐
+        popup.addEventListener("mouseleave", () => {
+            hidePopup();
+        });
+
+        popup.querySelector(".popup-mute-btn").onclick = () => {
+            const v = popup.querySelector("video");
+            v.muted = !v.muted;
+        };
+    }
+
+    createPopup();
+
+    function showPopup(card) {
+        if (hideTimeout) clearTimeout(hideTimeout);
+
+        const rect = card.getBoundingClientRect();
+
+        const title = card.dataset.title;
+        const genre = card.dataset.genre;
+        const runtime = card.dataset.runtime;
+        const age = card.dataset.age;
+        const video = card.dataset.video;
+
+        popup.querySelector("video").src = video;
+        popup.querySelector(".popup-title").textContent = title;
+        popup.querySelector(".popup-meta").innerHTML = `
+        ${genre} · ${runtime}
+        <span class="popup-age">${age}</span>
+    `;
+
+        // 위치 계산
+        const popupWidth = popup.offsetWidth;
+        const left = rect.left + (rect.width / 2) - (popupWidth / 2);
+        const top = rect.top - popup.offsetHeight - 14;
+
+        popup.style.left = `${left}px`;
+        popup.style.top = `${top < 80 ? rect.bottom + 14 : top}px`; // 위 공간 부족하면 아래로
+
+        popup.classList.add("show");
+        popupVisible = true;
+
+        // 영상 재생
+        const v = popup.querySelector("video");
+        v.currentTime = 0;
+        v.play();
+    }
+
+    function hidePopup() {
+        hideTimeout = setTimeout(() => {
+            popup.classList.remove("show");
+            popupVisible = false;
+
+            const v = popup.querySelector("video");
+            v.pause();
+        }, 120); // 0.12초 딜레이 → 마우스 이동 여부 판단 시간
+    }
+
+
+    document.querySelectorAll(".movie-card").forEach(card => {
+
+        card.addEventListener("mouseenter", () => {
+            showPopup(card);
+        });
+
+        card.addEventListener("mouseleave", () => {
+            hidePopup();
+        });
+    });
+</script>
+
+</body>
+</html>
