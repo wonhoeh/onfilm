@@ -260,6 +260,113 @@
       color:white;
     }
 
+    .popup-play-btn {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      padding: 10px 16px;
+      font-size: 16px;
+      font-weight: 900;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+
+      background: rgba(255,255,255,0.85);
+      color: black;
+      transition: background .2s;
+      z-index: 20;
+    }
+    .popup-play-btn:hover {
+      background: white;
+    }
+
+    .popup-play-btn-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: none;
+
+      background: rgba(255,255,255,0.9);
+      color: black;
+      font-size: 20px;
+      font-weight: 900;
+
+      cursor: pointer;
+      transition: background .2s, transform .2s;
+    }
+
+    .popup-play-btn-circle:hover {
+      background: white;
+      transform: scale(1.08);
+    }
+
+    /* ▶ 재생 버튼 */
+    .popup-play-btn-circle {
+      background: rgba(255,255,255,0.9);
+      color: black;
+    }
+    .popup-play-btn-circle:hover {
+      background: white;
+      transform: scale(1.08);
+    }
+
+    /* 👍 좋아요 버튼 */
+    .popup-like-btn {
+      background: rgba(255,255,255,0.2);
+      color: var(--text);
+    }
+
+    /* 좋아요 활성 */
+    .popup-like-btn.liked {
+      background: rgba(124,92,255,0.9);
+      color: white;
+      transform: scale(1.15);
+    }
+
+    /* 눌렀을 때 느낌 */
+    .popup-like-btn:active {
+      transform: scale(0.92);
+    }
+
+    /* ▶ 재생 버튼 & 👍 좋아요 버튼이 들어있는 줄 */
+    .popup-action-row {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    /* 두 버튼의 공통 스타일 → 단일 정의 */
+    .popup-action-row button {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      padding: 0;
+      margin: 0;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      font-size: 20px;
+      font-weight: 900;
+      cursor: pointer;
+      transition:
+              background .2s,
+              transform .2s cubic-bezier(.2,1.7,.6,1);
+    }
+
+    .popup-play-btn-circle span {
+      font-size: 20px;
+      transform: translateY(1px);
+    }
+
+    .popup-like-btn span {
+      font-size: 20px;
+      transform: translateY(1px);
+    }
+
     /* ACTOR LIST */
     .actor-card{
       width:180px;flex-shrink:0;background:var(--panel);
@@ -457,7 +564,7 @@
         <div class="slider" id="actorSlider">
 
           <div class="actor-card">
-            <img class="actor-thumb" src="videos/bokdol.jpg">
+            <img class="actor-thumb" src="videos/bokdol.jpeg">
             <div class="actor-body">
               <div class="actor-name">허복돌</div>
             </div>
@@ -603,6 +710,7 @@
     popup.innerHTML = `
     <div class="popup-video-box">
       <video muted loop></video>
+
       <div class="popup-mute-btn">
         <span class="mute-icon">🔇</span>
       </div>
@@ -611,23 +719,54 @@
     <div class="popup-info">
       <div class="popup-title"></div>
       <div class="popup-meta"></div>
+
+      <div class="popup-action-row">
+        <button class="popup-play-btn-circle"><span>▶</span></button>
+        <button class="popup-like-btn"><span>👍</span></button>
+      </div>
     </div>
   `;
 
     document.body.appendChild(popup);
 
     popup.addEventListener("mouseenter", () => {
-      if(hideTimer) clearTimeout(hideTimer);
+      if (hideTimer) clearTimeout(hideTimer);
     });
 
     popup.addEventListener("mouseleave", hidePopup);
 
-    popup.querySelector(".popup-mute-btn").onclick = () => {
+    popup.querySelector(".popup-mute-btn").onclick = (e) => {
+      e.stopPropagation();
       const v = popup.querySelector("video");
       v.muted = !v.muted;
       popup.querySelector(".mute-icon").textContent = v.muted ? "🔇" : "🔊";
     };
+
+    popup.querySelector(".popup-play-btn-circle").onclick = (e) => {
+      e.stopPropagation();
+      window.location.href = "movie-detail.html";
+    };
+
+    /* 👍 좋아요 버튼 */
+    const likeBtn = popup.querySelector(".popup-like-btn");
+    likeBtn.onclick = (e) => {
+      e.stopPropagation();
+      likeBtn.classList.toggle("liked");
+
+      if (likeBtn.classList.contains("liked")) {
+        likeBtn.style.transform = "scale(1.25)";
+        setTimeout(() => {
+          likeBtn.style.transform = "scale(1)";
+        }, 250);
+      }
+    };
+
+    /* 팝업 전체 클릭 → 상세 페이지 이동 */
+    popup.addEventListener("click", () => {
+      window.location.href = "movie-detail.html";
+    });
   }
+
 
   createPopup();
 
@@ -713,6 +852,22 @@
     card.addEventListener("mouseleave", () => {
       clearTimeout(popupDelayTimer); // ← 마우스 떠나면 팝업 예약 취소
       hidePopup();                   // ← 이미 떠 있는 팝업은 즉시 닫기
+    });
+  });
+
+  /* ==========================
+   MOVIE CARD CLICK → 상세 페이지 이동
+========================== */
+  document.querySelectorAll(".movie-card").forEach(card => {
+    card.addEventListener("click", () => {
+      // 1) 이동할 상세페이지의 파일명
+      const detailUrl = "movie-detail.html";
+
+      // 2) 추후 영화 id 기반 라우팅도 가능:
+      // const movieId = card.dataset.id;
+      // location.href = `/movies/${movieId}`;
+
+      window.location.href = detailUrl;
     });
   });
 
