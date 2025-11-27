@@ -377,6 +377,24 @@
     timeDisplay.textContent = `${fmt(video.currentTime)} / ${fmt(video.duration)}`;
   };
 
+  /* 자동 재생 플래그 */
+  const allowSound = sessionStorage.getItem("allowSoundPlay");
+
+  video.onloadedmetadata = () => {
+
+    // 기존 timeDisplay 업데이트 코드 유지
+    timeDisplay.textContent = `${fmt(video.currentTime)} / ${fmt(video.duration)}`;
+
+    // 🔥 메인에서 재생 버튼 누른 경우 → 소리 ON + 자동 재생
+    if (allowSound === "true") {
+      video.muted = false;
+      video.volume = 0.7;     // 기본 볼륨
+      video.play();
+
+      playPause.textContent = "⏸"; // UI도 재생 상태로 갱신
+    }
+  };
+
   /* 영상 재생 중 타임라인 / 시간 업데이트 */
   video.ontimeupdate = () => {
     if (!isNaN(video.duration) && video.duration > 0) {

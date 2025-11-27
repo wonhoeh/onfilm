@@ -744,7 +744,8 @@
 
     popup.querySelector(".popup-play-btn-circle").onclick = (e) => {
       e.stopPropagation();
-      window.location.href = "movie-detail.html";
+      sessionStorage.setItem("allowSoundPlay", "true");
+      window.location.href = "video-player-temp.html";
     };
 
     /* 👍 좋아요 버튼 */
@@ -896,6 +897,13 @@
       window.location.href = "actor-detail.html";
     });
   });
+
+  <!-- 메인 트레일러 재생 버튼 -->
+  document.querySelector(".btn-play").addEventListener("click", () => {
+    sessionStorage.setItem("allowSoundPlay", "true");
+    window.location.href = "video-player-temp.html";
+  });
+
 
 </script>
 
