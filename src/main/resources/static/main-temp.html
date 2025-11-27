@@ -390,10 +390,10 @@
 
 <header>
   <div class="container nav">
-    <div class="logo">
+    <a href="main.html" class="logo">
       <div class="logo-mark"></div>
       OnFilm
-    </div>
+    </a>
 
     <div class="search-wrapper center-search">
       <input class="search-input" placeholder="영화, 배우 검색…" />
@@ -708,24 +708,24 @@
     popup.className = "movie-popup";
 
     popup.innerHTML = `
-    <div class="popup-video-box">
-      <video muted loop></video>
+        <div class="popup-video-box">
+          <video muted loop></video>
 
-      <div class="popup-mute-btn">
-        <span class="mute-icon">🔇</span>
-      </div>
-    </div>
+          <div class="popup-mute-btn">
+            <span class="mute-icon">🔇</span>
+          </div>
+        </div>
 
-    <div class="popup-info">
-      <div class="popup-title"></div>
-      <div class="popup-meta"></div>
+        <div class="popup-info">
+          <div class="popup-title"></div>
+          <div class="popup-meta"></div>
 
-      <div class="popup-action-row">
-        <button class="popup-play-btn-circle"><span>▶</span></button>
-        <button class="popup-like-btn"><span>👍</span></button>
-      </div>
-    </div>
-  `;
+          <div class="popup-action-row">
+            <button class="popup-play-btn-circle"><span>▶</span></button>
+            <button class="popup-like-btn"><span>👍</span></button>
+          </div>
+        </div>
+        `;
 
     document.body.appendChild(popup);
 
@@ -784,9 +784,9 @@
 
     popup.querySelector(".popup-title").textContent = card.dataset.title;
     popup.querySelector(".popup-meta").innerHTML = `
-    ${card.dataset.genre} · ${card.dataset.runtime}
-    <span class="popup-age">${card.dataset.age}</span>
-  `;
+        ${card.dataset.genre} · ${card.dataset.runtime}
+        <span class="popup-age">${card.dataset.age}</span>
+        `;
 
     videoEl.src = card.dataset.video;
 
@@ -837,8 +837,6 @@
     }, 120);
   }
 
-
-
   let popupDelayTimer = null;
 
   /* 카드 이벤트 등록 */
@@ -856,8 +854,8 @@
   });
 
   /* ==========================
-   MOVIE CARD CLICK → 상세 페이지 이동
-========================== */
+  MOVIE CARD CLICK → 상세 페이지 이동
+  ========================== */
   document.querySelectorAll(".movie-card").forEach(card => {
     card.addEventListener("click", () => {
       // 1) 이동할 상세페이지의 파일명
@@ -871,12 +869,32 @@
     });
   });
 
-  document.querySelector(".logo").addEventListener("click", () => {
+  /* ==========================
+  HEADER NAVIGATION
+  ========================== */
+
+  // 홈 클릭 → main
+  document.querySelector("nav ul li:nth-child(1)").addEventListener("click", () => {
     window.location.href = "main.html";
   });
 
-  document.querySelector(".avatar").addEventListener("click", () => {
-    window.location.href = "main.html";
+  // 배우 클릭 → actor-list
+  document.querySelector("nav ul li:nth-child(2)").addEventListener("click", () => {
+    window.location.href = "actor-list.html";
+  });
+
+  // 영화 클릭 → movie-list
+  document.querySelector("nav ul li:nth-child(3)").addEventListener("click", () => {
+    window.location.href = "movie-list.html";
+  });
+
+  /* ==========================
+     ACTOR CARD CLICK
+  ========================== */
+  document.querySelectorAll(".actor-card").forEach(card => {
+    card.addEventListener("click", () => {
+      window.location.href = "actor-detail.html";
+    });
   });
 
 </script>
