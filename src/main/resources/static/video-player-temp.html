@@ -372,12 +372,7 @@
           ":" +
           String(Math.floor(t % 60)).padStart(2, "0");
 
-  /* 영상 로드 */
-  video.onloadedmetadata = () => {
-    timeDisplay.textContent = `${fmt(video.currentTime)} / ${fmt(video.duration)}`;
-  };
-
-  /* 자동 재생 플래그 */
+  /* 영상 로드 & 자동 재생 플래그 */
   const allowSound = sessionStorage.getItem("allowSoundPlay");
 
   video.onloadedmetadata = () => {
@@ -388,10 +383,18 @@
     // 🔥 메인에서 재생 버튼 누른 경우 → 소리 ON + 자동 재생
     if (allowSound === "true") {
       video.muted = false;
-      video.volume = 0.7;     // 기본 볼륨
+      video.volume = 1.0;     // 기본 볼륨
       video.play();
 
       playPause.textContent = "⏸"; // UI도 재생 상태로 갱신
+
+      // 🔥 볼륨 UI 상태 갱신 추가
+      volumeVertical.value = video.volume;
+      volumeFill.style.height = (video.volume * 100) + "%";
+
+      // 음소거 아이콘 표시도 맞춰주기
+      iconSoundOn.style.display = "block";
+      iconSoundOff.style.display = "none";
     }
   };
 

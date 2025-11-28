@@ -774,9 +774,6 @@
 
 
     function showPopup(card){
-        // ❌ 이 줄은 삭제
-        // if (window.innerWidth < 768) return;
-
         if (hideTimer) clearTimeout(hideTimer);
         activeCard = card;
 
@@ -862,7 +859,7 @@
             // 1) 이동할 상세페이지의 파일명
             const detailUrl = "movie-detail.html";
 
-            // 2) 추후 영화 id 기반 라우팅도 가능:
+            // 2) 추후 영화 id 기반 라우팅
             // const movieId = card.dataset.id;
             // location.href = `/movies/${movieId}`;
 
@@ -881,12 +878,12 @@
 
     // 배우 클릭 → actor-list
     document.querySelector("nav ul li:nth-child(2)").addEventListener("click", () => {
-        window.location.href = "actor-list.html";
+        window.location.href = "actors.html";
     });
 
     // 영화 클릭 → movie-list
     document.querySelector("nav ul li:nth-child(3)").addEventListener("click", () => {
-        window.location.href = "movie-list.html";
+        window.location.href = "movies.html";
     });
 
     /* ==========================
@@ -901,8 +898,13 @@
     <!-- 메인 트레일러 재생 버튼 -->
     document.querySelector(".btn-play").addEventListener("click", () => {
         sessionStorage.setItem("allowSoundPlay", "true");
-        window.location.href = "video-player-temp.html";
+        window.location.href = "video-player.html";
     });
+
+    <!-- 메인 트레일러 자세히 보기 버튼 -->
+    document.querySelector(".btn-info").addEventListener("click", () => {
+        window.location.href = "movie-detail.html";
+    })
 
 
 </script>

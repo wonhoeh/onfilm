@@ -102,13 +102,29 @@
       position:absolute;right:40px;bottom:40px;z-index:6;display:flex;gap:14px;
     }
     .mute-btn{
-      width:46px;height:46px;border-radius:50%;
-      background:rgba(0,0,0,.55);color:white;border:1px solid rgba(255,255,255,.25);
-      cursor:pointer;font-size:18px;
+      width:46px;
+      height:46px;
+      border-radius:50%;
+      background:rgba(0,0,0,.55);
+      color:white;
+      border:1px solid rgba(255,255,255,.25);
+      cursor:pointer;
+      font-size:18px;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
     .age-badge{
-      padding:8px 14px;background:rgba(255,0,0,.85);border-radius:8px;
+      display:flex;
+      align-items:center; /* 수직 중앙 */
+      justify-content:center; /* 수평 중앙 */
+
+      padding:8px 14px;
+      background:rgba(255,0,0,.85);
+      border-radius:8px;
       font-weight:900;
+      font-size: 20px;
     }
 
     .full-width-section{
@@ -441,7 +457,25 @@
       </div>
 
       <div class="hero-right">
-        <button class="mute-btn" id="muteBtn">🔇</button>
+        <button class="mute-btn" id="muteBtn">
+          <!-- 소리 켬 -->
+          <svg id="hero-sound-on" xmlns="http://www.w3.org/2000/svg"
+               viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+               width="28" height="28" style="display:none;">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
+          </svg>
+
+          <!-- 소리 꺼짐 -->
+          <svg id="hero-sound-off" xmlns="http://www.w3.org/2000/svg"
+               viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+               width="28" height="28">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6
+           4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354
+           A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
+          </svg>
+        </button>
         <div class="age-badge">15</div>
       </div>
 
@@ -564,30 +598,30 @@
         <div class="slider" id="actorSlider">
 
           <div class="actor-card">
-            <img class="actor-thumb" src="videos/bokdol.jpeg">
+            <img class="actor-thumb" src="videos/bokdolbokdol.jpeg">
             <div class="actor-body">
-              <div class="actor-name">허복돌</div>
+              <div class="actor-name">복돌</div>
             </div>
           </div>
 
           <div class="actor-card">
-            <img class="actor-thumb" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80">
+            <img class="actor-thumb" src="videos/fireflower.jpeg">
             <div class="actor-body">
-              <div class="actor-name">김배우</div>
+              <div class="actor-name">불꽃</div>
             </div>
           </div>
 
           <div class="actor-card">
-            <img class="actor-thumb" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80">
+            <img class="actor-thumb" src="videos/ddong5.jpeg">
             <div class="actor-body">
-              <div class="actor-name">최배우</div>
+              <div class="actor-name">뚱오</div>
             </div>
           </div>
 
           <div class="actor-card">
-            <img class="actor-thumb" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80">
+            <img class="actor-thumb" src="videos/rugi.jpeg">
             <div class="actor-body">
-              <div class="actor-name">이배우</div>
+              <div class="actor-name">루기</div>
             </div>
           </div>
 
@@ -621,9 +655,19 @@
      HERO MUTE
   -------------------------- */
   const heroVideo = document.getElementById("heroVideo");
+  const heroSoundOn = document.getElementById("hero-sound-on");
+  const heroSoundOff = document.getElementById("hero-sound-off");
+
   document.getElementById("muteBtn").onclick = () => {
     heroVideo.muted = !heroVideo.muted;
-    muteBtn.textContent = heroVideo.muted ? "🔇" : "🔊";
+
+    if (heroVideo.muted) {
+      heroSoundOn.style.display = "none";
+      heroSoundOff.style.display = "block";
+    } else {
+      heroSoundOn.style.display = "block";
+      heroSoundOff.style.display = "none";
+    }
   };
 
   /* HERO HOVER */
@@ -767,16 +811,10 @@
       window.location.href = "movie-detail.html";
     });
   }
-
-
   createPopup();
 
 
-
   function showPopup(card){
-    // ❌ 이 줄은 삭제
-    // if (window.innerWidth < 768) return;
-
     if (hideTimer) clearTimeout(hideTimer);
     activeCard = card;
 
@@ -862,7 +900,7 @@
       // 1) 이동할 상세페이지의 파일명
       const detailUrl = "movie-detail.html";
 
-      // 2) 추후 영화 id 기반 라우팅도 가능:
+      // 2) 추후 영화 id 기반 라우팅
       // const movieId = card.dataset.id;
       // location.href = `/movies/${movieId}`;
 
@@ -881,12 +919,12 @@
 
   // 배우 클릭 → actor-list
   document.querySelector("nav ul li:nth-child(2)").addEventListener("click", () => {
-    window.location.href = "actor-list.html";
+    window.location.href = "actors.html";
   });
 
   // 영화 클릭 → movie-list
   document.querySelector("nav ul li:nth-child(3)").addEventListener("click", () => {
-    window.location.href = "movie-list.html";
+    window.location.href = "movies.html";
   });
 
   /* ==========================
@@ -903,6 +941,11 @@
     sessionStorage.setItem("allowSoundPlay", "true");
     window.location.href = "video-player-temp.html";
   });
+
+  <!-- 메인 트레일러 자세히 보기 버튼 -->
+  document.querySelector(".btn-info").addEventListener("click", () => {
+    window.location.href = "movie-detail.html";
+  })
 
 
 </script>
