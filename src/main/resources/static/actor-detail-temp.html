@@ -212,42 +212,77 @@
 
         /* POPUP */
 
-        .movie-popup{
-            position:fixed;
-            z-index:999;
-            width:340px;
-            background:var(--panel-2);
-            border-radius:14px;
-            border:1px solid var(--line);
-            box-shadow:0 25px 70px rgba(0,0,0,.85);
-            overflow:hidden;
+        .movie-popup {
+            position: fixed;
+            z-index: 999;
+            background: var(--panel-2);
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            box-shadow: 0 25px 70px rgba(0,0,0,.85);
+            overflow: hidden;
 
-            /* 초기 상태 */
-            opacity:0;
-            pointer-events:none;
-            transform:scale(.7) translateY(20px);
-            filter:brightness(.85);
+            opacity: 0;
+            pointer-events: none;
 
-            /* 애니메이션 */
             transition:
-                    opacity .25s ease,
+                    opacity .22s ease-out,
                     transform .25s cubic-bezier(.24,.82,.24,1.4),
-                    filter .25s ease;
+                    width .25s ease,
+                    height .25s ease,
+                    top .25s ease,
+                    left .25s ease;
         }
+
+
         .movie-popup.show{
             opacity:1;
             pointer-events:auto;
             transform:scale(1) translateY(0);
             filter:brightness(1);
+
         }
 
-        .popup-video-box{
-            position:relative;
-            width:100%;
-            aspect-ratio:16/9;
-            background:black;
-            overflow:hidden;
+        /*1*/
+        .popup-video-box {
+            position: relative;
+            width: 100%;
+            height: 62%; /* 기존보다 더 큰 비율 → 영상이 위쪽에 크게 보임 */
+            background: black;
+            overflow: hidden;
         }
+
+        .popup-info{
+            /*padding: 6px 6px;*/
+            padding: 14px 16px;
+        }
+
+        .popup-title{
+            font-size:20px;
+            font-weight:900;
+            margin-bottom:6px;
+            line-height: 1.25;
+        }
+
+        .popup-meta{
+            font-size:13px;
+            font-weight:500;
+            color:var(--muted);
+            margin-bottom:10px;
+            display:flex;
+            align-items:center;
+            gap:6px;
+        }
+
+        /* ▶ 재생 버튼 & 👍 좋아요 버튼이 들어있는 줄 */
+        .popup-action-row {
+            margin-top: 6px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        /*1*/
+
         .popup-video-box video{
             width:100%;
             height:100%;
@@ -280,24 +315,11 @@
             transform:scale(1.12);
         }
 
-        .popup-info{
-            padding:16px;
-        }
 
-        .popup-title{
-            font-size:19px;
-            font-weight:900;
-            margin-bottom:6px;
-        }
 
-        .popup-meta{
-            font-size:14px;
-            font-weight:600;
-            color:var(--muted);
-            display:flex;
-            align-items:center;
-            gap:6px;
-        }
+
+
+
 
         .popup-age{
             background:rgba(255,0,0,.85);
@@ -376,13 +398,7 @@
             transform: scale(0.92);
         }
 
-        /* ▶ 재생 버튼 & 👍 좋아요 버튼이 들어있는 줄 */
-        .popup-action-row {
-            margin-top: 10px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
+
 
         /* 두 버튼의 공통 스타일 → 단일 정의 */
         .popup-action-row button {
@@ -719,48 +735,56 @@
         const rect = card.getBoundingClientRect();
         const videoEl = popup.querySelector("video");
 
-        popup.querySelector(".popup-title").textContent = card.dataset.title;
+        // 텍스트 & 비디오 설정
+        popup.querySelector(".popup-title").textContent = card.dataset.title ?? "";
         popup.querySelector(".popup-meta").innerHTML = `
-        ${card.dataset.genre} · ${card.dataset.runtime}
-        <span class="popup-age">${card.dataset.age}</span>
-        `;
-
+        ${card.dataset.genre ?? ""} · ${card.dataset.runtime ?? ""}
+        <span class="popup-age">${card.dataset.age ?? ""}</span>
+    `;
         videoEl.src = card.dataset.video;
 
-        // 💡 화면이 좁으면 팝업 폭을 화면에 맞춰 조절
-        const popupWidth = Math.min(340, window.innerWidth - 20); // 좌우 10px 여백
-        popup.style.width = popupWidth + "px";
+        /* 1) 팝업 초기 크기 = 카드 크기 */
+        popup.style.width = rect.width + "px";
+        popup.style.height = rect.height + "px";
 
+        /* 2) 초기 위치 = 카드 위치 */
+        popup.style.left = rect.left + "px";
+        popup.style.top  = rect.top + "px";
+
+        /* 3) 카드 중심을 기준으로 확장되도록 */
+        popup.style.transformOrigin = "top center";
+
+        /* 4) 초기 상태 */
         popup.style.opacity = "0";
-        popup.style.transform = "scale(0.7) translateY(20px)";
-
-        let left = rect.left + (rect.width / 2) - (popupWidth / 2);
-        let top = rect.top - 10;
-
-        // 좌우 화면 밖으로 나가지 않게 보정
-        if (left < 10) left = 10;
-        if (left + popupWidth > window.innerWidth - 10) {
-            left = window.innerWidth - popupWidth - 10;
-        }
-
-        // 위로 너무 나가면 카드 아래쪽에 붙이기
-        if (top < 10) {
-            top = rect.bottom + 10;
-        }
-
-        popup.style.left = `${left}px`;
-        popup.style.top = `${top}px`;
+        popup.style.transform = "scale(0.92)";
 
         popup.classList.add("show");
 
+        /* --------------------------
+           최종 팝업 크기 계산 (동적)
+           쿠팡 플레이 느낌으로 살짝 확대
+        --------------------------- */
+        const enlargedWidth  = rect.width * 1.22;  // 22% 확장
+        const enlargedHeight = rect.height * 1.42; // 42% 확장 (영상 부분 크게)
+
+        const finalTop = rect.top - rect.height * 0.18; // 팝업을 위로 이동
+
         requestAnimationFrame(() => {
             popup.style.opacity = "1";
-            popup.style.transform = "scale(1) translateY(0)";
+
+            popup.style.width  = enlargedWidth + "px";
+            popup.style.height = enlargedHeight + "px";
+
+            popup.style.left = (rect.left - (enlargedWidth - rect.width) / 2) + "px";
+            popup.style.top  = finalTop + "px";
+
+            popup.style.transform = "scale(1)";
         });
 
         videoEl.currentTime = 0;
         videoEl.play();
     }
+
 
     function hidePopup(){
         hideTimer = setTimeout(() => {
@@ -785,6 +809,38 @@
             hidePopup();
         });
     });
+
+    /* =====================
+   SCROLL → POPUP HIDE
+===================== */
+
+    // 마우스 휠 스크롤
+    window.addEventListener("wheel", () => {
+        if (activeCard) hidePopupImmediate();
+    });
+
+    // 트랙패드 스크롤
+    window.addEventListener("scroll", () => {
+        if (activeCard) hidePopupImmediate();
+    });
+
+    // 모바일 터치 드래그
+    window.addEventListener("touchmove", () => {
+        if (activeCard) hidePopupImmediate();
+    });
+
+    // 즉시 숨기는 함수 (딜레이 없이)
+    function hidePopupImmediate() {
+        if (!popup) return;
+
+        popup.style.opacity = "0";
+        popup.style.transform = "scale(0.85) translateY(10px)";
+        popup.querySelector("video").pause();
+        popup.classList.remove("show");
+
+        activeCard = null;
+        if (hideTimer) clearTimeout(hideTimer);
+    }
 
 </script>
 
