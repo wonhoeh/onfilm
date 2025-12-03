@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>배우 상세 페이지 – IndieFilm Actor Hub</title>
+    <title>배우 상세 페이지</title>
 
     <style>
         :root{
@@ -152,9 +152,10 @@
             transition:transform .4s ease;
         }
 
-        /* Film Card (기존 유지) */
+        /* Film Card */
         .film-card{
-            min-width: 32%;
+            flex: 0 0 32%;          /* grow:0, shrink:0, basis:32% → 항상 32% 유지 */
+            max-width: 32%;         /* 혹시라도 늘어나지 않도록 한 번 더 고정 */
             background:var(--panel);
             border:1px solid var(--line);
             border-radius:var(--radius-lg);
@@ -464,10 +465,9 @@
         <img class="profile-photo" src="https://images.unsplash.com/photo-1541647376583-8934aaf3448a?q=80&w=900">
 
         <div class="profile-info">
-            <h1>Leonardo DiCaprio</h1>
+            <h1>허준</h1>
             <div class="meta">
-                1974.11.11 · 미국 출생<br>
-                소속사: xxx 엔터테인먼트
+                1992.1.24 · 서울 출생
             </div>
             <p class="bio">
                 강렬한 연기력과 독창적인 캐릭터 해석으로 사랑받는 배우.
