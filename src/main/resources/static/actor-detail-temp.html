@@ -139,8 +139,10 @@
 
         /* WRAPPER */
         .film-slider-wrapper{
+            position: relative;
             overflow:hidden;
-            position:relative;
+            /*overflow: visible;*/
+            /*padding: 0 60px;*/
         }
 
         /* SLIDER ROW */
@@ -176,7 +178,8 @@
             font-size:48px;
             font-weight:300;
             cursor:pointer;
-            opacity:0;               /* 기본 숨김 */
+            /*opacity:0;*/
+            display: none;
             transition:opacity .3s ease;
             z-index:10;
             padding:0 8px;
@@ -189,11 +192,13 @@
 
         /* 왼쪽/오른쪽 위치 */
         .film-arrow.left{
-            left:-4px;
+            left:-100px;
+            /*left:10px;*/
         }
 
         .film-arrow.right{
-            right:-4px;
+            right:-100px;
+            /*right:10px;*/
         }
 
         /* Hover 시 약간 커짐 */
@@ -314,13 +319,6 @@
             background:rgba(255,255,255,.25);
             transform:scale(1.12);
         }
-
-
-
-
-
-
-
         .popup-age{
             background:rgba(255,0,0,.85);
             padding:4px 8px;
@@ -431,6 +429,30 @@
             transform: translateY(1px);
         }
 
+
+        .gallery-spinner{
+            width: 40px;
+            height: 40px;
+            margin: 20px auto 0;    /* auto → 섹션 안에서 수평 중앙 */
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinner-circle{
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 3px solid var(--muted);
+            border-top-color: var(--accent);
+            animation: gallery-spin .8s linear infinite;
+        }
+
+        @keyframes gallery-spin {
+            to { transform: rotate(360deg); }
+        }
+
+
     </style>
 </head>
 <body>
@@ -484,56 +506,73 @@
                     </article>
 
                     <!-- 필름 카드 2 -->
-                    <article class="film-card">
-                        <img class="film-poster" src="https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?q=80&w=900">
+                    <article class="film-card"
+                             data-title="반품"
+                             data-genre="SF / 스릴러"
+                             data-runtime="148분"
+                             data-age="15"
+                             data-video="videos/trailer.mp4"
+                             data-thumb="videos/thumbnail.png">
+                        <img class="film-poster" src="videos/thumbnail.png">
                         <div class="film-body">
-                            <div class="film-title">파이트클럽</div>
-                            <div class="film-meta">1999 · 특별출연</div>
+                            <div class="film-title">반품</div>
+                            <div class="film-meta">2025 · 주연 (중bb)</div>
                         </div>
                     </article>
 
                     <!-- 필름 카드 3 -->
-                    <article class="film-card">
-                        <img class="film-poster" src="https://images.unsplash.com/photo-1517602302552-471fe67acf66?q=80&w=900">
+                    <article class="film-card"
+                             data-title="반품"
+                             data-genre="SF / 스릴러"
+                             data-runtime="148분"
+                             data-age="15"
+                             data-video="videos/trailer.mp4"
+                             data-thumb="videos/thumbnail.png">
+                        <img class="film-poster" src="videos/thumbnail.png">
                         <div class="film-body">
-                            <div class="film-title">도어락</div>
-                            <div class="film-meta">2019 · 조연</div>
+                            <div class="film-title">반품</div>
+                            <div class="film-meta">2025 · 주연 (중bb)</div>
                         </div>
                     </article>
 
                     <!-- 필름 카드 4 -->
-<!--                    <article class="film-card">-->
-<!--                        <img class="film-poster" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">-->
-<!--                        <div class="film-body">-->
-<!--                            <div class="film-title">문라이트</div>-->
-<!--                            <div class="film-meta">2016 · 조연</div>-->
-<!--                        </div>-->
-<!--                    </article>-->
+                    <article class="film-card"
+                             data-title="반품"
+                             data-genre="SF / 스릴러"
+                             data-runtime="148분"
+                             data-age="15"
+                             data-video="videos/trailer.mp4"
+                             data-thumb="videos/thumbnail.png">
+                        <img class="film-poster" src="videos/thumbnail.png">
+                        <div class="film-body">
+                            <div class="film-title">반품</div>
+                            <div class="film-meta">2025 · 주연 (중bb)</div>
+                        </div>
+                    </article>
 
                     <!-- 필름 카드 5 -->
-<!--                    <article class="film-card">-->
-<!--                        <img class="film-poster" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">-->
-<!--                        <div class="film-body">-->
-<!--                            <div class="film-title">리버 피닉스</div>-->
-<!--                            <div class="film-meta">2004 · 출연</div>-->
-<!--                        </div>-->
-<!--                    </article>-->
+                    <!--                    <article class="film-card">-->
+                    <!--                        <img class="film-poster" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">-->
+                    <!--                        <div class="film-body">-->
+                    <!--                            <div class="film-title">리버 피닉스</div>-->
+                    <!--                            <div class="film-meta">2004 · 출연</div>-->
+                    <!--                        </div>-->
+                    <!--                    </article>-->
 
                     <!-- 필름 카드 6 -->
-<!--                    <article class="film-card">-->
-<!--                        <img class="film-poster" src="https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?q=80&w=900">-->
-<!--                        <div class="film-body">-->
-<!--                            <div class="film-title">다크 나이트</div>-->
-<!--                            <div class="film-meta">2008 · 출연</div>-->
-<!--                        </div>-->
-<!--                    </article>-->
+                    <!--                    <article class="film-card">-->
+                    <!--                        <img class="film-poster" src="https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?q=80&w=900">-->
+                    <!--                        <div class="film-body">-->
+                    <!--                            <div class="film-title">다크 나이트</div>-->
+                    <!--                            <div class="film-meta">2008 · 출연</div>-->
+                    <!--                        </div>-->
+                    <!--                    </article>-->
 
                 </div>
             </div>
 
             <!-- 오른쪽 화살표!! -->
             <button class="film-arrow right" id="filmNextBtn">›</button>
-
         </div>
     </section>
 
@@ -547,20 +586,29 @@
             <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">
             <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">
             <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">
+            <img class="gallery-item gallery-extra" style="display:none;" src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=900">
             <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">
             <img class="gallery-item" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=900">
 
             <!-- 추가 이미지 (초기 숨김) -->
-            <img class="gallery-item gallery-extra" style="display:none;"
-                 src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=900">
-            <img class="gallery-item gallery-extra" style="display:none;"
-                 src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=900">
-            <img class="gallery-item gallery-extra" style="display:none;"
-                 src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">
+            <img class="gallery-item gallery-extra" style="display:none;" src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=900">
+
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">
+
+
+
         </div>
 
-        <button class="gallery-more-btn" id="galleryMoreBtn">더보기</button>
+        <!-- 🔥 그리드 밖, 섹션 중앙 아래 -->
+        <div class="gallery-spinner" id="gallerySpinner">
+            <div class="spinner-circle"></div>
+        </div>
+
     </section>
 
     <footer>
@@ -570,23 +618,97 @@
 </main>
 
 <!-- ============================
-     Simple JS for More Button
+     Gallery: Scroll Load More
+     (최초 6장 + 스크롤 시 6장씩 로딩)
 =============================== -->
 <script>
-    const moreBtn = document.getElementById("galleryMoreBtn");
-    const extraImages = document.querySelectorAll(".gallery-extra");
-    let expanded = false;
+    const gallerySection = document.querySelector(".gallery-section");
+    const galleryGrid    = document.querySelector(".gallery-grid");
+    const galleryItems   = Array.from(galleryGrid.querySelectorAll(".gallery-item"));
+    const gallerySpinner = document.getElementById("gallerySpinner");
 
-    moreBtn.addEventListener("click", () => {
-        expanded = !expanded;
+    // 처음에 보여줄 개수
+    const INITIAL_COUNT = 6;
+    const BATCH_SIZE    = 6;
 
-        extraImages.forEach(img => {
-            img.style.display = expanded ? "block" : "none";
+    let visibleCount = 0;
+    let isLoading    = false;
+
+    // 초기 상태 세팅: 처음 6장만 보이게
+    function initGallery() {
+        galleryItems.forEach((img, idx) => {
+            if (idx < INITIAL_COUNT) {
+                img.style.display = "block";
+            } else {
+                img.style.display = "none";
+            }
         });
+        visibleCount = Math.min(INITIAL_COUNT, galleryItems.length);
 
-        moreBtn.textContent = expanded ? "접기" : "더보기";
+        // ✅ 추가 사진이 전혀 없으면 스피너 완전히 숨김
+        if (galleryItems.length <= INITIAL_COUNT && gallerySpinner) {
+            gallerySpinner.style.display = "none";
+        }
+    }
+
+    // 실제로 이미지를 더 보여주는 함수
+    function showMoreImages() {
+        const remaining = galleryItems.length - visibleCount;
+        if (remaining <= 0) return;
+
+        const toShow = Math.min(BATCH_SIZE, remaining);
+
+        for (let i = 0; i < toShow; i++) {
+            const img = galleryItems[visibleCount + i];
+            if (img) {
+                img.style.display = "block";
+            }
+        }
+
+        visibleCount += toShow;
+    }
+
+    // 스크롤 위치를 체크해서, 갤러리 하단 근처인지 보는 함수
+    function handleScroll() {
+        // 이미 로딩 중이면 중복 호출 막기
+        if (isLoading) return;
+
+        // 더 보여줄 이미지가 없으면 끝 (스피너도 다시 안 나옴)
+        if (visibleCount >= galleryItems.length) return;
+
+        const rect = gallerySection.getBoundingClientRect();
+        const viewHeight = window.innerHeight || document.documentElement.clientHeight;
+
+        // 섹션의 바닥이 화면 하단에서 120px 이내로 오면 로딩
+        if (rect.bottom - 120 <= viewHeight) {
+            isLoading = true;
+
+            // 🔥 로딩 시작 → 스피너 보여주기
+            if (gallerySpinner) gallerySpinner.style.display = "flex";
+
+            // 인스타처럼 약간의 "로딩되는 느낌" (0.7~1.2초 랜덤)
+            const delay = 700 + Math.random() * 500;
+
+            setTimeout(() => {
+                showMoreImages();
+                isLoading = false;
+
+                // 로딩 끝났으니 스피너 숨김
+                if (gallerySpinner) gallerySpinner.style.display = "none";
+            }, delay);
+        }
+    }
+
+    window.addEventListener("scroll", handleScroll);
+
+    window.addEventListener("load", () => {
+        initGallery();
+        // 혹시 처음부터 아래로 스크롤 돼 있으면 한 번 체크
+        handleScroll();
     });
 </script>
+
+
 
 <!-- ============================
      Filmography Slide Button
@@ -596,6 +718,7 @@
     const slider = document.getElementById("filmSlider");
     const prevBtn = document.getElementById("filmPrevBtn");
     const nextBtn = document.getElementById("filmNextBtn");
+    const filmLine = document.querySelector(".film-slider-container"); // ← 필모 라인 영역
 
     let index = 0;
 
@@ -606,8 +729,34 @@
         return card.offsetWidth + marginRight + 20; // 카드 + gap 보정
     }
 
+    function updateArrows() {
+        const maxIndex = slider.children.length - 3;
+
+        // 카드가 3개 이하이면 어차피 슬라이드 못하니까 화살표 숨김
+        if (slider.children.length <= 3) {
+            prevBtn.style.display = "none";
+            nextBtn.style.display = "none";
+            return;
+        }
+
+        // 왼쪽
+        if (index === 0) {
+            prevBtn.style.display = "none";
+        } else {
+            prevBtn.style.display = "flex";
+        }
+
+        // 오른쪽
+        if (index >= maxIndex) {
+            nextBtn.style.display = "none";
+        } else {
+            nextBtn.style.display = "flex";
+        }
+    }
+
     function updateSlider(){
         slider.style.transform = `translateX(${-getCardWidth() * index}px)`;
+        updateArrows();
     }
 
     nextBtn.addEventListener("click", () => {
@@ -626,8 +775,8 @@
     });
 
     /* --------------------------
-     MOVIE POPUP (NETFLIX A안)
-  -------------------------- */
+       MOVIE POPUP (NETFLIX A안)
+    -------------------------- */
     let popup = null;
     let hideTimer = null;
     let activeCard = null;
@@ -732,6 +881,9 @@
         if (hideTimer) clearTimeout(hideTimer);
         activeCard = card;
 
+        // 프리뷰가 뜰 때도 화살표 상태 갱신
+        updateArrows();
+
         const rect = card.getBoundingClientRect();
         const videoEl = popup.querySelector("video");
 
@@ -760,14 +912,10 @@
 
         popup.classList.add("show");
 
-        /* --------------------------
-           최종 팝업 크기 계산 (동적)
-           쿠팡 플레이 느낌으로 살짝 확대
-        --------------------------- */
-        const enlargedWidth  = rect.width * 1.22;  // 22% 확장
-        const enlargedHeight = rect.height * 1.42; // 42% 확장 (영상 부분 크게)
-
-        const finalTop = rect.top - rect.height * 0.18; // 팝업을 위로 이동
+        /* 최종 팝업 크기 계산 */
+        const enlargedWidth  = rect.width * 1.22;
+        const enlargedHeight = rect.height * 1.42;
+        const finalTop = rect.top - rect.height * 0.18;
 
         requestAnimationFrame(() => {
             popup.style.opacity = "1";
@@ -791,10 +939,11 @@
             popup.style.opacity = "0";
             popup.style.transform = "scale(0.85) translateY(10px)";
             popup.querySelector("video").pause();
-
             setTimeout(() => popup.classList.remove("show"), 180);
 
             activeCard = null;
+            // 화살표 숨기는 로직은 여기서 안 함
+            // (마우스 위치에 따라 아래 mousemove 핸들러가 처리)
         }, 120);
     }
 
@@ -811,8 +960,8 @@
     });
 
     /* =====================
-   SCROLL → POPUP HIDE
-===================== */
+       SCROLL → POPUP HIDE
+    ===================== */
 
     // 마우스 휠 스크롤
     window.addEventListener("wheel", () => {
@@ -842,7 +991,32 @@
         if (hideTimer) clearTimeout(hideTimer);
     }
 
+    /* =====================
+       마우스가 "필모그래피 라인" 위에 있으면
+       언제나 화살표 표시
+    ===================== */
+    window.addEventListener("mousemove", (e) => {
+        if (!filmLine) return;
+
+        const rect = filmLine.getBoundingClientRect();
+        const y = e.clientY;
+
+        const inFilmLine = y >= rect.top && y <= rect.bottom;
+
+        if (inFilmLine) {
+            // 세로 위치가 필모그래피 라인 안이면 화살표 켜기
+            updateArrows();
+        } else {
+            // 프리뷰도 안 떠 있을 때만 화살표 끔
+            if (!popup || !popup.classList.contains("show")) {
+                prevBtn.style.display = "none";
+                nextBtn.style.display = "none";
+            }
+        }
+    });
 </script>
+
+
 
 </body>
 </html>
