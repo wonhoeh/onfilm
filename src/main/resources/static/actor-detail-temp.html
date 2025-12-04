@@ -171,13 +171,12 @@
             opacity: 0;
             pointer-events: none;
 
+            /* 🔥 기준점을 가운데로 */
+            transform-origin: center center;
+
             transition:
-                    opacity .22s ease-out,
-                    transform .25s cubic-bezier(.24,.82,.24,1.4),
-                    width .25s ease,
-                    height .25s ease,
-                    top .25s ease,
-                    left .25s ease;
+                    opacity .18s ease-out,
+                    transform .22s cubic-bezier(.24,.82,.24,1.4);
         }
 
         .movie-popup.show{
@@ -190,14 +189,32 @@
         .popup-video-box {
             position: relative;
             width: 100%;
-            height: 62%;
+            height: 60%;
             background: black;
             overflow: hidden;
         }
+
+        /* 비디오 */
         .popup-video-box video{
+            position:absolute;
+            inset:0;
             width:100%;
             height:100%;
             object-fit:cover;
+            z-index:0;
+        }
+
+        /* 썸네일 – 항상 비디오 위에 */
+        .popup-video-box .popup-thumb{
+            position:absolute;
+            inset:0;
+            width:100%;
+            height:100%;
+            object-fit:cover;
+            z-index:1;
+            transition: opacity .2s ease;
+            opacity:1;
+            display:block;
         }
 
         .popup-info{
@@ -317,14 +334,25 @@
             gap:12px;
         }
         .gallery-item{
-            width:100%; aspect-ratio:4/5; border-radius:var(--radius-lg);
-            object-fit:cover; background:#0f1117;
+            width:100%;
+            aspect-ratio:4/5;
+            border-radius:var(--radius-lg);
+            object-fit:cover;
+            background:#0f1117;
             border:1px solid var(--line);
-            transition:.15s;
+            /* ✨ 부드러운 그늘 효과를 위해 filter/box-shadow에 트랜지션 추가 */
+            transition: filter .18s ease, box-shadow .18s ease;
+            outline: none;           /* 클릭했을 때 파란 아웃라인 제거용 */
         }
+
+        /* hover 시: 확대/테두리 변경 X, 대신 살짝 어둡게 + 그림자 */
         .gallery-item:hover{
-            transform:scale(1.02);
-            border-color:var(--accent);
+            filter: brightness(0.6);          /* 살짝 그늘지는 느낌 */
+            box-shadow: 0 6px 16px rgba(0,0,0,.55);
+            border-color: var(--line);        /* 기존 색 유지 (파란 테두리 안 나오게) */
+        }
+        .gallery-item:focus {
+            outline: none;
         }
 
         .gallery-spinner{
@@ -345,6 +373,67 @@
         }
         @keyframes gallery-spin {
             to { transform: rotate(360deg); }
+        }
+
+        /* ====== GALLERY LIGHTBOX (인스타 풀스크린) ====== */
+        .gallery-lightbox-overlay{
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,.88);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            z-index:9999;
+
+            opacity:0;
+            pointer-events:none;
+            transition:opacity .2s ease;
+        }
+
+        .gallery-lightbox-overlay.show{
+            opacity:1;
+            pointer-events:auto;
+        }
+
+        .gallery-lightbox-image{
+            max-width:90vw;
+            max-height:90vh;
+            border-radius:var(--radius-lg);
+            border:1px solid var(--line);
+            box-shadow:0 18px 60px rgba(0,0,0,.9);
+            display:block;
+            cursor:zoom-out;
+        }
+
+        /* ✅ 갤러리 라이트박스 화살표 - 필모그래피 화살표 느낌 복붙 */
+        .gallery-lightbox-arrow{
+            position:absolute;
+            top:50%;
+            transform:translateY(-50%);
+            border:none;
+            background:transparent;
+            color:white;
+            font-size:48px;
+            font-weight:300;
+            cursor:pointer;
+            padding:0 12px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            transition:opacity .3s ease, transform .2s ease, color .2s ease;
+        }
+
+        .gallery-lightbox-arrow.left{
+            left:40px;
+        }
+
+        .gallery-lightbox-arrow.right{
+            right:40px;
+        }
+
+        .gallery-lightbox-arrow:hover{
+            color:var(--accent);
+            transform:translateY(-50%) scale(1.1);
         }
 
         footer{
@@ -425,62 +514,62 @@
                 <div class="film-slider" id="filmSlider">
 
                     <!-- 필름 카드들 -->
-<!--                    <article class="film-card"-->
-<!--                             data-title="반품"-->
-<!--                             data-genre="SF / 스릴러"-->
-<!--                             data-runtime="148분"-->
-<!--                             data-age="15"-->
-<!--                             data-video="videos/trailer.mp4"-->
-<!--                             data-thumb="videos/thumbnail.png">-->
-<!--                        <img class="film-poster" src="videos/thumbnail.png">-->
-<!--                        <div class="film-body">-->
-<!--                            <div class="film-title">반품</div>-->
-<!--                            <div class="film-meta">2025 · 주연</div>-->
-<!--                        </div>-->
-<!--                    </article>-->
+                    <article class="film-card"
+                             data-title="반품"
+                             data-genre="SF / 스릴러"
+                             data-runtime="148분"
+                             data-age="15"
+                             data-video="videos/trailer.mp4"
+                             data-thumb="videos/thumbnail.png">
+                        <img class="film-poster" src="videos/thumbnail.png">
+                        <div class="film-body">
+                            <div class="film-title">반품</div>
+                            <div class="film-meta">2025 · 주연</div>
+                        </div>
+                    </article>
 
-<!--                    <article class="film-card"-->
-<!--                             data-title="두 번째 영화"-->
-<!--                             data-genre="드라마"-->
-<!--                             data-runtime="132분"-->
-<!--                             data-age="12"-->
-<!--                             data-video="videos/trailer.mp4"-->
-<!--                             data-thumb="videos/thumbnail.png">-->
-<!--                        <img class="film-poster" src="videos/thumbnail.png">-->
-<!--                        <div class="film-body">-->
-<!--                            <div class="film-title">두 번째 영화</div>-->
-<!--                            <div class="film-meta">2024 · 조연</div>-->
-<!--                        </div>-->
-<!--                    </article>-->
+                    <article class="film-card"
+                             data-title="두 번째 영화"
+                             data-genre="드라마"
+                             data-runtime="132분"
+                             data-age="12"
+                             data-video="videos/trailer.mp4"
+                             data-thumb="videos/thumbnail.png">
+                        <img class="film-poster" src="videos/thumbnail.png">
+                        <div class="film-body">
+                            <div class="film-title">두 번째 영화</div>
+                            <div class="film-meta">2024 · 조연</div>
+                        </div>
+                    </article>
 
-<!--                    <article class="film-card"-->
-<!--                             data-title="세 번째 영화"-->
-<!--                             data-genre="로맨스"-->
-<!--                             data-runtime="110분"-->
-<!--                             data-age="15"-->
-<!--                             data-video="videos/trailer.mp4"-->
-<!--                             data-thumb="videos/thumbnail.png">-->
-<!--                        <img class="film-poster" src="videos/thumbnail.png">-->
-<!--                        <div class="film-body">-->
-<!--                            <div class="film-title">세 번째 영화</div>-->
-<!--                            <div class="film-meta">2023 · 주연</div>-->
-<!--                        </div>-->
-<!--                    </article>-->
+                    <article class="film-card"
+                             data-title="세 번째 영화"
+                             data-genre="로맨스"
+                             data-runtime="110분"
+                             data-age="15"
+                             data-video="videos/trailer.mp4"
+                             data-thumb="videos/thumbnail.png">
+                        <img class="film-poster" src="videos/thumbnail.png">
+                        <div class="film-body">
+                            <div class="film-title">세 번째 영화</div>
+                            <div class="film-meta">2023 · 주연</div>
+                        </div>
+                    </article>
 
                     <!-- 필요하면 더 추가 -->
-<!--                    <article class="film-card"-->
-<!--                             data-title="네 번째 영화"-->
-<!--                             data-genre="로맨스"-->
-<!--                             data-runtime="110분"-->
-<!--                             data-age="15"-->
-<!--                             data-video="videos/trailer.mp4"-->
-<!--                             data-thumb="videos/thumbnail.png">-->
-<!--                        <img class="film-poster" src="videos/thumbnail.png">-->
-<!--                        <div class="film-body">-->
-<!--                            <div class="film-title">네 번째 영화</div>-->
-<!--                            <div class="film-meta">2023 · 주연</div>-->
-<!--                        </div>-->
-<!--                    </article>-->
+                    <article class="film-card"
+                             data-title="네 번째 영화"
+                             data-genre="로맨스"
+                             data-runtime="110분"
+                             data-age="15"
+                             data-video="videos/trailer.mp4"
+                             data-thumb="videos/thumbnail.png">
+                        <img class="film-poster" src="videos/thumbnail.png">
+                        <div class="film-body">
+                            <div class="film-title">네 번째 영화</div>
+                            <div class="film-meta">2023 · 주연</div>
+                        </div>
+                    </article>
                 </div>
             </div>
 
@@ -494,20 +583,20 @@
 
         <div class="gallery-grid">
             <!-- 처음 6장만 바로 보이도록 JS에서 제어 -->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=900">-->
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=900">
 
             <!-- 추가 이미지들 (스크롤 시 6장씩 노출) -->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">-->
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">
         </div>
 
         <!-- 인스타 스타일 중앙 스피너 -->
@@ -612,29 +701,31 @@
 
         popup.innerHTML = `
         <div class="popup-video-box">
-          <video muted loop></video>
+        <!-- ✅ 섬네일 이미지 레이어 추가 -->
+            <img class="popup-thumb" />
+            <video muted loop playsinline></video>
 
-          <div class="popup-mute-btn">
-            <svg class="popup-sound-on" xmlns="http://www.w3.org/2000/svg"
-                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                 width="26" height="26" style="display:none;">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25
-                    l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51
-                    c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396
-                    C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
-            </svg>
+              <div class="popup-mute-btn">
+                <svg class="popup-sound-on" xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                     width="26" height="26" style="display:none;">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25
+                        l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51
+                        c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396
+                        C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
+                </svg>
 
-            <svg class="popup-sound-off" xmlns="http://www.w3.org/2000/svg"
-                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                 width="26" height="26">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6
-                    4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51
-                    c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396
-                    C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
-            </svg>
-          </div>
+                <svg class="popup-sound-off" xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                     width="26" height="26">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6
+                        4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51
+                        c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396
+                        C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
+                </svg>
+              </div>
         </div>
 
         <div class="popup-info">
@@ -703,54 +794,83 @@
     createPopup();
 
     function showPopup(card){
+        if (!popup) return;
+
         if (hideTimer) clearTimeout(hideTimer);
         activeCard = card;
 
-        updateArrows(); // 팝업 떠도 화살표 상태 갱신
+        updateArrows();
 
-        const rect = card.getBoundingClientRect();
+        const rect    = card.getBoundingClientRect();
         const videoEl = popup.querySelector("video");
+        const thumbEl = popup.querySelector(".popup-thumb");
 
         popup.querySelector(".popup-title").textContent = card.dataset.title ?? "";
         popup.querySelector(".popup-meta").innerHTML = `
-            ${card.dataset.genre ?? ""} · ${card.dataset.runtime ?? ""}
-            <span class="popup-age">${card.dataset.age ?? ""}</span>
-        `;
+        ${card.dataset.genre ?? ""} · ${card.dataset.runtime ?? ""}
+        <span class="popup-age">${card.dataset.age ?? ""}</span>
+    `;
+
+        // 🔹 썸네일 세팅
+        const thumb = card.dataset.thumb;
+        if (thumb) {
+            thumbEl.src = thumb;
+            thumbEl.style.display = "block";
+            thumbEl.style.opacity = "1";
+        } else {
+            thumbEl.style.display = "none";
+        }
+
+        // 🔹 비디오 설정
+        videoEl.pause();
         videoEl.src = card.dataset.video;
+        videoEl.currentTime = 0;
 
-        // 초기 상태 (카드 위치/크기)
-        popup.style.width = rect.width + "px";
-        popup.style.height = rect.height + "px";
-        popup.style.left = rect.left + "px";
-        popup.style.top  = rect.top + "px";
-        popup.style.transformOrigin = "top center";
-        popup.style.opacity = "0";
-        popup.style.transform = "scale(0.92)";
+        // 혹시 이전 핸들러가 남아있을 수도 있으니 초기화
+        videoEl.onplaying = null;
 
+        // ✅ 재생이 조금 진행되면(예: 0.15초 이상) 그때 썸네일 페이드 아웃
+        const onTimeUpdate = () => {
+            if (videoEl.currentTime >= 0.15) {    // 필요하면 0.1 ~ 0.2 사이로 조절
+                thumbEl.style.opacity = "0";
+                videoEl.removeEventListener("timeupdate", onTimeUpdate);
+            }
+        };
+        videoEl.addEventListener("timeupdate", onTimeUpdate);
+
+        videoEl.play().catch(() => {});
+
+        // 팝업 위치/애니메이션은 그대로
+        const EXTRA_INFO_HEIGHT = 60;
+        popup.style.width  = rect.width + "px";
+        popup.style.height = (rect.height + EXTRA_INFO_HEIGHT) + "px";
+        popup.style.left   = rect.left + "px";
+        popup.style.top    = (rect.top - EXTRA_INFO_HEIGHT * 0.4) + "px";
+
+        popup.style.opacity   = "0";
+        popup.style.transform = "scale(0.9)";
         popup.classList.add("show");
 
-        const enlargedWidth  = rect.width * 1.22;
-        const enlargedHeight = rect.height * 1.42;
-        const finalTop = rect.top - rect.height * 0.18;
-
         requestAnimationFrame(() => {
-            popup.style.opacity = "1";
-            popup.style.width  = enlargedWidth + "px";
-            popup.style.height = enlargedHeight + "px";
-            popup.style.left = (rect.left - (enlargedWidth - rect.width) / 2) + "px";
-            popup.style.top  = finalTop + "px";
-            popup.style.transform = "scale(1)";
+            popup.style.opacity   = "1";
+            popup.style.transform = "scale(1.3) translateY(-6px)";
         });
-
-        videoEl.currentTime = 0;
-        videoEl.play();
     }
+
 
     function hidePopup(){
         hideTimer = setTimeout(() => {
+            const videoEl = popup.querySelector("video");
+            const thumbEl = popup.querySelector(".popup-thumb");
+
             popup.style.opacity = "0";
             popup.style.transform = "scale(0.85) translateY(10px)";
-            popup.querySelector("video").pause();
+
+            videoEl.pause();
+            if (thumbEl) {
+                thumbEl.style.opacity = "1";   // 다음에 열 때 다시 썸네일부터
+            }
+
             setTimeout(() => popup.classList.remove("show"), 180);
             activeCard = null;
         }, 120);
@@ -781,7 +901,7 @@
 </script>
 
 <!-- ============================
-     JS 3: GALLERY SCROLL LOAD
+     JS 3: GALLERY + LIGHTBOX
 =============================== -->
 <script>
     const gallerySection = document.querySelector(".gallery-section");
@@ -795,6 +915,16 @@
     let visibleCount = 0;
     let isLoading    = false;
 
+    // ✅ 라이트박스 관련 변수
+    let lightboxOverlay = null;
+    let lightboxImg     = null;
+    let lightboxPrevBtn = null;
+    let lightboxNextBtn = null;
+    let currentIndex    = 0;   // 현재 몇 번째 사진인지
+
+    /* ============================
+       갤러리: 스크롤 로딩
+    ============================ */
     function initGallery() {
         galleryItems.forEach((img, idx) => {
             img.style.display = (idx < INITIAL_COUNT) ? "block" : "none";
@@ -841,15 +971,155 @@
         }
     }
 
+    /* ============================
+       라이트박스 만들기
+    ============================ */
+    function createLightbox() {
+        lightboxOverlay = document.createElement("div");
+        lightboxOverlay.className = "gallery-lightbox-overlay";
+        lightboxOverlay.innerHTML = `
+      <button class="gallery-lightbox-arrow left">‹</button>
+      <img class="gallery-lightbox-image" src="" alt="photo detail">
+      <button class="gallery-lightbox-arrow right">›</button>
+    `;
+        document.body.appendChild(lightboxOverlay);
+
+        lightboxImg       = lightboxOverlay.querySelector(".gallery-lightbox-image");
+        lightboxPrevArrow = lightboxOverlay.querySelector(".gallery-lightbox-arrow.left");
+        lightboxNextArrow = lightboxOverlay.querySelector(".gallery-lightbox-arrow.right");
+
+        // 오버레이 아무 데나 클릭하면 닫기 (이미지/화살표 제외)
+        lightboxOverlay.addEventListener("click", (e) => {
+            // 화살표나 이미지 클릭이면 닫지 않음
+            if (e.target === lightboxImg || e.target === lightboxPrevArrow || e.target === lightboxNextArrow) {
+                return;
+            }
+            closeLightbox();
+        });
+
+        // 이미지 클릭 → 닫기
+        lightboxImg.addEventListener("click", closeLightbox);
+
+        // 화살표 클릭 → 이전/다음
+        lightboxPrevArrow.addEventListener("click", (e) => {
+            e.stopPropagation();
+            showPrevPhoto();
+        });
+        lightboxNextArrow.addEventListener("click", (e) => {
+            e.stopPropagation();
+            showNextPhoto();
+        });
+
+        // ESC / 방향키
+        window.addEventListener("keydown", (e) => {
+            if (!lightboxOverlay.classList.contains("show")) return;
+
+            if (e.key === "Escape") {
+                closeLightbox();
+            } else if (e.key === "ArrowLeft") {
+                showPrevPhoto();
+            } else if (e.key === "ArrowRight") {
+                showNextPhoto();
+            }
+        });
+    }
+
+    function updateLightboxArrows() {
+        const total = galleryItems.length;
+        if (!lightboxPrevArrow || !lightboxNextArrow) return;
+
+        // 첫 번째 사진 → 왼쪽 화살표 숨김
+        if (currentIndex <= 0) {
+            lightboxPrevArrow.style.display = "none";
+        } else {
+            lightboxPrevArrow.style.display = "flex";
+        }
+
+        // 마지막 사진 → 오른쪽 화살표 숨김
+        if (currentIndex >= total - 1) {
+            lightboxNextArrow.style.display = "none";
+        } else {
+            lightboxNextArrow.style.display = "flex";
+        }
+    }
+
+    function openLightbox(index) {
+        if (!lightboxOverlay) {
+            createLightbox();
+        }
+        currentIndex = index;
+        lightboxImg.src = galleryItems[currentIndex].src;
+        lightboxOverlay.classList.add("show");
+        updateLightboxArrows();
+    }
+
+    function closeLightbox() {
+        if (!lightboxOverlay) return;
+        lightboxOverlay.classList.remove("show");
+    }
+
+    function showPrevPhoto() {
+        if (currentIndex <= 0) return;
+        currentIndex--;
+        lightboxImg.src = galleryItems[currentIndex].src;
+        updateLightboxArrows();
+    }
+
+    function showNextPhoto() {
+        if (currentIndex >= galleryItems.length - 1) return;
+        currentIndex++;
+        lightboxImg.src = galleryItems[currentIndex].src;
+        updateLightboxArrows();
+    }
+
+    // 🔁 좌우 화살표 노출 상태 업데이트
+    function updateLightboxNav() {
+        const lastIndex = galleryItems.length - 1;
+
+        // 첫 번째 사진이면 왼쪽 화살표 숨김
+        if (currentIndex <= 0) {
+            lightboxPrevBtn.style.display = "none";
+        } else {
+            lightboxPrevBtn.style.display = "flex";
+        }
+
+        // 마지막 사진이면 오른쪽 화살표 숨김
+        if (currentIndex >= lastIndex) {
+            lightboxNextBtn.style.display = "none";
+        } else {
+            lightboxNextBtn.style.display = "flex";
+        }
+    }
+
+    function showPrevImage() {
+        if (currentIndex <= 0) return;
+        openLightbox(currentIndex - 1);
+    }
+
+    function showNextImage() {
+        if (currentIndex >= galleryItems.length - 1) return;
+        openLightbox(currentIndex + 1);
+    }
+
+    /* ============================
+       초기화
+    ============================ */
     window.addEventListener("load", () => {
         initGallery();
+
+        // 각 이미지 클릭 시 라이트박스 열기 (인덱스 넘겨주기)
+        galleryItems.forEach((img, idx) => {
+            img.style.cursor = "pointer";
+            img.addEventListener("click", () => openLightbox(idx));
+        });
+
         if (galleryItems.length > INITIAL_COUNT) {
-            // 추가 사진이 있을 때만 스크롤 이벤트 의미 있음
             window.addEventListener("scroll", handleScroll);
             handleScroll(); // 혹시 처음부터 아래쪽이라면 한 번 체크
         }
     });
 </script>
+
 
 </body>
 </html>
