@@ -31,7 +31,15 @@
                     radial-gradient(700px 350px at 10% 10%, rgba(36,211,154,.15), transparent 60%),
                     var(--bg);
         }
-        .container{width:min(1100px,92vw); margin:0 auto;}
+        .container{
+            width:min(1100px,92vw);
+            margin:0 auto;
+
+            /* 🔽 footer를 바닥으로 밀기 위한 설정 */
+            min-height:100vh;
+            display:flex;
+            flex-direction:column;
+        }
 
         /* HEADER */
         header{
@@ -437,14 +445,15 @@
         }
 
         footer{
-            margin:40px 0 30px;
-            padding-top:14px;
+            margin-top:auto;          /* 🔥 위쪽 공간을 다 먹고 맨 아래로 내려감 */
+            padding:24px 0 30px;      /* 위·아래 여백은 padding으로만 */
             border-top:1px solid var(--line);
             text-align:center;
-            font-size:12px; color:var(--muted);
+            font-size:12px;
+            color:var(--muted);
         }
 
-        <!-- Profile SNS  -->
+        /*Profile SNS*/
         .sns-row{
             margin-top: 10px;
             display: flex;
@@ -466,12 +475,18 @@
 
         .sns-pill:hover{
             background: rgba(124,92,255,0.18);
-            border-color: var(--accent);
+            /*border-color: var(--accent);*/
         }
 
         .sns-handle{
             color: var(--muted);
             font-size: 12px;
+        }
+
+        .empty-state{
+            margin-top: 12px;
+            font-size: 14px;
+            color: var(--muted);
         }
     </style>
 </head>
@@ -481,10 +496,17 @@
 
     <!-- PROFILE -->
     <div class="profile-header">
-        <img class="profile-photo" src="https://images.unsplash.com/photo-1541647376583-8934aaf3448a?q=80&w=900">
+        <img id="profilePhoto"
+             class="profile-photo"
+             src="videos/profile-placeholder.png"
+             data-profile-src="videos/rugi.jpeg"
+             alt="프로필 사진"
+        />
+        <!-- 기본값: placeholder -->
+        <!-- 백엔드에서 진짜 URL을 채워줄 자리 -->
 
         <div class="profile-info">
-            <h1>허복돌</h1>
+            <h1>루기</h1>
             <div class="meta">
                 2019.6.25 · 용인 출생
             </div>
@@ -504,7 +526,7 @@
 
 
     <!-- FILMOGRAPHY -->
-    <section class="filmography-section">
+    <section class="filmography-section" id="filmographySection">
         <h2>필모그래피</h2>
 
         <div class="film-slider-container">
@@ -514,62 +536,61 @@
                 <div class="film-slider" id="filmSlider">
 
                     <!-- 필름 카드들 -->
-                    <article class="film-card"
-                             data-title="반품"
-                             data-genre="SF / 스릴러"
-                             data-runtime="148분"
-                             data-age="15"
-                             data-video="videos/trailer.mp4"
-                             data-thumb="videos/thumbnail.png">
-                        <img class="film-poster" src="videos/thumbnail.png">
-                        <div class="film-body">
-                            <div class="film-title">반품</div>
-                            <div class="film-meta">2025 · 주연</div>
-                        </div>
-                    </article>
+                    <!--                    <article class="film-card"-->
+                    <!--                             data-title="반품"-->
+                    <!--                             data-genre="SF / 스릴러"-->
+                    <!--                             data-runtime="148분"-->
+                    <!--                             data-age="15"-->
+                    <!--                             data-video="videos/trailer.mp4"-->
+                    <!--                             data-thumb="videos/thumbnail.png">-->
+                    <!--                        <img class="film-poster" src="videos/thumbnail.png">-->
+                    <!--                        <div class="film-body">-->
+                    <!--                            <div class="film-title">반품</div>-->
+                    <!--                            <div class="film-meta">2025 · 주연</div>-->
+                    <!--                        </div>-->
+                    <!--                    </article>-->
 
-                    <article class="film-card"
-                             data-title="두 번째 영화"
-                             data-genre="드라마"
-                             data-runtime="132분"
-                             data-age="12"
-                             data-video="videos/trailer.mp4"
-                             data-thumb="videos/thumbnail.png">
-                        <img class="film-poster" src="videos/thumbnail.png">
-                        <div class="film-body">
-                            <div class="film-title">두 번째 영화</div>
-                            <div class="film-meta">2024 · 조연</div>
-                        </div>
-                    </article>
+                    <!--                    <article class="film-card"-->
+                    <!--                             data-title="두 번째 영화"-->
+                    <!--                             data-genre="드라마"-->
+                    <!--                             data-runtime="132분"-->
+                    <!--                             data-age="12"-->
+                    <!--                             data-video="videos/trailer.mp4"-->
+                    <!--                             data-thumb="videos/thumbnail.png">-->
+                    <!--                        <img class="film-poster" src="videos/thumbnail.png">-->
+                    <!--                        <div class="film-body">-->
+                    <!--                            <div class="film-title">두 번째 영화</div>-->
+                    <!--                            <div class="film-meta">2024 · 조연</div>-->
+                    <!--                        </div>-->
+                    <!--                    </article>-->
 
-                    <article class="film-card"
-                             data-title="세 번째 영화"
-                             data-genre="로맨스"
-                             data-runtime="110분"
-                             data-age="15"
-                             data-video="videos/trailer.mp4"
-                             data-thumb="videos/thumbnail.png">
-                        <img class="film-poster" src="videos/thumbnail.png">
-                        <div class="film-body">
-                            <div class="film-title">세 번째 영화</div>
-                            <div class="film-meta">2023 · 주연</div>
-                        </div>
-                    </article>
+                    <!--                    <article class="film-card"-->
+                    <!--                             data-title="세 번째 영화"-->
+                    <!--                             data-genre="로맨스"-->
+                    <!--                             data-runtime="110분"-->
+                    <!--                             data-age="15"-->
+                    <!--                             data-video="videos/trailer.mp4"-->
+                    <!--                             data-thumb="videos/thumbnail.png">-->
+                    <!--                        <img class="film-poster" src="videos/thumbnail.png">-->
+                    <!--                        <div class="film-body">-->
+                    <!--                            <div class="film-title">세 번째 영화</div>-->
+                    <!--                            <div class="film-meta">2023 · 주연</div>-->
+                    <!--                        </div>-->
+                    <!--                    </article>-->
 
-                    <!-- 필요하면 더 추가 -->
-                    <article class="film-card"
-                             data-title="네 번째 영화"
-                             data-genre="로맨스"
-                             data-runtime="110분"
-                             data-age="15"
-                             data-video="videos/trailer.mp4"
-                             data-thumb="videos/thumbnail.png">
-                        <img class="film-poster" src="videos/thumbnail.png">
-                        <div class="film-body">
-                            <div class="film-title">네 번째 영화</div>
-                            <div class="film-meta">2023 · 주연</div>
-                        </div>
-                    </article>
+                    <!--                    <article class="film-card"-->
+                    <!--                             data-title="네 번째 영화"-->
+                    <!--                             data-genre="로맨스"-->
+                    <!--                             data-runtime="110분"-->
+                    <!--                             data-age="15"-->
+                    <!--                             data-video="videos/trailer.mp4"-->
+                    <!--                             data-thumb="videos/thumbnail.png">-->
+                    <!--                        <img class="film-poster" src="videos/thumbnail.png">-->
+                    <!--                        <div class="film-body">-->
+                    <!--                            <div class="film-title">네 번째 영화</div>-->
+                    <!--                            <div class="film-meta">2023 · 주연</div>-->
+                    <!--                        </div>-->
+                    <!--                    </article>-->
                 </div>
             </div>
 
@@ -578,25 +599,24 @@
     </section>
 
     <!-- GALLERY -->
-    <section class="gallery-section">
+    <section class="gallery-section" id="gallerySection">
         <h2>사진 갤러리</h2>
 
         <div class="gallery-grid">
             <!-- 처음 6장만 바로 보이도록 JS에서 제어 -->
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=900">
+            <!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">-->
+            <!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">-->
+            <!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">-->
+            <!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">-->
+            <!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">-->
+            <!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=900">-->
 
-            <!-- 추가 이미지들 (스크롤 시 6장씩 노출) -->
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">
+            <!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=900">-->
+            <!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">-->
+            <!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">-->
+            <!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">-->
+            <!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">-->
+            <!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">-->
         </div>
 
         <!-- 인스타 스타일 중앙 스피너 -->
@@ -1105,6 +1125,25 @@
        초기화
     ============================ */
     window.addEventListener("load", () => {
+        /* ===== 프로필 사진 fallback 처리 ===== */
+        const profileImg = document.getElementById("profilePhoto");
+        if (!profileImg) return;
+
+        // 1️⃣ HTML에 적어둔 기본 src를 placeholder로 사용
+        const placeholder = profileImg.getAttribute("src");   // "/videos/profile-placeholder.png"
+        const realSrc = profileImg.dataset.profileSrc;        // 백엔드가 채워줄 값
+
+        // 2️⃣ 백엔드에서 URL이 넘어온 경우에만 교체
+        if (realSrc && realSrc.trim() !== "") {
+            profileImg.src = realSrc;
+
+            // 3️⃣ 진짜 URL이 깨지면 placeholder로 되돌리기
+            profileImg.onerror = () => {
+                profileImg.onerror = null; // 무한 루프 방지
+                profileImg.src = placeholder;
+            };
+        }
+        /* ===== 사진 갤러리 초기화 ===== */
         initGallery();
 
         // 각 이미지 클릭 시 라이트박스 열기 (인덱스 넘겨주기)
@@ -1117,7 +1156,44 @@
             window.addEventListener("scroll", handleScroll);
             handleScroll(); // 혹시 처음부터 아래쪽이라면 한 번 체크
         }
+
+        /* ===== 필모그래피 empty state ===== */
+        const filmSection = document.getElementById("filmographySection");
+        if (filmSection) {
+            const filmCards   = filmSection.querySelectorAll(".film-card");
+            const filmSliderContainer = filmSection.querySelector(".film-slider-container");
+
+            if (filmCards.length === 0) {
+                if (filmSliderContainer) {
+                    filmSliderContainer.style.display = "none";
+                }
+
+                const empty = document.createElement("p");
+                empty.className = "empty-state";
+                empty.textContent = "아직 등록된 필모그래피가 없어요.";
+                filmSection.appendChild(empty);
+            }
+        }
+
+        /* ===== 사진 갤러리 empty state ===== */
+        const gallerySectionEl = document.getElementById("gallerySection");
+        if (gallerySectionEl) {
+            const galleryGrid  = gallerySectionEl.querySelector(".gallery-grid");
+            const galleryItems2 = galleryGrid ? galleryGrid.querySelectorAll(".gallery-item") : [];
+
+            if (galleryItems2.length === 0) {
+                if (galleryGrid) {
+                    galleryGrid.style.display = "none";
+                }
+
+                const empty2 = document.createElement("p");
+                empty2.className = "empty-state";
+                empty2.textContent = "아직 등록된 사진이 없어요.";
+                gallerySectionEl.appendChild(empty2);
+            }
+        }
     });
+
 </script>
 
 

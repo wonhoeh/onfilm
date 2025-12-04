@@ -453,7 +453,7 @@
             color:var(--muted);
         }
 
-        <!-- Profile SNS  -->
+        /*Profile SNS*/
         .sns-row{
             margin-top: 10px;
             display: flex;
@@ -496,10 +496,17 @@
 
     <!-- PROFILE -->
     <div class="profile-header">
-        <img class="profile-photo" src="https://images.unsplash.com/photo-1541647376583-8934aaf3448a?q=80&w=900">
+        <img id="profilePhoto"
+             class="profile-photo"
+             src="videos/profile-placeholder.png"
+             data-profile-src="videos/rugi.jpeg"
+             alt="프로필 사진"
+        />
+        <!-- 기본값: placeholder -->
+        <!-- 백엔드에서 진짜 URL을 채워줄 자리 -->
 
         <div class="profile-info">
-            <h1>허복돌</h1>
+            <h1>루기</h1>
             <div class="meta">
                 2019.6.25 · 용인 출생
             </div>
@@ -1118,6 +1125,24 @@
        초기화
     ============================ */
     window.addEventListener("load", () => {
+        /* ===== 프로필 사진 fallback 처리 ===== */
+        const profileImg = document.getElementById("profilePhoto");
+        if (!profileImg) return;
+
+        // 1️⃣ HTML에 적어둔 기본 src를 placeholder로 사용
+        const placeholder = profileImg.getAttribute("src");   // "/videos/profile-placeholder.png"
+        const realSrc = profileImg.dataset.profileSrc;        // 백엔드가 채워줄 값
+
+        // 2️⃣ 백엔드에서 URL이 넘어온 경우에만 교체
+        if (realSrc && realSrc.trim() !== "") {
+            profileImg.src = realSrc;
+
+            // 3️⃣ 진짜 URL이 깨지면 placeholder로 되돌리기
+            profileImg.onerror = () => {
+                profileImg.onerror = null; // 무한 루프 방지
+                profileImg.src = placeholder;
+            };
+        }
         /* ===== 사진 갤러리 초기화 ===== */
         initGallery();
 
