@@ -488,6 +488,154 @@
             font-size: 14px;
             color: var(--muted);
         }
+
+        /* Profile Tags + Stats */
+        .profile-tag-section{
+            margin-top: 14px;
+        }
+
+        .profile-tag-title{
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .profile-tag-list{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .profile-tag{
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(124,92,255,0.14);
+            border: 1px solid rgba(124,92,255,0.4);
+            color: var(--text);
+        }
+
+        /* 연락 / 프로필 공유 카드 */
+        .contact-card{
+            margin-top: 16px;
+            padding: 12px 14px;
+            border-radius: var(--radius-lg);
+            background: rgba(18,19,26,0.9);
+            border: 1px solid var(--line);
+        }
+
+        .contact-title{
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .contact-desc{
+            font-size: 13px;
+            color: var(--muted);
+            margin: 0 0 10px;
+        }
+
+        .contact-email-row{
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .contact-email{
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.04);
+            border: 1px dashed var(--line);
+        }
+
+        .contact-btn,
+        .contact-outline-btn{
+            font-size: 12px;
+            padding: 6px 11px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: background .15s ease, transform .12s ease, border-color .15s ease;
+        }
+
+        .contact-btn{
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .contact-btn:hover{
+            transform: translateY(-1px);
+            background: #8a6dff;
+        }
+
+        .contact-outline-btn{
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--line);
+        }
+
+        .contact-outline-btn:hover{
+            border-color: var(--accent);
+            background: rgba(124,92,255,0.12);
+            transform: translateY(-1px);
+        }
+
+        .contact-actions{
+            display: flex;
+            gap: 8px;
+        }
+
+        .contact-toast{
+            position: relative;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--accent-2);
+            opacity: 0;
+            transform: translateY(4px);
+            transition: opacity .18s ease, transform .18s ease;
+        }
+
+        .contact-toast.show{
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .gallery-item-wrap{
+            position: relative;
+        }
+
+        .gallery-delete-btn{
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(0,0,0,0.65);
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            display: none; /* 기본은 숨김: 편집 모드에서만 JS로 보이게 */
+        }
+
+
     </style>
 </head>
 <body>
@@ -496,23 +644,48 @@
 
     <!-- PROFILE -->
     <div class="profile-header">
-        <img id="profilePhoto"
-             class="profile-photo"
-             src="videos/profile-placeholder.png"
-             data-profile-src="videos/rugi.jpeg"
-             alt="프로필 사진"
-        />
-        <!-- 기본값: placeholder -->
-        <!-- 백엔드에서 진짜 URL을 채워줄 자리 -->
+        <div class="profile-photo-wrap">
+            <img id="profilePhoto"
+                 class="profile-photo"
+                 src="videos/profile-placeholder.png"
+                 data-profile-src="videos/rugi.jpeg"
+                 alt="프로필 사진" />
+            <!-- 편집 모드일 때만 보이게 -->
+            <label class="change-photo-btn" id="changePhotoLabel" style="display:none;">
+                사진 변경
+                <input type="file" id="profilePhotoInput" accept="image/*" style="display:none;">
+            </label>
+        </div>
 
         <div class="profile-info">
-            <h1>루기</h1>
+            <!-- 상단 오른쪽에 편집 버튼 -->
+            <div class="profile-header-row">
+                <h1 id="actorNameDisplay">루기</h1>
+                <button class="edit-toggle-btn" id="editToggleBtn">프로필 편집</button>
+            </div>
+
+            <!-- 이름 입력(편집 모드에서만 보이게) -->
+            <input
+                    type="text"
+                    id="actorNameInput"
+                    class="profile-edit-input"
+                    value="루기"
+                    style="display:none;"
+            />
+
             <div class="meta">
                 2019.6.25 · 용인 출생
             </div>
-            <p class="bio">
+
+            <!-- 소개 -->
+            <p class="bio" id="bioDisplay">
                 일상과 귀여운 순간들을 기록하는 아역 배우입니다.
             </p>
+            <textarea
+                    id="bioInput"
+                    class="profile-edit-textarea"
+                    style="display:none;"
+            >일상과 귀여운 순간들을 기록하는 아역 배우입니다.</textarea>
 
             <div class="sns-row">
                 <a href="https://instagram.com/j__hoi/" class="sns-pill" target="_blank">
@@ -521,7 +694,31 @@
                     <span class="sns-handle">@j__hoi</span>
                 </a>
             </div>
+
+            <!-- ⭐ 프로필 키워드 태그 -->
+            <section class="profile-tag-section">
+                <div class="profile-tag-title">PROFILE TAGS</div>
+                <div class="profile-tag-list" id="tagList">
+                    <span class="profile-tag">#아역</span>
+                    <span class="profile-tag">#밝은 이미지</span>
+                    <span class="profile-tag">#광고 친화적</span>
+                    <span class="profile-tag">#자연스러운 표정</span>
+                </div>
+
+                <!-- 태그 편집용 (편집 모드일 때만 보여줌) -->
+                <div class="tag-edit-row" id="tagEditRow" style="display:none;">
+                    <input type="text" id="newTagInput" class="profile-edit-input" placeholder="#새 태그 입력" />
+                    <button id="addTagBtn" class="small-pill-btn">추가</button>
+                </div>
+            </section>
+
+            <!-- 저장 / 취소 버튼 (편집 모드일 때만) -->
+            <div class="profile-edit-actions" id="editActions" style="display:none;">
+                <button class="save-btn" id="saveProfileBtn">저장</button>
+                <button class="cancel-btn" id="cancelProfileBtn">취소</button>
+            </div>
         </div>
+
     </div>
 
 
@@ -536,61 +733,61 @@
                 <div class="film-slider" id="filmSlider">
 
                     <!-- 필름 카드들 -->
-<!--                    <article class="film-card"-->
-<!--                             data-title="반품"-->
-<!--                             data-genre="SF / 스릴러"-->
-<!--                             data-runtime="148분"-->
-<!--                             data-age="15"-->
-<!--                             data-video="videos/trailer.mp4"-->
-<!--                             data-thumb="videos/thumbnail.png">-->
-<!--                        <img class="film-poster" src="videos/thumbnail.png">-->
-<!--                        <div class="film-body">-->
-<!--                            <div class="film-title">반품</div>-->
-<!--                            <div class="film-meta">2025 · 주연</div>-->
-<!--                        </div>-->
-<!--                    </article>-->
+                    <article class="film-card"
+                             data-title="반품"
+                             data-genre="SF / 스릴러"
+                             data-runtime="148분"
+                             data-age="15"
+                             data-video="videos/trailer.mp4"
+                             data-thumb="videos/thumbnail.png">
+                        <img class="film-poster" src="videos/thumbnail.png">
+                        <div class="film-body">
+                            <div class="film-title">반품</div>
+                            <div class="film-meta">2025 · 주연</div>
+                        </div>
+                    </article>
 
-<!--                    <article class="film-card"-->
-<!--                             data-title="두 번째 영화"-->
-<!--                             data-genre="드라마"-->
-<!--                             data-runtime="132분"-->
-<!--                             data-age="12"-->
-<!--                             data-video="videos/trailer.mp4"-->
-<!--                             data-thumb="videos/thumbnail.png">-->
-<!--                        <img class="film-poster" src="videos/thumbnail.png">-->
-<!--                        <div class="film-body">-->
-<!--                            <div class="film-title">두 번째 영화</div>-->
-<!--                            <div class="film-meta">2024 · 조연</div>-->
-<!--                        </div>-->
-<!--                    </article>-->
+                    <article class="film-card"
+                             data-title="두 번째 영화"
+                             data-genre="드라마"
+                             data-runtime="132분"
+                             data-age="12"
+                             data-video="videos/trailer.mp4"
+                             data-thumb="videos/thumbnail.png">
+                        <img class="film-poster" src="videos/thumbnail.png">
+                        <div class="film-body">
+                            <div class="film-title">두 번째 영화</div>
+                            <div class="film-meta">2024 · 조연</div>
+                        </div>
+                    </article>
 
-<!--                    <article class="film-card"-->
-<!--                             data-title="세 번째 영화"-->
-<!--                             data-genre="로맨스"-->
-<!--                             data-runtime="110분"-->
-<!--                             data-age="15"-->
-<!--                             data-video="videos/trailer.mp4"-->
-<!--                             data-thumb="videos/thumbnail.png">-->
-<!--                        <img class="film-poster" src="videos/thumbnail.png">-->
-<!--                        <div class="film-body">-->
-<!--                            <div class="film-title">세 번째 영화</div>-->
-<!--                            <div class="film-meta">2023 · 주연</div>-->
-<!--                        </div>-->
-<!--                    </article>-->
+                    <article class="film-card"
+                             data-title="세 번째 영화"
+                             data-genre="로맨스"
+                             data-runtime="110분"
+                             data-age="15"
+                             data-video="videos/trailer.mp4"
+                             data-thumb="videos/thumbnail.png">
+                        <img class="film-poster" src="videos/thumbnail.png">
+                        <div class="film-body">
+                            <div class="film-title">세 번째 영화</div>
+                            <div class="film-meta">2023 · 주연</div>
+                        </div>
+                    </article>
 
-<!--                    <article class="film-card"-->
-<!--                             data-title="네 번째 영화"-->
-<!--                             data-genre="로맨스"-->
-<!--                             data-runtime="110분"-->
-<!--                             data-age="15"-->
-<!--                             data-video="videos/trailer.mp4"-->
-<!--                             data-thumb="videos/thumbnail.png">-->
-<!--                        <img class="film-poster" src="videos/thumbnail.png">-->
-<!--                        <div class="film-body">-->
-<!--                            <div class="film-title">네 번째 영화</div>-->
-<!--                            <div class="film-meta">2023 · 주연</div>-->
-<!--                        </div>-->
-<!--                    </article>-->
+                    <article class="film-card"
+                             data-title="네 번째 영화"
+                             data-genre="로맨스"
+                             data-runtime="110분"
+                             data-age="15"
+                             data-video="videos/trailer.mp4"
+                             data-thumb="videos/thumbnail.png">
+                        <img class="film-poster" src="videos/thumbnail.png">
+                        <div class="film-body">
+                            <div class="film-title">네 번째 영화</div>
+                            <div class="film-meta">2023 · 주연</div>
+                        </div>
+                    </article>
                 </div>
             </div>
 
@@ -600,23 +797,48 @@
 
     <!-- GALLERY -->
     <section class="gallery-section" id="gallerySection">
-        <h2>사진 갤러리</h2>
+        <div class="gallery-header-row">
+            <h2>사진 갤러리</h2>
+            <!-- 편집 모드일 때만 보임 -->
+            <div class="gallery-edit-controls" id="galleryEditControls" style="display:none;">
+                <label class="small-pill-btn">
+                    사진 추가
+                    <input type="file" id="galleryAddInput" accept="image/*" multiple style="display:none;">
+                </label>
+            </div>
+        </div>
 
-        <div class="gallery-grid">
+        <div class="gallery-grid" id="galleryGrid">
             <!-- 처음 6장만 바로 보이도록 JS에서 제어 -->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=900">-->
+            <div class="gallery-item-wrap">
+                <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">
+                <button class="gallery-delete-btn">✕</button>
+            </div>
 
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">-->
+            <div class="gallery-item-wrap">
+                <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">
+                <button class="gallery-delete-btn">✕</button>
+            </div>
+
+            <div class="gallery-item-wrap">
+                <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">
+                <button class="gallery-delete-btn">✕</button>
+            </div>
+
+            <div class="gallery-item-wrap">
+                <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">
+                <button class="gallery-delete-btn">✕</button>
+            </div>
+
+            <div class="gallery-item-wrap">
+                <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">
+                <button class="gallery-delete-btn">✕</button>
+            </div>
+
+            <div class="gallery-item-wrap">
+                <img class="gallery-item" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=900">
+                <button class="gallery-delete-btn">✕</button>
+            </div>
         </div>
 
         <!-- 인스타 스타일 중앙 스피너 -->
@@ -1143,6 +1365,8 @@
                 profileImg.src = placeholder;
             };
         }
+
+
         /* ===== 사진 갤러리 초기화 ===== */
         initGallery();
 
@@ -1192,10 +1416,193 @@
                 gallerySectionEl.appendChild(empty2);
             }
         }
+
+        const editToggleBtn = document.getElementById("editToggleBtn");
+        const actorNameDisplay = document.getElementById("actorNameDisplay");
+        const actorNameInput = document.getElementById("actorNameInput");
+        const bioDisplay = document.getElementById("bioDisplay");
+        const bioInput = document.getElementById("bioInput");
+
+        const tagList = document.getElementById("tagList");
+        const tagEditRow = document.getElementById("tagEditRow");
+        const newTagInput = document.getElementById("newTagInput");
+        const addTagBtn = document.getElementById("addTagBtn");
+
+        const editActions = document.getElementById("editActions");
+        const saveProfileBtn = document.getElementById("saveProfileBtn");
+        const cancelProfileBtn = document.getElementById("cancelProfileBtn");
+
+        const changePhotoLabel = document.getElementById("changePhotoLabel");
+        const profilePhotoInput = document.getElementById("profilePhotoInput");
+        const profilePhoto = document.getElementById("profilePhoto");
+
+        const galleryEditControls = document.getElementById("galleryEditControls");
+        const galleryAddInput = document.getElementById("galleryAddInput");
+        const galleryGrid = document.getElementById("galleryGrid");
+
+        let isEditing = false;
+        let snapshot = {};
+
+        function enterEditMode() {
+            isEditing = true;
+            editToggleBtn.textContent = "편집 중";
+
+            // 스냅샷 저장 (취소 시 복원용)
+            snapshot = {
+                name: actorNameDisplay.textContent,
+                bio: bioDisplay.textContent,
+            };
+
+            // 이름 / 소개 입력 필드 표시
+            actorNameInput.value = actorNameDisplay.textContent;
+            actorNameDisplay.style.display = "none";
+            actorNameInput.style.display = "block";
+
+            bioInput.value = bioDisplay.textContent.trim();
+            bioDisplay.style.display = "none";
+            bioInput.style.display = "block";
+
+            // 태그 입력 영역
+            tagEditRow.style.display = "flex";
+
+            // 저장/취소 버튼
+            editActions.style.display = "flex";
+
+            // 프로필 사진 변경 버튼
+            changePhotoLabel.style.display = "inline-flex";
+
+            // 갤러리 추가 버튼
+            galleryEditControls.style.display = "flex";
+
+            // 갤러리 삭제 버튼들 보이기
+            document.querySelectorAll(".gallery-delete-btn").forEach(btn => {
+                btn.style.display = "block";
+            });
+        }
+
+        function exitEditMode(restore = false) {
+            isEditing = false;
+            editToggleBtn.textContent = "프로필 편집";
+
+            if (restore) {
+                actorNameDisplay.textContent = snapshot.name;
+                bioDisplay.textContent = snapshot.bio;
+            } else {
+                actorNameDisplay.textContent = actorNameInput.value.trim() || snapshot.name;
+                bioDisplay.textContent = bioInput.value.trim() || snapshot.bio;
+            }
+
+            actorNameDisplay.style.display = "block";
+            actorNameInput.style.display = "none";
+
+            bioDisplay.style.display = "block";
+            bioInput.style.display = "none";
+
+            tagEditRow.style.display = "none";
+            editActions.style.display = "none";
+            changePhotoLabel.style.display = "none";
+            galleryEditControls.style.display = "none";
+
+            document.querySelectorAll(".gallery-delete-btn").forEach(btn => {
+                btn.style.display = "none";
+            });
+        }
+
+        editToggleBtn.addEventListener("click", () => {
+            if (!isEditing) {
+                enterEditMode();
+            }
+        });
+
+        saveProfileBtn.addEventListener("click", () => {
+            // TODO: 나중에 여기서 서버로 저장 API 호출
+            exitEditMode(false);
+        });
+
+        cancelProfileBtn.addEventListener("click", () => {
+            exitEditMode(true);
+        });
+
+        // 태그 추가
+        addTagBtn.addEventListener("click", () => {
+            const text = newTagInput.value.trim();
+            if (!text) return;
+
+            const span = document.createElement("span");
+            span.className = "profile-tag";
+            span.textContent = text.startsWith("#") ? text : `#${text}`;
+
+            // 클릭하면 제거 (편집 모드 한정)
+            span.addEventListener("click", () => {
+                if (!isEditing) return;
+                span.remove();
+            });
+
+            tagList.appendChild(span);
+            newTagInput.value = "";
+        });
+
+        // 기존 태그들도 클릭하면 삭제되게
+        tagList.querySelectorAll(".profile-tag").forEach(tag => {
+            tag.addEventListener("click", () => {
+                if (!isEditing) return;
+                tag.remove();
+            });
+        });
+
+        // 프로필 사진 미리보기
+        profilePhotoInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                profilePhoto.src = ev.target.result;  // 업로드 전에 미리보기
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // 갤러리 사진 추가 (프론트 미리보기용)
+        galleryAddInput.addEventListener("change", (e) => {
+            const files = Array.from(e.target.files);
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const wrap = document.createElement("div");
+                    wrap.className = "gallery-item-wrap";
+
+                    const img = document.createElement("img");
+                    img.className = "gallery-item";
+                    img.src = ev.target.result;
+
+                    const delBtn = document.createElement("button");
+                    delBtn.className = "gallery-delete-btn";
+                    delBtn.textContent = "✕";
+                    delBtn.style.display = isEditing ? "block" : "none";
+                    delBtn.addEventListener("click", () => wrap.remove());
+
+                    wrap.appendChild(img);
+                    wrap.appendChild(delBtn);
+                    galleryGrid.appendChild(wrap);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // 선택 초기화
+            e.target.value = "";
+        });
+
+        // 기존 갤러리 삭제 버튼들 이벤트 연결
+        document.querySelectorAll(".gallery-delete-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                if (!isEditing) return;
+                btn.parentElement.remove();
+            });
+        });
+
     });
 
 </script>
-
 
 </body>
 </html>
