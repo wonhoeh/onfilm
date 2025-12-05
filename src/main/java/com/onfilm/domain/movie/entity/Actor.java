@@ -9,16 +9,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.List;
 
-
-/**
- * Actor 엔티티
- * 배우의 정보
- * - 이름
- * - 나이 nullable = true
- * - 참여한 작품(필모그래피)
- * - SNS nullable = true
- * - Entity, Entity Repository 함께 위치 시키기 위해 패키지별로 나눔
- */
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
