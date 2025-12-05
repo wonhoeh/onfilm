@@ -628,19 +628,21 @@
              class="profile-photo"
              src="videos/profile-placeholder.png"
              data-profile-src="videos/rugi.jpeg"
-             alt="프로필 사진"
-        />
-        <!-- 기본값: placeholder -->
-        <!-- 백엔드에서 진짜 URL을 채워줄 자리 -->
+             alt="프로필 사진" />
 
         <div class="profile-info">
-            <h1>루기</h1>
+            <!-- 상단 오른쪽에 편집 버튼 -->
+            <h1>룩루기</h1>
+
             <div class="meta">
                 2019.6.25 · 용인 출생
             </div>
-            <p class="bio">
+
+            <!-- 소개 -->
+            <p class="bio" id="bioDisplay">
                 일상과 귀여운 순간들을 기록하는 아역 배우입니다.
             </p>
+
 
             <div class="sns-row">
                 <a href="https://instagram.com/j__hoi/" class="sns-pill" target="_blank">
@@ -650,18 +652,16 @@
                 </a>
             </div>
 
-
             <!-- ⭐ 프로필 키워드 태그 -->
             <section class="profile-tag-section">
                 <div class="profile-tag-title">PROFILE TAGS</div>
-                <div class="profile-tag-list">
+                <div class="profile-tag-list" id="tagList">
                     <span class="profile-tag">#아역</span>
                     <span class="profile-tag">#밝은 이미지</span>
                     <span class="profile-tag">#광고 친화적</span>
                     <span class="profile-tag">#자연스러운 표정</span>
                 </div>
             </section>
-
         </div>
     </div>
 
@@ -742,22 +742,14 @@
     <!-- GALLERY -->
     <section class="gallery-section" id="gallerySection">
         <h2>사진 갤러리</h2>
-
-        <div class="gallery-grid">
-            <!-- 처음 6장만 바로 보이도록 JS에서 제어 -->
+        <div class="gallery-grid" id="galleryGrid">
             <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">
             <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">
             <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">
             <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">
             <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">
             <img class="gallery-item" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=900">
-
-            <!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=900">-->
-            <!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">-->
-            <!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">-->
-            <!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">-->
-            <!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">-->
-            <!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">-->
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">
         </div>
 
         <!-- 인스타 스타일 중앙 스피너 -->
@@ -1079,8 +1071,6 @@
     // ✅ 라이트박스 관련 변수
     let lightboxOverlay = null;
     let lightboxImg     = null;
-    let lightboxPrevBtn = null;
-    let lightboxNextBtn = null;
     let currentIndex    = 0;   // 현재 몇 번째 사진인지
 
     /* ============================
@@ -1233,35 +1223,6 @@
         updateLightboxArrows();
     }
 
-    // 🔁 좌우 화살표 노출 상태 업데이트
-    function updateLightboxNav() {
-        const lastIndex = galleryItems.length - 1;
-
-        // 첫 번째 사진이면 왼쪽 화살표 숨김
-        if (currentIndex <= 0) {
-            lightboxPrevBtn.style.display = "none";
-        } else {
-            lightboxPrevBtn.style.display = "flex";
-        }
-
-        // 마지막 사진이면 오른쪽 화살표 숨김
-        if (currentIndex >= lastIndex) {
-            lightboxNextBtn.style.display = "none";
-        } else {
-            lightboxNextBtn.style.display = "flex";
-        }
-    }
-
-    function showPrevImage() {
-        if (currentIndex <= 0) return;
-        openLightbox(currentIndex - 1);
-    }
-
-    function showNextImage() {
-        if (currentIndex >= galleryItems.length - 1) return;
-        openLightbox(currentIndex + 1);
-    }
-
     /* ============================
        초기화
     ============================ */
@@ -1335,6 +1296,8 @@
                 gallerySectionEl.appendChild(empty2);
             }
         }
+
+
 
     });
 

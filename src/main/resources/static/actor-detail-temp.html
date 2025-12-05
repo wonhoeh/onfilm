@@ -34,8 +34,6 @@
         .container{
             width:min(1100px,92vw);
             margin:0 auto;
-
-            /* 🔽 footer를 바닥으로 밀기 위한 설정 */
             min-height:100vh;
             display:flex;
             flex-direction:column;
@@ -56,7 +54,6 @@
         }
         nav li.active{ color:var(--text); font-weight:700; }
 
-
         /* PROFILE SECTION */
         .profile-header{
             margin:30px 0 20px;
@@ -76,18 +73,81 @@
             font-size:14px;
             color:var(--muted);
             margin-bottom:8px;
-            /*line-height:1.6;*/
         }
         .bio{
-            /*font-size:15px;*/
-            /*color:var(--muted);*/
-            /*line-height:1.7;*/
-            /*max-width:70ch;*/
             font-size: 14px;
             color: var(--muted);
             line-height: 1.6;
         }
 
+        /* ★ NEW: 이름 + 톱니바퀴 버튼 래퍼 */
+        .profile-title-row{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            position:relative; /* 드롭다운 위치 기준 */
+        }
+
+        /* ★ NEW: 톱니바퀴 버튼 */
+        .profile-settings-btn{
+            width:28px;
+            height:28px;
+            border-radius:999px;
+            border:1px solid var(--line);
+            background:rgba(255,255,255,0.06);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+            font-size:14px;
+            padding:0;
+            transition:background .15s ease, transform .12s ease, border-color .15s ease;
+        }
+        .profile-settings-btn:hover{
+            background:rgba(124,92,255,0.18);
+            border-color:var(--accent);
+            transform:translateY(-1px);
+        }
+
+        /* ★ NEW: 드롭다운 메뉴 */
+        .profile-settings-menu{
+            position:absolute;
+            top:110%;
+            right:0;
+            min-width:180px;
+            background:var(--panel-2);
+            border:1px solid var(--line);
+            border-radius:var(--radius-md);
+            box-shadow:0 12px 40px rgba(0,0,0,.6);
+            padding:6px 0;
+            display:none;
+            z-index:20;
+        }
+        .profile-settings-menu.show{
+            display:block;
+        }
+        .profile-settings-item{
+            width:100%;
+            border:none;
+            background:transparent;
+            color:var(--text);
+            text-align:left;
+            font-size:13px;
+            padding:8px 12px;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+        }
+        .profile-settings-item span{
+            pointer-events:none;
+        }
+        .profile-settings-item:hover{
+            background:rgba(124,92,255,0.16);
+        }
+        .profile-settings-item.close-item{
+            color:var(--muted);
+        }
 
         /* ============================
            FILMOGRAPHY (슬라이더 + 카드)
@@ -112,7 +172,6 @@
             transition:transform .4s ease;
         }
 
-        /* 카드 폭 고정: 1개/2개/3개여도 항상 32% */
         .film-card{
             flex: 0 0 32%;
             max-width: 32%;
@@ -137,7 +196,6 @@
         .film-title{ font-size:16px; font-weight:900; }
         .film-meta{ margin-top:6px; font-size:13px; color:var(--muted); }
 
-        /* 화살표 */
         .film-arrow{
             position:absolute;
             top:50%;
@@ -163,7 +221,6 @@
             transform:translateY(-50%) scale(1.1);
         }
 
-
         /* ============================
            MOVIE POPUP
         ============================ */
@@ -175,13 +232,9 @@
             border: 1px solid var(--line);
             box-shadow: 0 25px 70px rgba(0,0,0,.85);
             overflow: hidden;
-
             opacity: 0;
             pointer-events: none;
-
-            /* 🔥 기준점을 가운데로 */
             transform-origin: center center;
-
             transition:
                     opacity .18s ease-out,
                     transform .22s cubic-bezier(.24,.82,.24,1.4);
@@ -202,7 +255,6 @@
             overflow: hidden;
         }
 
-        /* 비디오 */
         .popup-video-box video{
             position:absolute;
             inset:0;
@@ -212,7 +264,6 @@
             z-index:0;
         }
 
-        /* 썸네일 – 항상 비디오 위에 */
         .popup-video-box .popup-thumb{
             position:absolute;
             inset:0;
@@ -269,15 +320,12 @@
             display:flex;
             align-items:center;
             justify-content:center;
-
             background:rgba(0,0,0,.55);
             backdrop-filter:blur(6px);
             border:1px solid rgba(255,255,255,.35);
-
             color:white;
             font-size:20px;
             cursor:pointer;
-
             transition:background .2s ease, transform .2s ease;
         }
         .popup-mute-btn:hover{
@@ -293,11 +341,9 @@
             border: none;
             padding: 0;
             margin: 0;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             font-size: 20px;
             font-weight: 900;
             cursor: pointer;
@@ -327,7 +373,6 @@
             transform: scale(0.92);
         }
 
-
         /* ============================
            GALLERY + 스크롤 로딩 스피너
         ============================ */
@@ -348,16 +393,14 @@
             object-fit:cover;
             background:#0f1117;
             border:1px solid var(--line);
-            /* ✨ 부드러운 그늘 효과를 위해 filter/box-shadow에 트랜지션 추가 */
             transition: filter .18s ease, box-shadow .18s ease;
-            outline: none;           /* 클릭했을 때 파란 아웃라인 제거용 */
+            outline: none;
         }
 
-        /* hover 시: 확대/테두리 변경 X, 대신 살짝 어둡게 + 그림자 */
         .gallery-item:hover{
-            filter: brightness(0.6);          /* 살짝 그늘지는 느낌 */
+            filter: brightness(0.6);
             box-shadow: 0 6px 16px rgba(0,0,0,.55);
-            border-color: var(--line);        /* 기존 색 유지 (파란 테두리 안 나오게) */
+            border-color: var(--line);
         }
         .gallery-item:focus {
             outline: none;
@@ -383,7 +426,6 @@
             to { transform: rotate(360deg); }
         }
 
-        /* ====== GALLERY LIGHTBOX (인스타 풀스크린) ====== */
         .gallery-lightbox-overlay{
             position:fixed;
             inset:0;
@@ -392,7 +434,6 @@
             align-items:center;
             justify-content:center;
             z-index:9999;
-
             opacity:0;
             pointer-events:none;
             transition:opacity .2s ease;
@@ -413,7 +454,6 @@
             cursor:zoom-out;
         }
 
-        /* ✅ 갤러리 라이트박스 화살표 - 필모그래피 화살표 느낌 복붙 */
         .gallery-lightbox-arrow{
             position:absolute;
             top:50%;
@@ -445,15 +485,14 @@
         }
 
         footer{
-            margin-top:auto;          /* 🔥 위쪽 공간을 다 먹고 맨 아래로 내려감 */
-            padding:24px 0 30px;      /* 위·아래 여백은 padding으로만 */
+            margin-top:auto;
+            padding:24px 0 30px;
             border-top:1px solid var(--line);
             text-align:center;
             font-size:12px;
             color:var(--muted);
         }
 
-        /*Profile SNS*/
         .sns-row{
             margin-top: 10px;
             display: flex;
@@ -475,7 +514,6 @@
 
         .sns-pill:hover{
             background: rgba(124,92,255,0.18);
-            /*border-color: var(--accent);*/
         }
 
         .sns-handle{
@@ -489,7 +527,6 @@
             color: var(--muted);
         }
 
-        /* Profile Tags + Stats */
         .profile-tag-section{
             margin-top: 14px;
         }
@@ -519,7 +556,6 @@
             color: var(--text);
         }
 
-        /* 연락 / 프로필 공유 카드 */
         .contact-card{
             margin-top: 16px;
             padding: 12px 14px;
@@ -616,26 +652,6 @@
             transform: translateY(0);
         }
 
-        .gallery-item-wrap{
-            position: relative;
-        }
-
-        .gallery-delete-btn{
-            position: absolute;
-            top: 6px;
-            right: 6px;
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(0,0,0,0.65);
-            color: white;
-            font-size: 14px;
-            cursor: pointer;
-            display: none; /* 기본은 숨김: 편집 모드에서만 JS로 보이게 */
-        }
-
-
     </style>
 </head>
 <body>
@@ -644,48 +660,49 @@
 
     <!-- PROFILE -->
     <div class="profile-header">
-        <div class="profile-photo-wrap">
-            <img id="profilePhoto"
-                 class="profile-photo"
-                 src="videos/profile-placeholder.png"
-                 data-profile-src="videos/rugi.jpeg"
-                 alt="프로필 사진" />
-            <!-- 편집 모드일 때만 보이게 -->
-            <label class="change-photo-btn" id="changePhotoLabel" style="display:none;">
-                사진 변경
-                <input type="file" id="profilePhotoInput" accept="image/*" style="display:none;">
-            </label>
-        </div>
+        <img id="profilePhoto"
+             class="profile-photo"
+             src="videos/profile-placeholder.png"
+             data-profile-src="videos/rugi.jpeg"
+             alt="프로필 사진" />
 
         <div class="profile-info">
-            <!-- 상단 오른쪽에 편집 버튼 -->
-            <div class="profile-header-row">
-                <h1 id="actorNameDisplay">루기</h1>
-                <button class="edit-toggle-btn" id="editToggleBtn">프로필 편집</button>
-            </div>
+            <!-- ★ NEW: 이름 + 톱니바퀴 + 메뉴 -->
+            <div class="profile-title-row">
+                <h1>룩루기</h1>
+                <button
+                        type="button"
+                        class="profile-settings-btn"
+                        id="profileSettingsBtn"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        title="편집 메뉴 열기">
+                    ⚙️
+                </button>
 
-            <!-- 이름 입력(편집 모드에서만 보이게) -->
-            <input
-                    type="text"
-                    id="actorNameInput"
-                    class="profile-edit-input"
-                    value="루기"
-                    style="display:none;"
-            />
+                <div class="profile-settings-menu" id="profileSettingsMenu">
+                    <button class="profile-settings-item" data-action="profile">
+                        <span>프로필 편집</span>
+                    </button>
+                    <button class="profile-settings-item" data-action="filmography">
+                        <span>필모그래피 편집</span>
+                    </button>
+                    <button class="profile-settings-item" data-action="gallery">
+                        <span>사진 갤러리 편집</span>
+                    </button>
+                    <button class="profile-settings-item close-item" data-action="close">
+                        <span>닫기</span>
+                    </button>
+                </div>
+            </div>
 
             <div class="meta">
                 2019.6.25 · 용인 출생
             </div>
 
-            <!-- 소개 -->
             <p class="bio" id="bioDisplay">
                 일상과 귀여운 순간들을 기록하는 아역 배우입니다.
             </p>
-            <textarea
-                    id="bioInput"
-                    class="profile-edit-textarea"
-                    style="display:none;"
-            >일상과 귀여운 순간들을 기록하는 아역 배우입니다.</textarea>
 
             <div class="sns-row">
                 <a href="https://instagram.com/j__hoi/" class="sns-pill" target="_blank">
@@ -695,7 +712,6 @@
                 </a>
             </div>
 
-            <!-- ⭐ 프로필 키워드 태그 -->
             <section class="profile-tag-section">
                 <div class="profile-tag-title">PROFILE TAGS</div>
                 <div class="profile-tag-list" id="tagList">
@@ -704,23 +720,9 @@
                     <span class="profile-tag">#광고 친화적</span>
                     <span class="profile-tag">#자연스러운 표정</span>
                 </div>
-
-                <!-- 태그 편집용 (편집 모드일 때만 보여줌) -->
-                <div class="tag-edit-row" id="tagEditRow" style="display:none;">
-                    <input type="text" id="newTagInput" class="profile-edit-input" placeholder="#새 태그 입력" />
-                    <button id="addTagBtn" class="small-pill-btn">추가</button>
-                </div>
             </section>
-
-            <!-- 저장 / 취소 버튼 (편집 모드일 때만) -->
-            <div class="profile-edit-actions" id="editActions" style="display:none;">
-                <button class="save-btn" id="saveProfileBtn">저장</button>
-                <button class="cancel-btn" id="cancelProfileBtn">취소</button>
-            </div>
         </div>
-
     </div>
-
 
     <!-- FILMOGRAPHY -->
     <section class="filmography-section" id="filmographySection">
@@ -731,8 +733,6 @@
 
             <div class="film-slider-wrapper">
                 <div class="film-slider" id="filmSlider">
-
-                    <!-- 필름 카드들 -->
                     <article class="film-card"
                              data-title="반품"
                              data-genre="SF / 스릴러"
@@ -797,51 +797,17 @@
 
     <!-- GALLERY -->
     <section class="gallery-section" id="gallerySection">
-        <div class="gallery-header-row">
-            <h2>사진 갤러리</h2>
-            <!-- 편집 모드일 때만 보임 -->
-            <div class="gallery-edit-controls" id="galleryEditControls" style="display:none;">
-                <label class="small-pill-btn">
-                    사진 추가
-                    <input type="file" id="galleryAddInput" accept="image/*" multiple style="display:none;">
-                </label>
-            </div>
-        </div>
-
+        <h2>사진 갤러리</h2>
         <div class="gallery-grid" id="galleryGrid">
-            <!-- 처음 6장만 바로 보이도록 JS에서 제어 -->
-            <div class="gallery-item-wrap">
-                <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">
-                <button class="gallery-delete-btn">✕</button>
-            </div>
-
-            <div class="gallery-item-wrap">
-                <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">
-                <button class="gallery-delete-btn">✕</button>
-            </div>
-
-            <div class="gallery-item-wrap">
-                <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">
-                <button class="gallery-delete-btn">✕</button>
-            </div>
-
-            <div class="gallery-item-wrap">
-                <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">
-                <button class="gallery-delete-btn">✕</button>
-            </div>
-
-            <div class="gallery-item-wrap">
-                <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">
-                <button class="gallery-delete-btn">✕</button>
-            </div>
-
-            <div class="gallery-item-wrap">
-                <img class="gallery-item" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=900">
-                <button class="gallery-delete-btn">✕</button>
-            </div>
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=900">
+            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">
         </div>
 
-        <!-- 인스타 스타일 중앙 스피너 -->
         <div class="gallery-spinner" id="gallerySpinner">
             <div class="spinner-circle"></div>
         </div>
@@ -853,9 +819,7 @@
 
 </main>
 
-<!-- ============================
-     JS 1: FILMOGRAPHY SLIDER
-=============================== -->
+<!-- JS 1: FILMOGRAPHY SLIDER -->
 <script>
     const slider   = document.getElementById("filmSlider");
     const prevBtn  = document.getElementById("filmPrevBtn");
@@ -869,7 +833,6 @@
         if (!card) return 0;
         const style = window.getComputedStyle(card);
         const marginRight = parseInt(style.marginRight) || 0;
-        // gap 20px 보정
         return card.offsetWidth + marginRight + 20;
     }
 
@@ -877,7 +840,6 @@
         const cardCount = slider.children.length;
         const maxIndex = cardCount - 3;
 
-        // 3개 이하이면 슬라이드 불가 → 화살표 숨김
         if (cardCount <= 3) {
             prevBtn.style.display = "none";
             nextBtn.style.display = "none";
@@ -909,7 +871,6 @@
         }
     });
 
-    // 마우스가 필모그래피 라인 위에 있을 때만 화살표 표시 제어
     window.addEventListener("mousemove", (e) => {
         if (!filmLine) return;
         const rect = filmLine.getBoundingClientRect();
@@ -920,7 +881,6 @@
         if (inFilmLine) {
             updateArrows();
         } else {
-            // 팝업이 없을 때만 숨김
             if (!popup || !popup.classList.contains("show")) {
                 prevBtn.style.display = "none";
                 nextBtn.style.display = "none";
@@ -929,9 +889,7 @@
     });
 </script>
 
-<!-- ============================
-     JS 2: MOVIE POPUP
-=============================== -->
+<!-- JS 2: MOVIE POPUP -->
 <script>
     let popup = null;
     let hideTimer = null;
@@ -943,11 +901,10 @@
 
         popup.innerHTML = `
         <div class="popup-video-box">
-        <!-- ✅ 섬네일 이미지 레이어 추가 -->
             <img class="popup-thumb" />
             <video muted loop playsinline></video>
 
-              <div class="popup-mute-btn">
+            <div class="popup-mute-btn">
                 <svg class="popup-sound-on" xmlns="http://www.w3.org/2000/svg"
                      viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                      width="26" height="26" style="display:none;">
@@ -967,7 +924,7 @@
                         c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396
                         C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
                 </svg>
-              </div>
+            </div>
         </div>
 
         <div class="popup-info">
@@ -989,7 +946,6 @@
 
         popup.addEventListener("mouseleave", hidePopup);
 
-        // 음소거 버튼
         popup.querySelector(".popup-mute-btn").onclick = (e) => {
             e.stopPropagation();
             const v = popup.querySelector("video");
@@ -1007,14 +963,12 @@
             }
         };
 
-        // 재생 버튼 → 플레이어 페이지 이동
         popup.querySelector(".popup-play-btn-circle").onclick = (e) => {
             e.stopPropagation();
             sessionStorage.setItem("allowSoundPlay", "true");
             window.location.href = "video-player-temp.html";
         };
 
-        // 좋아요 버튼
         const likeBtn = popup.querySelector(".popup-like-btn");
         likeBtn.onclick = (e) => {
             e.stopPropagation();
@@ -1028,7 +982,6 @@
             }
         };
 
-        // 팝업 전체 클릭 → 상세 페이지
         popup.addEventListener("click", () => {
             window.location.href = "movie-detail.html";
         });
@@ -1053,7 +1006,6 @@
         <span class="popup-age">${card.dataset.age ?? ""}</span>
     `;
 
-        // 🔹 썸네일 세팅
         const thumb = card.dataset.thumb;
         if (thumb) {
             thumbEl.src = thumb;
@@ -1063,17 +1015,12 @@
             thumbEl.style.display = "none";
         }
 
-        // 🔹 비디오 설정
         videoEl.pause();
         videoEl.src = card.dataset.video;
         videoEl.currentTime = 0;
 
-        // 혹시 이전 핸들러가 남아있을 수도 있으니 초기화
-        videoEl.onplaying = null;
-
-        // ✅ 재생이 조금 진행되면(예: 0.15초 이상) 그때 썸네일 페이드 아웃
         const onTimeUpdate = () => {
-            if (videoEl.currentTime >= 0.15) {    // 필요하면 0.1 ~ 0.2 사이로 조절
+            if (videoEl.currentTime >= 0.15) {
                 thumbEl.style.opacity = "0";
                 videoEl.removeEventListener("timeupdate", onTimeUpdate);
             }
@@ -1082,7 +1029,6 @@
 
         videoEl.play().catch(() => {});
 
-        // 팝업 위치/애니메이션은 그대로
         const EXTRA_INFO_HEIGHT = 60;
         popup.style.width  = rect.width + "px";
         popup.style.height = (rect.height + EXTRA_INFO_HEIGHT) + "px";
@@ -1099,7 +1045,6 @@
         });
     }
 
-
     function hidePopup(){
         hideTimer = setTimeout(() => {
             const videoEl = popup.querySelector("video");
@@ -1110,7 +1055,7 @@
 
             videoEl.pause();
             if (thumbEl) {
-                thumbEl.style.opacity = "1";   // 다음에 열 때 다시 썸네일부터
+                thumbEl.style.opacity = "1";
             }
 
             setTimeout(() => popup.classList.remove("show"), 180);
@@ -1123,7 +1068,6 @@
         card.addEventListener("mouseleave", hidePopup);
     });
 
-    // 스크롤/휠/터치 시 팝업 즉시 닫기
     function hidePopupImmediate() {
         if (!popup) return;
         popup.style.opacity = "0";
@@ -1138,42 +1082,32 @@
     window.addEventListener("scroll", () => { if (activeCard) hidePopupImmediate(); });
     window.addEventListener("touchmove", () => { if (activeCard) hidePopupImmediate(); });
 
-    // 페이지 처음 로드 시 화살표 상태 한 번 맞추기
     window.addEventListener("load", updateArrows);
 </script>
 
-<!-- ============================
-     JS 3: GALLERY + LIGHTBOX
-=============================== -->
+<!-- JS 3: GALLERY + LIGHTBOX + ★ NEW: 편집 메뉴 JS -->
 <script>
     const gallerySection = document.querySelector(".gallery-section");
     const galleryGrid    = document.querySelector(".gallery-grid");
     const galleryItems   = Array.from(galleryGrid.querySelectorAll(".gallery-item"));
     const gallerySpinner = document.getElementById("gallerySpinner");
 
-    const INITIAL_COUNT = 6;  // 최초 노출 개수
-    const BATCH_SIZE    = 6;  // 한 번에 추가 로딩 개수
+    const INITIAL_COUNT = 6;
+    const BATCH_SIZE    = 6;
 
     let visibleCount = 0;
     let isLoading    = false;
 
-    // ✅ 라이트박스 관련 변수
     let lightboxOverlay = null;
     let lightboxImg     = null;
-    let lightboxPrevBtn = null;
-    let lightboxNextBtn = null;
-    let currentIndex    = 0;   // 현재 몇 번째 사진인지
+    let currentIndex    = 0;
 
-    /* ============================
-       갤러리: 스크롤 로딩
-    ============================ */
     function initGallery() {
         galleryItems.forEach((img, idx) => {
             img.style.display = (idx < INITIAL_COUNT) ? "block" : "none";
         });
         visibleCount = Math.min(INITIAL_COUNT, galleryItems.length);
 
-        // 추가 사진이 전혀 없으면 스피너도 아예 안 보이도록
         if (galleryItems.length <= INITIAL_COUNT && gallerySpinner) {
             gallerySpinner.style.display = "none";
         }
@@ -1198,12 +1132,11 @@
         const rect = gallerySection.getBoundingClientRect();
         const viewHeight = window.innerHeight || document.documentElement.clientHeight;
 
-        // 섹션 하단이 화면 하단 120px 근처로 오면 로딩
         if (rect.bottom - 120 <= viewHeight) {
             isLoading = true;
             if (gallerySpinner) gallerySpinner.style.display = "flex";
 
-            const delay = 700 + Math.random() * 500; // 0.7~1.2초 딜레이 (인스타 느낌)
+            const delay = 700 + Math.random() * 500;
 
             setTimeout(() => {
                 showMoreImages();
@@ -1213,9 +1146,6 @@
         }
     }
 
-    /* ============================
-       라이트박스 만들기
-    ============================ */
     function createLightbox() {
         lightboxOverlay = document.createElement("div");
         lightboxOverlay.className = "gallery-lightbox-overlay";
@@ -1230,19 +1160,15 @@
         lightboxPrevArrow = lightboxOverlay.querySelector(".gallery-lightbox-arrow.left");
         lightboxNextArrow = lightboxOverlay.querySelector(".gallery-lightbox-arrow.right");
 
-        // 오버레이 아무 데나 클릭하면 닫기 (이미지/화살표 제외)
         lightboxOverlay.addEventListener("click", (e) => {
-            // 화살표나 이미지 클릭이면 닫지 않음
             if (e.target === lightboxImg || e.target === lightboxPrevArrow || e.target === lightboxNextArrow) {
                 return;
             }
             closeLightbox();
         });
 
-        // 이미지 클릭 → 닫기
         lightboxImg.addEventListener("click", closeLightbox);
 
-        // 화살표 클릭 → 이전/다음
         lightboxPrevArrow.addEventListener("click", (e) => {
             e.stopPropagation();
             showPrevPhoto();
@@ -1252,7 +1178,6 @@
             showNextPhoto();
         });
 
-        // ESC / 방향키
         window.addEventListener("keydown", (e) => {
             if (!lightboxOverlay.classList.contains("show")) return;
 
@@ -1270,14 +1195,12 @@
         const total = galleryItems.length;
         if (!lightboxPrevArrow || !lightboxNextArrow) return;
 
-        // 첫 번째 사진 → 왼쪽 화살표 숨김
         if (currentIndex <= 0) {
             lightboxPrevArrow.style.display = "none";
         } else {
             lightboxPrevArrow.style.display = "flex";
         }
 
-        // 마지막 사진 → 오른쪽 화살표 숨김
         if (currentIndex >= total - 1) {
             lightboxNextArrow.style.display = "none";
         } else {
@@ -1314,63 +1237,24 @@
         updateLightboxArrows();
     }
 
-    // 🔁 좌우 화살표 노출 상태 업데이트
-    function updateLightboxNav() {
-        const lastIndex = galleryItems.length - 1;
-
-        // 첫 번째 사진이면 왼쪽 화살표 숨김
-        if (currentIndex <= 0) {
-            lightboxPrevBtn.style.display = "none";
-        } else {
-            lightboxPrevBtn.style.display = "flex";
-        }
-
-        // 마지막 사진이면 오른쪽 화살표 숨김
-        if (currentIndex >= lastIndex) {
-            lightboxNextBtn.style.display = "none";
-        } else {
-            lightboxNextBtn.style.display = "flex";
-        }
-    }
-
-    function showPrevImage() {
-        if (currentIndex <= 0) return;
-        openLightbox(currentIndex - 1);
-    }
-
-    function showNextImage() {
-        if (currentIndex >= galleryItems.length - 1) return;
-        openLightbox(currentIndex + 1);
-    }
-
-    /* ============================
-       초기화
-    ============================ */
+    /* ★ NEW: 프로필 편집 메뉴 JS */
     window.addEventListener("load", () => {
-        /* ===== 프로필 사진 fallback 처리 ===== */
         const profileImg = document.getElementById("profilePhoto");
         if (!profileImg) return;
 
-        // 1️⃣ HTML에 적어둔 기본 src를 placeholder로 사용
-        const placeholder = profileImg.getAttribute("src");   // "/videos/profile-placeholder.png"
-        const realSrc = profileImg.dataset.profileSrc;        // 백엔드가 채워줄 값
+        const placeholder = profileImg.getAttribute("src");
+        const realSrc = profileImg.dataset.profileSrc;
 
-        // 2️⃣ 백엔드에서 URL이 넘어온 경우에만 교체
         if (realSrc && realSrc.trim() !== "") {
             profileImg.src = realSrc;
-
-            // 3️⃣ 진짜 URL이 깨지면 placeholder로 되돌리기
             profileImg.onerror = () => {
-                profileImg.onerror = null; // 무한 루프 방지
+                profileImg.onerror = null;
                 profileImg.src = placeholder;
             };
         }
 
-
-        /* ===== 사진 갤러리 초기화 ===== */
         initGallery();
 
-        // 각 이미지 클릭 시 라이트박스 열기 (인덱스 넘겨주기)
         galleryItems.forEach((img, idx) => {
             img.style.cursor = "pointer";
             img.addEventListener("click", () => openLightbox(idx));
@@ -1378,10 +1262,9 @@
 
         if (galleryItems.length > INITIAL_COUNT) {
             window.addEventListener("scroll", handleScroll);
-            handleScroll(); // 혹시 처음부터 아래쪽이라면 한 번 체크
+            handleScroll();
         }
 
-        /* ===== 필모그래피 empty state ===== */
         const filmSection = document.getElementById("filmographySection");
         if (filmSection) {
             const filmCards   = filmSection.querySelectorAll(".film-card");
@@ -1399,15 +1282,14 @@
             }
         }
 
-        /* ===== 사진 갤러리 empty state ===== */
         const gallerySectionEl = document.getElementById("gallerySection");
         if (gallerySectionEl) {
-            const galleryGrid  = gallerySectionEl.querySelector(".gallery-grid");
-            const galleryItems2 = galleryGrid ? galleryGrid.querySelectorAll(".gallery-item") : [];
+            const galleryGridEl  = gallerySectionEl.querySelector(".gallery-grid");
+            const galleryItems2 = galleryGridEl ? galleryGridEl.querySelectorAll(".gallery-item") : [];
 
             if (galleryItems2.length === 0) {
-                if (galleryGrid) {
-                    galleryGrid.style.display = "none";
+                if (galleryGridEl) {
+                    galleryGridEl.style.display = "none";
                 }
 
                 const empty2 = document.createElement("p");
@@ -1417,191 +1299,50 @@
             }
         }
 
-        const editToggleBtn = document.getElementById("editToggleBtn");
-        const actorNameDisplay = document.getElementById("actorNameDisplay");
-        const actorNameInput = document.getElementById("actorNameInput");
-        const bioDisplay = document.getElementById("bioDisplay");
-        const bioInput = document.getElementById("bioInput");
+        // ★ 여기부터 톱니바퀴 메뉴 동작
+        const settingsBtn  = document.getElementById("profileSettingsBtn");
+        const settingsMenu = document.getElementById("profileSettingsMenu");
 
-        const tagList = document.getElementById("tagList");
-        const tagEditRow = document.getElementById("tagEditRow");
-        const newTagInput = document.getElementById("newTagInput");
-        const addTagBtn = document.getElementById("addTagBtn");
+        if (settingsBtn && settingsMenu) {
+            settingsBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const willShow = !settingsMenu.classList.contains("show");
+                settingsMenu.classList.toggle("show", willShow);
+                settingsBtn.setAttribute("aria-expanded", willShow ? "true" : "false");
+            });
 
-        const editActions = document.getElementById("editActions");
-        const saveProfileBtn = document.getElementById("saveProfileBtn");
-        const cancelProfileBtn = document.getElementById("cancelProfileBtn");
+            // 메뉴 항목 클릭
+            settingsMenu.addEventListener("click", (e) => {
+                const item = e.target.closest(".profile-settings-item");
+                if (!item) return;
 
-        const changePhotoLabel = document.getElementById("changePhotoLabel");
-        const profilePhotoInput = document.getElementById("profilePhotoInput");
-        const profilePhoto = document.getElementById("profilePhoto");
+                const action = item.dataset.action;
 
-        const galleryEditControls = document.getElementById("galleryEditControls");
-        const galleryAddInput = document.getElementById("galleryAddInput");
-        const galleryGrid = document.getElementById("galleryGrid");
+                if (action === "profile") {
+                    alert("프로필 편집 화면으로 이동 (TODO: 링크 연결)");
+                    // 예: window.location.href = "/actors/1/edit-profile";
+                } else if (action === "filmography") {
+                    alert("필모그래피 편집 화면으로 이동 (TODO: 링크 연결)");
+                } else if (action === "gallery") {
+                    alert("사진 갤러리 편집 화면으로 이동 (TODO: 링크 연결)");
+                } else if (action === "close") {
+                    // 그냥 메뉴만 닫기
+                }
 
-        let isEditing = false;
-        let snapshot = {};
+                settingsMenu.classList.remove("show");
+                settingsBtn.setAttribute("aria-expanded", "false");
+            });
 
-        function enterEditMode() {
-            isEditing = true;
-            editToggleBtn.textContent = "편집 중";
+            // 바깥 클릭 시 메뉴 닫기
+            document.addEventListener("click", (e) => {
+                if (!settingsMenu.classList.contains("show")) return;
+                if (e.target === settingsBtn || settingsMenu.contains(e.target)) return;
 
-            // 스냅샷 저장 (취소 시 복원용)
-            snapshot = {
-                name: actorNameDisplay.textContent,
-                bio: bioDisplay.textContent,
-            };
-
-            // 이름 / 소개 입력 필드 표시
-            actorNameInput.value = actorNameDisplay.textContent;
-            actorNameDisplay.style.display = "none";
-            actorNameInput.style.display = "block";
-
-            bioInput.value = bioDisplay.textContent.trim();
-            bioDisplay.style.display = "none";
-            bioInput.style.display = "block";
-
-            // 태그 입력 영역
-            tagEditRow.style.display = "flex";
-
-            // 저장/취소 버튼
-            editActions.style.display = "flex";
-
-            // 프로필 사진 변경 버튼
-            changePhotoLabel.style.display = "inline-flex";
-
-            // 갤러리 추가 버튼
-            galleryEditControls.style.display = "flex";
-
-            // 갤러리 삭제 버튼들 보이기
-            document.querySelectorAll(".gallery-delete-btn").forEach(btn => {
-                btn.style.display = "block";
+                settingsMenu.classList.remove("show");
+                settingsBtn.setAttribute("aria-expanded", "false");
             });
         }
-
-        function exitEditMode(restore = false) {
-            isEditing = false;
-            editToggleBtn.textContent = "프로필 편집";
-
-            if (restore) {
-                actorNameDisplay.textContent = snapshot.name;
-                bioDisplay.textContent = snapshot.bio;
-            } else {
-                actorNameDisplay.textContent = actorNameInput.value.trim() || snapshot.name;
-                bioDisplay.textContent = bioInput.value.trim() || snapshot.bio;
-            }
-
-            actorNameDisplay.style.display = "block";
-            actorNameInput.style.display = "none";
-
-            bioDisplay.style.display = "block";
-            bioInput.style.display = "none";
-
-            tagEditRow.style.display = "none";
-            editActions.style.display = "none";
-            changePhotoLabel.style.display = "none";
-            galleryEditControls.style.display = "none";
-
-            document.querySelectorAll(".gallery-delete-btn").forEach(btn => {
-                btn.style.display = "none";
-            });
-        }
-
-        editToggleBtn.addEventListener("click", () => {
-            if (!isEditing) {
-                enterEditMode();
-            }
-        });
-
-        saveProfileBtn.addEventListener("click", () => {
-            // TODO: 나중에 여기서 서버로 저장 API 호출
-            exitEditMode(false);
-        });
-
-        cancelProfileBtn.addEventListener("click", () => {
-            exitEditMode(true);
-        });
-
-        // 태그 추가
-        addTagBtn.addEventListener("click", () => {
-            const text = newTagInput.value.trim();
-            if (!text) return;
-
-            const span = document.createElement("span");
-            span.className = "profile-tag";
-            span.textContent = text.startsWith("#") ? text : `#${text}`;
-
-            // 클릭하면 제거 (편집 모드 한정)
-            span.addEventListener("click", () => {
-                if (!isEditing) return;
-                span.remove();
-            });
-
-            tagList.appendChild(span);
-            newTagInput.value = "";
-        });
-
-        // 기존 태그들도 클릭하면 삭제되게
-        tagList.querySelectorAll(".profile-tag").forEach(tag => {
-            tag.addEventListener("click", () => {
-                if (!isEditing) return;
-                tag.remove();
-            });
-        });
-
-        // 프로필 사진 미리보기
-        profilePhotoInput.addEventListener("change", (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                profilePhoto.src = ev.target.result;  // 업로드 전에 미리보기
-            };
-            reader.readAsDataURL(file);
-        });
-
-        // 갤러리 사진 추가 (프론트 미리보기용)
-        galleryAddInput.addEventListener("change", (e) => {
-            const files = Array.from(e.target.files);
-            files.forEach(file => {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    const wrap = document.createElement("div");
-                    wrap.className = "gallery-item-wrap";
-
-                    const img = document.createElement("img");
-                    img.className = "gallery-item";
-                    img.src = ev.target.result;
-
-                    const delBtn = document.createElement("button");
-                    delBtn.className = "gallery-delete-btn";
-                    delBtn.textContent = "✕";
-                    delBtn.style.display = isEditing ? "block" : "none";
-                    delBtn.addEventListener("click", () => wrap.remove());
-
-                    wrap.appendChild(img);
-                    wrap.appendChild(delBtn);
-                    galleryGrid.appendChild(wrap);
-                };
-                reader.readAsDataURL(file);
-            });
-
-            // 선택 초기화
-            e.target.value = "";
-        });
-
-        // 기존 갤러리 삭제 버튼들 이벤트 연결
-        document.querySelectorAll(".gallery-delete-btn").forEach(btn => {
-            btn.addEventListener("click", () => {
-                if (!isEditing) return;
-                btn.parentElement.remove();
-            });
-        });
-
     });
-
 </script>
 
 </body>
