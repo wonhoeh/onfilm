@@ -142,6 +142,7 @@
             display:flex;
             flex-direction:column;
             gap:6px;
+            margin-top: 18px;
         }
         .field-label{
             font-size:13px;
@@ -169,10 +170,17 @@
             box-shadow:0 0 0 1px rgba(124,92,255,.35);
         }
 
+        /* 출생년도 date 인풋 달력 아이콘을 밝게(흰색 느낌) 보이게 */
+        #birthDate::-webkit-calendar-picker-indicator {
+            filter: invert(1);      /* 어두운 배경에서 아이콘을 밝게 */
+            cursor: pointer;
+        }
+
         .two-col{
             display:grid;
             grid-template-columns:repeat(2,minmax(0,1fr));
             gap:12px;
+            /*margin-top:12px;*/
         }
 
         /* SNS 섹션 */
@@ -253,6 +261,17 @@
             background:rgba(124,92,255,0.18);
             border:1px solid rgba(124,92,255,0.6);
             cursor:pointer;
+
+            /* ↓ 추가 */
+            cursor: grab;
+        }
+        .tag-chip:active{
+            cursor: grabbing;
+        }
+
+        /* 드래그 중 시각 효과 */
+        .tag-chip.dragging{
+            opacity: .5;
         }
         .tag-chip:hover{
             background:rgba(124,92,255,0.32);
@@ -359,25 +378,60 @@
                     <!-- 생년월일 + 출생지 -->
                     <div class="two-col">
                         <div class="field-group">
-                            <label for="birthDate" class="field-label">출생년도</label>
-                            <input
-                                    id="birthDate"
-                                    class="text-input"
-                                    type="date"
-                            >
-                            <div class="field-hint">YYYY-MM-DD 형식으로 선택하세요.</div>
+                            <label class="field-label">출생일</label>
+
+                            <div style="display:flex; gap:6px; align-items:center;">
+                                <input
+                                        id="birthYear"
+                                        class="text-input"
+                                        type="text"
+                                        inputmode="numeric"
+                                        maxlength="4"
+                                        placeholder="YYYY"
+                                        style="max-width:90px;"
+                                >
+                                <span>년</span>
+
+                                <input
+                                        id="birthMonth"
+                                        class="text-input"
+                                        type="text"
+                                        inputmode="numeric"
+                                        maxlength="2"
+                                        placeholder="MM"
+                                        style="max-width:70px;"
+                                >
+                                <span>월</span>
+
+                                <input
+                                        id="birthDay"
+                                        class="text-input"
+                                        type="text"
+                                        inputmode="numeric"
+                                        maxlength="2"
+                                        placeholder="DD"
+                                        style="max-width:70px;"
+                                >
+                                <span>일</span>
+                            </div>
+
+                            <div class="field-hint">YYYY-MM-DD 형식으로 입력해주세요.</div>
+
+                            <!-- 실제로 서버에 보낼 hidden input -->
+                            <input type="hidden" id="birthDate" name="birthDate">
                         </div>
 
                         <div class="field-group">
                             <label for="birthPlace" class="field-label">출생</label>
-                            <select id="birthPlace" class="select-input">
-                                <option value="">선택하세요</option>
-                                <option value="서울">서울</option>
-                                <option value="인천">인천</option>
-                                <option value="부산">부산</option>
-                                <option value="대구">대구</option>
-                            </select>
+                            <input
+                                    id="birthPlace"
+                                    class="text-input"
+                                    type="text"
+                                    placeholder="예) 서울, 부산, 인천"
+                            >
+                            <div class="field-hint">시 단위로 입력해주세요.</div>
                         </div>
+
                     </div>
 
                     <!-- SNS 여러 개 -->
@@ -400,7 +454,7 @@
                     <div class="field-group">
                         <div class="field-label">PROFILE TAGS</div>
                         <div class="field-hint">
-                            배우의 이미지/강점을 나타내는 키워드를 입력하세요. (예: #아역, #밝은이미지)
+                            배우의 이미지/강점을 나타내는 키워드를 입력해주세요. (예: #아역, #밝은이미지)
                         </div>
 
                         <div id="tagList" class="tag-list">
@@ -412,7 +466,7 @@
                                     id="tagInput"
                                     class="text-input tag-input"
                                     type="text"
-                                    placeholder="#해시태그 입력 후 추가 버튼"
+                                    placeholder="자유롭게 입력해주세요."
                             >
                             <button type="button" id="addTagBtn" class="tag-add-btn">추가</button>
                         </div>
@@ -471,7 +525,7 @@
         const input = document.createElement("input");
         input.className = "text-input";
         input.type = "url";
-        input.placeholder = "https://example.com/...";
+        input.placeholder = "www.example.com/...";
         input.value = initial.url || "";
 
         const removeBtn = document.createElement("button");
@@ -502,6 +556,22 @@
     // 기본 1개 행
     addSnsRow();
 
+
+    // ===== TAG 드래그 앤 드롭 재정렬 =====
+    let draggedChip = null;
+
+    function handleTagDragStart(e) {
+        draggedChip = e.target;
+        draggedChip.classList.add("dragging");
+    }
+
+    function handleTagDragEnd(e) {
+        if (draggedChip) {
+            draggedChip.classList.remove("dragging");
+        }
+        draggedChip = null;
+    }
+
     /* ===== TAGS: 추가 / 삭제 ===== */
     const tagListEl = document.getElementById("tagList");
     const tagInput  = document.getElementById("tagInput");
@@ -516,7 +586,16 @@
         const chip = document.createElement("span");
         chip.className = "tag-chip";
         chip.textContent = label;
+
+        // ✅ 드래그 가능하도록
+        chip.draggable = true;
+        chip.addEventListener("dragstart", handleTagDragStart);
+        chip.addEventListener("dragend", handleTagDragEnd);
+
+        // 클릭 시 삭제
         chip.addEventListener("click", () => {
+            // (원한다면 dragging 중에는 삭제 안 하도록 방어 코드 넣어도 됨)
+            if (chip.classList.contains("dragging")) return;
             tagListEl.removeChild(chip);
         });
 
@@ -530,6 +609,11 @@
     });
 
     tagInput.addEventListener("keydown", (e) => {
+        // ✅ 한글 입력 조합 중일 때는 Enter를 무시
+        if (e.isComposing || e.keyCode === 229) {
+            return;
+        }
+
         if (e.key === "Enter") {
             e.preventDefault();
             addTag(tagInput.value);
@@ -537,26 +621,104 @@
         }
     });
 
+    // 태그 리스트 위에서 드래그되는 동안 위치 조정
+    tagListEl.addEventListener("dragover", (e) => {
+        e.preventDefault(); // drop 허용
+
+        if (!draggedChip) return;
+
+        const target = e.target.closest(".tag-chip");
+        if (!target || target === draggedChip) return;
+
+        const rect = target.getBoundingClientRect();
+        const isAfter = e.clientX > rect.left + rect.width / 2;
+
+        if (isAfter) {
+            target.after(draggedChip);
+        } else {
+            target.before(draggedChip);
+        }
+    });
     // 예시 기본 태그들 (나중에 백엔드 데이터로 채우면 됨)
     ["#아역", "#밝은 이미지", "#광고 친화적"].forEach(addTag);
+
+    // ===== 출생일(연/월/일) 자동 포커스 & hidden 값 채우기 =====
+    const yearInput  = document.getElementById("birthYear");
+    const monthInput = document.getElementById("birthMonth");
+    const dayInput   = document.getElementById("birthDay");
+    const birthDateHidden = document.getElementById("birthDate");
+
+    // 숫자만 남기고, maxLength 채워지면 다음 input으로 이동
+    function setupAutoMove(current, next) {
+        if (!current) return;
+
+        current.addEventListener("input", () => {
+            // 숫자만 남기기
+            current.value = current.value.replace(/\D/g, "");
+
+            const max = current.getAttribute("maxlength");
+            if (max && current.value.length >= parseInt(max, 10) && next) {
+                next.focus();
+            }
+        });
+    }
+
+    setupAutoMove(yearInput, monthInput);
+    setupAutoMove(monthInput, dayInput);
+    // day는 마지막이라 next 없음
 
     /* ===== 폼 submit 핸들러 (현재는 콘솔 로그만) ===== */
     const form = document.getElementById("editProfileForm");
 
+    // 폼 submit 시 YYYY-MM-DD로 합쳐서 hidden input에 넣기
     form.addEventListener("submit", (e) => {
         e.preventDefault();
 
-        // SNS 값 수집
+        const y = (yearInput?.value || "").padStart(4, "0");
+        const m = (monthInput?.value || "").padStart(2, "0");
+        const d = (dayInput?.value || "").padStart(2, "0");
+
+        // 간단 검증 (연/월/일이 비어있으면 그냥 경고)
+        if (!yearInput.value || !monthInput.value || !dayInput.value) {
+            alert("출생일을 모두 입력해 주세요.");
+            return;
+        }
+
+        birthDateHidden.value = `${y}-${m}-${d}`;
+
+        // 아래는 기존 payload 만드는 코드 그대로 두고,
+        // birthDate는 hidden input에서 가져오면 됨
         const snsData = [];
         snsList.querySelectorAll(".sns-row").forEach(row => {
             const type = row.querySelector("select").value;
-            const url  = row.querySelector("input").value.trim();
-            if (url) {
-                snsData.push({ type, url });
+            const raw  = row.querySelector("input").value.trim();
+            if (!raw) return;
+
+            let finalUrl = raw;
+
+            // 1) 이미 http:// 또는 https:// 로 시작하면 그대로 사용
+            if (!/^https?:\/\//i.test(raw)) {
+
+                // 2) 서비스 타입별로 기본 도메인 + 아이디 조합
+                if (type === "instagram") {
+                    // @붙여 쓴 경우 제거
+                    const handle = raw.replace(/^@/, "");
+                    finalUrl = `https://www.instagram.com/${handle}`;
+                } else if (type === "youtube") {
+                    // 여기서는 그냥 전체를 path 로 붙이는 예시
+                    finalUrl = `https://www.youtube.com/${raw}`;
+                } else if (type === "tiktok") {
+                    const handle = raw.replace(/^@/, "");
+                    finalUrl = `https://www.tiktok.com/@${handle}`;
+                } else {
+                    // 3) 기타 서비스면 그냥 https://만 앞에 붙여줌
+                    finalUrl = `https://${raw}`;
+                }
             }
+
+            snsData.push({ type, url: finalUrl });
         });
 
-        // 태그 값 수집
         const tags = [];
         tagListEl.querySelectorAll(".tag-chip").forEach(chip => {
             tags.push(chip.textContent);
@@ -564,17 +726,13 @@
 
         const payload = {
             name: document.getElementById("actorName").value.trim(),
-            birthDate: document.getElementById("birthDate").value,
+            birthDate: birthDateHidden.value,  // ✅ 여기
             birthPlace: document.getElementById("birthPlace").value,
             snsList: snsData,
             tags: tags
-            // 사진 파일은 profileFileInput.files[0] 으로 접근 가능
         };
 
         console.log("프로필 저장 payload:", payload);
-
-        // TODO: 나중에 여기에 fetch로 백엔드 API 호출하면 됨
-        // fetch("/api/actors/{id}/profile", { method:"PUT", body:... })
         alert("지금은 프론트 미리보기만 됩니다.\n콘솔에 payload가 출력됐어요.");
     });
 </script>
