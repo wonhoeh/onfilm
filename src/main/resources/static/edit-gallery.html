@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>사진 갤러리 편집 – OnFilm</title>
+
+  <style>
+    :root{
+      --bg:#0b0c0f;
+      --panel:#12131a;
+      --panel-2:#161824;
+      --text:#e7e8ee;
+      --muted:#9aa0ad;
+      --line:rgba(255,255,255,.12);
+      --accent:#7c5cff;
+      --accent-2:#24d39a;
+      --radius-lg:14px;
+      --radius-md:10px;
+      --shadow:0 10px 40px rgba(0,0,0,.55);
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;
+      background:
+              radial-gradient(900px 400px at 80% 0%, rgba(124,92,255,.2), transparent 60%),
+              radial-gradient(700px 350px at 10% 10%, rgba(36,211,154,.15), transparent 60%),
+              var(--bg);
+      color:var(--text);
+    }
+
+    .page-shell{
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
+
+    header{
+      width:100%;
+      border-bottom:1px solid var(--line);
+      background:rgba(11,12,15,.9);
+      backdrop-filter:blur(8px);
+    }
+    .header-inner{
+      width:min(1100px,92vw);
+      margin:0 auto;
+      padding:14px 0;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .header-title{
+      font-size:16px;
+      font-weight:700;
+    }
+    .back-link{
+      font-size:13px;
+      color:var(--muted);
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+    }
+    .back-link:hover{
+      color:var(--text);
+    }
+
+    main{
+      flex:1;
+      width:min(1100px,92vw);
+      margin:0 auto;
+      padding:26px 0 40px;
+    }
+
+    .edit-card{
+      background:var(--panel);
+      border-radius:var(--radius-lg);
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+      padding:22px 20px 24px;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+
+    .section-title{
+      font-size:14px;
+      font-weight:600;
+      margin-bottom:4px;
+    }
+    .section-hint{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    /* 업로드 영역 (드래그 앤 드롭) */
+    .upload-area{
+      margin-top:12px;
+      padding:18px 16px;
+      border-radius:var(--radius-lg);
+      border:1px dashed rgba(255,255,255,.25);
+      background:linear-gradient(
+              135deg,
+              rgba(124,92,255,.14),
+              rgba(17,19,30,1)
+      );
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      text-align:center;
+      transition:border-color .15s ease, background .15s ease;
+    }
+    .upload-area.dragover{
+      border-color:var(--accent-2);
+      background:linear-gradient(
+              135deg,
+              rgba(36,211,154,.18),
+              rgba(17,19,30,1)
+      );
+    }
+    .upload-icon{
+      font-size:26px;
+    }
+    .upload-main-text{
+      font-size:13px;
+      font-weight:500;
+    }
+    .upload-sub-text{
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    .upload-actions{
+      display:flex;
+      gap:8px;
+      margin-top:4px;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+    .btn{
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      padding:6px 14px;
+      font-size:12px;
+      cursor:pointer;
+      color:var(--text);
+    }
+    .btn.primary{
+      border-color:var(--accent);
+      background:var(--accent);
+      color:#fff;
+    }
+    .btn.primary:hover{
+      background:#8a6dff;
+    }
+    .btn:hover{
+      border-color:var(--accent);
+    }
+
+    .hidden-input{
+      display:none;
+    }
+
+    /* 갤러리 그리드 */
+    .gallery-wrapper{
+      margin-top:10px;
+    }
+
+    .gallery-toolbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-size:11px;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+
+    .gallery-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+      gap:10px;
+    }
+
+    .photo-card{
+      position:relative;
+      border-radius:var(--radius-md);
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.12);
+      background:var(--panel-2);
+      cursor:grab;
+      transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    }
+    .photo-card.dragging{
+      opacity:.7;
+      transform:scale(.98);
+      box-shadow:0 14px 40px rgba(0,0,0,.7);
+      border-color:var(--accent-2);
+    }
+    .photo-thumb{
+      width:100%;
+      height:150px;
+      object-fit:cover;
+      display:block;
+    }
+
+    .photo-bottom-bar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:5px 7px;
+      font-size:11px;
+      background:linear-gradient(to top, rgba(0,0,0,.8), rgba(0,0,0,.2));
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+    }
+
+    .photo-handle{
+      display:inline-flex;
+      align-items:center;
+      gap:3px;
+      color:var(--muted);
+      font-size:11px;
+    }
+
+    .dots-icon{
+      font-size:14px;
+      line-height:1;
+    }
+
+    .photo-delete-btn{
+      border:0;
+      padding:0;
+      width:22px;
+      height:22px;
+      border-radius:999px;
+      background:rgba(0,0,0,.7);
+      color:#ffb3b3;
+      font-size:14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+    }
+    .photo-delete-btn:hover{
+      background:rgba(255,80,80,.9);
+      color:#fff;
+    }
+
+    .empty-hint{
+      font-size:12px;
+      color:var(--muted);
+      text-align:center;
+      padding:16px 0 4px;
+    }
+
+    /* 하단 버튼 */
+    .form-actions{
+      margin-top:16px;
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+    }
+    .primary-btn,
+    .ghost-btn{
+      min-width:90px;
+      padding:7px 13px;
+      border-radius:999px;
+      border:0;
+      font-size:13px;
+      cursor:pointer;
+    }
+    .primary-btn{
+      background:var(--accent);
+      color:white;
+    }
+    .primary-btn:hover{
+      background:#8a6dff;
+    }
+    .ghost-btn{
+      background:transparent;
+      color:var(--muted);
+      border:1px solid var(--line);
+    }
+    .ghost-btn:hover{
+      border-color:var(--accent);
+      color:var(--text);
+    }
+
+    footer{
+      width:100%;
+      border-top:1px solid var(--line);
+      padding:18px 0 22px;
+      margin-top:auto;
+      text-align:center;
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    @media (max-width:800px){
+      .edit-card{
+        padding:18px 14px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="page-shell">
+  <header>
+    <div class="header-inner">
+      <a href="actor-detail-temp.html" class="back-link">
+        ← 프로필로 돌아가기
+      </a>
+      <div class="header-title">사진 갤러리 편집</div>
+      <div style="width:70px;"></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="edit-card">
+      <!-- 설명 영역 -->
+      <div>
+        <div class="section-title">사진 갤러리</div>
+        <div class="section-hint">
+          촬영 스틸컷, 프로필 사진 등 배우의 이미지를 보여줄 수 있는 사진을 업로드해주세요.
+          (여러 장 업로드 가능, 순서 변경 가능)
+        </div>
+      </div>
+
+      <!-- 업로드 영역 -->
+      <section>
+        <div id="uploadArea" class="upload-area">
+          <div class="upload-icon">📷</div>
+          <div class="upload-main-text">
+            사진을 이 영역으로 드래그 앤 드롭하거나, 아래 버튼으로 파일을 선택하세요.
+          </div>
+          <div class="upload-sub-text">
+            JPG, PNG / 한 번에 여러 장 선택 가능
+          </div>
+
+          <div class="upload-actions">
+            <button type="button" id="browseBtn" class="btn primary">
+              파일 선택
+            </button>
+            <button type="button" id="clearAllBtn" class="btn">
+              전체 비우기
+            </button>
+          </div>
+
+          <input
+                  id="fileInput"
+                  class="hidden-input"
+                  type="file"
+                  accept="image/*"
+                  multiple
+          />
+        </div>
+      </section>
+
+      <!-- 갤러리 미리보기 -->
+      <section class="gallery-wrapper">
+        <div class="gallery-toolbar">
+          <span id="photoCountText">사진 0장</span>
+          <span>썸네일을 드래그해서 순서를 재배치할 수 있어요.</span>
+        </div>
+
+        <div id="galleryGrid" class="gallery-grid">
+          <!-- JS로 카드 렌더링 -->
+        </div>
+
+        <div id="emptyHint" class="empty-hint">
+          아직 업로드된 사진이 없습니다.
+        </div>
+      </section>
+
+      <!-- 하단 버튼 -->
+      <div class="form-actions">
+        <button type="button" class="ghost-btn" onclick="history.back()">취소</button>
+        <button type="button" id="saveBtn" class="primary-btn">저장</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © 2025 OnFilm · Indie Actor & Film Platform
+  </footer>
+</div>
+
+<script>
+  // =========================
+  // 상태: 메모리 상의 사진 리스트
+  // =========================
+  /**
+   * photos = [
+   *   { id: 'local-1', file: File, previewUrl: 'blob:...', s3Key: null | 'xxx' }
+   * ]
+   */
+  let photos = [];
+  let idCounter = 0;
+
+  const uploadArea    = document.getElementById("uploadArea");
+  const fileInput     = document.getElementById("fileInput");
+  const browseBtn     = document.getElementById("browseBtn");
+  const clearAllBtn   = document.getElementById("clearAllBtn");
+  const galleryGrid   = document.getElementById("galleryGrid");
+  const emptyHint     = document.getElementById("emptyHint");
+  const photoCountText= document.getElementById("photoCountText");
+  const saveBtn       = document.getElementById("saveBtn");
+
+  // =========================
+  // 업로드 처리 (드래그 앤 드롭 + 파일 선택)
+  // =========================
+
+  function handleFiles(files) {
+    const arr = Array.from(files);
+    arr.forEach(file => {
+      if (!file.type.startsWith("image/")) return;
+      const id = `local-${++idCounter}`;
+      const previewUrl = URL.createObjectURL(file);
+
+      photos.push({
+        id,
+        file,
+        previewUrl,
+        s3Key: null // 나중에 S3 업로드 후 키를 여기에 저장
+      });
+    });
+
+    renderGallery();
+  }
+
+  browseBtn.addEventListener("click", () => {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener("change", (e) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    handleFiles(e.target.files);
+    fileInput.value = ""; // 같은 파일 다시 선택할 때도 change 이벤트 뜨도록 초기화
+  });
+
+  // 드래그 앤 드롭 이벤트
+  ["dragenter","dragover"].forEach(eventName => {
+    uploadArea.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadArea.classList.add("dragover");
+    });
+  });
+
+  ["dragleave","drop"].forEach(eventName => {
+    uploadArea.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadArea.classList.remove("dragover");
+    });
+  });
+
+  uploadArea.addEventListener("drop", (e) => {
+    const dt = e.dataTransfer;
+    if (!dt) return;
+    const files = dt.files;
+    if (files && files.length > 0) {
+      handleFiles(files);
+    }
+  });
+
+  clearAllBtn.addEventListener("click", () => {
+    if (!photos.length) return;
+    if (!confirm("업로드된 모든 사진을 제거할까요?")) return;
+
+    photos.forEach(p => {
+      if (p.previewUrl) URL.revokeObjectURL(p.previewUrl);
+    });
+    photos = [];
+    renderGallery();
+  });
+
+  // =========================
+  // 갤러리 렌더링
+  // =========================
+
+  function renderGallery() {
+    galleryGrid.innerHTML = "";
+
+    if (photos.length === 0) {
+      emptyHint.style.display = "block";
+    } else {
+      emptyHint.style.display = "none";
+    }
+
+    photoCountText.textContent = `사진 ${photos.length}장`;
+
+    photos.forEach((photo, index) => {
+      const card = document.createElement("div");
+      card.className = "photo-card";
+      card.draggable = true;
+      card.dataset.id = photo.id;
+
+      const img = document.createElement("img");
+      img.className = "photo-thumb";
+      img.src = photo.previewUrl;
+      img.alt = `사진 ${index + 1}`;
+
+      const bottomBar = document.createElement("div");
+      bottomBar.className = "photo-bottom-bar";
+
+      const handle = document.createElement("div");
+      handle.className = "photo-handle";
+      handle.innerHTML = `<span class="dots-icon">⋮⋮</span><span>드래그</span>`;
+
+      const delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "photo-delete-btn";
+      delBtn.textContent = "✕";
+      delBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        deletePhoto(photo.id);
+      });
+
+      bottomBar.appendChild(handle);
+      bottomBar.appendChild(delBtn);
+
+      card.appendChild(img);
+      card.appendChild(bottomBar);
+
+      // 드래그 앤 드롭 정렬 이벤트
+      addDragAndDropHandlers(card);
+
+      galleryGrid.appendChild(card);
+    });
+  }
+
+  function deletePhoto(id) {
+    const idx = photos.findIndex(p => p.id === id);
+    if (idx === -1) return;
+
+    const [removed] = photos.splice(idx, 1);
+    if (removed && removed.previewUrl) {
+      URL.revokeObjectURL(removed.previewUrl);
+    }
+    renderGallery();
+  }
+
+  // =========================
+  // 드래그 앤 드롭으로 순서 재배치
+  // =========================
+
+  let draggedCard = null;
+
+  function addDragAndDropHandlers(card){
+    card.addEventListener("dragstart", (e) => {
+      draggedCard = card;
+      card.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      // 파이어폭스 대응용 더미 데이터
+      e.dataTransfer.setData("text/plain", card.dataset.id);
+    });
+
+    card.addEventListener("dragend", () => {
+      if (draggedCard) {
+        draggedCard.classList.remove("dragging");
+        draggedCard = null;
+        syncPhotosOrderWithDOM();
+      }
+    });
+
+    card.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      if (!draggedCard || draggedCard === card) return;
+
+      const cards = Array.from(galleryGrid.children);
+      const draggedIndex = cards.indexOf(draggedCard);
+      const targetIndex  = cards.indexOf(card);
+
+      // 마우스가 대상 카드의 상단/하단 어디쯤에 있는지에 따라 위치 결정
+      const rect = card.getBoundingClientRect();
+      const offset = e.clientY - rect.top;
+
+      if (draggedIndex < targetIndex && offset > rect.height / 2) {
+        // 아래로 이동
+        galleryGrid.insertBefore(draggedCard, card.nextSibling);
+      } else if (draggedIndex > targetIndex && offset < rect.height / 2) {
+        // 위로 이동
+        galleryGrid.insertBefore(draggedCard, card);
+      }
+    });
+
+    card.addEventListener("drop", (e) => {
+      e.preventDefault();
+      // 실제 재배치는 dragover에서 처리, 여기선 막기만
+    });
+  }
+
+  function syncPhotosOrderWithDOM() {
+    const newOrder = [];
+    const domCards = Array.from(galleryGrid.children);
+
+    domCards.forEach(card => {
+      const id = card.dataset.id;
+      const photo = photos.find(p => p.id === id);
+      if (photo) newOrder.push(photo);
+    });
+
+    if (newOrder.length === photos.length) {
+      photos = newOrder;
+    }
+  }
+
+  // =========================
+  // 저장 버튼 → S3 업로드 자리
+  // =========================
+  saveBtn.addEventListener("click", async () => {
+    if (!photos.length) {
+      alert("최소 1장 이상의 사진을 업로드해주세요.");
+      return;
+    }
+
+    // 1) S3 업로드가 아직 안 된 파일들만 추리기 (file이 있는 경우를 신규로 가정)
+    const newFiles = photos.filter(p => p.file && !p.s3Key);
+
+    // 여기에 백엔드 + S3 연동 로직을 넣으면 됨
+    // 예시 흐름 (실제 URL/파라미터는 백엔드 설계에 맞게 수정):
+    //
+    // for (const photo of newFiles) {
+    //   // (1) 백엔드에서 presigned URL을 요청
+    //   const presignRes = await fetch("/api/gallery/presign", {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({ fileName: photo.file.name, contentType: photo.file.type })
+    //   });
+    //   const { uploadUrl, s3Key } = await presignRes.json();
+    //
+    //   // (2) presigned URL로 실제 S3에 업로드
+    //   await fetch(uploadUrl, {
+    //     method: "PUT",
+    //     headers: { "Content-Type": photo.file.type },
+    //     body: photo.file
+    //   });
+    //
+    //   // (3) 업로드 완료 후, photo.s3Key 저장
+    //   photo.s3Key = s3Key;
+    //   // (4) 서버 DB에 순서/메타데이터 저장할 때 s3Key를 사용
+    // }
+
+    // 지금은 S3 연결 전이니까, 순서 + 파일명 정도만 콘솔로 확인
+    const payload = photos.map((p, index) => ({
+      order: index + 1,
+      fileName: p.file ? p.file.name : null,
+      s3Key: p.s3Key
+    }));
+
+    console.log("갤러리 저장 payload (예시):", payload);
+    alert("지금은 프론트 미리보기 단계입니다.\n콘솔에서 저장될 순서와 파일 정보를 확인해보세요.");
+  });
+
+</script>
+</body>
+</html>
