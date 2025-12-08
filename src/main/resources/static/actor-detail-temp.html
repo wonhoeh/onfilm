@@ -31,12 +31,25 @@
                     radial-gradient(700px 350px at 10% 10%, rgba(36,211,154,.15), transparent 60%),
                     var(--bg);
         }
+        /* 가로 폭 정렬 전용 */
         .container{
             width:min(1100px,92vw);
             margin:0 auto;
+        }
+
+        /* 페이지 본문용 래퍼 */
+        .page-root{
             min-height:100vh;
             display:flex;
             flex-direction:column;
+        }
+
+        /* 헤더 줄 */
+        .header-row{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            height:56px;
         }
 
         /* HEADER */
@@ -108,6 +121,48 @@
             border-color:var(--accent);
             transform:translateY(-1px);
         }
+
+        /* 편집 메뉴 오버레이 카드*/
+        /* ★ NEW: 프로필 편집 오버레이 (갤러리 라이트박스 느낌) */
+        .profile-edit-overlay{
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.82);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s ease;
+        }
+
+        .profile-edit-overlay.show{
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* 중앙 카드 */
+        .profile-edit-card{
+            width: min(320px, 90vw);
+            background: var(--panel-2);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--line);
+            box-shadow: 0 20px 60px rgba(0,0,0,.85);
+            padding: 14px 16px 10px;
+        }
+
+
+        /* 기존 profile-settings-item 재사용해도 됨 */
+        .profile-edit-card .profile-settings-item{
+            padding: 9px 10px;
+            font-size: 13px;
+        }
+
+        .profile-edit-card .profile-settings-item + .profile-settings-item{
+            border-top: 1px solid rgba(255,255,255,0.03);
+        }
+
 
         /* ★ NEW: 드롭다운 메뉴 */
         .profile-settings-menu{
@@ -556,105 +611,199 @@
             color: var(--text);
         }
 
-        .contact-card{
-            margin-top: 16px;
-            padding: 12px 14px;
-            border-radius: var(--radius-lg);
-            background: rgba(18,19,26,0.9);
-            border: 1px solid var(--line);
+        .header-row{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            height:56px;
         }
 
-        .contact-title{
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: .06em;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin-bottom: 6px;
+        .logo{
+            font-weight:800;
+            font-size:18px;
+            color:var(--text);
+            text-decoration:none;
         }
 
-        .contact-desc{
-            font-size: 13px;
-            color: var(--muted);
-            margin: 0 0 10px;
+        .login-btn{
+            padding:6px 14px;
+            font-size:13px;
+            border-radius:999px;
+            border:1px solid var(--line);
+            background:rgba(255,255,255,0.06);
+            color:var(--text);
+            cursor:pointer;
+            font-weight:600;
+            transition:background .15s ease, border-color .15s ease, transform .12s ease;
         }
 
-        .contact-email-row{
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
+        .login-btn:hover{
+            background:rgba(124,92,255,0.22);
+            border-color:var(--accent);
+            transform:translateY(-1px);
         }
 
-        .contact-email{
-            font-size: 14px;
-            font-weight: 600;
-            padding: 6px 10px;
-            border-radius: 999px;
-            background: rgba(255,255,255,0.04);
-            border: 1px dashed var(--line);
+        /* ===================================================
+           ★ 로그인 오버레이 전용 스타일
+        =================================================== */
+        .login-overlay{
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,.78);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            z-index:11000;
+            opacity:0;
+            pointer-events:none;
+            transition:opacity .2s ease;
+        }
+        .login-overlay.show{
+            opacity:1;
+            pointer-events:auto;
         }
 
-        .contact-btn,
-        .contact-outline-btn{
-            font-size: 12px;
-            padding: 6px 11px;
-            border-radius: 999px;
-            border: none;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            transition: background .15s ease, transform .12s ease, border-color .15s ease;
+        .login-card{
+            width:min(360px,92vw);
+            background:var(--panel-2);
+            border-radius:var(--radius-xl);
+            border:1px solid var(--line);
+            box-shadow:0 20px 60px rgba(0,0,0,.9);
+            padding:20px 22px 18px;
         }
 
-        .contact-btn{
-            background: var(--accent);
-            color: #fff;
+        .login-brand{
+            font-size:20px;
+            font-weight:800;
+            text-align:center;
+            margin-bottom:18px;
         }
 
-        .contact-btn:hover{
-            transform: translateY(-1px);
-            background: #8a6dff;
+        .login-label{
+            display:block;
+            font-size:13px;
+            font-weight:600;
+            color:var(--muted);
+            margin:8px 0 6px;
         }
 
-        .contact-outline-btn{
-            background: transparent;
-            color: var(--text);
-            border: 1px solid var(--line);
+        .login-input{
+            width:100%;
+            padding:8px 10px;
+            border-radius:10px;
+            border:1px solid var(--line);
+            background:rgba(0,0,0,.25);
+            color:var(--text);
+            font-size:13px;
+            outline:none;
+            transition:border-color .15s ease, background .15s ease;
+        }
+        .login-input::placeholder{
+            color:rgba(154,160,173,.7);
+        }
+        .login-input:focus{
+            border-color:var(--accent);
+            background:rgba(15,16,25,.95);
         }
 
-        .contact-outline-btn:hover{
-            border-color: var(--accent);
-            background: rgba(124,92,255,0.12);
-            transform: translateY(-1px);
+        .login-submit-btn{
+            margin-top:14px;
+            width:100%;
+            padding:9px 0;
+            border-radius:999px;
+            border:none;
+            background:var(--accent);
+            color:#fff;
+            font-size:14px;
+            font-weight:700;
+            cursor:pointer;
+            transition:background .15s ease, transform .12s ease;
+        }
+        .login-submit-btn:hover{
+            background:#8a6dff;
+            transform:translateY(-1px);
         }
 
-        .contact-actions{
-            display: flex;
-            gap: 8px;
+        .login-divider{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            margin:18px 0 12px;
+            font-size:11px;
+            color:var(--muted);
+        }
+        .login-divider-line{
+            flex:1;
+            height:1px;
+            background:rgba(255,255,255,.14);
         }
 
-        .contact-toast{
-            position: relative;
-            margin-top: 8px;
-            font-size: 12px;
-            color: var(--accent-2);
-            opacity: 0;
-            transform: translateY(4px);
-            transition: opacity .18s ease, transform .18s ease;
+        .social-row{
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+        }
+        .social-btn{
+            width:100%;
+            padding:8px 10px;
+            border-radius:999px;
+            border:none;
+            font-size:13px;
+            font-weight:600;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:6px;
+            transition:transform .12s ease, box-shadow .12s ease, background .15s ease;
+        }
+        .social-btn:hover{
+            transform:translateY(-1px);
+            box-shadow:0 6px 18px rgba(0,0,0,.55);
+        }
+        .social-google{
+            background:#ffffff;
+            color:#111111;
+        }
+        .social-naver{
+            background:#03c75a;
+            color:#ffffff;
         }
 
-        .contact-toast.show{
-            opacity: 1;
-            transform: translateY(0);
+        /* 로그인 밑 링크 */
+        .login-links{
+            margin-top:8px;
+            font-size:11px;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            gap:10px;
+            color:var(--muted);
         }
+
+        .login-links a{
+            color:var(--muted);
+            text-decoration:none;
+        }
+
+        .login-links a:hover{
+            color:var(--text);
+            text-decoration:underline;
+        }
+
+
+
 
     </style>
 </head>
 <body>
+
+<header>
+    <div class="container header-row">
+        <a href="actor-detail-temp.html" class="logo">OnFilm</a>
+        <button type="button" class="login-btn" id="loginBtn">로그인</button>
+    </div>
+</header>
 
 <main class="container">
 
@@ -667,7 +816,6 @@
              alt="프로필 사진" />
 
         <div class="profile-info">
-            <!-- ★ NEW: 이름 + 톱니바퀴 + 메뉴 -->
             <div class="profile-title-row">
                 <h1>룩루기</h1>
                 <button
@@ -679,21 +827,6 @@
                         title="편집 메뉴 열기">
                     ⚙️
                 </button>
-
-                <div class="profile-settings-menu" id="profileSettingsMenu">
-                    <button class="profile-settings-item" data-action="profile">
-                        <span>프로필 편집</span>
-                    </button>
-                    <button class="profile-settings-item" data-action="filmography">
-                        <span>필모그래피 편집</span>
-                    </button>
-                    <button class="profile-settings-item" data-action="gallery">
-                        <span>사진 갤러리 편집</span>
-                    </button>
-                    <button class="profile-settings-item close-item" data-action="close">
-                        <span>닫기</span>
-                    </button>
-                </div>
             </div>
 
             <div class="meta">
@@ -818,6 +951,74 @@
     </footer>
 
 </main>
+
+<!-- ★ NEW: 프로필 편집 오버레이 -->
+<div class="profile-edit-overlay" id="profileEditOverlay">
+    <div class="profile-edit-card">
+        <button class="profile-settings-item" data-action="profile">
+            <span>프로필 편집</span>
+        </button>
+        <button class="profile-settings-item" data-action="filmography">
+            <span>필모그래피 편집</span>
+        </button>
+        <button class="profile-settings-item" data-action="gallery">
+            <span>사진 갤러리 편집</span>
+        </button>
+        <button class="profile-settings-item close-item" data-action="close">
+            <span>창 닫기</span>
+        </button>
+    </div>
+</div>
+
+<!-- ★ 로그인 오버레이 -->
+<div class="login-overlay" id="loginOverlay">
+    <div class="login-card">
+        <div class="login-brand">OnFilm</div>
+
+        <label class="login-label" for="loginEmail">아이디</label>
+        <input
+                id="loginEmail"
+                class="login-input"
+                type="email"
+                placeholder="name@example.com"
+        />
+
+        <label class="login-label" for="loginPassword">비밀번호</label>
+        <input
+                id="loginPassword"
+                class="login-input"
+                type="password"
+                placeholder="비밀번호"
+        />
+
+        <button class="login-submit-btn" type="button">
+            로그인
+        </button>
+
+        <div class="login-links">
+            <a href="signup.html">회원가입</a>
+            <span>│</span>
+            <a href="find-id.html">아이디 찾기</a>
+            <span>│</span>
+            <a href="find-password.html">비밀번호 찾기</a>
+        </div>
+
+        <div class="login-divider">
+            <span class="login-divider-line"></span>
+            <span>또는</span>
+            <span class="login-divider-line"></span>
+        </div>
+
+        <div class="social-row">
+            <button type="button" class="social-btn social-google">
+                Google로 계속하기
+            </button>
+            <button type="button" class="social-btn social-naver">
+                네이버로 계속하기
+            </button>
+        </div>
+    </div>
+</div>
 
 <!-- JS 1: FILMOGRAPHY SLIDER -->
 <script>
@@ -1300,49 +1501,86 @@
         }
 
         // ★ 여기부터 톱니바퀴 메뉴 동작
-        const settingsBtn  = document.getElementById("profileSettingsBtn");
-        const settingsMenu = document.getElementById("profileSettingsMenu");
+        // ★ 여기부터 톱니바퀴 메뉴 동작 (오버레이 버전)
+        const settingsBtn   = document.getElementById("profileSettingsBtn");
+        const editOverlay   = document.getElementById("profileEditOverlay");
+        const editCard      = editOverlay ? editOverlay.querySelector(".profile-edit-card") : null;
 
-        if (settingsBtn && settingsMenu) {
+        if (settingsBtn && editOverlay && editCard) {
+            // ⚙️ 버튼 클릭 → 오버레이 열기
             settingsBtn.addEventListener("click", (e) => {
                 e.stopPropagation();
-                const willShow = !settingsMenu.classList.contains("show");
-                settingsMenu.classList.toggle("show", willShow);
-                settingsBtn.setAttribute("aria-expanded", willShow ? "true" : "false");
+                editOverlay.classList.add("show");
+                settingsBtn.setAttribute("aria-expanded", "true");
             });
 
-            // 메뉴 항목 클릭
-            settingsMenu.addEventListener("click", (e) => {
+            // 오버레이 안 메뉴 클릭 처리
+            editOverlay.addEventListener("click", (e) => {
+                // 카드 바깥 클릭하면 닫기
+                if (!editCard.contains(e.target)) {
+                    editOverlay.classList.remove("show");
+                    settingsBtn.setAttribute("aria-expanded", "false");
+                    return;
+                }
+
+                // 버튼이 아니면 무시
                 const item = e.target.closest(".profile-settings-item");
                 if (!item) return;
 
                 const action = item.dataset.action;
 
                 if (action === "profile") {
-                    alert("프로필 편집 화면으로 이동 (TODO: 링크 연결)");
-                    // 예: window.location.href = "/actors/1/edit-profile";
+                    window.location.href = "edit-profile.html";
                 } else if (action === "filmography") {
-                    alert("필모그래피 편집 화면으로 이동 (TODO: 링크 연결)");
+                    window.location.href = "edit-filmography.html";
                 } else if (action === "gallery") {
-                    alert("사진 갤러리 편집 화면으로 이동 (TODO: 링크 연결)");
+                    window.location.href = "edit-gallery.html";
                 } else if (action === "close") {
-                    // 그냥 메뉴만 닫기
+                    // 그냥 닫기
                 }
 
-                settingsMenu.classList.remove("show");
+                // 액션 처리 후 오버레이 닫기
+                editOverlay.classList.remove("show");
                 settingsBtn.setAttribute("aria-expanded", "false");
             });
 
-            // 바깥 클릭 시 메뉴 닫기
-            document.addEventListener("click", (e) => {
-                if (!settingsMenu.classList.contains("show")) return;
-                if (e.target === settingsBtn || settingsMenu.contains(e.target)) return;
-
-                settingsMenu.classList.remove("show");
-                settingsBtn.setAttribute("aria-expanded", "false");
+            // Esc로 닫기
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape" && editOverlay.classList.contains("show")) {
+                    editOverlay.classList.remove("show");
+                    settingsBtn.setAttribute("aria-expanded", "false");
+                }
             });
         }
+
     });
+</script>
+
+<script>
+    // ★ 로그인 오버레이 동작
+    const loginBtn = document.getElementById("loginBtn");
+    const loginOverlay = document.getElementById("loginOverlay");
+
+    if (loginBtn && loginOverlay) {
+        // 헤더 로그인 버튼 클릭 → 오버레이 열기
+        loginBtn.addEventListener("click", () => {
+            loginOverlay.classList.add("show");
+        });
+
+        // 어두운 영역 클릭 → 닫기
+        loginOverlay.addEventListener("click", (e) => {
+            if (e.target === loginOverlay) {
+                loginOverlay.classList.remove("show");
+            }
+        });
+
+        // ESC 키로 닫기
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                loginOverlay.classList.remove("show");
+            }
+        });
+    }
 </script>
 
 </body>
