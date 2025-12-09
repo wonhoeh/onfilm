@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OnFilm – Indie Actor Hub</title>
+
+  <style>
+    :root{
+      --bg:#0b0c0f;
+      --panel:#12131a;
+      --panel-2:#161824;
+      --text:#e7e8ee;
+      --muted:#9aa0ad;
+      --line:rgba(255,255,255,.08);
+      --accent:#7c5cff;
+      --accent-2:#24d39a;
+      --radius-lg:14px;
+      --radius-md:10px;
+      --radius-xl:20px;
+      --shadow:0 10px 40px rgba(0,0,0,.5);
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;
+      color:var(--text);
+      background:
+              radial-gradient(900px 400px at 80% 0%, rgba(124,92,255,.2), transparent 60%),
+              radial-gradient(700px 350px at 10% 10%, rgba(36,211,154,.15), transparent 60%),
+              var(--bg);
+    }
+
+    a{text-decoration:none;color:inherit;}
+
+    .container{
+      width:min(1100px,92vw);
+      margin:0 auto;
+    }
+
+    /* 헤더 */
+    header{
+      position:sticky;
+      top:0;
+      z-index:10;
+      background:rgba(11,12,15,.88);
+      backdrop-filter:blur(8px);
+      border-bottom:1px solid var(--line);
+    }
+
+    .header-row{
+      height:56px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .logo{
+      font-weight:800;
+      font-size:18px;
+      letter-spacing:.04em;
+    }
+
+    .header-actions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .header-login{
+      padding:6px 14px;
+      font-size:13px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,0.06);
+      color:var(--text);
+      cursor:pointer;
+      font-weight:600;
+      transition:background .15s ease, border-color .15s ease, transform .12s ease;
+    }
+    .header-login:hover{
+      background:rgba(124,92,255,0.22);
+      border-color:var(--accent);
+      transform:translateY(-1px);
+    }
+
+    /* 메인 루트 */
+    main{
+      padding:32px 0 48px;
+    }
+
+    /* 히어로 */
+    .hero{
+      display:grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2.5fr);
+      gap:30px;
+      align-items:center;
+      padding:24px 0 40px;
+    }
+
+    .hero-kicker{
+      font-size:12px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted);
+      margin-bottom:10px;
+    }
+
+    .hero-title{
+      font-size:32px;
+      line-height:1.25;
+      font-weight:900;
+      margin-bottom:12px;
+    }
+
+    .hero-subtitle{
+      font-size:14px;
+      color:var(--muted);
+      line-height:1.7;
+      max-width:420px;
+      margin-bottom:18px;
+    }
+
+    .hero-ctas{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .btn-primary{
+      padding:9px 18px;
+      border-radius:999px;
+      border:none;
+      background:var(--accent);
+      color:#fff;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      transition:background .15s ease, transform .12s ease, box-shadow .12s ease;
+    }
+    .btn-primary:hover{
+      background:#8a6dff;
+      transform:translateY(-1px);
+      box-shadow:0 10px 26px rgba(0,0,0,.5);
+    }
+
+    .btn-ghost{
+      padding:9px 16px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.1);
+      color:var(--text);
+      font-size:13px;
+      font-weight:600;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      transition:background .15s ease, border-color .15s ease, transform .12s ease;
+    }
+    .btn-ghost:hover{
+      border-color:var(--accent);
+      background:rgba(124,92,255,0.16);
+      transform:translateY(-1px);
+    }
+
+    .hero-hint{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    /* 오른쪽 샘플 카드 */
+    .hero-card{
+      background:linear-gradient(135deg, #151726, #101118);
+      border-radius:var(--radius-xl);
+      border:1px solid var(--line);
+      box-shadow:0 20px 60px rgba(0,0,0,.8);
+      padding:16px 16px 14px;
+    }
+
+    .hero-card-header{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      margin-bottom:10px;
+    }
+
+    .hero-avatar{
+      width:60px;
+      height:60px;
+      border-radius:16px;
+      background:#111;
+      object-fit:cover;
+      border:1px solid var(--line);
+    }
+
+    .hero-card-name{
+      font-size:17px;
+      font-weight:800;
+      margin-bottom:4px;
+    }
+    .hero-card-meta{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .hero-card-tags{
+      margin:10px 0 12px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+    .hero-tag{
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      background:rgba(124,92,255,0.18);
+      border:1px solid rgba(124,92,255,0.5);
+    }
+
+    .hero-card-section-title{
+      font-size:12px;
+      font-weight:700;
+      color:var(--muted);
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      margin-bottom:6px;
+    }
+
+    .hero-film-list{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-bottom:4px;
+    }
+    .hero-film-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:6px 8px;
+      border-radius:10px;
+      background:rgba(0,0,0,.18);
+      border:1px solid rgba(255,255,255,0.04);
+      font-size:12px;
+    }
+    .hero-film-main{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .hero-film-title{
+      font-weight:600;
+    }
+    .hero-film-meta{
+      font-size:11px;
+      color:var(--muted);
+    }
+    .hero-film-role{
+      font-size:11px;
+      color:#b3ffde;
+      font-weight:600;
+    }
+
+    /* 특징 섹션 */
+    .section{
+      padding:12px 0 28px;
+    }
+
+    .section-header{
+      margin-bottom:16px;
+    }
+
+    .section-kicker{
+      font-size:11px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+
+    .section-title{
+      font-size:20px;
+      font-weight:800;
+      margin-bottom:4px;
+    }
+
+    .section-subtitle{
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    .feature-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+      margin-top:6px;
+    }
+
+    .feature-card{
+      background:var(--panel);
+      border-radius:var(--radius-lg);
+      border:1px solid var(--line);
+      padding:12px 12px 10px;
+      font-size:13px;
+      line-height:1.6;
+    }
+    .feature-title{
+      font-size:13px;
+      font-weight:700;
+      margin-bottom:4px;
+    }
+    .feature-badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:11px;
+      padding:2px 7px;
+      border-radius:999px;
+      background:rgba(124,92,255,0.15);
+      border:1px solid rgba(124,92,255,0.5);
+      margin-left:4px;
+    }
+
+    /* 샘플 필모 섹션 */
+    .sample-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+      margin-top:10px;
+    }
+
+    .sample-card{
+      background:var(--panel);
+      border-radius:var(--radius-lg);
+      border:1px solid var(--line);
+      overflow:hidden;
+      font-size:13px;
+    }
+    .sample-thumb{
+      width:100%;
+      aspect-ratio:16/9;
+      object-fit:cover;
+      background:#111;
+    }
+    .sample-body{
+      padding:10px 11px 9px;
+    }
+    .sample-title{
+      font-size:14px;
+      font-weight:700;
+      margin-bottom:2px;
+    }
+    .sample-meta{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:4px;
+    }
+    .sample-role{
+      font-size:11px;
+      color:#b3ffde;
+      font-weight:600;
+    }
+
+    footer{
+      border-top:1px solid var(--line);
+      padding:18px 0 26px;
+      font-size:11px;
+      color:var(--muted);
+      text-align:center;
+    }
+
+    /* 반응형 */
+    @media (max-width: 820px){
+      .hero{
+        grid-template-columns:1fr;
+      }
+      .hero{
+        padding-top:16px;
+      }
+    }
+
+    @media (max-width: 640px){
+      .feature-grid,
+      .sample-grid{
+        grid-template-columns:1fr;
+      }
+      .hero-title{
+        font-size:26px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="container header-row">
+    <a href="index.html" class="logo">OnFilm</a>
+    <div class="header-actions">
+      <a href="login.html" class="header-login">로그인</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-left">
+        <div class="hero-kicker">INDIE ACTOR · FILMOGRAPHY HUB</div>
+        <h1 class="hero-title">
+          당신의 필모그래피를<br/>
+          한 곳에, OnFilm
+        </h1>
+        <p class="hero-subtitle">
+          독립영화, 광고, 단편까지 흩어져 있던 이력들을 한 번에 관리하세요.
+          배우가 직접 올리고, 감독과 캐스팅 디렉터에게 보여줄 수 있는
+          나만의 필모그래피 페이지입니다.
+        </p>
+
+        <div class="hero-ctas">
+          <a href="signup.html" class="btn-primary">
+            배우로 시작하기
+            <span>→</span>
+          </a>
+          <a href="actor-detail-temp.html" class="btn-ghost">
+            샘플 프로필 보기
+          </a>
+        </div>
+
+        <div class="hero-hint">
+          회원가입 시 이메일·비밀번호만 입력하면 시작할 수 있어요.
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="hero-card">
+          <div class="hero-card-header">
+            <img src="videos/profile-placeholder.png" alt="샘플 배우" class="hero-avatar" />
+            <div>
+              <div class="hero-card-name">룩루기</div>
+              <div class="hero-card-meta">아역 · 광고 &amp; 단편 영화</div>
+            </div>
+          </div>
+
+          <div class="hero-card-tags">
+            <span class="hero-tag">#밝은 이미지</span>
+            <span class="hero-tag">#광고 친화적</span>
+            <span class="hero-tag">#표정 연기</span>
+          </div>
+
+          <div class="hero-card-section-title">최근 필모그래피</div>
+          <div class="hero-film-list">
+            <div class="hero-film-row">
+              <div class="hero-film-main">
+                <span class="hero-film-title">반품</span>
+                <span class="hero-film-meta">2025 · 단편 영화</span>
+              </div>
+              <span class="hero-film-role">주연</span>
+            </div>
+
+            <div class="hero-film-row">
+              <div class="hero-film-main">
+                <span class="hero-film-title">여름, 다시</span>
+                <span class="hero-film-meta">2024 · 광고</span>
+              </div>
+              <span class="hero-film-role">메인 모델</span>
+            </div>
+
+            <div class="hero-film-row">
+              <div class="hero-film-main">
+                <span class="hero-film-title">작은 목소리</span>
+                <span class="hero-film-meta">2023 · 독립 장편</span>
+              </div>
+              <span class="hero-film-role">조연</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHY ONFILM -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-kicker">WHY ONFILM</div>
+        <h2 class="section-title">배우들이 OnFilm을 쓰는 이유</h2>
+        <p class="section-subtitle">
+          이력서로는 다 담기지 않는 장면들을, 한 번에 보여줄 수 있도록 설계했습니다.
+        </p>
+      </div>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-title">
+            필모그래피를 한 눈에
+            <span class="feature-badge">Filmography</span>
+          </div>
+          다양한 작품, 역할, 연도 정보를 정리해서
+          감독·관계자에게 링크 하나로 공유할 수 있어요.
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-title">
+            사진·영상 중심 포트폴리오
+          </div>
+          프로필 사진, 현장 스틸컷, 트레일러 영상까지
+          배우가 직접 올리고 관리할 수 있습니다.
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-title">
+            나중을 위한 확장성
+          </div>
+          초기에는 필모·프로필 관리에 집중하고,
+          추후 도네이션·캐스팅 문의 등 기능을 단계적으로 확장할 수 있어요.
+        </div>
+      </div>
+    </section>
+
+    <!-- SAMPLE FILMOGRAPHY -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-kicker">SAMPLE</div>
+        <h2 class="section-title">샘플 필모그래피 미리 보기</h2>
+        <p class="section-subtitle">
+          실제 서비스에서는 각 배우가 자신의 작품들을 이렇게 쌓아갑니다.
+        </p>
+      </div>
+
+      <div class="sample-grid">
+        <article class="sample-card">
+          <div class="sample-thumb"></div>
+          <div class="sample-body">
+            <div class="sample-title">반품</div>
+            <div class="sample-meta">2025 · 단편 영화 · 24분</div>
+            <div class="sample-role">주연 · ‘윤호’ 역</div>
+          </div>
+        </article>
+
+        <article class="sample-card">
+          <div class="sample-thumb"></div>
+          <div class="sample-body">
+            <div class="sample-title">여름, 다시</div>
+            <div class="sample-meta">2024 · 브랜드 광고</div>
+            <div class="sample-role">메인 모델</div>
+          </div>
+        </article>
+
+        <article class="sample-card">
+          <div class="sample-thumb"></div>
+          <div class="sample-body">
+            <div class="sample-title">작은 목소리</div>
+            <div class="sample-meta">2023 · 독립 장편 영화</div>
+            <div class="sample-role">조연 · 학생 A</div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  © 2025 OnFilm · Indie Actor & Film Platform
+</footer>
+
+</body>
+</html>
