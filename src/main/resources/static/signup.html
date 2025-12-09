@@ -1,10 +1,526 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>OnFilm – 회원가입</title>
+
+    <style>
+        :root{
+            --bg:#0b0c0f;
+            --panel:#12131a;
+            --panel-2:#161824;
+            --text:#e7e8ee;
+            --muted:#9aa0ad;
+            --line:rgba(255,255,255,.08);
+            --accent:#7c5cff;
+            --accent-2:#24d39a;
+            --radius-lg:14px;
+            --radius-md:10px;
+            --radius-xl:20px;
+            --shadow:0 10px 40px rgba(0,0,0,.5);
+        }
+
+        *{box-sizing:border-box;}
+        body{
+            margin:0;
+            font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;
+            color:var(--text);
+            background:
+                    radial-gradient(900px 400px at 80% 0%, rgba(124,92,255,.2), transparent 60%),
+                    radial-gradient(700px 350px at 10% 10%, rgba(36,211,154,.15), transparent 60%),
+                    var(--bg);
+        }
+
+        .container{
+            width:min(1100px,92vw);
+            margin:0 auto;
+        }
+
+        header{
+            position:sticky; top:0; z-index:10;
+            background:rgba(11,12,15,.85);
+            backdrop-filter:blur(8px);
+            border-bottom:1px solid var(--line);
+        }
+        .header-row{
+            height:56px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+        }
+        .logo{
+            font-weight:800;
+            font-size:18px;
+            color:var(--text);
+            text-decoration:none;
+        }
+        .login-btn{
+            padding:6px 14px;
+            font-size:13px;
+            border-radius:999px;
+            border:1px solid var(--line);
+            background:rgba(255,255,255,0.06);
+            color:var(--text);
+            cursor:pointer;
+            font-weight:600;
+            transition:background .15s ease, border-color .15s ease, transform .12s ease;
+        }
+        .login-btn:hover{
+            background:rgba(124,92,255,0.22);
+            border-color:var(--accent);
+            transform:translateY(-1px);
+        }
+
+        /* ===============================
+           회원가입 전체 화면 레이아웃
+        =============================== */
+        .signup-root{
+            min-height:calc(100vh - 56px);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:32px 12px 40px;
+        }
+
+        .signup-card{
+            width:min(480px, 100%);
+            background:var(--panel-2);
+            border-radius:var(--radius-xl);
+            border:1px solid var(--line);
+            box-shadow:0 20px 60px rgba(0,0,0,.9);
+            padding:24px 24px 20px;
+        }
+
+        .signup-title{
+            font-size:22px;
+            font-weight:800;
+            margin-bottom:4px;
+        }
+
+        .signup-label{
+            display:block;
+            font-size:13px;
+            font-weight:600;
+            color:var(--muted);
+            margin:12px 0 6px;
+        }
+
+        .signup-input{
+            width:100%;
+            padding:9px 11px;
+            border-radius:10px;
+            border:1px solid var(--line);
+            background:rgba(0,0,0,.25);
+            color:var(--text);
+            font-size:13px;
+            outline:none;
+            transition:border-color .15s ease, background .15s ease;
+        }
+        .signup-input::placeholder{
+            color:rgba(154,160,173,.7);
+        }
+        .signup-input:focus{
+            border-color:var(--accent);
+            background:rgba(15,16,25,.95);
+        }
+
+        /* 비밀번호 필드 + 눈 아이콘 */
+        .password-field{
+            position:relative;
+        }
+
+        .toggle-visibility-btn{
+            position:absolute;
+            top:50%;
+            right:10px;
+            transform:translateY(-50%);
+            border:none;
+            background:transparent;
+            cursor:pointer;
+            padding:0;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+
+        .toggle-visibility-btn svg{
+            width:18px;
+            height:18px;
+            color:var(--muted);
+            transition:color .15s ease, transform .12s ease;
+        }
+        .toggle-visibility-btn:hover svg{
+            color:var(--accent);
+            transform:scale(1.05);
+        }
+
+        .icon-visible{ display:none; }   /* 눈 (문자열 보임) */
+        .icon-hidden{ display:block; }   /* 눈+슬래시 (*** 상태) */
+
+        .signup-error{
+            font-size:11px;
+            color:#ff7b7b;
+            margin-top:4px;
+            display:none;
+        }
+
+        .signup-submit-btn{
+            margin-top:18px;
+            width:100%;
+            padding:10px 0;
+            border-radius:999px;
+            border:none;
+            background:var(--accent);
+            color:#fff;
+            font-size:14px;
+            font-weight:700;
+            cursor:pointer;
+            transition:background .15s ease, transform .12s ease, opacity .12s ease;
+        }
+        .signup-submit-btn:hover:not(:disabled){
+            background:#8a6dff;
+            transform:translateY(-1px);
+        }
+        .signup-submit-btn:disabled{
+            opacity:.5;
+            cursor:not-allowed;
+        }
+
+        /* 약관 영역 */
+        .terms-box{
+            margin-top:18px;
+            padding:10px 11px 8px;
+            border-radius:var(--radius-lg);
+            background:rgba(0,0,0,.25);
+            border:1px solid rgba(255,255,255,.08);
+            font-size:12px;
+        }
+
+        .terms-row{
+            display:flex;
+            align-items:flex-start;
+            gap:8px;
+            margin-bottom:6px;
+        }
+
+        .terms-checkbox{
+            margin-top:1px;
+        }
+
+        .terms-main-label{
+            font-weight:700;
+            color:var(--text);
+        }
+
+        .terms-label{
+            color:var(--muted);
+        }
+
+        .terms-tag{
+            font-size:11px;
+            font-weight:600;
+            color:var(--accent-2);
+            margin-right:4px;
+        }
+
+        .terms-link{
+            color:var(--accent);
+            text-decoration:none;
+            font-weight:500;
+            margin-left:4px;
+        }
+        .terms-link:hover{
+            text-decoration:underline;
+        }
+
+        .terms-hint{
+            font-size:11px;
+            color:var(--muted);
+            margin-top:4px;
+        }
+
+        .signup-footer-links{
+            margin-top:16px;
+            font-size:12px;
+            color:var(--muted);
+            text-align:center;
+        }
+
+        .signup-footer-links a{
+            color:var(--text);
+            text-decoration:none;
+            margin:0 4px;
+        }
+        .signup-footer-links a:hover{
+            text-decoration:underline;
+        }
+
+    </style>
 </head>
 <body>
+
+<header>
+    <div class="container header-row">
+        <a href="actor-detail-temp.html" class="logo">OnFilm</a>
+        <button
+                type="button"
+                class="login-btn"
+                onclick="location.href='actor-detail-temp.html?login=true'">
+            로그인
+        </button>
+    </div>
+</header>
+
+<main class="signup-root">
+    <div class="signup-card">
+        <h1 class="signup-title">회원가입</h1>
+        <!-- 이메일 -->
+        <label class="signup-label" for="signupEmail">이메일</label>
+        <input
+                id="signupEmail"
+                class="signup-input"
+                type="email"
+                placeholder="name@example.com"
+        />
+
+        <!-- 비밀번호 -->
+        <label class="signup-label" for="signupPassword">비밀번호</label>
+        <div class="password-field">
+            <input
+                    id="signupPassword"
+                    class="signup-input"
+                    type="password"
+                    placeholder="영문/숫자 조합 8자 이상"
+            />
+            <button
+                    type="button"
+                    class="toggle-visibility-btn"
+                    data-target="signupPassword"
+            >
+                <!-- 문자열이 보이는 상태(눈) -->
+                <svg class="icon-visible" xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7
+                   -1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <!-- 가려진 상태(눈 + 슬래시) -->
+                <svg class="icon-hidden" xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 3l18 18"/>
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M10.477 10.485A3 3 0 0 0 13.5 13.5m-1.53 2.472A3.001 3.001 0 0 1 8.03 11.03M9.88 4.615A9.76 9.76 0 0 1 12 4.5c4.477 0 8.268 2.943 9.543 7
+                   -.37 1.178-.94 2.266-1.676 3.222M6.228 6.228C4.35 7.35 2.942 9.24 2.457 12
+                   A10.45 10.45 0 0 0 6.46 16.95"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- 비밀번호 확인 -->
+        <label class="signup-label" for="signupPasswordConfirm">비밀번호 확인</label>
+        <div class="password-field">
+            <input
+                    id="signupPasswordConfirm"
+                    class="signup-input"
+                    type="password"
+                    placeholder="비밀번호를 다시 입력하세요"
+            />
+            <button
+                    type="button"
+                    class="toggle-visibility-btn"
+                    data-target="signupPasswordConfirm"
+            >
+                <!-- 문자열이 보이는 상태(눈) -->
+                <svg class="icon-visible" xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7
+                   -1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <!-- 가려진 상태(눈 + 슬래시) -->
+                <svg class="icon-hidden" xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 3l18 18"/>
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M10.477 10.485A3 3 0 0 0 13.5 13.5m-1.53 2.472A3.001 3.001 0 0 1 8.03 11.03M9.88 4.615A9.76 9.76 0 0 1 12 4.5c4.477 0 8.268 2.943 9.543 7
+                   -.37 1.178-.94 2.266-1.676 3.222M6.228 6.228C4.35 7.35 2.942 9.24 2.457 12
+                   A10.45 10.45 0 0 0 6.46 16.95"/>
+                </svg>
+            </button>
+        </div>
+
+        <p id="passwordError" class="signup-error">
+            비밀번호가 서로 일치하지 않습니다.
+        </p>
+
+        <!-- 약관 / 개인정보 동의 -->
+        <div class="terms-box">
+            <!-- 전체 동의 -->
+            <div class="terms-row">
+                <input
+                        id="termsAll"
+                        type="checkbox"
+                        class="terms-checkbox"
+                />
+                <label for="termsAll" class="terms-main-label">
+                    전체 동의 (필수 항목 포함)
+                </label>
+            </div>
+
+            <!-- 이용약관 -->
+            <div class="terms-row">
+                <input
+                        id="termsService"
+                        type="checkbox"
+                        class="terms-checkbox terms-item"
+                        data-required="true"
+                />
+                <label for="termsService" class="terms-label">
+                    <span class="terms-tag">[필수]</span>
+                    OnFilm 이용약관 동의
+                    <a href="terms.html" class="terms-link" target="_blank">보기</a>
+                </label>
+            </div>
+
+            <!-- 개인정보 처리방침 -->
+            <div class="terms-row">
+                <input
+                        id="termsPrivacy"
+                        type="checkbox"
+                        class="terms-checkbox terms-item"
+                        data-required="true"
+                />
+                <label for="termsPrivacy" class="terms-label">
+                    <span class="terms-tag">[필수]</span>
+                    개인정보 처리방침 동의
+                    <a href="privacy.html" class="terms-link" target="_blank">보기</a>
+                </label>
+            </div>
+
+            <p class="terms-hint">
+                필수 항목에 동의하셔야 회원가입이 완료됩니다.
+            </p>
+        </div>
+
+        <button
+                class="signup-submit-btn"
+                type="button"
+                id="signupSubmitBtn"
+                disabled
+        >
+            회원가입
+        </button>
+
+        <div class="signup-footer-links">
+            이미 계정이 있으신가요?
+            <a href="actor-detail-temp.html?login=true">로그인</a>
+        </div>
+    </div>
+</main>
+
+<script>
+    const emailInput        = document.getElementById("signupEmail");
+    const passwordInput     = document.getElementById("signupPassword");
+    const passwordConfirm   = document.getElementById("signupPasswordConfirm");
+    const passwordError     = document.getElementById("passwordError");
+    const termsAll          = document.getElementById("termsAll");
+    const termsItems        = document.querySelectorAll(".terms-item");
+    const submitBtn         = document.getElementById("signupSubmitBtn");
+
+    // 비밀번호 보기/가리기 토글
+    const toggleButtons = document.querySelectorAll(".toggle-visibility-btn");
+
+    toggleButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const targetId = btn.dataset.target;
+            const input    = document.getElementById(targetId);
+            if (!input) return;
+
+            const iconVisible = btn.querySelector(".icon-visible");
+            const iconHidden  = btn.querySelector(".icon-hidden");
+
+            if (input.type === "password") {
+                // 문자열 보이기
+                input.type = "text";
+                if (iconVisible) iconVisible.style.display = "block";
+                if (iconHidden)  iconHidden.style.display  = "none";
+            } else {
+                // ***로 가리기
+                input.type = "password";
+                if (iconVisible) iconVisible.style.display = "none";
+                if (iconHidden)  iconHidden.style.display  = "block";
+            }
+        });
+    });
+
+    function validatePasswordMatch() {
+        const pwd  = passwordInput.value.trim();
+        const pwd2 = passwordConfirm.value.trim();
+
+        if (pwd2.length === 0) {
+            passwordError.style.display = "none";
+            return true;
+        }
+
+        if (pwd === pwd2) {
+            passwordError.style.display = "none";
+            return true;
+        } else {
+            passwordError.style.display = "block";
+            return false;
+        }
+    }
+
+    function validateForm() {
+        const emailVal = emailInput.value.trim();
+        const pwdVal   = passwordInput.value.trim();
+
+        const requiredChecked = Array.from(termsItems)
+            .filter(i => i.dataset.required === "true")
+            .every(i => i.checked);
+
+        const pwdMatch = validatePasswordMatch();
+
+        const isValid =
+            emailVal.length > 0 &&
+            pwdVal.length >= 8 &&
+            pwdMatch &&
+            requiredChecked;
+
+        submitBtn.disabled = !isValid;
+    }
+
+    // 전체 동의
+    termsAll.addEventListener("change", () => {
+        const checked = termsAll.checked;
+        termsItems.forEach(i => i.checked = checked);
+        validateForm();
+    });
+
+    // 개별 동의
+    termsItems.forEach(item => {
+        item.addEventListener("change", () => {
+            const allChecked = Array.from(termsItems).every(i => i.checked);
+            termsAll.checked = allChecked;
+            validateForm();
+        });
+    });
+
+    emailInput.addEventListener("input", validateForm);
+    passwordInput.addEventListener("input", validateForm);
+    passwordConfirm.addEventListener("input", validateForm);
+
+    // 실제 제출(백엔드 연동 전 임시)
+    submitBtn.addEventListener("click", () => {
+        // TODO: fetch("/api/signup", { method:"POST", body: JSON.stringify(...) }) 이런 식으로 연동
+        alert("회원가입 요청 전송 (백엔드 연동 필요)");
+    });
+</script>
 
 </body>
 </html>

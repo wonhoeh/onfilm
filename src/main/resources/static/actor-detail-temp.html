@@ -1203,9 +1203,9 @@
 
         popup.querySelector(".popup-title").textContent = card.dataset.title ?? "";
         popup.querySelector(".popup-meta").innerHTML = `
-        ${card.dataset.genre ?? ""} · ${card.dataset.runtime ?? ""}
-        <span class="popup-age">${card.dataset.age ?? ""}</span>
-    `;
+            ${card.dataset.genre ?? ""} · ${card.dataset.runtime ?? ""}
+            <span class="popup-age">${card.dataset.age ?? ""}</span>
+        `;
 
         const thumb = card.dataset.thumb;
         if (thumb) {
@@ -1580,6 +1580,12 @@
                 loginOverlay.classList.remove("show");
             }
         });
+    }
+
+    // URL에 ?login=true 가 붙어 있으면 자동으로 로그인 오버레이 열기
+    const params = new URLSearchParams(window.location.search);
+    if (loginOverlay && params.get("login") === "true") {
+        loginOverlay.classList.add("show");
     }
 </script>
 
