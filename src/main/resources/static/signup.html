@@ -517,8 +517,11 @@
 
     // 실제 제출(백엔드 연동 전 임시)
     submitBtn.addEventListener("click", () => {
-        // TODO: fetch("/api/signup", { method:"POST", body: JSON.stringify(...) }) 이런 식으로 연동
-        alert("회원가입 요청 전송 (백엔드 연동 필요)");
+        // TODO: 실제로는 여기서 백엔드에 회원가입 요청 보내고,
+        // 성공하면 아래 redirect 실행
+
+        // 회원가입 축하 배너를 띄우기 위해 쿼리 파라미터 추가
+        window.location.href = "index.html?welcome=1";
     });
 </script>
 
