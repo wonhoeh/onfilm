@@ -521,10 +521,13 @@
 
     // 실제 제출(백엔드 연동 전 임시)
     submitBtn.addEventListener("click", () => {
-        // TODO: 실제로는 여기서 백엔드에 회원가입 요청 보내고,
-        // 성공하면 아래 redirect 실행
+        // TODO: 실제 백엔드 연동 시에는 응답으로 받은 유저 정보 사용
+        const mockUser = {
+            displayName: "신규 배우",
+            avatarUrl: "videos/profile-placeholder.png", // 나중에 프로필 설정 페이지에서 수정
+        };
+        localStorage.setItem("onfilm_user", JSON.stringify(mockUser));
 
-        // 회원가입 축하 배너를 띄우기 위해 쿼리 파라미터 추가
         window.location.href = "index.html?welcome=1";
     });
 </script>

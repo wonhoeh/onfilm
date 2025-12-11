@@ -580,6 +580,105 @@
       justify-content:flex-end;
     }
 
+    /* ===== 헤더 오른쪽 영역 & 프로필 메뉴 ===== */
+    .header-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .header-nav-links{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .profile-menu{
+      position:relative;
+    }
+
+    .profile-avatar-btn{
+      width:32px;
+      height:32px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      padding:0;
+      background:rgba(255,255,255,0.04);
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;
+    }
+
+    .profile-avatar-btn:hover{
+      transform:translateY(-1px);
+      border-color:var(--accent);
+      box-shadow:0 6px 18px rgba(0,0,0,.6);
+    }
+
+    .profile-avatar-btn img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+
+    /* 이름 이니셜만 보여줄 때를 위한 글자 스타일 (avatarUrl 없을 때) */
+    .profile-avatar-initial{
+      font-size:13px;
+      font-weight:700;
+      color:var(--text);
+    }
+
+    /* 드롭다운 */
+    .profile-dropdown{
+      position:absolute;
+      top:120%;
+      right:0;
+      min-width:180px;
+      background:var(--panel-2);
+      border-radius:12px;
+      border:1px solid var(--line);
+      box-shadow:0 14px 40px rgba(0,0,0,.9);
+      padding:6px 0;
+      opacity:0;
+      pointer-events:none;
+      transform:translateY(-6px);
+      transition:opacity .16s ease, transform .16s ease;
+      z-index:9999;
+    }
+
+    .profile-dropdown.open{
+      opacity:1;
+      pointer-events:auto;
+      transform:translateY(0);
+    }
+
+    .profile-item{
+      width:100%;
+      padding:8px 12px;
+      text-align:left;
+      background:transparent;
+      border:none;
+      color:var(--text);
+      font-size:13px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:6px;
+    }
+
+    .profile-item span{
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    .profile-item:hover{
+      background:rgba(255,255,255,0.06);
+    }
+
   </style>
 </head>
 <body>
@@ -587,7 +686,9 @@
 <header>
   <div class="container header-row">
     <a href="index.html" class="logo">OnFilm</a>
-    <button type="button" class="login-btn" id="loginBtn">로그인</button>
+    <div class="header-right" id="headerActions">
+      <!-- JS에서 로그인 버튼 또는 프로필 메뉴를 렌더링 -->
+    </div>
   </div>
 </header>
 
@@ -819,11 +920,17 @@
     if (!container) return;
 
     const userRaw = localStorage.getItem("onfilm_user");
+
+    // 로그인 안 된 상태 → 기능 소개 + 로그인 버튼
     if (!userRaw) {
       container.innerHTML = `
-        <a href="#page2" class="header-link">기능 소개</a>
-        <a href="#page3" class="header-link">누가 쓰나요?</a>
-        <a href="login.html" class="header-login">로그인</a>
+        <div class="header-nav-links">
+          <a href="#page2" class="header-link">기능 소개</a>
+          <a href="#page3" class="header-link">사용 대상</a>
+        </div>
+        <button type="button" class="login-btn" onclick="location.href='login.html'">
+          로그인
+        </button>
       `;
       return;
     }
@@ -833,28 +940,97 @@
       user = JSON.parse(userRaw);
     } catch (e) {
       container.innerHTML = `
-        <a href="#page2" class="header-link">기능 소개</a>
-        <a href="#page3" class="header-link">누가 쓰나요?</a>
-        <a href="login.html" class="header-login">로그인</a>
+        <div class="header-nav-links">
+          <a href="#page2" class="header-link">기능 소개</a>
+          <a href="#page3" class="header-link">사용 대상</a>
+        </div>
+        <button type="button" class="login-btn" onclick="location.href='login.html'">
+          로그인
+        </button>
       `;
       return;
     }
 
     const displayName = user.displayName || "내 계정";
+    const avatarUrl   = user.avatarUrl || "videos/profile-placeholder.png";
+    const initial     = displayName.trim().charAt(0) || "A";
 
+    // 로그인 된 상태 → 프로필 아바타 + 드롭다운 메뉴
     container.innerHTML = `
-      <a href="#page2" class="header-link">기능 소개</a>
-      <a href="#page3" class="header-link">누가 쓰나요?</a>
-      <button type="button" class="header-login" id="accountBtn">
-        ${displayName}
-      </button>
+      <div class="header-nav-links">
+        <a href="#page2" class="header-link">기능 소개</a>
+        <a href="#page3" class="header-link">사용 대상</a>
+      </div>
+
+      <div class="profile-menu">
+        <button type="button" class="profile-avatar-btn" id="profileAvatarBtn">
+          ${avatarUrl
+            ? `<img src="${avatarUrl}" alt="${displayName} 프로필" />`
+            : `<span class="profile-avatar-initial">${initial}</span>`
+    }
+        </button>
+
+        <div class="profile-dropdown" id="profileDropdown">
+          <button type="button" class="profile-item" data-action="my-page">
+            내 배우 페이지
+          </button>
+          <button type="button" class="profile-item" data-action="account">
+            계정 정보 설정
+            <span>휴대폰 인증</span>
+          </button>
+          <button type="button" class="profile-item" data-action="logout">
+            로그아웃
+          </button>
+        </div>
+      </div>
     `;
 
-    const accountBtn = document.getElementById("accountBtn");
-    if (accountBtn) {
-      accountBtn.addEventListener("click", () => {
-        // 실제론 /actors/{id} 같은 라우팅으로
-        window.location.href = "actor-detail-temp.html?me=1";
+    // 드롭다운 동작 설정
+    const avatarBtn  = document.getElementById("profileAvatarBtn");
+    const dropdown   = document.getElementById("profileDropdown");
+    const menuItems  = dropdown ? dropdown.querySelectorAll(".profile-item") : [];
+
+    if (avatarBtn && dropdown) {
+      avatarBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle("open");
+      });
+
+      // 메뉴 항목 클릭 처리
+      menuItems.forEach(item => {
+        item.addEventListener("click", () => {
+          const action = item.dataset.action;
+
+          if (action === "my-page") {
+            // TODO: 실제로는 /actors/{id} 이런 식으로
+            window.location.href = "actor-detail-temp.html?me=1";
+          }
+
+          if (action === "account") {
+            // 휴대폰 번호 입력/인증 페이지 (임시 라우트)
+            window.location.href = "account-settings.html";
+          }
+
+          if (action === "logout") {
+            // 간단한 로그아웃: 사용자 정보 제거 후 새로고침
+            localStorage.removeItem("onfilm_user");
+            window.location.href = "index.html";
+          }
+        });
+      });
+
+      // 바깥 클릭 → 드롭다운 닫기
+      document.addEventListener("click", (e) => {
+        if (!dropdown.contains(e.target) && e.target !== avatarBtn) {
+          dropdown.classList.remove("open");
+        }
+      });
+
+      // ESC로 닫기
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          dropdown.classList.remove("open");
+        }
       });
     }
   }
@@ -902,6 +1078,7 @@
     setupPageDots();
   });
 </script>
+
 <script>
   // 가입 인사 오버레이 로직
   (function () {
