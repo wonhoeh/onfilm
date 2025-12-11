@@ -31,7 +31,6 @@
                     radial-gradient(700px 350px at 10% 10%, rgba(36,211,154,.15), transparent 60%),
                     var(--bg);
         }
-        /* 가로 폭 정렬 전용 */
         .container{
             width:min(1100px,92vw);
             margin:0 auto;
@@ -45,6 +44,13 @@
         }
 
         /* 헤더 줄 */
+        header{
+            position:sticky; top:0; z-index:10;
+            background:rgba(11,12,15,.85);
+            backdrop-filter:blur(8px);
+            border-bottom:1px solid var(--line);
+        }
+
         .header-row{
             display:flex;
             align-items:center;
@@ -52,13 +58,7 @@
             height:56px;
         }
 
-        /* HEADER */
-        header{
-            position:sticky; top:0; z-index:10;
-            background:rgba(11,12,15,.85);
-            backdrop-filter:blur(8px);
-            border-bottom:1px solid var(--line);
-        }
+
 
         nav ul{
             display:flex; list-style:none; gap:18px;
@@ -791,8 +791,9 @@
             text-decoration:underline;
         }
 
-
-
+        html{
+            scrollbar-gutter: stable;
+        }
 
     </style>
 </head>
@@ -800,7 +801,7 @@
 
 <header>
     <div class="container header-row">
-        <a href="actor-detail-temp.html" class="logo">OnFilm</a>
+        <a href="index.html" class="logo">OnFilm</a>
         <button type="button" class="login-btn" id="loginBtn">로그인</button>
     </div>
 </header>

@@ -95,6 +95,11 @@
             align-items:center;
             gap:16px;
         }
+        /* 드래그로 파일이 올라왔을 때 강조 스타일 */
+        .photo-preview.drop-hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(124,92,255,.7);
+        }
         .photo-preview{
             width:210px;
             height:280px;
@@ -362,7 +367,7 @@
 
                 <p class="photo-hint">
                     4:5 비율의 선명한 정면 사진을 권장해요.<br/>
-                    (JPG, PNG, 최대 10MB)
+                    (JPG, PNG, 최대 10MB · 클릭 또는 드래그 앤 드롭)
                 </p>
             </section>
 
@@ -431,8 +436,21 @@
                             >
                             <div class="field-hint">시 단위로 입력해주세요.</div>
                         </div>
-
                     </div>
+
+                    <!-- 👇👇 여기부터 새로 추가한 소개글 영역 -->
+                    <div class="field-group">
+                        <label for="bioInput" class="field-label">소개글</label>
+                        <div class="field-hint">
+                            배우로서의 소개, 활동 경력, 분위기를 간단히 적어주세요. (3~4문장 정도 권장)
+                        </div>
+                        <textarea
+                                id="bioInput"
+                                class="text-input"
+                                rows="4"
+                                placeholder="예) 독립영화와 광고를 중심으로 활동 중인 배우입니다. 자연스러운 연기와 밝은 이미지를 강점으로 가지고 있습니다."></textarea>
+                    </div>
+                    <!-- 👆👆 여기까지 -->
 
                     <!-- SNS 여러 개 -->
                     <div class="field-group">
@@ -454,7 +472,7 @@
                     <div class="field-group">
                         <div class="field-label">PROFILE TAGS</div>
                         <div class="field-hint">
-                            배우의 이미지/강점을 나타내는 키워드를 입력해주세요. (예: #아역, #밝은이미지)
+                            배우의 이미지/강점을 나타내는 키워드를 입력해주세요. (예: 독립영화, 밝은이미지)
                         </div>
 
                         <div id="tagList" class="tag-list">
@@ -489,20 +507,90 @@
 </div>
 
 <script>
-    /* ===== 프로필 사진 미리보기 ===== */
+    /* ===== 프로필 사진 미리보기 + 드래그 앤 드롭 ===== */
     const profileFileInput = document.getElementById("profileFileInput");
     const profilePreview   = document.getElementById("profilePreview");
+    const photoSection     = document.querySelector(".photo-section");
 
-    profileFileInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
+    /**
+     * 공통: 이미지 파일 하나 받아서 미리보기 세팅
+     */
+    function loadProfileImage(file) {
         if (!file) return;
+
+        // 이미지 타입 체크
+        if (!file.type.startsWith("image/")) {
+            alert("이미지 파일만 업로드할 수 있어요. (JPG, PNG 등)");
+            return;
+        }
+
+        // 용량 체크 (10MB)
+        const MAX_SIZE = 10 * 1024 * 1024;
+        if (file.size > MAX_SIZE) {
+            alert("최대 10MB까지 업로드할 수 있어요.");
+            return;
+        }
 
         const reader = new FileReader();
         reader.onload = (ev) => {
             profilePreview.src = ev.target.result;
         };
         reader.readAsDataURL(file);
+
+        // 드롭으로 넣었을 때도 <input type="file"> 값 맞춰주기 (폼 제출 대비)
+        try {
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            profileFileInput.files = dt.files;
+        } catch (e) {
+            // 일부 구형 브라우저에서는 DataTransfer 미지원 → 미리보기만
+            console.warn("DataTransfer 미지원 브라우저일 수 있습니다.", e);
+        }
+    }
+
+    /* 1) 기존 파일 선택 버튼으로 올렸을 때 */
+    profileFileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        loadProfileImage(file);
     });
+
+    /* 2) 드래그 앤 드롭으로 올렸을 때 */
+    if (photoSection) {
+        // 이 영역 위에서 드래그 중일 때 기본 동작 막고, 이미지만 강조
+        ["dragenter", "dragover"].forEach(evtName => {
+            photoSection.addEventListener(evtName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                profilePreview.classList.add("drop-hover");
+            });
+        });
+
+        // 드래그가 빠져나가거나 드롭 완료되면 강조 제거
+        ["dragleave", "dragend", "drop"].forEach(evtName => {
+            photoSection.addEventListener(evtName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (evtName !== "drop") {
+                    profilePreview.classList.remove("drop-hover");
+                }
+            });
+        });
+
+        // 실제 파일 드롭 처리
+        photoSection.addEventListener("drop", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            profilePreview.classList.remove("drop-hover");
+
+            const files = e.dataTransfer.files;
+            if (!files || files.length === 0) return;
+
+            const file = files[0];
+            loadProfileImage(file);
+        });
+    }
+
+
 
     /* ===== SNS 행 추가/삭제 ===== */
     const snsList   = document.getElementById("snsList");
@@ -728,6 +816,7 @@
             name: document.getElementById("actorName").value.trim(),
             birthDate: birthDateHidden.value,  // ✅ 여기
             birthPlace: document.getElementById("birthPlace").value,
+            bio: document.getElementById("bioInput").value.trim(),
             snsList: snsData,
             tags: tags
         };
@@ -735,6 +824,9 @@
         console.log("프로필 저장 payload:", payload);
         alert("지금은 프론트 미리보기만 됩니다.\n콘솔에 payload가 출력됐어요.");
     });
+
+    window.addEventListener("dragover", (e) => e.preventDefault());
+    window.addEventListener("drop", (e) => e.preventDefault());
 </script>
 </body>
 </html>
