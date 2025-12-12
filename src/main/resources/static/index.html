@@ -201,11 +201,6 @@
       margin-bottom:16px;
     }
 
-    .hero-subhint{
-      font-size:12px;
-      color:var(--muted);
-    }
-
     /* 아래로 스크롤 힌트 */
     .scroll-hint{
       position:absolute;
@@ -679,6 +674,156 @@
       background:rgba(255,255,255,0.06);
     }
 
+    /* =========================================================
+   PAGE 2 / 3 — Centered, clean text layout (override)
+========================================================= */
+
+    .panel-features,
+    .panel-final{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:0; /* 스냅 페이지 안에서 중앙 정렬 유지 */
+    }
+
+    .section-center{
+      width:min(820px, 92vw);
+      margin:0 auto;
+      text-align:center;
+    }
+
+    .section-center .section-kicker{
+      font-size:11px;
+      letter-spacing:.22em;
+      text-transform:uppercase;
+      color:var(--muted);
+      margin-bottom:10px;
+    }
+
+    .section-center .section-title{
+      font-size:34px;
+      line-height:1.25;
+      font-weight:900;
+      margin-bottom:14px;
+    }
+
+    .section-center .section-subtitle{
+      font-size:14px;
+      color:var(--muted);
+      line-height:1.9;
+      margin:0 auto 22px;
+      max-width:660px;
+    }
+
+    /* 카드: 가운데 배치, 텍스트는 좌측 정렬로 읽기 좋게 */
+    .center-grid{
+      display:grid;
+      gap:12px;
+      margin-top:18px;
+    }
+
+    @media (min-width: 900px){
+      .center-grid.cols-3{ grid-template-columns:repeat(3, 1fr); }
+      .center-grid.cols-2{ grid-template-columns:repeat(2, 1fr); }
+    }
+
+    .center-card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:var(--radius-lg);
+      padding:14px 14px 13px;
+      box-shadow:0 10px 30px rgba(0,0,0,.65);
+      text-align:left;
+    }
+
+    .card-head{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:8px;
+    }
+
+    .card-icon{
+      width:34px;
+      height:34px;
+      border-radius:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(124,92,255,.16);
+      border:1px solid rgba(124,92,255,.45);
+      flex-shrink:0;
+      font-size:16px;
+    }
+
+    .card-title{
+      font-size:13px;
+      font-weight:800;
+      margin-bottom:2px;
+    }
+
+    .card-body{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.75;
+    }
+
+    /* “요약 박스” */
+    .center-callout{
+      margin-top:14px;
+      padding:14px 14px 13px;
+      border-radius:var(--radius-lg);
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      text-align:left;
+    }
+
+    .center-callout strong{
+      display:block;
+      font-size:13px;
+      margin-bottom:6px;
+    }
+
+    .center-callout p{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.75;
+    }
+
+    /* PAGE 3 */
+    .final-cta-row{
+      display:flex;
+      justify-content:center;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:18px;
+    }
+
+    /* Preview pills */
+    .actor-pill-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:10px;
+    }
+
+    .actor-pill{
+      font-size:11px;
+      padding:3px 9px;
+      border-radius:999px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--line);
+    }
+
+    /* Mobile tweaks */
+    @media (max-width: 900px){
+      .section-center .section-title{ font-size:28px; }
+    }
+    @media (max-width: 600px){
+      .section-center .section-title{ font-size:22px; }
+      .section-center .section-subtitle{ font-size:13px; }
+    }
+
   </style>
 </head>
 <body>
@@ -697,26 +842,21 @@
   <section class="panel panel-hero" id="page1">
     <div class="container">
       <div class="hero-inner">
-        <div class="hero-kicker">INDIE ACTOR · FILMOGRAPHY HUB</div>
+        <div class="hero-kicker">FILMOGRAPHY HUB</div>
         <h1 class="hero-title">
           당신의 필모그래피를<br/>
           <span class="hero-highlight">한 곳에, OnFilm</span>
         </h1>
         <p class="hero-subtitle">
-          독립영화, 광고, 단편까지 흩어져 있던 이력들을 한 번에 관리하세요.<br/>
-          배우가 직접 올리고, 감독과 캐스팅 디렉터에게 보여줄 수 있는
-          나만의 필모그래피 페이지입니다.
+          독립영화, 광고, 단편 이력까지 한 번에 관리하세요.<br/>
+          흩어져 있던 작품들을 모아, 하나의 페이지로 완성해보세요.
         </p>
 
         <div class="hero-cta-row">
           <a href="signup.html" class="btn-primary">
-            배우로 시작하기
+            시작하기
             <span>→</span>
           </a>
-        </div>
-
-        <div class="hero-subhint">
-          이메일 · 비밀번호만으로 바로 시작할 수 있어요.
         </div>
       </div>
     </div>
@@ -729,154 +869,133 @@
     </div>
   </section>
 
-  <!-- PAGE 2: 기능 소개 -->
+  <!-- PAGE 2: 기능 소개 (Centered) -->
   <section class="panel panel-features" id="page2">
     <div class="container">
-      <div class="features-layout">
-        <div>
-          <div class="section-kicker">FEATURES</div>
-          <h2 class="section-title">배우를 위해 설계된 필모그래피 도구</h2>
-          <p class="section-subtitle">
-            이력서에 글자로만 적히던 필모를,
-            사진 · 영상과 함께 한 번에 보여줄 수 있도록 구성했어요.
-            캐스팅 디렉터가 봐도 이해하기 쉬운 구조를 목표로 합니다.
-          </p>
+      <div class="section-center">
+        <div class="section-kicker">FEATURES</div>
+        <h2 class="section-title">
+          배우를 위해 설계된<br/>
+          <span class="hero-highlight">필모그래피 정리 도구</span>
+        </h2>
+        <p class="section-subtitle">
+          이력서에 글자로만 적히던 필모를,
+          사진 · 영상과 함께 한 번에 보여줄 수 있도록 구성했어요.<br/>
+          “링크 하나로 제출”에 최적화된 구조를 목표로 합니다.
+        </p>
 
-          <div class="feature-list">
-            <div class="feature-item">
-              <div class="feature-icon">🎬</div>
+        <div class="center-grid cols-3">
+          <div class="center-card">
+            <div class="card-head">
+              <div class="card-icon">🎬</div>
               <div>
-                <div class="feature-text-title">작품별 필모그래피 관리</div>
-                <div class="feature-text-body">
-                  작품 제목, 연도, 러닝타임, 맡은 역할(주연/조연/특별출연 등)을
-                  카드 형식으로 정리해, 링크 하나로 공유할 수 있어요.
+                <div class="card-title">작품별 필모 정리</div>
+                <div class="card-body">
+                  제목, 연도, 러닝타임, 역할(주연/조연/특별출연)을
+                  카드처럼 정리해요.
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="feature-item">
-              <div class="feature-icon">📷</div>
+          <div class="center-card">
+            <div class="card-head">
+              <div class="card-icon">📷</div>
               <div>
-                <div class="feature-text-title">프로필 사진 & 현장 스틸</div>
-                <div class="feature-text-body">
-                  프로필 사진, 현장 스틸컷, 포스터 등을 업로드해
-                  배우의 분위기와 이미지를 시각적으로 전달할 수 있습니다.
+                <div class="card-title">사진으로 분위기 전달</div>
+                <div class="card-body">
+                  프로필/현장 스틸/포스터로
+                  배우의 이미지를 직관적으로 보여줘요.
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="feature-item">
-              <div class="feature-icon">▶</div>
+          <div class="center-card">
+            <div class="card-head">
+              <div class="card-icon">▶</div>
               <div>
-                <div class="feature-text-title">트레일러 · 연기 영상 첨부</div>
-                <div class="feature-text-body">
-                  작품 트레일러나 짧은 연기 영상을 함께 올려두면,
-                  관계자들이 페이지 안에서 바로 확인할 수 있어요.
+                <div class="card-title">영상까지 한 페이지에서</div>
+                <div class="card-body">
+                  트레일러나 연기 영상을 첨부해
+                  관계자가 바로 확인할 수 있어요.
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div>
-          <!-- 오른쪽: 서비스 느낌 나는 요약 카드들 -->
-          <div class="feature-card">
-            <div class="feature-card-title">한 번에 보는 “배우 카드”</div>
-            <p>
-              배우당 하나의 고정 링크로, 필모그래피 · 프로필 · 사진 · 영상까지
-              모두 모아둔 “배우 카드”를 만들 수 있어요.
-            </p>
-            <div class="feature-chip-row">
-              <span class="chip">개인 포트폴리오 링크</span>
-              <span class="chip">제출용 URL</span>
-            </div>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-card-title">관리도 간단하게</div>
-            <p>
-              새로운 작품이 생길 때마다 필모를 하나씩 추가하면 됩니다.
-              나중에 연도, 장르, 역할 기준으로도 정리할 수 있도록 확장할 예정이에요.
-            </p>
-            <div class="feature-chip-row">
-              <span class="chip">단편 · 독립 · 광고</span>
-              <span class="chip">점진적 확장</span>
-            </div>
-          </div>
-
-          <div class="feature-card">
-            <div class="feature-card-title">초기에는 “배우 중심”에 집중</div>
-            <p>
-              MVP 단계에서는 배우 본인의 페이지 완성에 집중하고,
-              이후 캐스팅 디렉터, 감독을 위한 검색/북마크 기능을
-              순차적으로 열어갈 계획입니다.
-            </p>
-          </div>
+        <div class="center-callout">
+          <strong>한 번 만들어두면, 제출은 링크 하나로</strong>
+          <p>
+            배우당 하나의 고정 링크에 필모그래피 · 프로필 · 사진 · 영상을 모아두고,
+            오디션/섭외마다 파일을 새로 만들지 않아도 되는 “온라인 명함”이 됩니다.
+          </p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- PAGE 3: 배우 & 캐스팅 디렉터 CTA -->
+
+  <!-- PAGE 3: 배우 & 캐스팅 디렉터 CTA (Centered) -->
   <section class="panel panel-final" id="page3">
     <div class="container">
-      <div class="final-layout">
-        <div>
-          <div class="section-kicker">FOR ACTORS & CASTING</div>
-          <h2 class="final-title">지금은 배우 중심, 곧 캐스팅 도구로</h2>
-          <p class="final-subtext">
-            처음에는 배우가 자신의 필모를 정리하고, 주변 지인과 공유하는 것부터 시작합니다.
-            이후에는 캐스팅 디렉터가 배우들을 탐색하고, 섭외 과정을 도울 수 있는 서비스로
-            확장하는 것이 OnFilm의 방향입니다.
-          </p>
+      <div class="section-center">
+        <div class="section-kicker">FOR ACTORS & CASTING</div>
+        <h2 class="section-title">
+          지금은 배우 중심,<br/>
+          <span class="hero-highlight">곧 캐스팅 도구로</span>
+        </h2>
+        <p class="section-subtitle">
+          MVP 단계에서는 배우가 자신의 필모를 정리하고 공유하는 경험에 집중합니다.<br/>
+          이후에는 캐스팅 디렉터가 배우를 탐색하고 섭외 과정을 돕는 서비스로 확장해요.
+        </p>
 
-          <div class="final-split">
-            <div>
-              <span class="final-label">배우에게는</span><br/>
-              한 번 만들어두면, 오디션 공고마다 파일을 새로 만들지 않고
-              링크 하나로 본인을 소개할 수 있는 “온라인 명함”이 됩니다.
-            </div>
-            <div>
-              <span class="final-label">캐스팅 디렉터에게는</span><br/>
-              장르, 연령대, 이미지 태그 등으로 배우를 탐색하고
-              필모·사진·영상을 한 번에 살펴볼 수 있는 도구가 되는 것을 목표로 하고 있어요.
+        <div class="center-grid cols-2">
+          <div class="center-card">
+            <div class="card-head">
+              <div class="card-icon">🧑‍🎤</div>
+              <div>
+                <div class="card-title">배우에게는</div>
+                <div class="card-body">
+                  한 번 만들어두면 링크 하나로 소개 가능.
+                  오디션 공고마다 파일을 새로 만들 필요가 없어요.
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="final-cta-row">
-            <a href="signup.html" class="btn-primary">
-              배우로 OnFilm 시작하기
-            </a>
-            <a href="actor-detail-temp.html" class="btn-ghost">
-              샘플 배우 프로필 보기
-            </a>
+          <div class="center-card">
+            <div class="card-head">
+              <div class="card-icon">🗂️</div>
+              <div>
+                <div class="card-title">캐스팅 디렉터에게는</div>
+                <div class="card-body">
+                  장르/연령대/이미지 태그로 탐색하고
+                  필모·사진·영상을 한 화면에서 훑는 도구를 지향해요.
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div>
-          <div class="final-card">
-            <div class="final-row">
-              <div>
-                <strong>샘플 배우 보드</strong>
-                <div style="font-size:11px;color:var(--muted);margin-top:2px;">
-                  캐스팅 디렉터가 한 눈에 훑어볼 수 있는 구조를 상상해보세요.
-                </div>
-              </div>
-              <span class="final-badge">Preview</span>
-            </div>
-
-            <div class="actor-pill-row">
-              <span class="actor-pill">룩루기 · 아역 · 밝은 이미지</span>
-              <span class="actor-pill">○○○ · 20대 · 드라마</span>
-              <span class="actor-pill">△△△ · 30대 · 시네마틱</span>
-              <span class="actor-pill">···</span>
-            </div>
-
-            <p style="margin-top:10px;color:var(--muted);line-height:1.7;">
-              실제 서비스에서는 이런 배우 카드들이 리스트로 보이고,<br/>
-              각 카드를 클릭하면 방금 본 <strong>개별 배우 필모 페이지</strong>로 이동하게 됩니다.
-            </p>
+        <div class="center-callout">
+          <strong>샘플 배우 보드 (Preview)</strong>
+          <p>
+            실제 서비스에서는 이런 배우 카드들이 리스트로 보이고,
+            카드를 클릭하면 <strong>개별 배우 필모 페이지</strong>로 이동하는 흐름을 상상해보세요.
+          </p>
+          <div class="actor-pill-row">
+            <span class="actor-pill">룩루기 · 아역 · 밝은 이미지</span>
+            <span class="actor-pill">○○○ · 20대 · 드라마</span>
+            <span class="actor-pill">△△△ · 30대 · 시네마틱</span>
+            <span class="actor-pill">···</span>
           </div>
+        </div>
+
+        <div class="final-cta-row">
+          <a href="signup.html" class="btn-primary">배우로 OnFilm 시작하기</a>
+          <a href="actor-detail-temp.html" class="btn-ghost">샘플 배우 프로필 보기</a>
         </div>
       </div>
     </div>
