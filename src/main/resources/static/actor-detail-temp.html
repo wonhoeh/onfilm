@@ -611,13 +611,6 @@
             color: var(--text);
         }
 
-        .header-row{
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            height:56px;
-        }
-
         .logo{
             font-weight:800;
             font-size:18px;
@@ -795,6 +788,87 @@
             scrollbar-gutter: stable;
         }
 
+        /* ============================
+   EMPTY STATE UI
+============================ */
+        .empty-card{
+            margin-top:14px;
+            background:rgba(255,255,255,.03);
+            border:1px solid var(--line);
+            border-radius:var(--radius-lg);
+            padding:14px 14px 13px;
+            box-shadow:0 10px 30px rgba(0,0,0,.55);
+        }
+
+        .empty-title{
+            font-size:14px;
+            font-weight:900;
+            margin-bottom:6px;
+        }
+
+        .empty-desc{
+            font-size:13px;
+            color:var(--muted);
+            line-height:1.75;
+        }
+
+        .empty-actions{
+            margin-top:12px;
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap;
+        }
+
+        .btn-mini{
+            padding:9px 14px;
+            font-size:13px;
+        }
+
+        .hidden{ display:none !important; }
+
+        /* 프로필 빈 상태: 사진/정보 간격이 너무 휑하면 줄이기 */
+        .profile-header.is-empty{
+            align-items:flex-start;
+        }
+        .profile-header.is-empty .profile-photo{
+            filter:saturate(.9) brightness(.95);
+            opacity:.92;
+        }
+
+        #galleryGrid #galleryEmpty{
+            grid-column: 1 / -1;
+        }
+
+        .btn-primary, .btn-ghost{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:6px;
+            padding:9px 14px;
+            border-radius:999px;
+            font-size:13px;
+            font-weight:700;
+            text-decoration:none;
+            border:1px solid var(--line);
+            transition:background .15s ease, border-color .15s ease, transform .12s ease;
+        }
+        .btn-primary{
+            background:var(--accent);
+            color:#fff;
+            border-color:rgba(124,92,255,.55);
+        }
+        .btn-primary:hover{ background:#8a6dff; transform:translateY(-1px); }
+        .btn-ghost{
+            background:rgba(255,255,255,0.06);
+            color:var(--text);
+        }
+        .btn-ghost:hover{
+            background:rgba(124,92,255,0.18);
+            border-color:var(--accent);
+            transform:translateY(-1px);
+        }
+
+
     </style>
 </head>
 <body>
@@ -813,12 +887,12 @@
         <img id="profilePhoto"
              class="profile-photo"
              src="videos/profile-placeholder.png"
-             data-profile-src="videos/rugi.jpeg"
+             data-profile-src=""
              alt="프로필 사진" />
 
         <div class="profile-info">
             <div class="profile-title-row">
-                <h1>회원명</h1>
+                <h1>ddd</h1>
                 <button
                         type="button"
                         class="profile-settings-btn"
@@ -862,66 +936,78 @@
     <section class="filmography-section" id="filmographySection">
         <h2>필모그래피</h2>
 
-        <div class="film-slider-container">
+        <div class="film-slider-container" id="filmSliderContainer">
+            <!-- ✅ 필모 빈 상태 UI -->
+            <div class="empty-card hidden" id="filmEmpty">
+                <div class="empty-title">등록된 필모그래피가 아직 없어요</div>
+                <div class="empty-desc">
+                    작품 제목/연도/역할/트레일러만 올려도 페이지 완성도가 확 올라가요.
+                    첫 작품부터 추가해볼까요?
+                </div>
+                <div class="empty-actions">
+                    <a class="btn-primary btn-mini" href="edit-filmography.html">필모 추가하기</a>
+                    <a class="btn-ghost btn-mini" href="movie-upload.html">영상 업로드</a>
+                </div>
+            </div>
             <button class="film-arrow left" id="filmPrevBtn">‹</button>
 
             <div class="film-slider-wrapper">
                 <div class="film-slider" id="filmSlider">
-                    <article class="film-card"
-                             data-title="반품"
-                             data-genre="SF / 스릴러"
-                             data-runtime="148분"
-                             data-age="15"
-                             data-video="videos/trailer.mp4"
-                             data-thumb="videos/thumbnail.png">
-                        <img class="film-poster" src="videos/thumbnail.png">
-                        <div class="film-body">
-                            <div class="film-title">반품</div>
-                            <div class="film-meta">2025 · 주연</div>
-                        </div>
-                    </article>
+<!--                    <article class="film-card"-->
+<!--                             data-title="반품"-->
+<!--                             data-genre="SF / 스릴러"-->
+<!--                             data-runtime="148분"-->
+<!--                             data-age="15"-->
+<!--                             data-video="videos/trailer.mp4"-->
+<!--                             data-thumb="videos/thumbnail.png">-->
+<!--                        <img class="film-poster" src="videos/thumbnail.png">-->
+<!--                        <div class="film-body">-->
+<!--                            <div class="film-title">반품</div>-->
+<!--                            <div class="film-meta">2025 · 주연</div>-->
+<!--                        </div>-->
+<!--                    </article>-->
 
-                    <article class="film-card"
-                             data-title="두 번째 영화"
-                             data-genre="드라마"
-                             data-runtime="132분"
-                             data-age="12"
-                             data-video="videos/trailer.mp4"
-                             data-thumb="videos/thumbnail.png">
-                        <img class="film-poster" src="videos/thumbnail.png">
-                        <div class="film-body">
-                            <div class="film-title">두 번째 영화</div>
-                            <div class="film-meta">2024 · 조연</div>
-                        </div>
-                    </article>
+<!--                    <article class="film-card"-->
+<!--                             data-title="두 번째 영화"-->
+<!--                             data-genre="드라마"-->
+<!--                             data-runtime="132분"-->
+<!--                             data-age="12"-->
+<!--                             data-video="videos/trailer.mp4"-->
+<!--                             data-thumb="videos/thumbnail.png">-->
+<!--                        <img class="film-poster" src="videos/thumbnail.png">-->
+<!--                        <div class="film-body">-->
+<!--                            <div class="film-title">두 번째 영화</div>-->
+<!--                            <div class="film-meta">2024 · 조연</div>-->
+<!--                        </div>-->
+<!--                    </article>-->
 
-                    <article class="film-card"
-                             data-title="세 번째 영화"
-                             data-genre="로맨스"
-                             data-runtime="110분"
-                             data-age="15"
-                             data-video="videos/trailer.mp4"
-                             data-thumb="videos/thumbnail.png">
-                        <img class="film-poster" src="videos/thumbnail.png">
-                        <div class="film-body">
-                            <div class="film-title">세 번째 영화</div>
-                            <div class="film-meta">2023 · 주연</div>
-                        </div>
-                    </article>
+<!--                    <article class="film-card"-->
+<!--                             data-title="세 번째 영화"-->
+<!--                             data-genre="로맨스"-->
+<!--                             data-runtime="110분"-->
+<!--                             data-age="15"-->
+<!--                             data-video="videos/trailer.mp4"-->
+<!--                             data-thumb="videos/thumbnail.png">-->
+<!--                        <img class="film-poster" src="videos/thumbnail.png">-->
+<!--                        <div class="film-body">-->
+<!--                            <div class="film-title">세 번째 영화</div>-->
+<!--                            <div class="film-meta">2023 · 주연</div>-->
+<!--                        </div>-->
+<!--                    </article>-->
 
-                    <article class="film-card"
-                             data-title="네 번째 영화"
-                             data-genre="로맨스"
-                             data-runtime="110분"
-                             data-age="15"
-                             data-video="videos/trailer.mp4"
-                             data-thumb="videos/thumbnail.png">
-                        <img class="film-poster" src="videos/thumbnail.png">
-                        <div class="film-body">
-                            <div class="film-title">네 번째 영화</div>
-                            <div class="film-meta">2023 · 주연</div>
-                        </div>
-                    </article>
+<!--                    <article class="film-card"-->
+<!--                             data-title="네 번째 영화"-->
+<!--                             data-genre="로맨스"-->
+<!--                             data-runtime="110분"-->
+<!--                             data-age="15"-->
+<!--                             data-video="videos/trailer.mp4"-->
+<!--                             data-thumb="videos/thumbnail.png">-->
+<!--                        <img class="film-poster" src="videos/thumbnail.png">-->
+<!--                        <div class="film-body">-->
+<!--                            <div class="film-title">네 번째 영화</div>-->
+<!--                            <div class="film-meta">2023 · 주연</div>-->
+<!--                        </div>-->
+<!--                    </article>-->
                 </div>
             </div>
 
@@ -933,13 +1019,25 @@
     <section class="gallery-section" id="gallerySection">
         <h2>사진 갤러리</h2>
         <div class="gallery-grid" id="galleryGrid">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">
+            <!-- ✅ 갤러리 빈 상태 UI -->
+            <div class="empty-card hidden" id="galleryEmpty">
+                <div class="empty-title">아직 등록된 사진이 없어요</div>
+                <div class="empty-desc">
+                    프로필 사진과 현장 스틸 몇 장만 있어도 분위기가 확 전달돼요.
+                    첫 사진을 올려볼까요?
+                </div>
+                <div class="empty-actions">
+                    <a class="btn-primary btn-mini" href="edit-gallery.html">사진 올리기</a>
+                    <a class="btn-ghost btn-mini" href="edit-profile.html">프로필 사진 설정</a>
+                </div>
+            </div>
+<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">-->
+<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">-->
+<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">-->
+<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">-->
+<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">-->
+<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=900">-->
+<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">-->
         </div>
 
         <div class="gallery-spinner" id="gallerySpinner">
@@ -1021,6 +1119,8 @@
     </div>
 </div>
 
+<script>let popup = null;</script>
+
 <!-- JS 1: FILMOGRAPHY SLIDER -->
 <script>
     const slider   = document.getElementById("filmSlider");
@@ -1093,7 +1193,6 @@
 
 <!-- JS 2: MOVIE POPUP -->
 <script>
-    let popup = null;
     let hideTimer = null;
     let activeCard = null;
 
@@ -1265,10 +1364,32 @@
         }, 120);
     }
 
-    document.querySelectorAll(".film-card").forEach(card => {
-        card.addEventListener("mouseenter", () => showPopup(card));
-        card.addEventListener("mouseleave", hidePopup);
-    });
+    // ✅ 동적 추가된 film-card도 자동 hover 적용 (이벤트 위임)
+    const filmSliderEl = document.getElementById("filmSlider");
+
+    if (filmSliderEl) {
+        filmSliderEl.addEventListener("mouseover", (e) => {
+            const card = e.target.closest(".film-card");
+            if (!card || !filmSliderEl.contains(card)) return;
+
+            // 카드 안에서 움직이는 중이면 무시(중복 호출 방지)
+            if (activeCard === card) return;
+
+            showPopup(card);
+        });
+
+        filmSliderEl.addEventListener("mouseout", (e) => {
+            const fromCard = e.target.closest(".film-card");
+            if (!fromCard) return;
+
+            // 같은 카드 내부로 이동(out이지만 내부 이동)인 경우는 무시
+            const toEl = e.relatedTarget;
+            if (toEl && fromCard.contains(toEl)) return;
+
+            hidePopup();
+        });
+    }
+
 
     function hidePopupImmediate() {
         if (!popup) return;
@@ -1441,120 +1562,192 @@
 
     /* ★ NEW: 프로필 편집 메뉴 JS */
     window.addEventListener("load", () => {
+        // ✅ 프로필 이미지: 있어도 되고 없어도 됨
         const profileImg = document.getElementById("profilePhoto");
-        if (!profileImg) return;
+        if (profileImg) {
+            const placeholder = profileImg.getAttribute("src");
+            const realSrc = profileImg.dataset.profileSrc;
 
-        const placeholder = profileImg.getAttribute("src");
-        const realSrc = profileImg.dataset.profileSrc;
-
-        if (realSrc && realSrc.trim() !== "") {
-            profileImg.src = realSrc;
-            profileImg.onerror = () => {
-                profileImg.onerror = null;
-                profileImg.src = placeholder;
-            };
+            if (realSrc && realSrc.trim() !== "") {
+                profileImg.src = realSrc;
+                profileImg.onerror = () => {
+                    profileImg.onerror = null;
+                    profileImg.src = placeholder;
+                };
+            }
         }
 
-        initGallery();
+        // ✅ 갤러리/필모 empty-state 토글
+        updateEmptyUI();
 
-        galleryItems.forEach((img, idx) => {
-            img.style.cursor = "pointer";
-            img.addEventListener("click", () => openLightbox(idx));
+        // ✅ 갤러리 초기화/라이트박스는 이미지가 있을 때만
+        if (galleryItems.length > 0) {
+            initGallery();
+            galleryItems.forEach((img, idx) => {
+                img.style.cursor = "pointer";
+                img.addEventListener("click", () => openLightbox(idx));
+            });
+
+            if (galleryItems.length > INITIAL_COUNT) {
+                window.addEventListener("scroll", handleScroll);
+                handleScroll();
+            }
+        }
+
+        // ✅ 톱니바퀴 오버레이는 그대로
+        setupEditOverlay();
+    });
+</script>
+
+<script>
+    // ✅ 추가/삭제/수정 발생 시 updateEmptyUI 자동 실행 (디바운스 포함)
+    (function autoUpdateEmptyUI(){
+        // 중복 생성 방지
+        if (window.__emptyUIObserver) {
+            window.__emptyUIObserver.disconnect();
+            window.__emptyUIObserver = null;
+        }
+
+        const filmSlider   = document.getElementById("filmSlider");
+        const galleryGrid  = document.getElementById("galleryGrid");
+        const profileInfo  = document.querySelector(".profile-info"); // 프로필 텍스트/태그 바뀌는 것도 반영하려면
+
+        let scheduled = false;
+        const schedule = () => {
+            if (scheduled) return;
+            scheduled = true;
+
+            requestAnimationFrame(() => {
+                scheduled = false;
+
+                if (typeof updateEmptyUI === "function") updateEmptyUI();
+                // 필모 슬라이더 화살표도 자동 갱신되게(있으면)
+                if (typeof updateArrows === "function") updateArrows();
+            });
+        };
+
+        const observer = new MutationObserver(() => {
+            schedule();
         });
 
-        if (galleryItems.length > INITIAL_COUNT) {
-            window.addEventListener("scroll", handleScroll);
-            handleScroll();
+        const config = {
+            childList: true,      // 자식 추가/삭제
+            subtree: true,        // 하위까지
+            attributes: true,     // 속성 변경 (src, data-*, class 등)
+            characterData: true   // 텍스트 변경
+        };
+
+        if (filmSlider)  observer.observe(filmSlider, config);
+        if (galleryGrid) observer.observe(galleryGrid, config);
+        if (profileInfo) observer.observe(profileInfo, config);
+
+        window.__emptyUIObserver = observer;
+
+        // 초기 1회 반영
+        schedule();
+    })();
+</script>
+
+
+
+<script>
+    function updateEmptyUI(){
+        // ---- PROFILE ----
+        const profileHeader = document.querySelector(".profile-header");
+        const nameEl = document.querySelector(".profile-info h1");
+        const metaEl = document.querySelector(".profile-info .meta");
+        const bioEl  = document.getElementById("bioDisplay");
+        const snsRow = document.querySelector(".sns-row");
+        const tagList = document.getElementById("tagList");
+
+        const profileEmptyEl = document.getElementById("profileEmpty");
+
+        const hasName = nameEl && nameEl.textContent.trim() && nameEl.textContent.trim() !== "회원명";
+        const hasMeta = metaEl && metaEl.textContent.replace(/\s/g,"").includes("0000") === false;
+        const hasBio  = bioEl && bioEl.textContent.trim() && bioEl.textContent.trim() !== "소개글 한 줄.";
+        const hasSns  = snsRow && snsRow.querySelectorAll("a.sns-pill").length > 0;
+        const hasTags = tagList && tagList.querySelectorAll(".profile-tag").length > 0;
+
+        const profileHasAny = hasName || hasMeta || hasBio || hasSns || hasTags;
+
+        if (profileEmptyEl) profileEmptyEl.classList.toggle("hidden", profileHasAny);
+        if (profileHeader) profileHeader.classList.toggle("is-empty", !profileHasAny);
+
+        // ---- FILMOGRAPHY ----
+        const filmSlider = document.getElementById("filmSlider");
+        const filmCards  = filmSlider ? filmSlider.querySelectorAll(".film-card") : [];
+        const filmEmpty  = document.getElementById("filmEmpty");
+
+        const hasFilms = filmCards.length > 0;
+        // 1) 빈 카드 토글
+        if (filmEmpty) filmEmpty.classList.toggle("hidden", hasFilms);
+
+        // 2) 실제 슬라이더 UI만 토글 (컨테이너 전체 숨기지 말기)
+        const filmWrapper = document.querySelector("#filmSliderContainer .film-slider-wrapper");
+        const filmPrev = document.getElementById("filmPrevBtn");
+        const filmNext = document.getElementById("filmNextBtn");
+
+        if (filmWrapper) filmWrapper.classList.toggle("hidden", !hasFilms);
+        if (filmPrev) filmPrev.classList.toggle("hidden", !hasFilms);
+        if (filmNext) filmNext.classList.toggle("hidden", !hasFilms);
+
+        // ---- GALLERY ----
+        const galleryGridEl = document.getElementById("galleryGrid");
+        const galleryEmpty  = document.getElementById("galleryEmpty");
+        const galleryImgs   = galleryGridEl ? galleryGridEl.querySelectorAll(".gallery-item") : [];
+        const hasGallery = galleryImgs.length > 0;
+
+        if (galleryEmpty) galleryEmpty.classList.toggle("hidden", hasGallery);
+    }
+
+    function setupEditOverlay(){
+        const settingsBtn = document.getElementById("profileSettingsBtn");
+        const editOverlay = document.getElementById("profileEditOverlay");
+        const editCard    = editOverlay ? editOverlay.querySelector(".profile-edit-card") : null;
+
+        if (!settingsBtn || !editOverlay || !editCard) return;
+
+        function lockScroll(lock){
+            document.body.style.overflow = lock ? "hidden" : "";
         }
 
-        const filmSection = document.getElementById("filmographySection");
-        if (filmSection) {
-            const filmCards   = filmSection.querySelectorAll(".film-card");
-            const filmSliderContainer = filmSection.querySelector(".film-slider-container");
+        function closeEditOverlay(){
+            editOverlay.classList.remove("show");
+            settingsBtn.setAttribute("aria-expanded", "false");
+            lockScroll(false);
+        }
 
-            if (filmCards.length === 0) {
-                if (filmSliderContainer) {
-                    filmSliderContainer.style.display = "none";
-                }
+        settingsBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            editOverlay.classList.add("show");
+            settingsBtn.setAttribute("aria-expanded", "true");
+            lockScroll(true);
+        });
 
-                const empty = document.createElement("p");
-                empty.className = "empty-state";
-                empty.textContent = "아직 등록된 필모그래피가 없어요.";
-                filmSection.appendChild(empty);
+        editOverlay.addEventListener("click", (e) => {
+            if (!editCard.contains(e.target)) {
+                closeEditOverlay();
+                return;
             }
-        }
 
-        const gallerySectionEl = document.getElementById("gallerySection");
-        if (gallerySectionEl) {
-            const galleryGridEl  = gallerySectionEl.querySelector(".gallery-grid");
-            const galleryItems2 = galleryGridEl ? galleryGridEl.querySelectorAll(".gallery-item") : [];
+            const item = e.target.closest(".profile-settings-item");
+            if (!item) return;
 
-            if (galleryItems2.length === 0) {
-                if (galleryGridEl) {
-                    galleryGridEl.style.display = "none";
-                }
+            const action = item.dataset.action;
+            if (action === "profile") window.location.href = "edit-profile.html";
+            else if (action === "filmography") window.location.href = "edit-filmography.html";
+            else if (action === "gallery") window.location.href = "edit-gallery.html";
 
-                const empty2 = document.createElement("p");
-                empty2.className = "empty-state";
-                empty2.textContent = "아직 등록된 사진이 없어요.";
-                gallerySectionEl.appendChild(empty2);
+            closeEditOverlay();
+        });
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && editOverlay.classList.contains("show")) {
+                closeEditOverlay();
             }
-        }
+        });
+    }
 
-        // ★ 여기부터 톱니바퀴 메뉴 동작
-        // ★ 여기부터 톱니바퀴 메뉴 동작 (오버레이 버전)
-        const settingsBtn   = document.getElementById("profileSettingsBtn");
-        const editOverlay   = document.getElementById("profileEditOverlay");
-        const editCard      = editOverlay ? editOverlay.querySelector(".profile-edit-card") : null;
-
-        if (settingsBtn && editOverlay && editCard) {
-            // ⚙️ 버튼 클릭 → 오버레이 열기
-            settingsBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                editOverlay.classList.add("show");
-                settingsBtn.setAttribute("aria-expanded", "true");
-            });
-
-            // 오버레이 안 메뉴 클릭 처리
-            editOverlay.addEventListener("click", (e) => {
-                // 카드 바깥 클릭하면 닫기
-                if (!editCard.contains(e.target)) {
-                    editOverlay.classList.remove("show");
-                    settingsBtn.setAttribute("aria-expanded", "false");
-                    return;
-                }
-
-                // 버튼이 아니면 무시
-                const item = e.target.closest(".profile-settings-item");
-                if (!item) return;
-
-                const action = item.dataset.action;
-
-                if (action === "profile") {
-                    window.location.href = "edit-profile.html";
-                } else if (action === "filmography") {
-                    window.location.href = "edit-filmography.html";
-                } else if (action === "gallery") {
-                    window.location.href = "edit-gallery.html";
-                } else if (action === "close") {
-                    // 그냥 닫기
-                }
-
-                // 액션 처리 후 오버레이 닫기
-                editOverlay.classList.remove("show");
-                settingsBtn.setAttribute("aria-expanded", "false");
-            });
-
-            // Esc로 닫기
-            document.addEventListener("keydown", (e) => {
-                if (e.key === "Escape" && editOverlay.classList.contains("show")) {
-                    editOverlay.classList.remove("show");
-                    settingsBtn.setAttribute("aria-expanded", "false");
-                }
-            });
-        }
-
-    });
 </script>
 
 <script>
@@ -1589,6 +1782,5 @@
         loginOverlay.classList.add("show");
     }
 </script>
-
 </body>
 </html>
