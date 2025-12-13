@@ -552,7 +552,10 @@
             margin-top: 10px;
             display: flex;
             gap: 8px;
+            flex-wrap: wrap;        /* ✅ 추가 */
+            align-items: center;
         }
+
 
         .sns-pill{
             display: inline-flex;
@@ -574,6 +577,46 @@
         .sns-handle{
             color: var(--muted);
             font-size: 12px;
+        }
+
+        .sns-badge{
+            width:22px;
+            height:22px;
+            border-radius:999px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            flex:0 0 auto;
+        }
+
+        .sns-icon{
+            width:14px;
+            height:14px;
+            background:#fff; /* 기본: 배지 위에서 흰색 아이콘 */
+            -webkit-mask: var(--sns-mask) center/contain no-repeat;
+            mask: var(--sns-mask) center/contain no-repeat;
+        }
+
+        /* 브랜드별: 배지 색 + 아이콘(svg) */
+        .sns-pill[data-brand="instagram"] .sns-badge{
+            /* 인스타는 “그라데이션 느낌”이 핵심 */
+            background: radial-gradient(circle at 30% 110%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+        }
+        .sns-pill[data-brand="instagram"] .sns-icon{
+            --sns-mask: url("https://cdn.jsdelivr.net/npm/simple-icons/icons/instagram.svg");
+        }
+
+        .sns-pill[data-brand="youtube"] .sns-badge{ background:#FF0000; }
+        .sns-pill[data-brand="youtube"] .sns-icon{ --sns-mask: url("https://cdn.jsdelivr.net/npm/simple-icons/icons/youtube.svg"); }
+
+        .sns-pill[data-brand="naver"] .sns-badge{ background:#03C75A; }
+        .sns-pill[data-brand="naver"] .sns-icon{ --sns-mask: url("https://cdn.jsdelivr.net/npm/simple-icons/icons/naver.svg"); }
+
+        /* X(트위터) 같은 “검정 브랜드”는 배지를 흰색으로 하고 아이콘을 검정으로 */
+        .sns-pill[data-brand="x"] .sns-badge{ background:#FFFFFF; }
+        .sns-pill[data-brand="x"] .sns-icon{
+            background:#000;
+            --sns-mask: url("https://cdn.jsdelivr.net/npm/simple-icons/icons/x.svg");
         }
 
         .empty-state{
@@ -891,8 +934,22 @@
              alt="프로필 사진" />
 
         <div class="profile-info">
+            <!-- ✅ 프로필 빈 상태 UI -->
+            <div class="empty-card hidden" id="profileEmpty">
+                <div class="empty-title">프로필을 아직 작성하지 않았어요</div>
+                <div class="empty-desc">
+                    프로필 사진, 소개글, 태그만 등록해도 캐스팅 담당자에게 훨씬 잘 보여요.
+                    지금 바로 채워볼까요?
+                </div>
+                <div class="empty-actions">
+                    <a class="btn-primary btn-mini" href="edit-profile.html">프로필 작성하기</a>
+                    <a class="btn-ghost btn-mini" href="edit-profile.html#photo">프로필 사진 설정</a>
+                    <a class="btn-ghost btn-mini" href="edit-profile.html#sns">SNS 추가</a>
+                </div>
+            </div>
+
             <div class="profile-title-row">
-                <h1>ddd</h1>
+                <h1 id="profileName" data-value="">회원명</h1>
                 <button
                         type="button"
                         class="profile-settings-btn"
@@ -904,29 +961,41 @@
                 </button>
             </div>
 
-            <div class="meta">
-                0000.00.00 · ㅇㅇ 출생
+            <div class="meta" id="profileMeta" data-birth-date="" data-birth-place="">
+                생년월일 · 출생지 미등록
             </div>
 
-            <p class="bio" id="bioDisplay">
-                소개글 한 줄.
+            <p class="bio" id="bioDisplay" data-value="">
+                소개글을 입력해 주세요.
             </p>
 
-            <div class="sns-row">
-                <a href="https://instagram.com/j__hoi/" class="sns-pill" target="_blank">
-                    <span class="sns-icon">📷</span>
+            <div class="sns-row" id="snsRow">
+                <a href="https://instagram.com/j__hoi/" class="sns-pill" data-brand="instagram" target="_blank">
+                    <span class="sns-badge"><span class="sns-icon" aria-hidden="true"></span></span>
                     <span class="sns-label">Instagram</span>
                     <span class="sns-handle">@j__hoi</span>
+                </a>
+
+                <a href="https://www.youtube.com/@onfilm" class="sns-pill" data-brand="youtube" target="_blank">
+                    <span class="sns-badge"><span class="sns-icon" aria-hidden="true"></span></span>
+                    <span class="sns-label">YouTube</span>
+                    <span class="sns-handle">@onfilm</span>
+                </a>
+
+                <a href="https://blog.naver.com/onfilm" class="sns-pill" data-brand="naver" target="_blank">
+                    <span class="sns-badge"><span class="sns-icon" aria-hidden="true"></span></span>
+                    <span class="sns-label">Naver</span>
+                    <span class="sns-handle">blog</span>
                 </a>
             </div>
 
             <section class="profile-tag-section">
                 <div class="profile-tag-title">PROFILE TAGS</div>
                 <div class="profile-tag-list" id="tagList">
-                    <span class="profile-tag">#아역</span>
-                    <span class="profile-tag">#밝은 이미지</span>
-                    <span class="profile-tag">#광고 친화적</span>
-                    <span class="profile-tag">#자연스러운 표정</span>
+                    <span class="profile-tag">#주연</span>
+                    <span class="profile-tag">#장편영화</span>
+                    <span class="profile-tag">#드라마</span>
+                    <span class="profile-tag">#상영작</span>
                 </div>
             </section>
         </div>
@@ -1594,8 +1663,13 @@
             }
         }
 
+        // ✅ 본인 여부에 따라 편집 UI 노출
+        const isOwner = true; // TODO: 나중에 로그인/토큰으로 결정
+        document.getElementById("profileSettingsBtn")?.classList.toggle("hidden", !isOwner);
+        document.getElementById("profileEditOverlay")?.classList.toggle("hidden", !isOwner);
+
         // ✅ 톱니바퀴 오버레이는 그대로
-        setupEditOverlay();
+        if (isOwner) setupEditOverlay();
     });
 </script>
 
@@ -1654,17 +1728,18 @@
     function updateEmptyUI(){
         // ---- PROFILE ----
         const profileHeader = document.querySelector(".profile-header");
-        const nameEl = document.querySelector(".profile-info h1");
-        const metaEl = document.querySelector(".profile-info .meta");
+        const nameEl = document.getElementById("profileName");
+        const metaEl = document.getElementById("profileMeta");
         const bioEl  = document.getElementById("bioDisplay");
+
         const snsRow = document.querySelector(".sns-row");
         const tagList = document.getElementById("tagList");
 
         const profileEmptyEl = document.getElementById("profileEmpty");
 
-        const hasName = nameEl && nameEl.textContent.trim() && nameEl.textContent.trim() !== "회원명";
-        const hasMeta = metaEl && metaEl.textContent.replace(/\s/g,"").includes("0000") === false;
-        const hasBio  = bioEl && bioEl.textContent.trim() && bioEl.textContent.trim() !== "소개글 한 줄.";
+        const hasName = !!(nameEl?.dataset.value?.trim());
+        const hasMeta = !!(metaEl?.dataset.birthDate?.trim() || metaEl?.dataset.birthPlace?.trim());
+        const hasBio  = !!(bioEl?.dataset.value?.trim());
         const hasSns  = snsRow && snsRow.querySelectorAll("a.sns-pill").length > 0;
         const hasTags = tagList && tagList.querySelectorAll(".profile-tag").length > 0;
 

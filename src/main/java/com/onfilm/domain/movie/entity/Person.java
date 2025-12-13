@@ -20,32 +20,67 @@ public class Person {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 60)
     private String name;
-    private String profileImage;
+
     private LocalDate birthDate;
+
+    @Column(length = 80)
+    private String birthPlace;
+
+    @Column(length = 120)
+    private String oneLineIntro;
+
+    @Column(length = 512)
+    private String profileImageUrl;
 
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PersonSns> snsList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProfileTag> profileTags = new ArrayList<>();
+
     @Builder(access = AccessLevel.PRIVATE)
-    private Person(String name, String profileImage, LocalDate birthDate, List<PersonSns> snsList) {
+    private Person(
+            String name,
+            LocalDate birthDate,
+            String birthPlace,
+            String oneLineIntro,
+            String profileImageUrl,
+            List<PersonSns> snsList,
+            List<ProfileTag> profileTags
+    ) {
         this.name = name;
-        this.profileImage = profileImage;
         this.birthDate = birthDate;
+        this.birthPlace = birthPlace;
+        this.oneLineIntro = oneLineIntro;
+        this.profileImageUrl = profileImageUrl;
         if (snsList != null) snsList.forEach(this::addSns);
+        if (profileTags != null) profileTags.forEach(this::addProfileTag);
     }
 
-    public static Person create(CreatePersonRequest request, String profileImageUrl) {
+    public static Person create(
+            String name,
+            LocalDate birthDate,
+            String birthPlace,
+            String oneLineIntro,
+            String profileImageUrl,
+            List<PersonSns> snsList,
+            List<ProfileTag> profileTags
+    ) {
         Person person = Person.builder()
-                .name(request.getName())
-                .birthDate(request.getBirthDate())
-                .profileImage(profileImageUrl)
-                .snsList(new ArrayList<>())
+                .name(name)
+                .birthDate(birthDate)
+                .birthPlace(birthPlace)
+                .oneLineIntro(oneLineIntro)
+                .profileImageUrl(profileImageUrl)
+                .snsList(snsList)
+                .profileTags(profileTags)
                 .build();
 
-        if (request.getSnsList() != null) {
-            for (PersonSnsRequest snsReq : request.getSnsList()) {
-                person.addSns(new PersonSns(snsReq.getType(), snsReq.getUrl()));
+        if (snsList != null) {
+            for (PersonSns sns : snsList) {
+                person.addSns(sns);
             }
         }
 
@@ -57,5 +92,19 @@ public class Person {
             snsList.add(sns);
             sns.addPerson(this);
         }
+    }
+
+    public void addProfileTag(String rawText) {
+        if (rawText == null) return;
+        ProfileTag tag = ProfileTag.of(this, rawText);
+        if (profileTags.stream().anyMatch(t -> t.getNormalized().equals(tag.getNormalized()))) return;
+        profileTags.add(tag);
+    }
+
+    public void removeProfileTag(String rawText) {
+        if (rawText == null) return;
+        String normalized = ProfileTag.normalize(rawText);
+
+        profileTags.removeIf(t -> t.getNormalized().equals(normalized));
     }
 }
