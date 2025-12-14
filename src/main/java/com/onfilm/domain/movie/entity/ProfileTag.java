@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProfileTag {
-
     @Id @GeneratedValue
     private Long id;
 
@@ -23,7 +22,7 @@ public class ProfileTag {
     private String rawText;         // 사용자가 입력한 원문 (표시용)
 
     @Column(nullable = false, length = 30)
-    private String normalized;  // 검색/중복 방지용 (공백정리, 소문자 등)
+    private String normalized;      // 검색/중복 방지용 (공백정리, 소문자 등)
 
     private ProfileTag(Person person, String rawText) {
         this.person = person;
@@ -31,13 +30,24 @@ public class ProfileTag {
         this.normalized = normalize(this.rawText);
     }
 
-    public static ProfileTag of(Person person, String rawText) {
+    public static ProfileTag from(Person person, String rawText) {
         if (person == null) throw new IllegalArgumentException("person is required");
         return new ProfileTag(person, rawText);
     }
 
-    public String getDisplayText() {
-        return rawText.startsWith("#") ? rawText : "#" + rawText;
+    public static String normalize(String input) {
+        if (input == null) return "";
+
+        String t = input.trim();
+        t = t.replaceAll("^#+", "");     // 앞 # 제거
+        t = t.trim();                                     // # 제거 후 남은 공백 제거
+        t = t.replaceAll("\\s+", " ");   // 공백 여러개 -> 1개
+        t = t.toLowerCase();
+        return t;
+    }
+
+    public String getNormalized() {
+        return normalized;
     }
 
     static String validate(String rawText) {
@@ -52,17 +62,4 @@ public class ProfileTag {
 
         return t;
     }
-
-    public static String normalize(String input) {
-        String t = input == null ? "" : input.trim();
-        t = t.replaceAll("^#+", "");        // 앞 # 제거
-        t = t.replaceAll("\\s+", " ");      // 공백 여러개 -> 1개
-        t = t.toLowerCase();                                 // 소문자 변환
-        return t;
-    }
-
-    public String getNormalized() {
-        return normalized;
-    }
-
 }

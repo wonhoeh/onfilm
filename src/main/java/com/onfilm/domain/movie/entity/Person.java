@@ -1,7 +1,5 @@
 package com.onfilm.domain.movie.entity;
 
-import com.onfilm.domain.movie.dto.CreatePersonRequest;
-import com.onfilm.domain.movie.dto.PersonSnsRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -46,19 +44,21 @@ public class Person {
             LocalDate birthDate,
             String birthPlace,
             String oneLineIntro,
-            String profileImageUrl,
-            List<PersonSns> snsList,
-            List<ProfileTag> profileTags
+            String profileImageUrl
     ) {
         this.name = name;
         this.birthDate = birthDate;
         this.birthPlace = birthPlace;
         this.oneLineIntro = oneLineIntro;
         this.profileImageUrl = profileImageUrl;
-        if (snsList != null) snsList.forEach(this::addSns);
-        if (profileTags != null) profileTags.forEach(this::addProfileTag);
+
     }
 
+    /**
+     * Person 생성 시 profileTags/snsList를 입력받고
+     * 실제 컬렉션 세팅은 addXxx()를 통해서만 하게 해서
+     * 태그 정규화/중복 제거/연관관계 설정 같은 규칙을 Person이 일관되게 보장
+     */
     public static Person create(
             String name,
             LocalDate birthDate,
@@ -66,7 +66,7 @@ public class Person {
             String oneLineIntro,
             String profileImageUrl,
             List<PersonSns> snsList,
-            List<ProfileTag> profileTags
+            List<String> rawTags
     ) {
         Person person = Person.builder()
                 .name(name)
@@ -74,20 +74,17 @@ public class Person {
                 .birthPlace(birthPlace)
                 .oneLineIntro(oneLineIntro)
                 .profileImageUrl(profileImageUrl)
-                .snsList(snsList)
-                .profileTags(profileTags)
                 .build();
 
-        if (snsList != null) {
-            for (PersonSns sns : snsList) {
-                person.addSns(sns);
-            }
-        }
+        if (snsList != null) snsList.forEach(person::addSns);
+        if (rawTags != null) rawTags.forEach(person::addProfileTag);
 
         return person;
     }
 
     public void addSns(PersonSns sns) {
+        if (sns == null) return;
+
         if (!snsList.contains(sns)) {
             snsList.add(sns);
             sns.addPerson(this);
@@ -96,8 +93,15 @@ public class Person {
 
     public void addProfileTag(String rawText) {
         if (rawText == null) return;
-        ProfileTag tag = ProfileTag.of(this, rawText);
-        if (profileTags.stream().anyMatch(t -> t.getNormalized().equals(tag.getNormalized()))) return;
+
+        String normalized = ProfileTag.normalize(rawText);
+        if (normalized.isBlank()) return;
+
+        boolean duplicated = profileTags.stream()
+                .anyMatch(t -> t.getNormalized().equals(normalized));
+        if (duplicated) return;
+
+        ProfileTag tag = ProfileTag.from(this, rawText); // from에서 연관 관계 설정
         profileTags.add(tag);
     }
 

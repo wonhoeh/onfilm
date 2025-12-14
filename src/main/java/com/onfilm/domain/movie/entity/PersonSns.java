@@ -1,9 +1,12 @@
 package com.onfilm.domain.movie.entity;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 @Entity
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PersonSns {
 
     @Id @GeneratedValue
