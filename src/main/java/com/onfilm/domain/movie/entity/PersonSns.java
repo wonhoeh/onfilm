@@ -3,9 +3,11 @@ package com.onfilm.domain.movie.entity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PersonSns {
 
@@ -26,7 +28,7 @@ public class PersonSns {
         this.url = url;
     }
 
-    public void addPerson(Person person) {
+    public void setPerson(Person person) {
         this.person = person;
     }
 }

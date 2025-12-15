@@ -26,6 +26,10 @@ public class MoviePerson {
     @Column(name = "role", nullable = false)
     private PersonRole role;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "castType", nullable = false)
+    private CastType castType;
+
     // 배우일 때만 사용하는 필드 (감독/작가는 null)
     @Column(name = "characterName", nullable = true)
     private String characterName;

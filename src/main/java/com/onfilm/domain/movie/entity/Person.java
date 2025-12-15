@@ -85,10 +85,17 @@ public class Person {
     public void addSns(PersonSns sns) {
         if (sns == null) return;
 
-        if (!snsList.contains(sns)) {
-            snsList.add(sns);
-            sns.addPerson(this);
-        }
+        /**
+         * JPA 엔티티는 저장 전 id가 없을 수 있어 비즈니스 키(type+url)로 중복 체크
+         */
+        boolean duplicated = snsList.stream().anyMatch(s ->
+                s.getType() == sns.getType() &&
+                s.getUrl().equals(sns.getUrl())
+        );
+        if (duplicated) return;
+
+        snsList.add(sns);
+        sns.setPerson(this);
     }
 
     public void addProfileTag(String rawText) {

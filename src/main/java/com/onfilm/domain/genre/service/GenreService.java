@@ -1,10 +1,5 @@
 package com.onfilm.domain.genre.service;
 
-import com.onfilm.domain.genre.dto.CreateGenreRequest;
-import com.onfilm.domain.genre.dto.GenreResponse;
-import com.onfilm.domain.genre.entity.Genre;
-import com.onfilm.domain.genre.repository.GenreRepository;
-import com.onfilm.domain.global.error.exception.GenreNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

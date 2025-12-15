@@ -1,4 +1,4 @@
-package com.onfilm.domain.global.config;
+package com.onfilm.domain.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

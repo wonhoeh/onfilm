@@ -1,4 +1,4 @@
-package com.onfilm.domain.global.error;
+package com.onfilm.domain.common.error;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;

@@ -1,4 +1,4 @@
-package com.onfilm.domain.global.error.exception;
+package com.onfilm.domain.common.error.exception;
 
 public class FileUploadException extends RuntimeException {
     public FileUploadException() {

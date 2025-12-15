@@ -1,7 +1,6 @@
 package com.onfilm.infra.s3;
 
-import com.onfilm.domain.global.error.exception.FileUploadException;
-import com.onfilm.infra.s3.FileType;
+import com.onfilm.domain.common.error.exception.FileUploadException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

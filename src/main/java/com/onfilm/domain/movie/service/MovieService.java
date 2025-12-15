@@ -2,9 +2,8 @@ package com.onfilm.domain.movie.service;
 
 import com.onfilm.domain.genre.entity.Genre;
 import com.onfilm.domain.genre.repository.GenreRepository;
-import com.onfilm.domain.global.error.exception.ActorNotFoundException;
-import com.onfilm.domain.global.error.exception.MovieNotFoundException;
-import com.onfilm.domain.global.error.exception.MoviePersonNotFoundException;
+import com.onfilm.domain.common.error.exception.MovieNotFoundException;
+import com.onfilm.domain.common.error.exception.MoviePersonNotFoundException;
 import com.onfilm.domain.like.repository.MovieLikeRepository;
 import com.onfilm.domain.movie.dto.*;
 import com.onfilm.domain.movie.entity.*;

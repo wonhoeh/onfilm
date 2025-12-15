@@ -2,7 +2,7 @@ package com.onfilm.domain.like.service;
 
 import com.onfilm.domain.comment.entity.Comment;
 import com.onfilm.domain.comment.repository.CommentRepository;
-import com.onfilm.domain.global.error.exception.CommentNotFoundException;
+import com.onfilm.domain.common.error.exception.CommentNotFoundException;
 import com.onfilm.domain.like.entity.CommentLike;
 import com.onfilm.domain.like.repository.CommentLikeRepository;
 import lombok.RequiredArgsConstructor;

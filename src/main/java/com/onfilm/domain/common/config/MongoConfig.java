@@ -1,4 +1,4 @@
-package com.onfilm.domain.global.config;
+package com.onfilm.domain.common.config;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;

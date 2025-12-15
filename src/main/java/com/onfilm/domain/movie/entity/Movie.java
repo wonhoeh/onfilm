@@ -1,7 +1,8 @@
 package com.onfilm.domain.movie.entity;
 
+import com.onfilm.domain.common.TextNormalizer;
 import com.onfilm.domain.genre.entity.Genre;
-import com.onfilm.domain.global.error.exception.ActorNotFoundException;
+import com.onfilm.domain.common.error.exception.ActorNotFoundException;
 import com.onfilm.domain.movie.dto.CreateMovieRequest;
 import com.onfilm.domain.movie.dto.UpdateMovieActorRequest;
 import com.onfilm.domain.movie.dto.UpdateMovieRequest;
@@ -18,21 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Movie 엔티티
- * 영화 정보
- * - 제목
- * - 제작에 참여한 제작진
- * - 작품에 출연한 배우
- * - 대본을 작성한 작가
- * - 영화의 장르
- * - 개봉일
- * - 종료일
- * - 자막: LONGTEXT(42억 바이트 = 4GB)
- * - 동영상: LONGBLOB(42억 바이트 = 4GB)
- * - 엔티티
- */
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -42,24 +28,10 @@ public class Movie {
     private Long id;
     private String title;
     private int runtime;
-    private String ageRating;
     private LocalDate releaseDate;
     private String synopsis;
     private String movieUrl;
     private String thumbnailUrl;
-
-//    //영화에 출연한 배우들
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
-    @BatchSize(size = 100)   //한 번에 100개의 MovieActor를 로드
-    private List<MovieActor> movieActors = new ArrayList<>();
-//
-//    //영화 제작에 참여한 감독들
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MovieDirector> movieDirectors = new ArrayList<>();
-//
-//    //시나리오 집필한 작가들
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MovieWriter> movieWriters = new ArrayList<>();
 
     // 출연진, 감독, 작가
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -74,16 +46,16 @@ public class Movie {
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MovieGenre> genres = new ArrayList<>();
 
-    //영화에 달린 댓글
-    @ElementCollection
-    private List<String> comments = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private AgeRating ageRating;
 
     //영화의 좋아요
     @ElementCollection
     private List<String> likes = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
-    public Movie(String title, int runtime, String ageRating,
+    public Movie(String title, int runtime, AgeRating ageRating,
                  LocalDate releaseDate, String synopsis,
                  String movieUrl, String thumbnailUrl) {
         this.title = title;
@@ -95,40 +67,43 @@ public class Movie {
         this.thumbnailUrl = thumbnailUrl;
     }
 
-    // =================================
-    // 정적 팩토리
-    // =================================
-
-    public static Movie create(CreateMovieRequest request, String thumbnailUrl, String movieUrl) {
-        return Movie.builder()
-                .title(request.getTitle())
-                .runtime(request.getRuntime())
-                .ageRating(request.getAgeRating())
-                .releaseDate(request.getReleaseDate())
-                .synopsis(request.getSynopsis())
+    public static Movie create(String title, int runtime, AgeRating ageRating,
+                               LocalDate releaseDate, String synopsis,
+                               String movieUrl, String thumbnailUrl,
+                               List<String> rawGenreTexts) {
+        Movie movie = Movie.builder()
+                .title(title)
+                .runtime(runtime)
+                .ageRating(ageRating)
+                .releaseDate(releaseDate)
+                .synopsis(synopsis)
                 .movieUrl(movieUrl)
                 .thumbnailUrl(thumbnailUrl)
                 .build();
+        if (rawGenreTexts != null) rawGenreTexts.forEach(movie::addGenreRaw);
+
+        return movie;
     }
 
     // =================================
     // 연관관계 편의 메서드
     // =================================
 
-    public void addActor(MovieActor movieActor) {
-        movieActors.add(movieActor);
-        movieActor.addMovie(this);
+    public void addGenreRaw(String rawText) {
+        if (rawText == null) return;
+
+        String normalized = TextNormalizer.normalizeTag(rawText);
+        if (normalized.isBlank()) return;
+
+        // ✅ normalized 기준 중복 방지
+        boolean duplicated = genres.stream()
+                .anyMatch(g -> g.getNormalizedText().equals(normalized));
+        if (duplicated) return;
+
+        MovieGenre mg = MovieGenre.fromRaw(this, rawText, MovieGenre.Source.USER);
+        genres.add(mg);
     }
 
-    public void addDirector(MovieDirector movieDirector) {
-        movieDirectors.add(movieDirector);
-        movieDirector.addMovie(this);
-    }
-
-    public void addWriter(MovieWriter movieWriter) {
-        movieWriters.add(movieWriter);
-        movieWriter.addMovie(this);
-    }
 
     public void addMoviePerson(MoviePerson moviePerson) {
         moviePeople.add(moviePerson);
@@ -155,11 +130,6 @@ public class Movie {
     // =================================
     // Setter
     // =================================
-
-
-    public void addComment(String commentId) {
-        comments.add(commentId);
-    }
 
     public void addLike(String movieLikeId) {
         likes.add(movieLikeId);
@@ -195,57 +165,5 @@ public class Movie {
         this.movieUrl = movieUrl;
     }
 
-    //=== 수정 메서드 ===//
-    public void updateMovie(UpdateMovieRequest request, ActorRepository actorRepository) {
-        if(request.getTitle() != null) {
-            updateTitle(request.getTitle());
-        }
-        if(request.getRuntime() != null) {
-            updateRuntime(request.getRuntime());
-        }
-        if(request.getAgeRating() != null) {
-            updateAgeRating(request.getAgeRating());
-        }
-        if(request.getReleaseDate() != null) {
-            updateReleaseDate(request.getReleaseDate());
-        }
-        if(request.getSynopsis() != null) {
-            updateSynopsis(request.getSynopsis());
-        }
-        if(request.getMovieUrl() != null) {
-            updateMovieUrl(request.getMovieUrl());
-        }
-    }
-
-    public void updateMovieActors(List<UpdateMovieActorRequest> movieActorRequests, ActorRepository actorRepository) {
-        //기존 영화의 배우 리스트 가져오기
-        List<MovieActor> existingActors = this.getMovieActors();
-
-        //요청에서 받은 배우 ID 리스트
-        List<Long> newActorIds = movieActorRequests.stream()
-                .map(UpdateMovieActorRequest::getActorId)
-                .collect(Collectors.toList());
-
-        //추가할 배우 찾기 (기존에 없던 배우 추가)
-        List<MovieActor> actorsToAdd = movieActorRequests.stream()
-                .filter(request -> existingActors.stream()
-                        .noneMatch(movieActor -> movieActor.getActor().getId().equals(request.getActorId()))
-                )
-                .map(request -> {
-                    Actor actor = actorRepository.findById(request.getActorId())
-                            .orElseThrow(() -> new ActorNotFoundException("배우를 찾을 수 없습니다: " + request.getActorId()));
-                    return MovieActor.createCasting(this, actor, request.getActorRole());
-                })
-                .collect(Collectors.toList());
-
-        //삭제할 배우 찾기 (새로운 목록에 없는 배우 제거)
-        List<MovieActor> actorsToRemove = existingActors.stream()
-                .filter(movieActor -> !newActorIds.contains(movieActor.getActor().getId()))
-                .collect(Collectors.toList());
-
-        //기존 목록에서 삭제할 배우 제거 & 추가할 배우 추가
-        existingActors.removeAll(actorsToRemove);
-        existingActors.addAll(actorsToAdd);
-    }
 
 }

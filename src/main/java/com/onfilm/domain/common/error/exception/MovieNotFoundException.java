@@ -1,4 +1,4 @@
-package com.onfilm.domain.global.error.exception;
+package com.onfilm.domain.common.error.exception;
 
 public class MovieNotFoundException extends RuntimeException {
     public MovieNotFoundException() {

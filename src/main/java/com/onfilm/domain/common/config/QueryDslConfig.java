@@ -1,4 +1,4 @@
-package com.onfilm.domain.global.config;
+package com.onfilm.domain.common.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;

@@ -1,6 +1,6 @@
 package com.onfilm.domain.like.service;
 
-import com.onfilm.domain.global.error.exception.MovieNotFoundException;
+import com.onfilm.domain.common.error.exception.MovieNotFoundException;
 import com.onfilm.domain.like.entity.MovieLike;
 import com.onfilm.domain.like.repository.MovieLikeRepository;
 import com.onfilm.domain.movie.entity.Movie;
