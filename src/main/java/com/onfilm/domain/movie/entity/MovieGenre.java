@@ -19,8 +19,6 @@ import lombok.NoArgsConstructor;
         })
 public class MovieGenre {
 
-    public enum Source { USER, SYSTEM }
-
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -40,26 +38,31 @@ public class MovieGenre {
     @Column(name = "normalized_text", nullable = false, length = 60)
     private String normalizedText;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
-    private Source source;
-
     @Builder(access = AccessLevel.PRIVATE)
-    private MovieGenre(Movie movie, Genre genre, String rawText, Source source) {
+    private MovieGenre(Movie movie, Genre genre, String rawText) {
         this.movie = movie;
         this.genre = genre; // null 가능
         this.rawText = rawText.trim();
         this.normalizedText = TextNormalizer.normalizeTag(rawText);
-        this.source = (source == null) ? Source.USER : source;
     }
 
-    public static MovieGenre fromRaw(Movie movie, String rawText, Source source) {
+    public static MovieGenre create(Movie movie, Genre genre, String rawText, String normalizedText) {
+        MovieGenre movieGenre = MovieGenre.builder()
+                .movie(movie)
+                .genre(genre)
+                .rawText(rawText)
+                .build();
+
+        return movieGenre;
+    }
+
+    public static MovieGenre fromRaw(Movie movie, String rawText) {
         if (movie == null) throw new IllegalArgumentException("movie is required");
         if (rawText == null || rawText.isBlank()) throw new IllegalArgumentException("rawText is required");
+
         return MovieGenre.builder()
                 .movie(movie)
                 .rawText(rawText)
-                .source(source)
                 .build();
     }
 

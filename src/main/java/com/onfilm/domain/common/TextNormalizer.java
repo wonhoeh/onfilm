@@ -10,7 +10,7 @@ public class TextNormalizer {
         String t = (input == null) ? "" : input.trim();
         t = t.replaceAll("^#+", "");   // 앞 # 제거 (장르에도 재사용 가능)
         t = t.replaceAll("\\s+", " "); // 다중 공백 -> 1개
-        t = t.toLowerCase();           // 소문자
+        t = t.toLowerCase();                            // 소문자
         return t;
     }
 }

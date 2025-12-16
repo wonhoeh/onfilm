@@ -1,12 +1,8 @@
 package com.onfilm.domain.movie.entity;
 
 import com.onfilm.domain.common.TextNormalizer;
-import com.onfilm.domain.genre.entity.Genre;
-import com.onfilm.domain.common.error.exception.ActorNotFoundException;
-import com.onfilm.domain.movie.dto.CreateMovieRequest;
 import com.onfilm.domain.movie.dto.UpdateMovieActorRequest;
 import com.onfilm.domain.movie.dto.UpdateMovieRequest;
-import com.onfilm.domain.movie.repository.ActorRepository;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -17,7 +13,6 @@ import org.hibernate.annotations.BatchSize;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -26,23 +21,26 @@ public class Movie {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "movie_id", nullable = false)
     private Long id;
+
     private String title;
+
     private int runtime;
-    private LocalDate releaseDate;
+
+    private Integer releaseYear;
+
     private String synopsis;
+
     private String movieUrl;
+
     private String thumbnailUrl;
 
-    // 출연진, 감독, 작가
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MoviePerson> moviePeople = new ArrayList<>();
 
-    //예고편, 섬네일
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 100)
     private List<MovieTrailer> movieTrailers = new ArrayList<>();
 
-    //장르
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MovieGenre> genres = new ArrayList<>();
 
@@ -50,36 +48,53 @@ public class Movie {
     @Column(nullable = false, length = 10)
     private AgeRating ageRating;
 
-    //영화의 좋아요
     @ElementCollection
     private List<String> likes = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
-    public Movie(String title, int runtime, AgeRating ageRating,
-                 LocalDate releaseDate, String synopsis,
-                 String movieUrl, String thumbnailUrl) {
+    public Movie(String title,
+                 int runtime,
+                 AgeRating ageRating,
+                 Integer releaseYear,
+                 String synopsis,
+                 String movieUrl,
+                 String thumbnailUrl) {
         this.title = title;
         this.runtime = runtime;
         this.ageRating = ageRating;
-        this.releaseDate = releaseDate;
+        this.releaseYear = releaseYear;
         this.synopsis = synopsis;
         this.movieUrl = movieUrl;
         this.thumbnailUrl = thumbnailUrl;
     }
 
-    public static Movie create(String title, int runtime, AgeRating ageRating,
-                               LocalDate releaseDate, String synopsis,
-                               String movieUrl, String thumbnailUrl,
-                               List<String> rawGenreTexts) {
+    public static Movie create(
+            String title,
+            int runtime,
+            AgeRating ageRating,
+            Integer releaseYear,
+            String synopsis,
+            String movieUrl,
+            String thumbnailUrl,
+            List<String> rawGenreTexts) {
+        if (title == null || title.isBlank()) {
+            throw new IllegalArgumentException("invalid title");
+        }
+
+        if (releaseYear != null && (releaseYear < 1900 || releaseYear > LocalDate.now().getYear() + 1)) {
+            throw new IllegalArgumentException("invalid releaseYear");
+        }
+
         Movie movie = Movie.builder()
                 .title(title)
                 .runtime(runtime)
                 .ageRating(ageRating)
-                .releaseDate(releaseDate)
+                .releaseYear(releaseYear)
                 .synopsis(synopsis)
                 .movieUrl(movieUrl)
                 .thumbnailUrl(thumbnailUrl)
                 .build();
+
         if (rawGenreTexts != null) rawGenreTexts.forEach(movie::addGenreRaw);
 
         return movie;
@@ -100,7 +115,7 @@ public class Movie {
                 .anyMatch(g -> g.getNormalizedText().equals(normalized));
         if (duplicated) return;
 
-        MovieGenre mg = MovieGenre.fromRaw(this, rawText, MovieGenre.Source.USER);
+        MovieGenre mg = MovieGenre.fromRaw(this, rawText);
         genres.add(mg);
     }
 
@@ -113,14 +128,6 @@ public class Movie {
     public void addTrailer(MovieTrailer movieTrailer) {
         movieTrailers.add(movieTrailer);
         movieTrailer.setMovie(this);
-    }
-
-    public void addGenre(Genre genre) {
-        MovieGenre movieGenre = MovieGenre.builder()
-                .movie(this)
-                .genre(genre)
-                .build();
-        this.genres.add(movieGenre);
     }
 
     public void addMovieUrl(String movieUrl) {
@@ -149,12 +156,8 @@ public class Movie {
         this.runtime = runtime;
     }
 
-    private void updateAgeRating(String ageRating) {
-        this.ageRating = ageRating;
-    }
-
     private void updateReleaseDate(LocalDate releaseDate) {
-        this.releaseDate = releaseDate;
+        this.releaseYear = releaseDate;
     }
 
     private void updateSynopsis(String synopsis) {
