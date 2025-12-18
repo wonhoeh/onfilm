@@ -46,3 +46,4 @@ out/
 
 # application.properites
 application-*.properties
+src/main/resources/application.yml
