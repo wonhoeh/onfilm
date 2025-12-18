@@ -155,8 +155,8 @@ public class Movie {
         this.runtime = runtime;
     }
 
-    private void updateReleaseDate(LocalDate releaseDate) {
-        this.releaseYear = releaseDate;
+    private void updateReleaseDate(Integer releaseYear) {
+        this.releaseYear = releaseYear;
     }
 
     private void updateSynopsis(String synopsis) {

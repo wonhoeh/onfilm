@@ -11,22 +11,22 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
-@RestController
+//@RestController
 @RequestMapping("/genre")
 @RequiredArgsConstructor
 public class GenreController {
 
     private final GenreService genreService;
 
-    @PostMapping()
-    public ResponseEntity<String> createGenre(@RequestBody @Validated CreateGenreRequest request) {
-        String genreId = genreService.createGenre(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(genreId);
-    }
-
-    @GetMapping("/{genreName}")
-    public ResponseEntity<GenreResponse> findByGenreName(@PathVariable String genreName) {
-        GenreResponse response = genreService.findByGenreName(genreName);
-        return ResponseEntity.ok().body(response);
-    }
+//    @PostMapping()
+//    public ResponseEntity<String> createGenre(@RequestBody @Validated CreateGenreRequest request) {
+//        String genreId = genreService.createGenre(request);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(genreId);
+//    }
+//
+//    @GetMapping("/{genreName}")
+//    public ResponseEntity<GenreResponse> findByGenreName(@PathVariable String genreName) {
+//        GenreResponse response = genreService.findByGenreName(genreName);
+//        return ResponseEntity.ok().body(response);
+//    }
 }
