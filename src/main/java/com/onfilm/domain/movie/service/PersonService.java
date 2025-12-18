@@ -21,4 +21,33 @@ public class PersonService {
     private final MoviePersonRepository moviePersonRepository;
     private final PersonRepository personRepository;
 
+    @Transactional
+    public Long createPerson(CreatePersonRequest request, String profileImageUrl) {
+        List<PersonSns> snsList = new ArrayList<>();
+        if (request.getSnsList() != null) {
+            for (PersonSnsRequest snsRequest : request.getSnsList()) {
+                snsList.add(PersonSns.builder()
+                        .type(snsRequest.getType())
+                        .url(snsRequest.getUrl())
+                        .build());
+            }
+        }
+
+        Person person = Person.create(
+                request.getName(),
+                request.getBirthDate(),
+                null,
+                null,
+                profileImageUrl,
+                snsList,
+                new ArrayList<>()
+        );
+
+        return personRepository.save(person).getId();
+    }
+
+    @Transactional(readOnly = true)
+    public List<MoviePerson> getFilmography(Long personId) {
+        return moviePersonRepository.findFilmography(personId);
+    }
 }

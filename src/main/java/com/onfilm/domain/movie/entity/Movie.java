@@ -1,7 +1,6 @@
 package com.onfilm.domain.movie.entity;
 
 import com.onfilm.domain.common.TextNormalizer;
-import com.onfilm.domain.movie.dto.UpdateMovieActorRequest;
 import com.onfilm.domain.movie.dto.UpdateMovieRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -166,6 +165,27 @@ public class Movie {
 
     private void updateMovieUrl(String movieUrl) {
         this.movieUrl = movieUrl;
+    }
+
+    public void updateFrom(UpdateMovieRequest request) {
+        if (request.getTitle() != null) {
+            this.title = request.getTitle();
+        }
+        if (request.getRuntime() != null) {
+            this.runtime = request.getRuntime();
+        }
+        if (request.getReleaseYear() != null) {
+            this.releaseYear = request.getReleaseYear();
+        }
+        if (request.getSynopsis() != null) {
+            this.synopsis = request.getSynopsis();
+        }
+        if (request.getMovieUrl() != null) {
+            this.movieUrl = request.getMovieUrl();
+        }
+        if (request.getThumbnailUrl() != null) {
+            this.thumbnailUrl = request.getThumbnailUrl();
+        }
     }
 
 
