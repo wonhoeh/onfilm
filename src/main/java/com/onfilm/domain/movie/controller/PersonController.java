@@ -18,8 +18,8 @@ public class PersonController {
     private final PersonService personService;
 
     @PostMapping()
-    public ResponseEntity<Long> createPerson(@RequestBody CreatePersonRequest request, String profileImageUrl) {
-        Long personId = personService.createPerson(request, profileImageUrl);
+    public ResponseEntity<Long> createPerson(@RequestBody CreatePersonRequest request) {
+        Long personId = personService.createPerson(request, null);
         return ResponseEntity.status(HttpStatus.CREATED).body(personId);
     }
 

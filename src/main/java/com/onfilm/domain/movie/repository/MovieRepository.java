@@ -10,11 +10,8 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface MovieRepository extends JpaRepository<Movie, Long> {
-    @Query("select m from Movie m join fetch m.movieTrailers where m.id = :id")
+    @Query("select m from Movie m left join fetch m.movieTrailers where m.id = :id")
     Movie findMovieWithTrailers(@Param("id") Long id);
-
-    @Query("select distinct m from Movie m join fetch m.moviePeople mp where m.id = :id and mp.role = com.onfilm.domain.movie.entity.PersonRole.ACTOR")
-    Movie findMovieWithActors(@Param("id") Long id);
 
     @Query("select m from Movie m join fetch m.movieTrailers")
     List<Movie> findAllWithTrailers();

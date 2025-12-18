@@ -7,13 +7,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Map;
 
 
 @Tag(name = "Movie API", description = "영화 관련 API")
@@ -24,15 +21,9 @@ public class MovieController {
 
     private final MovieService movieService;
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Long> createMovie(
-            @RequestPart("movie") @Valid CreateMovieRequest request,
-            @RequestPart("thumbnail") MultipartFile thumbnailFile,
-            @RequestPart("movieFile") MultipartFile movieFile,
-            @RequestPart(value = "trailerFiles", required = false) List<MultipartFile> trailerFiles,
-            @RequestPart(value = "personProfileFiles", required = false) Map<String, MultipartFile> personProfileFiles
-    ) {
-        Long movieId = movieService.createMovie(request, thumbnailFile, movieFile, trailerFiles, personProfileFiles);
+    @PostMapping()
+    public ResponseEntity<Long> createMovie(@RequestBody @Valid CreateMovieRequest request) {
+        Long movieId = movieService.createMovie(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(movieId);
     }
 
