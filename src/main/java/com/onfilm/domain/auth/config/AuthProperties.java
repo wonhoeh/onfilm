@@ -12,5 +12,5 @@ public record AuthProperties(
         String refreshCookieName,
         String refreshCookiePath,
         String refreshCookieSameSite
-) {
+        ) {
 }

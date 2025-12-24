@@ -355,61 +355,70 @@
     const loginError      = document.getElementById("loginError");
     const loginSubmitBtn  = document.getElementById("loginSubmitBtn");
 
-    // 비밀번호 보기/가리기 토글
-    const toggleButtons = document.querySelectorAll(".toggle-visibility-btn");
+    // ✅ access token은 "메모리"에만 저장 (새로고침하면 사라짐)
+    let accessToken = null;
 
-    toggleButtons.forEach(btn => {
-        btn.addEventListener("click", () => {
-            const targetId = btn.dataset.target;
-            const input    = document.getElementById(targetId);
-            if (!input) return;
-
-            const iconVisible = btn.querySelector(".icon-visible");
-            const iconHidden  = btn.querySelector(".icon-hidden");
-
-            if (input.type === "password") {
-                // 문자열 보이기
-                input.type = "text";
-                if (iconVisible) iconVisible.style.display = "block";
-                if (iconHidden)  iconHidden.style.display  = "none";
-            } else {
-                // ***로 가리기
-                input.type = "password";
-                if (iconVisible) iconVisible.style.display = "none";
-                if (iconHidden)  iconHidden.style.display  = "block";
-            }
-        });
-    });
-
-    // 간단한 유효성 체크 (MVP용)
     function validateLoginForm() {
         const emailVal = emailInput.value.trim();
         const pwdVal   = passwordInput.value.trim();
         return emailVal.length > 0 && pwdVal.length > 0;
     }
 
-    function tryLogin() {
+    async function tryLogin() {
         if (!validateLoginForm()) {
             loginError.textContent = "이메일과 비밀번호를 모두 입력해주세요.";
             loginError.style.display = "block";
             return;
         }
 
-        // TODO: 실제 로그인 API 연동
-        // fetch("/api/login", ...)
-
+        loginSubmitBtn.disabled = true;
         loginError.style.display = "none";
-        alert("로그인 요청 전송 (백엔드 연동 필요)");
+
+        try {
+            const res = await fetch("/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include", // ✅ refresh_token 쿠키 저장/전송용
+                body: JSON.stringify({
+                    email: emailInput.value.trim(),
+                    password: passwordInput.value.trim()
+                })
+            });
+
+            if (!res.ok) {
+                // 서버가 에러 메시지를 내려주면 보여주기
+                let msg = "이메일 또는 비밀번호를 확인해주세요.";
+                try {
+                    const err = await res.json();
+                    msg = err.message || msg;
+                } catch {}
+                loginError.textContent = msg;
+                loginError.style.display = "block";
+                return;
+            }
+
+            // 보통 로그인 응답은 accessToken을 JSON으로 줌 (예: { accessToken: "..." })
+            const data = await res.json();
+            accessToken = data.accessToken; // ✅ 메모리에만 저장
+
+            // (선택) /auth/me로 로그인 확인
+            // await fetchMe();
+
+            // 로그인 성공 후 이동
+            window.location.href = "index.html?welcome=1";
+
+        } catch (e) {
+            loginError.textContent = "네트워크 오류가 발생했습니다. 서버가 켜져있는지 확인해주세요.";
+            loginError.style.display = "block";
+        } finally {
+            loginSubmitBtn.disabled = false;
+        }
     }
 
     loginSubmitBtn.addEventListener("click", tryLogin);
-
-    // Enter 키로 로그인
     [emailInput, passwordInput].forEach(el => {
         el.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                tryLogin();
-            }
+            if (e.key === "Enter") tryLogin();
         });
     });
 </script>
