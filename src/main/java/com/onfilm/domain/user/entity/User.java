@@ -15,6 +15,16 @@ public class User {
     @Column(name ="user_id")
     private Long id;
 
+    @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(nullable = false)
     private String password;
+
+    public static User create(String email, String password) {
+        User user = new User();
+        user.email = email;
+        user.password = password;
+        return user;
+    }
 }
