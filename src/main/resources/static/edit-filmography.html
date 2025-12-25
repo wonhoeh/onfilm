@@ -693,5 +693,17 @@
   });
 
 </script>
+<script src="/js/auth.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const { ok } = await window.OnfilmAuth.restoreSession();
+    if (!ok) {
+      // 로그인 페이지로 보내고, 돌아올 주소를 붙여줌
+      const next = encodeURIComponent(location.pathname + location.search);
+      location.href = `/login.html?next=${next}`;
+    }
+  });
+</script>
+
 </body>
 </html>

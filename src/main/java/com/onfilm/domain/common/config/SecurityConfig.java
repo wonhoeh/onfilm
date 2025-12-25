@@ -1,6 +1,7 @@
 package com.onfilm.domain.common.config;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -13,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -21,72 +23,116 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
 
+    // =========================
+    // DEV
+    // =========================
     @Bean
     @Profile("dev")
     SecurityFilterChain devFilterChain(HttpSecurity http) throws Exception {
 
         http
-                // 세션 안씀 (세션고정 위험도 크게 줄어듦)
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(401);
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(403);
+                        })
+                )
+                // 세션 안씀
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 // 폼 로그인/베이직 끔
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
 
-                // H2-console, swagger 쓰면 frame 옵션 필요(개발에서만 허용 추천)
+                // 개발에서만 H2-console iframe 허용
                 .headers(h -> h.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
 
-                // CSRF: access를 헤더로만 쓰는 구조면 보통 disable + refresh/logout에 Origin 체크를 별도로 둠
+                // CSRF 비활성화 (쿠키 기반 refresh/logout이면 별도 CSRF 방어 권장)
                 .csrf(AbstractHttpConfigurer::disable)
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/me").authenticated()
+                        // ✅ 정적 리소스 (가장 안전)
+                        .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+
+                        // ✅ 직접 접근할 html/js/css/assets 허용 (정적 서빙 방식에 따라 필요)
                         .requestMatchers(
-                                "/",
-                                "/index.html",
-                                "/login.html",
-                                "/signup.html",
-                                "/auth/**",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                new AntPathRequestMatcher("/"),
+                                new AntPathRequestMatcher("/index.html"),
+                                new AntPathRequestMatcher("/login.html"),
+                                new AntPathRequestMatcher("/signup.html"),
+                                new AntPathRequestMatcher("/*.html"),
+                                new AntPathRequestMatcher("/js/**"),
+                                new AntPathRequestMatcher("/css/**"),
+                                new AntPathRequestMatcher("/images/**"),
+                                new AntPathRequestMatcher("/videos/**"),
+                                new AntPathRequestMatcher("/favicon.ico")
                         ).permitAll()
-                        // dev에서만 열고 싶으면 profile 분기 권장
+
+                        // ✅ auth 정책
+                        .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh").permitAll()
+                        .requestMatchers("/auth/me").authenticated()
+                        .requestMatchers("/auth/logout").authenticated()
+
+                        // ✅ dev 전용
                         .requestMatchers("/h2-console/**").permitAll()
+
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
 
-                // JWT 필터를 UsernamePasswordAuthenticationFilter 앞에
+                // JWT 필터
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
+    // =========================
+    // PROD (dev 아닐 때 전부)
+    // =========================
     @Bean
     @Profile("!dev")
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                // 세션 안씀 (세션고정 위험도 크게 줄어듦)
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(401);
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(403);
+                        })
+                )
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // 폼 로그인/베이직 끔
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-
-                // CSRF: access를 헤더로만 쓰는 구조면 보통 disable + refresh/logout에 Origin 체크를 별도로 둠
                 .csrf(AbstractHttpConfigurer::disable)
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/me").authenticated()
+                        // ✅ prod에서도 정적 리소스는 반드시 열어야 함 (안 열면 /js/auth.js 403)
+                        .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                         .requestMatchers(
-                                "/auth/**",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                new AntPathRequestMatcher("/"),
+                                new AntPathRequestMatcher("/index.html"),
+                                new AntPathRequestMatcher("/login.html"),
+                                new AntPathRequestMatcher("/signup.html"),
+                                new AntPathRequestMatcher("/*.html"),
+                                new AntPathRequestMatcher("/js/**"),
+                                new AntPathRequestMatcher("/css/**"),
+                                new AntPathRequestMatcher("/images/**"),
+                                new AntPathRequestMatcher("/videos/**"),
+                                new AntPathRequestMatcher("/favicon.ico")
                         ).permitAll()
+
+                        .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh").permitAll()
+                        .requestMatchers("/auth/me").authenticated()
+                        .requestMatchers("/auth/logout").authenticated()
+
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
 
-                // JWT 필터를 UsernamePasswordAuthenticationFilter 앞에
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

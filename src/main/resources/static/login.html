@@ -372,48 +372,27 @@
         }
 
         loginSubmitBtn.disabled = true;
-        loginError.style.display = "none";
+        loginSubmitBtn.textContent = "로그인 중...";
 
         try {
-            const res = await fetch("/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include", // ✅ refresh_token 쿠키 저장/전송용
-                body: JSON.stringify({
-                    email: emailInput.value.trim(),
-                    password: passwordInput.value.trim()
-                })
-            });
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
 
-            if (!res.ok) {
-                // 서버가 에러 메시지를 내려주면 보여주기
-                let msg = "이메일 또는 비밀번호를 확인해주세요.";
-                try {
-                    const err = await res.json();
-                    msg = err.message || msg;
-                } catch {}
-                loginError.textContent = msg;
-                loginError.style.display = "block";
-                return;
-            }
+            await window.OnfilmAuth.login(email, password);
 
-            // 보통 로그인 응답은 accessToken을 JSON으로 줌 (예: { accessToken: "..." })
-            const data = await res.json();
-            accessToken = data.accessToken; // ✅ 메모리에만 저장
-
-            // (선택) /auth/me로 로그인 확인
-            // await fetchMe();
-
-            // 로그인 성공 후 이동
-            window.location.href = "index.html?welcome=1";
-
+            // next 파라미터가 있으면 그쪽으로, 없으면 홈으로
+            const params = new URLSearchParams(location.search);
+            const next = params.get("next");
+            location.href = next ? decodeURIComponent(next) : "/index.html";
         } catch (e) {
-            loginError.textContent = "네트워크 오류가 발생했습니다. 서버가 켜져있는지 확인해주세요.";
+            loginError.textContent = e.message || "로그인 실패";
             loginError.style.display = "block";
         } finally {
             loginSubmitBtn.disabled = false;
+            loginSubmitBtn.textContent = "로그인";
         }
     }
+
 
     loginSubmitBtn.addEventListener("click", tryLogin);
     [emailInput, passwordInput].forEach(el => {
@@ -422,6 +401,7 @@
         });
     });
 </script>
+<script src="/js/auth.js"></script>
 
 </body>
 </html>
