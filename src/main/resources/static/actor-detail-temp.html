@@ -956,7 +956,7 @@
         <div class="profile-header">
             <img id="profilePhoto"
                  class="profile-photo"
-                 src="videos/profile-placeholder.png"
+                 src="/videos/profile-placeholder.png"
                  data-profile-src=""
                  alt="프로필 사진" />
 
@@ -1259,7 +1259,7 @@
         popup.querySelector(".popup-play-btn-circle").onclick = (e) => {
             e.stopPropagation();
             sessionStorage.setItem("allowSoundPlay", "true");
-            window.location.href = "video-player-temp.html";
+            window.location.href = "/video-player-temp.html";
         };
 
         const likeBtn = popup.querySelector(".popup-like-btn");
@@ -1274,7 +1274,7 @@
         };
 
         popup.addEventListener("click", () => {
-            window.location.href = "movie-detail.html";
+            window.location.href = "/movie-detail.html";
         });
     }
     createPopup();
@@ -1691,9 +1691,9 @@
             if (!item) return;
 
             const action = item.dataset.action;
-            if (action === "profile") window.location.href = "edit-profile.html";
-            else if (action === "filmography") window.location.href = "edit-filmography.html";
-            else if (action === "gallery") window.location.href = "edit-gallery.html";
+            if (action === "profile") window.location.href = "/edit-profile.html";
+            else if (action === "filmography") window.location.href = "/edit-filmography.html";
+            else if (action === "gallery") window.location.href = "/edit-gallery.html";
 
             closeEditOverlay();
         });
@@ -1785,9 +1785,9 @@
                     }
                     window.location.href = "/onfilm/" + encodeURIComponent(uname);
                 }
-                if (action === "edit-profile") window.location.href = "edit-profile.html";
-                if (action === "edit-filmography") window.location.href = "edit-filmography.html";
-                if (action === "edit-gallery") window.location.href = "edit-gallery.html";
+                if (action === "edit-profile") window.location.href = "/edit-profile.html";
+                if (action === "edit-filmography") window.location.href = "/edit-filmography.html";
+                if (action === "edit-gallery") window.location.href = "/edit-gallery.html";
 
                 if (action === "logout") {
                     await window.OnfilmAuth.logout();
@@ -1833,9 +1833,7 @@
 
 <script>
     function getUsernameFromPath() {
-        // 예: /onfilm/wonhoeh
         const parts = window.location.pathname.split("/").filter(Boolean);
-        // ["onfilm", "wonhoeh"]
         if (parts.length >= 2 && parts[0] === "onfilm") return parts[1];
         return null;
     }
@@ -1851,7 +1849,6 @@
         }
         const data = await res.json();
 
-        // ✅ 예시: 화면 반영
         const nameEl = document.getElementById("profileName");
         if (nameEl) {
             nameEl.textContent = data.username;
@@ -1866,7 +1863,6 @@
 
 <script>
     function getUsernameFromPath() {
-        // 예: /onfilm/wonhoeh  -> ["", "onfilm", "wonhoeh"]
         const parts = window.location.pathname.split("/").filter(Boolean);
         if (parts.length >= 2 && parts[0] === "onfilm") return parts[1];
         return null;
@@ -1919,7 +1915,6 @@
 
     document.addEventListener("DOMContentLoaded", bootstrapProfilePage);
 </script>
-
 
 </body>
 </html>
