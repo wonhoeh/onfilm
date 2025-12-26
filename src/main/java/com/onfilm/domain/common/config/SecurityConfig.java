@@ -68,13 +68,16 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/images/**"),
                                 new AntPathRequestMatcher("/videos/**"),
                                 new AntPathRequestMatcher("/favicon.ico"),
-                                new AntPathRequestMatcher("/onfilm/**")
+                                new AntPathRequestMatcher("/onfilm/**"),
+                                new AntPathRequestMatcher("/person/**"),
+                                // (만약 REST가 /persons/{id} 면 이것도)
+                                new AntPathRequestMatcher("/persons/**"),
+                                new AntPathRequestMatcher("/auth/**")
                         ).permitAll()
 
                         // ✅ auth 정책
-                        .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh").permitAll()
+                        .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh", "/auth/logout").permitAll()
                         .requestMatchers("/auth/me").authenticated()
-                        .requestMatchers("/auth/logout").authenticated()
 
                         // ✅ dev 전용
                         .requestMatchers("/h2-console/**").permitAll()
@@ -127,9 +130,8 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/onfilm/**")
                         ).permitAll()
 
-                        .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh").permitAll()
+                        .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh", "/auth/logout").permitAll()
                         .requestMatchers("/auth/me").authenticated()
-                        .requestMatchers("/auth/logout").authenticated()
 
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()

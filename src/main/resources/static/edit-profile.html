@@ -506,25 +506,35 @@
     </footer>
 </div>
 
+<!-- ✅ OnfilmAuth 먼저 로드 -->
+<script src="/js/auth.js"></script>
+<script src="/js/app.js"></script>
+
 <script>
+    // ✅ auth 준비(restoreSession) 완료를 보장하는 전역 Promise
+    window.__ONFILM_AUTH_READY_PROMISE__ = (async () => {
+        try {
+            if (!window.OnfilmAuth?.restoreSession) return { ok: false, me: null };
+            return await window.OnfilmAuth.restoreSession(); // accessToken + meCache 채움
+        } catch (e) {
+            console.error("restoreSession failed:", e);
+            return { ok: false, me: null };
+        }
+    })();
+
     /* ===== 프로필 사진 미리보기 + 드래그 앤 드롭 ===== */
     const profileFileInput = document.getElementById("profileFileInput");
     const profilePreview   = document.getElementById("profilePreview");
     const photoSection     = document.querySelector(".photo-section");
 
-    /**
-     * 공통: 이미지 파일 하나 받아서 미리보기 세팅
-     */
     function loadProfileImage(file) {
         if (!file) return;
 
-        // 이미지 타입 체크
         if (!file.type.startsWith("image/")) {
             alert("이미지 파일만 업로드할 수 있어요. (JPG, PNG 등)");
             return;
         }
 
-        // 용량 체크 (10MB)
         const MAX_SIZE = 10 * 1024 * 1024;
         if (file.size > MAX_SIZE) {
             alert("최대 10MB까지 업로드할 수 있어요.");
@@ -537,26 +547,21 @@
         };
         reader.readAsDataURL(file);
 
-        // 드롭으로 넣었을 때도 <input type="file"> 값 맞춰주기 (폼 제출 대비)
         try {
             const dt = new DataTransfer();
             dt.items.add(file);
             profileFileInput.files = dt.files;
         } catch (e) {
-            // 일부 구형 브라우저에서는 DataTransfer 미지원 → 미리보기만
             console.warn("DataTransfer 미지원 브라우저일 수 있습니다.", e);
         }
     }
 
-    /* 1) 기존 파일 선택 버튼으로 올렸을 때 */
     profileFileInput.addEventListener("change", (e) => {
         const file = e.target.files[0];
         loadProfileImage(file);
     });
 
-    /* 2) 드래그 앤 드롭으로 올렸을 때 */
     if (photoSection) {
-        // 이 영역 위에서 드래그 중일 때 기본 동작 막고, 이미지만 강조
         ["dragenter", "dragover"].forEach(evtName => {
             photoSection.addEventListener(evtName, (e) => {
                 e.preventDefault();
@@ -565,7 +570,6 @@
             });
         });
 
-        // 드래그가 빠져나가거나 드롭 완료되면 강조 제거
         ["dragleave", "dragend", "drop"].forEach(evtName => {
             photoSection.addEventListener(evtName, (e) => {
                 e.preventDefault();
@@ -576,7 +580,6 @@
             });
         });
 
-        // 실제 파일 드롭 처리
         photoSection.addEventListener("drop", (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -585,12 +588,9 @@
             const files = e.dataTransfer.files;
             if (!files || files.length === 0) return;
 
-            const file = files[0];
-            loadProfileImage(file);
+            loadProfileImage(files[0]);
         });
     }
-
-
 
     /* ===== SNS 행 추가/삭제 ===== */
     const snsList   = document.getElementById("snsList");
@@ -622,67 +622,42 @@
         removeBtn.textContent = "✕";
         removeBtn.addEventListener("click", () => {
             snsList.removeChild(row);
-            // 최소 1개는 남기고 싶다면 여기에서 체크 로직 추가 가능
-            if (snsList.children.length === 0) {
-                addSnsRow();
-            }
+            if (snsList.children.length === 0) addSnsRow();
         });
 
         row.appendChild(select);
         row.appendChild(input);
         row.appendChild(removeBtn);
-
         snsList.appendChild(row);
     }
 
-    function addSnsRow() {
-        createSnsRow({});
-    }
-
+    function addSnsRow() { createSnsRow({}); }
     addSnsBtn.addEventListener("click", addSnsRow);
-
-    // 기본 1개 행
     addSnsRow();
 
-
-    // ===== TAG 드래그 앤 드롭 재정렬 =====
-    let draggedChip = null;
-
-    function handleTagDragStart(e) {
-        draggedChip = e.target;
-        draggedChip.classList.add("dragging");
-    }
-
-    function handleTagDragEnd(e) {
-        if (draggedChip) {
-            draggedChip.classList.remove("dragging");
-        }
-        draggedChip = null;
-    }
-
-    /* ===== TAGS: 추가 / 삭제 ===== */
+    /* ===== TAGS ===== */
     const tagListEl = document.getElementById("tagList");
     const tagInput  = document.getElementById("tagInput");
     const addTagBtn = document.getElementById("addTagBtn");
+
+    let draggedChip = null;
+    function handleTagDragStart(e) { draggedChip = e.target; draggedChip.classList.add("dragging"); }
+    function handleTagDragEnd() { if (draggedChip) draggedChip.classList.remove("dragging"); draggedChip = null; }
 
     function addTag(text) {
         const trimmed = text.trim();
         if (!trimmed) return;
 
         const label = trimmed.startsWith("#") ? trimmed : `#${trimmed}`;
-
         const chip = document.createElement("span");
         chip.className = "tag-chip";
         chip.textContent = label;
 
-        // ✅ 드래그 가능하도록
         chip.draggable = true;
         chip.addEventListener("dragstart", handleTagDragStart);
         chip.addEventListener("dragend", handleTagDragEnd);
 
-        // 클릭 시 삭제
         chip.addEventListener("click", () => {
-            // (원한다면 dragging 중에는 삭제 안 하도록 방어 코드 넣어도 됨)
             if (chip.classList.contains("dragging")) return;
             tagListEl.removeChild(chip);
         });
@@ -697,11 +672,7 @@
     });
 
     tagInput.addEventListener("keydown", (e) => {
-        // ✅ 한글 입력 조합 중일 때는 Enter를 무시
-        if (e.isComposing || e.keyCode === 229) {
-            return;
-        }
-
+        if (e.isComposing || e.keyCode === 229) return;
         if (e.key === "Enter") {
             e.preventDefault();
             addTag(tagInput.value);
@@ -709,10 +680,8 @@
         }
     });
 
-    // 태그 리스트 위에서 드래그되는 동안 위치 조정
     tagListEl.addEventListener("dragover", (e) => {
-        e.preventDefault(); // drop 허용
-
+        e.preventDefault();
         if (!draggedChip) return;
 
         const target = e.target.closest(".tag-chip");
@@ -720,124 +689,211 @@
 
         const rect = target.getBoundingClientRect();
         const isAfter = e.clientX > rect.left + rect.width / 2;
-
-        if (isAfter) {
-            target.after(draggedChip);
-        } else {
-            target.before(draggedChip);
-        }
+        if (isAfter) target.after(draggedChip);
+        else target.before(draggedChip);
     });
-    // 예시 기본 태그들 (나중에 백엔드 데이터로 채우면 됨)
+
     ["#아역", "#밝은 이미지", "#광고 친화적"].forEach(addTag);
 
-    // ===== 출생일(연/월/일) 자동 포커스 & hidden 값 채우기 =====
+    /* ===== 출생일 hidden 값 채우기 ===== */
     const yearInput  = document.getElementById("birthYear");
     const monthInput = document.getElementById("birthMonth");
     const dayInput   = document.getElementById("birthDay");
     const birthDateHidden = document.getElementById("birthDate");
 
-    // 숫자만 남기고, maxLength 채워지면 다음 input으로 이동
     function setupAutoMove(current, next) {
         if (!current) return;
-
         current.addEventListener("input", () => {
-            // 숫자만 남기기
             current.value = current.value.replace(/\D/g, "");
-
             const max = current.getAttribute("maxlength");
-            if (max && current.value.length >= parseInt(max, 10) && next) {
-                next.focus();
-            }
+            if (max && current.value.length >= parseInt(max, 10) && next) next.focus();
         });
     }
-
     setupAutoMove(yearInput, monthInput);
     setupAutoMove(monthInput, dayInput);
-    // day는 마지막이라 next 없음
 
-    /* ===== 폼 submit 핸들러 (현재는 콘솔 로그만) ===== */
+    /* ===============================
+       ✅ 여기부터: 업로드 → URL → /persons
+    =============================== */
+
     const form = document.getElementById("editProfileForm");
+    const saveBtn = form.querySelector('button[type="submit"]');
+    const PLACEHOLDER_SRC = "videos/profile-placeholder.png";
 
-    // 폼 submit 시 YYYY-MM-DD로 합쳐서 hidden input에 넣기
-    form.addEventListener("submit", (e) => {
+    function setSaving(isSaving) {
+        if (!saveBtn) return;
+        saveBtn.disabled = isSaving;
+        saveBtn.textContent = isSaving ? "저장 중..." : "저장";
+    }
+
+    async function uploadProfileImageIfAny() {
+        const file = profileFileInput.files && profileFileInput.files[0];
+        if (!file) return null;
+
+        const fd = new FormData();
+        fd.append("file", file);
+
+        const res = await window.OnfilmAuth.apiFetchWithAutoRefresh("/files", {
+            method: "POST",
+            body: fd,
+        });
+
+        if (!res.ok) {
+            const msg = await res.text().catch(() => "");
+            throw new Error(`이미지 업로드 실패: ${res.status} ${msg}`);
+        }
+
+        const data = await res.json(); // { url: "/uploads/xxx.jpg" }
+        return data && data.url ? data.url : null;
+    }
+
+    form.addEventListener("submit", async (e) => {
+        // ✅ auth가 실제로 준비될 때까지 기다림 (토큰/ME 캐시 확실히 세팅)
+        const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
+        if (!authReady?.ok) {
+            const next = encodeURIComponent(location.pathname + location.search);
+            location.href = `/login.html?next=${next}`;
+            return;
+        }
+
         e.preventDefault();
+        if (!window.OnfilmAuth) {
+            alert("auth.js 로드/실행이 안 됐어요. (window.OnfilmAuth 없음)");
+            return;
+        }
+        if (!window.OnfilmAuth.apiFetchWithAutoRefresh) {
+            alert("auth.js에 apiFetchWithAutoRefresh가 아직 없어요. auth.js 수정 필요");
+            return;
+        }
 
-        const y = (yearInput?.value || "").padStart(4, "0");
-        const m = (monthInput?.value || "").padStart(2, "0");
-        const d = (dayInput?.value || "").padStart(2, "0");
-
-        // 간단 검증 (연/월/일이 비어있으면 그냥 경고)
+        // 출생일 조합
         if (!yearInput.value || !monthInput.value || !dayInput.value) {
             alert("출생일을 모두 입력해 주세요.");
             return;
         }
-
+        const y = yearInput.value.padStart(4, "0");
+        const m = monthInput.value.padStart(2, "0");
+        const d = dayInput.value.padStart(2, "0");
         birthDateHidden.value = `${y}-${m}-${d}`;
 
-        // 아래는 기존 payload 만드는 코드 그대로 두고,
-        // birthDate는 hidden input에서 가져오면 됨
+        // 필수값 검증
+        const name = document.getElementById("actorName").value.trim();
+        if (!name) {
+            alert("이름을 입력해 주세요.");
+            return;
+        }
+
+        // SNS 수집 (서버 enum에 맞게 대문자)
         const snsData = [];
         snsList.querySelectorAll(".sns-row").forEach(row => {
-            const type = row.querySelector("select").value;
+            const type = row.querySelector("select").value; // instagram/youtube/tiktok/etc
             const raw  = row.querySelector("input").value.trim();
             if (!raw) return;
 
             let finalUrl = raw;
-
-            // 1) 이미 http:// 또는 https:// 로 시작하면 그대로 사용
             if (!/^https?:\/\//i.test(raw)) {
-
-                // 2) 서비스 타입별로 기본 도메인 + 아이디 조합
                 if (type === "instagram") {
-                    // @붙여 쓴 경우 제거
                     const handle = raw.replace(/^@/, "");
                     finalUrl = `https://www.instagram.com/${handle}`;
                 } else if (type === "youtube") {
-                    // 여기서는 그냥 전체를 path 로 붙이는 예시
                     finalUrl = `https://www.youtube.com/${raw}`;
                 } else if (type === "tiktok") {
                     const handle = raw.replace(/^@/, "");
                     finalUrl = `https://www.tiktok.com/@${handle}`;
                 } else {
-                    // 3) 기타 서비스면 그냥 https://만 앞에 붙여줌
                     finalUrl = `https://${raw}`;
                 }
             }
 
-            snsData.push({ type, url: finalUrl });
+            snsData.push({ type: type.toUpperCase(), url: finalUrl });
         });
 
-        const tags = [];
+        // rawTags 수집 (서버는 List<String>)
+        const rawTags = [];
         tagListEl.querySelectorAll(".tag-chip").forEach(chip => {
-            tags.push(chip.textContent);
+            rawTags.push(chip.textContent.replace(/^#/, "").trim());
         });
 
-        const payload = {
-            name: document.getElementById("actorName").value.trim(),
-            birthDate: birthDateHidden.value,  // ✅ 여기
-            birthPlace: document.getElementById("birthPlace").value,
-            bio: document.getElementById("bioInput").value.trim(),
-            snsList: snsData,
-            tags: tags
-        };
+        setSaving(true);
 
-        console.log("프로필 저장 payload:", payload);
-        alert("지금은 프론트 미리보기만 됩니다.\n콘솔에 payload가 출력됐어요.");
+        try {
+            // ✅ 1) 이미지 업로드(선택) → URL 확보
+            // placeholder 상태거나 파일 없으면 null로 둔다
+            let profileImageUrl = null;
+            const hasNewFile = profileFileInput.files && profileFileInput.files.length > 0;
+            const isPlaceholder = (profilePreview.getAttribute("src") || "").includes(PLACEHOLDER_SRC);
+
+            if (hasNewFile && !isPlaceholder) {
+                profileImageUrl = await uploadProfileImageIfAny(); // "/uploads/xxx.jpg"
+            } else if (hasNewFile) {
+                // placeholder지만 파일이 있으면 업로드는 한다 (드롭/선택 후 미리보기 실패 케이스 방어)
+                profileImageUrl = await uploadProfileImageIfAny();
+            }
+
+            // ✅ 2) CreatePersonRequest에 URL 넣고 /persons 호출
+            const payload = {
+                name,
+                birthDate: birthDateHidden.value,
+                birthPlace: document.getElementById("birthPlace").value.trim(),
+                oneLineIntro: document.getElementById("bioInput").value.trim(),
+                profileImageUrl,                    // ✅ 업로드 결과 URL
+                snsList: snsData.length ? snsData : null,
+                rawTags: rawTags.length ? rawTags : null,
+            };
+
+            const res = await window.OnfilmAuth.apiFetchWithAutoRefresh("/persons", {
+                method: "POST",
+                body: JSON.stringify(payload),
+            });
+
+            if (!res.ok) {
+                const msg = await res.text().catch(() => "");
+                alert(`저장 실패: ${res.status}\n${msg}`);
+                return;
+            }
+
+            const personIdText = await res.text();
+            const personId = Number(personIdText);
+
+            alert("저장 완료!");
+
+            // ✅ username이 캐시에 없을 수도 있으니 한번 더 복구 시도해서 확보
+            let me = window.OnfilmAuth.getMe && window.OnfilmAuth.getMe();
+            if (!me || !me.username) {
+                const r = await window.OnfilmAuth.restoreSession().catch(() => null);
+                me = (r && r.me) ? r.me : me;
+            }
+
+            const uname = me && me.username ? String(me.username).trim() : "";
+
+            // ✅ 목표: 공개 페이지(/onfilm/{username})로 이동. username 없으면 /onfilm(공개)로만 이동
+            if (uname) {
+                location.href = `/onfilm/${encodeURIComponent(uname)}`;
+            } else {
+                location.href = `/onfilm`;
+            }
+
+        } catch (err) {
+            console.error(err);
+            alert(err?.message || "저장 중 오류가 발생했습니다.");
+        } finally {
+            setSaving(false);
+        }
     });
 
     window.addEventListener("dragover", (e) => e.preventDefault());
     window.addEventListener("drop", (e) => e.preventDefault());
 </script>
-<script src="/js/auth.js"></script>
+
 <script>
     document.addEventListener("DOMContentLoaded", async () => {
-        const { ok } = await window.OnfilmAuth.restoreSession();
-        if (!ok) {
-            // 로그인 페이지로 보내고, 돌아올 주소를 붙여줌
+        const result = await window.__ONFILM_AUTH_READY_PROMISE__;
+        if (!result?.ok) {
             const next = encodeURIComponent(location.pathname + location.search);
             location.href = `/login.html?next=${next}`;
         }
     });
 </script>
+
 </body>
 </html>

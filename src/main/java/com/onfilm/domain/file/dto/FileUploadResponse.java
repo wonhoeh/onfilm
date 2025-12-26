@@ -1,6 +1,5 @@
-package com.onfilm.domain.movie.dto;
+package com.onfilm.domain.file.dto;
 
-import com.onfilm.domain.movie.entity.SnsType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,7 +7,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PersonSnsRequest {
-    private SnsType type;
+public class FileUploadResponse {
     private String url;
 }

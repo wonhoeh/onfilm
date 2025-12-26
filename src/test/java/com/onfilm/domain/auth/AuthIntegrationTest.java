@@ -3,6 +3,10 @@ package com.onfilm.domain.auth;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onfilm.domain.auth.dto.LoginRequest;
 import com.onfilm.domain.auth.dto.SignupRequest;
+import com.onfilm.domain.token.repository.RefreshTokenRepository;
+import com.onfilm.domain.user.repository.UserRepository;
+import jakarta.servlet.http.Cookie;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -10,6 +14,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.net.HttpCookie;
 import java.util.List;
@@ -24,6 +31,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class AuthIntegrationTest {
 
+    @Autowired private RefreshTokenRepository refreshTokenRepository;
+    @Autowired private UserRepository userRepository;
+
+    @BeforeEach
+    void clean() {
+        refreshTokenRepository.deleteAll();
+        userRepository.deleteAll();
+    }
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -32,7 +48,7 @@ class AuthIntegrationTest {
 
     @Test
     void signupThenLoginSucceeds() throws Exception {
-        SignupRequest signup = new SignupRequest("user@example.com", "password123!");
+        SignupRequest signup = new SignupRequest("user@example.com", "password123!", "qwer");
         mockMvc.perform(post("/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(signup)))
@@ -69,16 +85,19 @@ class AuthIntegrationTest {
         String refreshToken = loginAndExtractRefreshToken("rotate@example.com");
 
         var refreshResult = mockMvc.perform(post("/auth/refresh")
-                        .header(HttpHeaders.COOKIE, "refresh_token=" + refreshToken))
+                        .cookie(new Cookie("refresh_token", refreshToken)))  // ✅ 여기!
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty())
                 .andReturn();
 
-        String newRefreshToken = extractCookieValue(refreshResult.getResponse().getHeader(HttpHeaders.SET_COOKIE));
+        String newRefreshToken = extractCookieValue(
+                refreshResult.getResponse().getHeaders(HttpHeaders.SET_COOKIE),
+                "refresh_token"
+        );
         assertThat(newRefreshToken).isNotEqualTo(refreshToken);
 
         mockMvc.perform(post("/auth/refresh")
-                        .header(HttpHeaders.COOKIE, "refresh_token=" + refreshToken))
+                        .cookie(new Cookie("refresh_token", refreshToken)))  // ✅ 여기!
                 .andExpect(status().isUnauthorized());
     }
 
@@ -88,7 +107,7 @@ class AuthIntegrationTest {
         String refreshToken = loginAndExtractRefreshToken("logout@example.com");
 
         var logoutResult = mockMvc.perform(post("/auth/logout")
-                        .header(HttpHeaders.COOKIE, "refresh_token=" + refreshToken))
+                        .cookie(new Cookie("refresh_token", refreshToken)))
                 .andExpect(status().isNoContent())
                 .andReturn();
 
@@ -96,7 +115,7 @@ class AuthIntegrationTest {
         assertThat(setCookie).contains("Max-Age=0");
 
         mockMvc.perform(post("/auth/refresh")
-                        .header(HttpHeaders.COOKIE, "refresh_token=" + refreshToken))
+                        .cookie(new Cookie("refresh_token", refreshToken)))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -123,7 +142,7 @@ class AuthIntegrationTest {
     }
 
     private void signup(String email) throws Exception {
-        SignupRequest signup = new SignupRequest(email, "password123!");
+        SignupRequest signup = new SignupRequest(email, "password123!", "qwer");
         mockMvc.perform(post("/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(signup)))
@@ -137,11 +156,16 @@ class AuthIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        return extractCookieValue(result.getResponse().getHeader(HttpHeaders.SET_COOKIE));
+        List<String> setCookies = result.getResponse().getHeaders(HttpHeaders.SET_COOKIE);
+        return extractCookieValue(setCookies, "refresh_token");
     }
 
-    private String extractCookieValue(String setCookie) {
-        List<HttpCookie> cookies = HttpCookie.parse(setCookie);
-        return cookies.get(0).getValue();
+    private String extractCookieValue(List<String> setCookies, String cookieName) {
+        String setCookie = setCookies.stream()
+                .filter(c -> c.startsWith(cookieName + "="))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No " + cookieName + " cookie in response: " + setCookies));
+
+        return HttpCookie.parse(setCookie).get(0).getValue();
     }
 }

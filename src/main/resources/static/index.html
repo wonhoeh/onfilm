@@ -782,12 +782,13 @@
   }
 
   function normalizeMe(me) {
-    // 백엔드 응답 필드가 어떤 이름이든 최대한 흡수
-    const displayName = me?.displayName || me?.name || me?.email || "내 계정";
+    const username = me?.username ? String(me.username).trim() : "";
+    const displayName = (me?.displayName || me?.name || username || me?.email || "내 계정");
     const avatarUrl = me?.avatarUrl || me?.profileImageUrl || me?.profileImage || "";
-    const myActorId = me?.actorId || me?.actor?.id || me?.actorProfileId || null; // 있으면 사용
-    return { displayName, avatarUrl, myActorId };
+    const myActorId = me?.actorId || me?.actor?.id || me?.actorProfileId || null;
+    return { username, displayName, avatarUrl, myActorId };
   }
+
 
   // ===== 헤더 렌더 =====
   function renderLoggedOut(container) {
@@ -806,8 +807,10 @@
   }
 
   function renderLoggedIn(container, me) {
-    const { displayName, avatarUrl } = normalizeMe(me);
-    const initial = (displayName.trim().charAt(0) || "A").toUpperCase();
+    const { username, displayName, avatarUrl } = normalizeMe(me);
+
+    const baseForInitial = username || displayName;  // ✅ username 우선
+    const initial = (baseForInitial.trim().charAt(0) || "A").toUpperCase();
 
     container.innerHTML = `
       <div class="header-nav-links">

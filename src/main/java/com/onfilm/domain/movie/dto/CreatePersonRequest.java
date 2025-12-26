@@ -1,5 +1,6 @@
 package com.onfilm.domain.movie.dto;
 
+import com.onfilm.domain.movie.entity.ProfileTag;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,8 +12,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreatePersonRequest {
-    private String tempId;  // UUID, 프론트가 생성 (파일 키 매핑용)
     private String name;
     private LocalDate birthDate;
-    private List<PersonSnsRequest> snsList;
+    private String birthPlace;
+    private String oneLineIntro;
+    private String profileImageUrl;
+    private List<CreatePersonSnsRequest> snsList;
+    private List<String> rawTags;
 }

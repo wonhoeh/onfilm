@@ -1,7 +1,7 @@
 package com.onfilm.domain.movie.service;
 
 import com.onfilm.domain.movie.dto.CreatePersonRequest;
-import com.onfilm.domain.movie.dto.PersonSnsRequest;
+import com.onfilm.domain.movie.dto.CreatePersonSnsRequest;
 import com.onfilm.domain.movie.entity.MoviePerson;
 import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.movie.entity.PersonSns;
@@ -22,10 +22,10 @@ public class PersonService {
     private final PersonRepository personRepository;
 
     @Transactional
-    public Long createPerson(CreatePersonRequest request, String profileImageUrl) {
+    public Long createPerson(CreatePersonRequest request) {
         List<PersonSns> snsList = new ArrayList<>();
         if (request.getSnsList() != null) {
-            for (PersonSnsRequest snsRequest : request.getSnsList()) {
+            for (CreatePersonSnsRequest snsRequest : request.getSnsList()) {
                 snsList.add(PersonSns.builder()
                         .type(snsRequest.getType())
                         .url(snsRequest.getUrl())
@@ -36,11 +36,11 @@ public class PersonService {
         Person person = Person.create(
                 request.getName(),
                 request.getBirthDate(),
-                null,
-                null,
-                profileImageUrl,
+                request.getBirthPlace(),
+                request.getOneLineIntro(),
+                request.getProfileImageUrl(),
                 snsList,
-                new ArrayList<>()
+                request.getRawTags()
         );
 
         return personRepository.save(person).getId();

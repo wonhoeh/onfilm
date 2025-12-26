@@ -19,7 +19,7 @@ public class PersonController {
 
     @PostMapping()
     public ResponseEntity<Long> createPerson(@RequestBody CreatePersonRequest request) {
-        Long personId = personService.createPerson(request, null);
+        Long personId = personService.createPerson(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(personId);
     }
 

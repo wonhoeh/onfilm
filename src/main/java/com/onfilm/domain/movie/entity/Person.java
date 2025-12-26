@@ -51,7 +51,6 @@ public class Person {
         this.birthPlace = birthPlace;
         this.oneLineIntro = oneLineIntro;
         this.profileImageUrl = profileImageUrl;
-
     }
 
     /**
