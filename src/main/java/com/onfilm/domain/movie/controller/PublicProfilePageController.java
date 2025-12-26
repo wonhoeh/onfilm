@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @Controller
 public class PublicProfilePageController {
-    // ✅ /onfilm/wonhoeh 로 들어오면 actor-detail-temp.html 반환
+    // ✅ onfilm/wonhoeh 로 들어오면 actor-detail-temp.html 반환
     @GetMapping("/onfilm/{username}")
     public String actorDetailPage(@PathVariable String username) {
         return "forward:/actor-detail-temp.html";
