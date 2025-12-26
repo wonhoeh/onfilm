@@ -29,8 +29,13 @@ public class AuthService {
         if (userRepository.existsByEmail(request.email())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists");
         }
+
+        if (userRepository.existsByUsername(request.username())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
+        }
+
         String hashed = passwordEncoder.encode(request.password());
-        userRepository.save(User.create(request.email(), hashed));
+        userRepository.save(User.create(request.email(), hashed, request.username()));
     }
 
     @Transactional

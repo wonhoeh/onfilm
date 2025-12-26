@@ -73,7 +73,12 @@ public class AuthController {
         }
         Long userId = Long.valueOf(authentication.getName());
         User user = authService.getUser(userId);
-        return ResponseEntity.ok(new MeResponse(user.getId(), user.getEmail()));
+        return ResponseEntity.ok(new MeResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getUsername(),
+                user.getAvatarUrl()
+        ));
     }
 
     private ResponseCookie buildRefreshCookie(String value, long maxAgeSeconds) {

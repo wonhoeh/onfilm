@@ -19,6 +19,10 @@
             --radius-md:10px;
             --radius-xl:20px;
             --shadow:0 10px 40px rgba(0,0,0,.5);
+
+            /* ✅ 스크린샷 느낌의 “파란 링크” */
+            --link-blue:#5aa7ff;
+            --icon-ring: rgba(255,255,255,.75);
         }
 
         *{box-sizing:border-box;}
@@ -30,20 +34,24 @@
                     radial-gradient(900px 400px at 80% 0%, rgba(124,92,255,.2), transparent 60%),
                     radial-gradient(700px 350px at 10% 10%, rgba(36,211,154,.15), transparent 60%),
                     var(--bg);
+            min-height:100vh;
+            display:flex;
+            flex-direction:column;
         }
         .container{
             width:min(1100px,92vw);
             margin:0 auto;
         }
 
-        /* 페이지 본문용 래퍼 */
+        main.container{ flex: 1; }
+
         .page-root{
             min-height:100vh;
             display:flex;
             flex-direction:column;
         }
+        .page-root > main { flex: 1; }
 
-        /* 헤더 줄 */
         header{
             position:sticky; top:0; z-index:10;
             background:rgba(11,12,15,.85);
@@ -57,8 +65,6 @@
             justify-content:space-between;
             height:56px;
         }
-
-
 
         nav ul{
             display:flex; list-style:none; gap:18px;
@@ -93,15 +99,13 @@
             line-height: 1.6;
         }
 
-        /* ★ NEW: 이름 + 톱니바퀴 버튼 래퍼 */
         .profile-title-row{
             display:flex;
             align-items:center;
             gap:8px;
-            position:relative; /* 드롭다운 위치 기준 */
+            position:relative;
         }
 
-        /* ★ NEW: 톱니바퀴 버튼 */
         .profile-settings-btn{
             width:28px;
             height:28px;
@@ -122,8 +126,6 @@
             transform:translateY(-1px);
         }
 
-        /* 편집 메뉴 오버레이 카드*/
-        /* ★ NEW: 프로필 편집 오버레이 (갤러리 라이트박스 느낌) */
         .profile-edit-overlay{
             position: fixed;
             inset: 0;
@@ -136,13 +138,10 @@
             pointer-events: none;
             transition: opacity .2s ease;
         }
-
         .profile-edit-overlay.show{
             opacity: 1;
             pointer-events: auto;
         }
-
-        /* 중앙 카드 */
         .profile-edit-card{
             width: min(320px, 90vw);
             background: var(--panel-2);
@@ -151,20 +150,14 @@
             box-shadow: 0 20px 60px rgba(0,0,0,.85);
             padding: 14px 16px 10px;
         }
-
-
-        /* 기존 profile-settings-item 재사용해도 됨 */
         .profile-edit-card .profile-settings-item{
             padding: 9px 10px;
             font-size: 13px;
         }
-
         .profile-edit-card .profile-settings-item + .profile-settings-item{
             border-top: 1px solid rgba(255,255,255,0.03);
         }
 
-
-        /* ★ NEW: 드롭다운 메뉴 */
         .profile-settings-menu{
             position:absolute;
             top:110%;
@@ -178,9 +171,7 @@
             display:none;
             z-index:20;
         }
-        .profile-settings-menu.show{
-            display:block;
-        }
+        .profile-settings-menu.show{ display:block; }
         .profile-settings-item{
             width:100%;
             border:none;
@@ -194,14 +185,79 @@
             align-items:center;
             justify-content:space-between;
         }
-        .profile-settings-item span{
-            pointer-events:none;
+        .profile-settings-item span{ pointer-events:none; }
+        .profile-settings-item:hover{ background:rgba(124,92,255,0.16); }
+        .profile-settings-item.close-item{ color:var(--muted); }
+
+        /* ============================
+           ✅ NEW EMPTY CTA (스크린샷 스타일)
+        ============================ */
+        .empty-cta{
+            margin-top: 14px;
+            padding: 42px 0 36px;
+            text-align:center;
+            user-select:none;
         }
-        .profile-settings-item:hover{
-            background:rgba(124,92,255,0.16);
+
+        /* 아이콘(원형 링) */
+        .empty-cta-icon{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            text-decoration:none;
+            outline:none;
         }
-        .profile-settings-item.close-item{
-            color:var(--muted);
+        .empty-cta-ring{
+            width:72px;
+            height:72px;
+            border-radius:999px;
+            border:2px solid var(--icon-ring);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background: rgba(255,255,255,0.03);
+            transition: transform .14s ease, border-color .14s ease, background .14s ease;
+        }
+        .empty-cta-icon:hover .empty-cta-ring{
+            transform: translateY(-2px);
+            border-color: var(--link-blue);
+            background: rgba(90,167,255,0.12);
+        }
+
+        .empty-cta svg{
+            width:30px;
+            height:30px;
+            stroke: rgba(255,255,255,.92);
+            fill: none;
+            stroke-width: 1.8;
+            transition: stroke .14s ease;
+        }
+        .empty-cta-icon:hover svg{
+            stroke: var(--link-blue);
+        }
+
+        .empty-cta-title{
+            margin-top: 18px;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+        }
+        .empty-cta-desc{
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+        .empty-cta-link{
+            display:inline-block;
+            margin-top: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--link-blue);
+            text-decoration:none;
+        }
+        .empty-cta-link:hover{
+            text-decoration: underline;
         }
 
         /* ============================
@@ -266,9 +322,7 @@
             z-index:10;
             padding:0 8px;
         }
-        .film-slider-container:hover .film-arrow{
-            opacity:1;
-        }
+        .film-slider-container:hover .film-arrow{ opacity:1; }
         .film-arrow.left{ left:-100px; }
         .film-arrow.right{ right:-100px; }
         .film-arrow:hover{
@@ -331,9 +385,7 @@
             display:block;
         }
 
-        .popup-info{
-            padding: 14px 16px;
-        }
+        .popup-info{ padding: 14px 16px; }
         .popup-title{
             font-size:20px;
             font-weight:900;
@@ -424,9 +476,7 @@
             color: white;
             transform: scale(1.15);
         }
-        .popup-like-btn:active {
-            transform: scale(0.92);
-        }
+        .popup-like-btn:active { transform: scale(0.92); }
 
         /* ============================
            GALLERY + 스크롤 로딩 스피너
@@ -457,9 +507,7 @@
             box-shadow: 0 6px 16px rgba(0,0,0,.55);
             border-color: var(--line);
         }
-        .gallery-item:focus {
-            outline: none;
-        }
+        .gallery-item:focus { outline: none; }
 
         .gallery-spinner{
             width: 40px;
@@ -477,9 +525,7 @@
             border-top-color: var(--accent);
             animation: gallery-spin .8s linear infinite;
         }
-        @keyframes gallery-spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes gallery-spin { to { transform: rotate(360deg); } }
 
         .gallery-lightbox-overlay{
             position:fixed;
@@ -526,14 +572,8 @@
             transition:opacity .3s ease, transform .2s ease, color .2s ease;
         }
 
-        .gallery-lightbox-arrow.left{
-            left:40px;
-        }
-
-        .gallery-lightbox-arrow.right{
-            right:40px;
-        }
-
+        .gallery-lightbox-arrow.left{ left:40px; }
+        .gallery-lightbox-arrow.right{ right:40px; }
         .gallery-lightbox-arrow:hover{
             color:var(--accent);
             transform:translateY(-50%) scale(1.1);
@@ -552,10 +592,16 @@
             margin-top: 10px;
             display: flex;
             gap: 8px;
-            flex-wrap: wrap;        /* ✅ 추가 */
+            flex-wrap: wrap;
             align-items: center;
+            min-height: 34px;
         }
 
+        .sns-row.is-empty::before {
+            content:"SNS를 추가하면 캐스팅 담당자가 더 쉽게 확인할 수 있어요.";
+            color:var(--muted);
+            font-size:13px;
+        }
 
         .sns-pill{
             display: inline-flex;
@@ -569,15 +615,9 @@
             color: var(--text);
             text-decoration: none;
         }
+        .sns-pill:hover{ background: rgba(124,92,255,0.18); }
 
-        .sns-pill:hover{
-            background: rgba(124,92,255,0.18);
-        }
-
-        .sns-handle{
-            color: var(--muted);
-            font-size: 12px;
-        }
+        .sns-handle{ color: var(--muted); font-size: 12px; }
 
         .sns-badge{
             width:22px;
@@ -592,43 +632,26 @@
         .sns-icon{
             width:14px;
             height:14px;
-            background:#fff; /* 기본: 배지 위에서 흰색 아이콘 */
+            background:#fff;
             -webkit-mask: var(--sns-mask) center/contain no-repeat;
             mask: var(--sns-mask) center/contain no-repeat;
         }
 
-        /* 브랜드별: 배지 색 + 아이콘(svg) */
         .sns-pill[data-brand="instagram"] .sns-badge{
-            /* 인스타는 “그라데이션 느낌”이 핵심 */
             background: radial-gradient(circle at 30% 110%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
         }
-        .sns-pill[data-brand="instagram"] .sns-icon{
-            --sns-mask: url("https://cdn.jsdelivr.net/npm/simple-icons/icons/instagram.svg");
-        }
-
+        .sns-pill[data-brand="instagram"] .sns-icon{ --sns-mask: url("https://cdn.jsdelivr.net/npm/simple-icons/icons/instagram.svg"); }
         .sns-pill[data-brand="youtube"] .sns-badge{ background:#FF0000; }
         .sns-pill[data-brand="youtube"] .sns-icon{ --sns-mask: url("https://cdn.jsdelivr.net/npm/simple-icons/icons/youtube.svg"); }
-
         .sns-pill[data-brand="naver"] .sns-badge{ background:#03C75A; }
         .sns-pill[data-brand="naver"] .sns-icon{ --sns-mask: url("https://cdn.jsdelivr.net/npm/simple-icons/icons/naver.svg"); }
-
-        /* X(트위터) 같은 “검정 브랜드”는 배지를 흰색으로 하고 아이콘을 검정으로 */
         .sns-pill[data-brand="x"] .sns-badge{ background:#FFFFFF; }
         .sns-pill[data-brand="x"] .sns-icon{
             background:#000;
             --sns-mask: url("https://cdn.jsdelivr.net/npm/simple-icons/icons/x.svg");
         }
 
-        .empty-state{
-            margin-top: 12px;
-            font-size: 14px;
-            color: var(--muted);
-        }
-
-        .profile-tag-section{
-            margin-top: 14px;
-        }
-
+        .profile-tag-section{ margin-top: 14px; }
         .profile-tag-title{
             font-size: 12px;
             font-weight: 700;
@@ -642,6 +665,12 @@
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
+            min-height:28px;
+        }
+        .profile-tag-list.is-empty::before{
+            content:"태그를 추가해 강점을 보여주세요. (예: #주연 #드라마)";
+            color:var(--muted);
+            font-size:13px;
         }
 
         .profile-tag{
@@ -672,16 +701,13 @@
             font-weight:600;
             transition:background .15s ease, border-color .15s ease, transform .12s ease;
         }
-
         .login-btn:hover{
             background:rgba(124,92,255,0.22);
             border-color:var(--accent);
             transform:translateY(-1px);
         }
 
-        /* ===================================================
-           ★ 로그인 오버레이 전용 스타일
-        =================================================== */
+        /* 로그인 오버레이 */
         .login-overlay{
             position:fixed;
             inset:0;
@@ -734,9 +760,7 @@
             outline:none;
             transition:border-color .15s ease, background .15s ease;
         }
-        .login-input::placeholder{
-            color:rgba(154,160,173,.7);
-        }
+        .login-input::placeholder{ color:rgba(154,160,173,.7); }
         .login-input:focus{
             border-color:var(--accent);
             background:rgba(15,16,25,.95);
@@ -797,16 +821,9 @@
             transform:translateY(-1px);
             box-shadow:0 6px 18px rgba(0,0,0,.55);
         }
-        .social-google{
-            background:#ffffff;
-            color:#111111;
-        }
-        .social-naver{
-            background:#03c75a;
-            color:#ffffff;
-        }
+        .social-google{ background:#ffffff; color:#111111; }
+        .social-naver{ background:#03c75a; color:#ffffff; }
 
-        /* 로그인 밑 링크 */
         .login-links{
             margin-top:8px;
             font-size:11px;
@@ -821,7 +838,6 @@
             color:var(--muted);
             text-decoration:none;
         }
-
         .login-links a:hover{
             color:var(--text);
             text-decoration:underline;
@@ -829,339 +845,248 @@
 
         html{
             scrollbar-gutter: stable;
-        }
-
-        /* ============================
-           EMPTY STATE UI
-           ============================ */
-        .empty-card{
-            margin-top:14px;
-            background:rgba(255,255,255,.03);
-            border:1px solid var(--line);
-            border-radius:var(--radius-lg);
-            padding:14px 14px 13px;
-            box-shadow:0 10px 30px rgba(0,0,0,.55);
-        }
-
-        .empty-title{
-            font-size:14px;
-            font-weight:900;
-            margin-bottom:6px;
-        }
-
-        .empty-desc{
-            font-size:13px;
-            color:var(--muted);
-            line-height:1.75;
-        }
-
-        .empty-actions{
-            margin-top:12px;
-            display:flex;
-            gap:10px;
-            flex-wrap:wrap;
-        }
-
-        .btn-mini{
-            padding:9px 14px;
-            font-size:13px;
+            height: 100%;
         }
 
         .hidden{ display:none !important; }
 
-        /* 프로필 빈 상태: 사진/정보 간격이 너무 휑하면 줄이기 */
-        .profile-header.is-empty{
-            align-items:flex-start;
-        }
+        .profile-header.is-empty{ align-items:flex-start; }
         .profile-header.is-empty .profile-photo{
             filter:saturate(.9) brightness(.95);
             opacity:.92;
         }
 
-        #galleryGrid #galleryEmpty{
-            grid-column: 1 / -1;
+        /* ✅ 갤러리 empty가 grid 전체를 차지하도록 유지 */
+        #galleryGrid #galleryEmpty{ grid-column: 1 / -1; }
+
+        .header-right{
+            display:flex;
+            align-items:center;
+            gap:10px;
         }
 
-        .btn-primary, .btn-ghost{
+        .profile-menu{ position:relative; }
+
+        .profile-avatar-btn{
+            width:32px; height:32px;
+            border-radius:999px;
+            border:1px solid var(--line);
+            padding:0;
+            background:rgba(255,255,255,0.04);
+            cursor:pointer;
             display:inline-flex;
             align-items:center;
             justify-content:center;
-            gap:6px;
-            padding:9px 14px;
-            border-radius:999px;
+            overflow:hidden;
+            transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;
+        }
+        .profile-avatar-btn:hover{
+            transform:translateY(-1px);
+            border-color:var(--accent);
+            box-shadow:0 6px 18px rgba(0,0,0,.6);
+        }
+        .profile-avatar-btn img{
+            width:100%;
+            height:100%;
+            object-fit:cover;
+        }
+        .profile-avatar-initial{
             font-size:13px;
             font-weight:700;
-            text-decoration:none;
-            border:1px solid var(--line);
-            transition:background .15s ease, border-color .15s ease, transform .12s ease;
-        }
-        .btn-primary{
-            background:var(--accent);
-            color:#fff;
-            border-color:rgba(124,92,255,.55);
-        }
-        .btn-primary:hover{ background:#8a6dff; transform:translateY(-1px); }
-        .btn-ghost{
-            background:rgba(255,255,255,0.06);
             color:var(--text);
         }
-        .btn-ghost:hover{
-            background:rgba(124,92,255,0.18);
-            border-color:var(--accent);
-            transform:translateY(-1px);
+
+        .profile-dropdown{
+            position:absolute;
+            top:120%;
+            right:0;
+            min-width:180px;
+            background:var(--panel-2);
+            border-radius:12px;
+            border:1px solid var(--line);
+            box-shadow:0 14px 40px rgba(0,0,0,.9);
+            padding:6px 0;
+            opacity:0;
+            pointer-events:none;
+            transform:translateY(-6px);
+            transition:opacity .16s ease, transform .16s ease;
+            z-index:9999;
         }
-
-
+        .profile-dropdown.open{
+            opacity:1;
+            pointer-events:auto;
+            transform:translateY(0);
+        }
+        .profile-item{
+            width:100%;
+            padding:8px 12px;
+            text-align:left;
+            background:transparent;
+            border:none;
+            color:var(--text);
+            font-size:13px;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:6px;
+        }
+        .profile-item span{
+            font-size:11px;
+            color:var(--muted);
+        }
+        .profile-item:hover{
+            background:rgba(255,255,255,0.06);
+        }
     </style>
 </head>
+
 <body>
-
-<header>
-    <div class="container header-row">
-        <a href="index.html" class="logo">OnFilm</a>
-        <button type="button" class="login-btn" id="loginBtn">로그인</button>
-    </div>
-</header>
-
-<main class="container">
-
-    <!-- PROFILE -->
-    <div class="profile-header">
-        <img id="profilePhoto"
-             class="profile-photo"
-             src="videos/profile-placeholder.png"
-             data-profile-src=""
-             alt="프로필 사진" />
-
-        <div class="profile-info">
-            <!-- ✅ 프로필 빈 상태 UI -->
-            <div class="empty-card hidden" id="profileEmpty">
-                <div class="empty-title">프로필을 아직 작성하지 않았어요</div>
-                <div class="empty-desc">
-                    프로필 사진, 소개글, 태그만 등록해도 캐스팅 담당자에게 훨씬 잘 보여요.
-                    지금 바로 채워볼까요?
-                </div>
-                <div class="empty-actions">
-                    <a class="btn-primary btn-mini" href="edit-profile.html">프로필 작성하기</a>
-                    <a class="btn-ghost btn-mini" href="edit-profile.html#photo">프로필 사진 설정</a>
-                    <a class="btn-ghost btn-mini" href="edit-profile.html#sns">SNS 추가</a>
-                </div>
-            </div>
-
-            <div class="profile-title-row">
-                <h1 id="profileName" data-value="">회원명</h1>
-                <button
-                        type="button"
-                        class="profile-settings-btn"
-                        id="profileSettingsBtn"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                        title="편집 메뉴 열기">
-                    ⚙️
-                </button>
-            </div>
-
-            <div class="meta" id="profileMeta" data-birth-date="" data-birth-place="">
-                생년월일 · 출생지 미등록
-            </div>
-
-            <p class="bio" id="bioDisplay" data-value="">
-                소개글을 입력해 주세요.
-            </p>
-
-            <div class="sns-row" id="snsRow">
-                <a href="https://instagram.com/j__hoi/" class="sns-pill" data-brand="instagram" target="_blank">
-                    <span class="sns-badge"><span class="sns-icon" aria-hidden="true"></span></span>
-                    <span class="sns-label">Instagram</span>
-                    <span class="sns-handle">@j__hoi</span>
-                </a>
-
-                <a href="https://www.youtube.com/@onfilm" class="sns-pill" data-brand="youtube" target="_blank">
-                    <span class="sns-badge"><span class="sns-icon" aria-hidden="true"></span></span>
-                    <span class="sns-label">YouTube</span>
-                    <span class="sns-handle">@onfilm</span>
-                </a>
-
-                <a href="https://blog.naver.com/onfilm" class="sns-pill" data-brand="naver" target="_blank">
-                    <span class="sns-badge"><span class="sns-icon" aria-hidden="true"></span></span>
-                    <span class="sns-label">Naver</span>
-                    <span class="sns-handle">blog</span>
-                </a>
-            </div>
-
-            <section class="profile-tag-section">
-                <div class="profile-tag-title">PROFILE TAGS</div>
-                <div class="profile-tag-list" id="tagList">
-                    <span class="profile-tag">#주연</span>
-                    <span class="profile-tag">#장편영화</span>
-                    <span class="profile-tag">#드라마</span>
-                    <span class="profile-tag">#상영작</span>
-                </div>
-            </section>
+<div class="page-root">
+    <header>
+        <div class="container header-row">
+            <a href="index.html" class="logo">OnFilm</a>
+            <div class="header-right" id="headerActions"></div>
         </div>
-    </div>
+    </header>
 
-    <!-- FILMOGRAPHY -->
-    <section class="filmography-section" id="filmographySection">
-        <h2>필모그래피</h2>
+    <main class="container">
 
-        <div class="film-slider-container" id="filmSliderContainer">
-            <!-- ✅ 필모 빈 상태 UI -->
-            <div class="empty-card hidden" id="filmEmpty">
-                <div class="empty-title">등록된 필모그래피가 아직 없어요</div>
-                <div class="empty-desc">
-                    작품 제목/연도/역할/트레일러만 올려도 페이지 완성도가 확 올라가요.
-                    첫 작품부터 추가해볼까요?
+        <!-- PROFILE -->
+        <div class="profile-header">
+            <img id="profilePhoto"
+                 class="profile-photo"
+                 src="videos/profile-placeholder.png"
+                 data-profile-src=""
+                 alt="프로필 사진" />
+
+            <div class="profile-info">
+                <div class="profile-title-row">
+                    <h1 id="profileName" data-value="">회원</h1>
+                    <button type="button"
+                            class="profile-settings-btn"
+                            id="profileSettingsBtn"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            title="편집 메뉴 열기">⚙️</button>
                 </div>
-                <div class="empty-actions">
-                    <a class="btn-primary btn-mini" href="edit-filmography.html">필모 추가하기</a>
-                    <a class="btn-ghost btn-mini" href="movie-upload.html">영상 업로드</a>
+
+                <div class="meta" id="profileMeta" data-birth-date="" data-birth-place="">
+                    생년월일 · 출생지 미등록
                 </div>
+
+                <p class="bio" id="bioDisplay" data-value="">
+                    소개글을 입력해 주세요.
+                </p>
+
+                <div class="sns-row" id="snsRow"></div>
+
+                <section class="profile-tag-section">
+                    <div class="profile-tag-title">PROFILE TAGS</div>
+                    <div class="profile-tag-list" id="tagList"></div>
+                </section>
             </div>
-            <button class="film-arrow left" id="filmPrevBtn">‹</button>
-
-            <div class="film-slider-wrapper">
-                <div class="film-slider" id="filmSlider">
-<!--                    <article class="film-card"-->
-<!--                             data-title="반품"-->
-<!--                             data-genre="SF / 스릴러"-->
-<!--                             data-runtime="148분"-->
-<!--                             data-age="15"-->
-<!--                             data-video="videos/trailer.mp4"-->
-<!--                             data-thumb="videos/thumbnail.png">-->
-<!--                        <img class="film-poster" src="videos/thumbnail.png">-->
-<!--                        <div class="film-body">-->
-<!--                            <div class="film-title">반품</div>-->
-<!--                            <div class="film-meta">2025 · 주연</div>-->
-<!--                        </div>-->
-<!--                    </article>-->
-
-<!--                    <article class="film-card"-->
-<!--                             data-title="두 번째 영화"-->
-<!--                             data-genre="드라마"-->
-<!--                             data-runtime="132분"-->
-<!--                             data-age="12"-->
-<!--                             data-video="videos/trailer.mp4"-->
-<!--                             data-thumb="videos/thumbnail.png">-->
-<!--                        <img class="film-poster" src="videos/thumbnail.png">-->
-<!--                        <div class="film-body">-->
-<!--                            <div class="film-title">두 번째 영화</div>-->
-<!--                            <div class="film-meta">2024 · 조연</div>-->
-<!--                        </div>-->
-<!--                    </article>-->
-
-<!--                    <article class="film-card"-->
-<!--                             data-title="세 번째 영화"-->
-<!--                             data-genre="로맨스"-->
-<!--                             data-runtime="110분"-->
-<!--                             data-age="15"-->
-<!--                             data-video="videos/trailer.mp4"-->
-<!--                             data-thumb="videos/thumbnail.png">-->
-<!--                        <img class="film-poster" src="videos/thumbnail.png">-->
-<!--                        <div class="film-body">-->
-<!--                            <div class="film-title">세 번째 영화</div>-->
-<!--                            <div class="film-meta">2023 · 주연</div>-->
-<!--                        </div>-->
-<!--                    </article>-->
-
-<!--                    <article class="film-card"-->
-<!--                             data-title="네 번째 영화"-->
-<!--                             data-genre="로맨스"-->
-<!--                             data-runtime="110분"-->
-<!--                             data-age="15"-->
-<!--                             data-video="videos/trailer.mp4"-->
-<!--                             data-thumb="videos/thumbnail.png">-->
-<!--                        <img class="film-poster" src="videos/thumbnail.png">-->
-<!--                        <div class="film-body">-->
-<!--                            <div class="film-title">네 번째 영화</div>-->
-<!--                            <div class="film-meta">2023 · 주연</div>-->
-<!--                        </div>-->
-<!--                    </article>-->
-                </div>
-            </div>
-
-            <button class="film-arrow right" id="filmNextBtn">›</button>
-        </div>
-    </section>
-
-    <!-- GALLERY -->
-    <section class="gallery-section" id="gallerySection">
-        <h2>사진 갤러리</h2>
-        <div class="gallery-grid" id="galleryGrid">
-            <!-- ✅ 갤러리 빈 상태 UI -->
-            <div class="empty-card hidden" id="galleryEmpty">
-                <div class="empty-title">아직 등록된 사진이 없어요</div>
-                <div class="empty-desc">
-                    프로필 사진과 현장 스틸 몇 장만 있어도 분위기가 확 전달돼요.
-                    첫 사진을 올려볼까요?
-                </div>
-                <div class="empty-actions">
-                    <a class="btn-primary btn-mini" href="edit-gallery.html">사진 올리기</a>
-                    <a class="btn-ghost btn-mini" href="edit-profile.html">프로필 사진 설정</a>
-                </div>
-            </div>
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=900">-->
-<!--            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">-->
         </div>
 
-        <div class="gallery-spinner" id="gallerySpinner">
-            <div class="spinner-circle"></div>
-        </div>
-    </section>
+        <!-- FILMOGRAPHY -->
+        <section class="filmography-section" id="filmographySection">
+            <h2>필모그래피</h2>
 
-    <footer>
-        © 2025 OnFilm · Indie Actor & Film Platform
-    </footer>
+            <div class="film-slider-container" id="filmSliderContainer">
 
-</main>
+                <!-- ✅ NEW: 스크린샷 스타일 빈 상태 (필름 아이콘) -->
+                <div class="empty-cta hidden" id="filmEmpty">
+                    <a class="empty-cta-icon" href="edit-filmography.html" aria-label="필모그래피 등록하기">
+              <span class="empty-cta-ring">
+                <!-- Film icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M4 6.5h16v11H4z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M8 6.5v11M16 6.5v11"/>
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M6.2 8.2h.01M6.2 10.2h.01M6.2 12.2h.01M6.2 14.2h.01"/>
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M17.8 8.2h.01M17.8 10.2h.01M17.8 12.2h.01M17.8 14.2h.01"/>
+                </svg>
+              </span>
+                    </a>
 
-<!-- ★ NEW: 프로필 편집 오버레이 -->
+                    <div class="empty-cta-title">필모그래피 공유</div>
+                    <div class="empty-cta-desc">작품을 등록하면 회원님의 프로필에 표시됩니다.</div>
+                    <a class="empty-cta-link" href="edit-filmography.html">첫 작품 등록하기</a>
+                </div>
+
+                <button class="film-arrow left" id="filmPrevBtn">‹</button>
+
+                <div class="film-slider-wrapper">
+                    <div class="film-slider" id="filmSlider"></div>
+                </div>
+
+                <button class="film-arrow right" id="filmNextBtn">›</button>
+            </div>
+        </section>
+
+        <!-- GALLERY -->
+        <section class="gallery-section" id="gallerySection">
+            <h2>사진 갤러리</h2>
+            <div class="gallery-grid" id="galleryGrid">
+
+                <!-- ✅ NEW: 스크린샷 스타일 빈 상태 (카메라 아이콘) -->
+                <div class="empty-cta hidden" id="galleryEmpty">
+                    <a class="empty-cta-icon" href="edit-gallery.html" aria-label="사진 공유하기">
+              <span class="empty-cta-ring">
+                <!-- Camera icon (screenshot vibe) -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M7 7.5h2l1-1.5h4l1 1.5h2A3 3 0 0 1 20 10.5v7A3 3 0 0 1 17 20.5H7A3 3 0 0 1 4 17.5v-7A3 3 0 0 1 7 7.5Z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 11a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 7.5l.9-1.2"/>
+                </svg>
+              </span>
+                    </a>
+
+                    <div class="empty-cta-title">사진 공유</div>
+                    <div class="empty-cta-desc">사진을 공유하면 회원님의 프로필에 표시됩니다.</div>
+                    <a class="empty-cta-link" href="edit-gallery.html">첫 사진 등록하기</a>
+                </div>
+
+                <!-- gallery-item들은 실제 데이터가 있으면 여기에 들어옴 -->
+            </div>
+
+            <div class="gallery-spinner" id="gallerySpinner">
+                <div class="spinner-circle"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer>© 2025 OnFilm · Indie Actor & Film Platform</footer>
+</div>
+
+<!-- 프로필 편집 오버레이 -->
 <div class="profile-edit-overlay" id="profileEditOverlay">
     <div class="profile-edit-card">
-        <button class="profile-settings-item" data-action="profile">
-            <span>프로필 편집</span>
-        </button>
-        <button class="profile-settings-item" data-action="filmography">
-            <span>필모그래피 편집</span>
-        </button>
-        <button class="profile-settings-item" data-action="gallery">
-            <span>사진 갤러리 편집</span>
-        </button>
-        <button class="profile-settings-item close-item" data-action="close">
-            <span>창 닫기</span>
-        </button>
+        <button class="profile-settings-item" data-action="profile"><span>프로필 편집</span></button>
+        <button class="profile-settings-item" data-action="filmography"><span>필모그래피 편집</span></button>
+        <button class="profile-settings-item" data-action="gallery"><span>사진 갤러리 편집</span></button>
+        <button class="profile-settings-item close-item" data-action="close"><span>창 닫기</span></button>
     </div>
 </div>
 
-<!-- ★ 로그인 오버레이 -->
+<!-- 로그인 오버레이 -->
 <div class="login-overlay" id="loginOverlay">
     <div class="login-card">
         <div class="login-brand">OnFilm</div>
 
         <label class="login-label" for="loginEmail">아이디</label>
-        <input
-                id="loginEmail"
-                class="login-input"
-                type="email"
-                placeholder="name@example.com"
-        />
+        <input id="loginEmail" class="login-input" type="email" placeholder="name@example.com" />
 
         <label class="login-label" for="loginPassword">비밀번호</label>
-        <input
-                id="loginPassword"
-                class="login-input"
-                type="password"
-                placeholder="비밀번호"
-        />
+        <input id="loginPassword" class="login-input" type="password" placeholder="비밀번호" />
 
-        <button class="login-submit-btn" type="button">
-            로그인
-        </button>
+        <button class="login-submit-btn" type="button">로그인</button>
 
         <div class="login-links">
             <a href="signup.html">회원가입</a>
@@ -1178,15 +1103,13 @@
         </div>
 
         <div class="social-row">
-            <button type="button" class="social-btn social-google">
-                Google로 계속하기
-            </button>
-            <button type="button" class="social-btn social-naver">
-                네이버로 계속하기
-            </button>
+            <button type="button" class="social-btn social-google">Google로 계속하기</button>
+            <button type="button" class="social-btn social-naver">네이버로 계속하기</button>
         </div>
     </div>
 </div>
+
+<script src="/js/auth.js"></script>
 
 <script>let popup = null;</script>
 
@@ -1271,30 +1194,30 @@
 
         popup.innerHTML = `
         <div class="popup-video-box">
-            <img class="popup-thumb" />
-            <video muted loop playsinline></video>
+          <img class="popup-thumb" />
+          <video muted loop playsinline></video>
 
-            <div class="popup-mute-btn">
-                <svg class="popup-sound-on" xmlns="http://www.w3.org/2000/svg"
-                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                     width="26" height="26" style="display:none;">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25
-                        l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51
-                        c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396
-                        C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
-                </svg>
+          <div class="popup-mute-btn">
+            <svg class="popup-sound-on" xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+              width="26" height="26" style="display:none;">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25
+                l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51
+                c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396
+                C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
+            </svg>
 
-                <svg class="popup-sound-off" xmlns="http://www.w3.org/2000/svg"
-                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                     width="26" height="26">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6
-                        4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51
-                        c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396
-                        C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
-                </svg>
-            </div>
+            <svg class="popup-sound-off" xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+              width="26" height="26">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6
+                4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51
+                c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396
+                C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
+            </svg>
+          </div>
         </div>
 
         <div class="popup-info">
@@ -1306,7 +1229,7 @@
             <button class="popup-like-btn"><span>👍</span></button>
           </div>
         </div>
-        `;
+      `;
 
         document.body.appendChild(popup);
 
@@ -1346,9 +1269,7 @@
 
             if (likeBtn.classList.contains("liked")) {
                 likeBtn.style.transform = "scale(1.25)";
-                setTimeout(() => {
-                    likeBtn.style.transform = "scale(1)";
-                }, 250);
+                setTimeout(() => { likeBtn.style.transform = "scale(1)"; }, 250);
             }
         };
 
@@ -1372,9 +1293,9 @@
 
         popup.querySelector(".popup-title").textContent = card.dataset.title ?? "";
         popup.querySelector(".popup-meta").innerHTML = `
-            ${card.dataset.genre ?? ""} · ${card.dataset.runtime ?? ""}
-            <span class="popup-age">${card.dataset.age ?? ""}</span>
-        `;
+        ${card.dataset.genre ?? ""} · ${card.dataset.runtime ?? ""}
+        <span class="popup-age">${card.dataset.age ?? ""}</span>
+      `;
 
         const thumb = card.dataset.thumb;
         if (thumb) {
@@ -1424,26 +1345,20 @@
             popup.style.transform = "scale(0.85) translateY(10px)";
 
             videoEl.pause();
-            if (thumbEl) {
-                thumbEl.style.opacity = "1";
-            }
+            if (thumbEl) thumbEl.style.opacity = "1";
 
             setTimeout(() => popup.classList.remove("show"), 180);
             activeCard = null;
         }, 120);
     }
 
-    // ✅ 동적 추가된 film-card도 자동 hover 적용 (이벤트 위임)
     const filmSliderEl = document.getElementById("filmSlider");
 
     if (filmSliderEl) {
         filmSliderEl.addEventListener("mouseover", (e) => {
             const card = e.target.closest(".film-card");
             if (!card || !filmSliderEl.contains(card)) return;
-
-            // 카드 안에서 움직이는 중이면 무시(중복 호출 방지)
             if (activeCard === card) return;
-
             showPopup(card);
         });
 
@@ -1451,14 +1366,12 @@
             const fromCard = e.target.closest(".film-card");
             if (!fromCard) return;
 
-            // 같은 카드 내부로 이동(out이지만 내부 이동)인 경우는 무시
             const toEl = e.relatedTarget;
             if (toEl && fromCard.contains(toEl)) return;
 
             hidePopup();
         });
     }
-
 
     function hidePopupImmediate() {
         if (!popup) return;
@@ -1477,7 +1390,7 @@
     window.addEventListener("load", updateArrows);
 </script>
 
-<!-- JS 3: GALLERY + LIGHTBOX + ★ NEW: 편집 메뉴 JS -->
+<!-- JS 3: GALLERY + LIGHTBOX + 편집 메뉴 JS -->
 <script>
     const gallerySection = document.querySelector(".gallery-section");
     const galleryGrid    = document.querySelector(".gallery-grid");
@@ -1538,14 +1451,17 @@
         }
     }
 
+    let lightboxPrevArrow = null;
+    let lightboxNextArrow = null;
+
     function createLightbox() {
         lightboxOverlay = document.createElement("div");
         lightboxOverlay.className = "gallery-lightbox-overlay";
         lightboxOverlay.innerHTML = `
-      <button class="gallery-lightbox-arrow left">‹</button>
-      <img class="gallery-lightbox-image" src="" alt="photo detail">
-      <button class="gallery-lightbox-arrow right">›</button>
-    `;
+        <button class="gallery-lightbox-arrow left">‹</button>
+        <img class="gallery-lightbox-image" src="" alt="photo detail">
+        <button class="gallery-lightbox-arrow right">›</button>
+      `;
         document.body.appendChild(lightboxOverlay);
 
         lightboxImg       = lightboxOverlay.querySelector(".gallery-lightbox-image");
@@ -1553,9 +1469,7 @@
         lightboxNextArrow = lightboxOverlay.querySelector(".gallery-lightbox-arrow.right");
 
         lightboxOverlay.addEventListener("click", (e) => {
-            if (e.target === lightboxImg || e.target === lightboxPrevArrow || e.target === lightboxNextArrow) {
-                return;
-            }
+            if (e.target === lightboxImg || e.target === lightboxPrevArrow || e.target === lightboxNextArrow) return;
             closeLightbox();
         });
 
@@ -1573,13 +1487,9 @@
         window.addEventListener("keydown", (e) => {
             if (!lightboxOverlay.classList.contains("show")) return;
 
-            if (e.key === "Escape") {
-                closeLightbox();
-            } else if (e.key === "ArrowLeft") {
-                showPrevPhoto();
-            } else if (e.key === "ArrowRight") {
-                showNextPhoto();
-            }
+            if (e.key === "Escape") closeLightbox();
+            else if (e.key === "ArrowLeft") showPrevPhoto();
+            else if (e.key === "ArrowRight") showNextPhoto();
         });
     }
 
@@ -1587,23 +1497,12 @@
         const total = galleryItems.length;
         if (!lightboxPrevArrow || !lightboxNextArrow) return;
 
-        if (currentIndex <= 0) {
-            lightboxPrevArrow.style.display = "none";
-        } else {
-            lightboxPrevArrow.style.display = "flex";
-        }
-
-        if (currentIndex >= total - 1) {
-            lightboxNextArrow.style.display = "none";
-        } else {
-            lightboxNextArrow.style.display = "flex";
-        }
+        lightboxPrevArrow.style.display = (currentIndex <= 0) ? "none" : "flex";
+        lightboxNextArrow.style.display = (currentIndex >= total - 1) ? "none" : "flex";
     }
 
     function openLightbox(index) {
-        if (!lightboxOverlay) {
-            createLightbox();
-        }
+        if (!lightboxOverlay) createLightbox();
         currentIndex = index;
         lightboxImg.src = galleryItems[currentIndex].src;
         lightboxOverlay.classList.add("show");
@@ -1629,9 +1528,7 @@
         updateLightboxArrows();
     }
 
-    /* ★ NEW: 프로필 편집 메뉴 JS */
     window.addEventListener("load", () => {
-        // ✅ 프로필 이미지: 있어도 되고 없어도 됨
         const profileImg = document.getElementById("profilePhoto");
         if (profileImg) {
             const placeholder = profileImg.getAttribute("src");
@@ -1646,10 +1543,8 @@
             }
         }
 
-        // ✅ 갤러리/필모 empty-state 토글
         updateEmptyUI();
 
-        // ✅ 갤러리 초기화/라이트박스는 이미지가 있을 때만
         if (galleryItems.length > 0) {
             initGallery();
             galleryItems.forEach((img, idx) => {
@@ -1663,20 +1558,16 @@
             }
         }
 
-        // ✅ 본인 여부에 따라 편집 UI 노출
-        const isOwner = true; // TODO: 나중에 로그인/토큰으로 결정
+        const isOwner = true;
         document.getElementById("profileSettingsBtn")?.classList.toggle("hidden", !isOwner);
         document.getElementById("profileEditOverlay")?.classList.toggle("hidden", !isOwner);
 
-        // ✅ 톱니바퀴 오버레이는 그대로
         if (isOwner) setupEditOverlay();
     });
 </script>
 
 <script>
-    // ✅ 추가/삭제/수정 발생 시 updateEmptyUI 자동 실행 (디바운스 포함)
     (function autoUpdateEmptyUI(){
-        // 중복 생성 방지
         if (window.__emptyUIObserver) {
             window.__emptyUIObserver.disconnect();
             window.__emptyUIObserver = null;
@@ -1684,7 +1575,7 @@
 
         const filmSlider   = document.getElementById("filmSlider");
         const galleryGrid  = document.getElementById("galleryGrid");
-        const profileInfo  = document.querySelector(".profile-info"); // 프로필 텍스트/태그 바뀌는 것도 반영하려면
+        const profileInfo  = document.querySelector(".profile-info");
 
         let scheduled = false;
         const schedule = () => {
@@ -1695,20 +1586,17 @@
                 scheduled = false;
 
                 if (typeof updateEmptyUI === "function") updateEmptyUI();
-                // 필모 슬라이더 화살표도 자동 갱신되게(있으면)
                 if (typeof updateArrows === "function") updateArrows();
             });
         };
 
-        const observer = new MutationObserver(() => {
-            schedule();
-        });
+        const observer = new MutationObserver(() => { schedule(); });
 
         const config = {
-            childList: true,      // 자식 추가/삭제
-            subtree: true,        // 하위까지
-            attributes: true,     // 속성 변경 (src, data-*, class 등)
-            characterData: true   // 텍스트 변경
+            childList: true,
+            subtree: true,
+            attributes: true,
+            characterData: true
         };
 
         if (filmSlider)  observer.observe(filmSlider, config);
@@ -1716,17 +1604,12 @@
         if (profileInfo) observer.observe(profileInfo, config);
 
         window.__emptyUIObserver = observer;
-
-        // 초기 1회 반영
         schedule();
     })();
 </script>
 
-
-
 <script>
     function updateEmptyUI(){
-        // ---- PROFILE ----
         const profileHeader = document.querySelector(".profile-header");
         const nameEl = document.getElementById("profileName");
         const metaEl = document.getElementById("profileMeta");
@@ -1734,8 +1617,6 @@
 
         const snsRow = document.querySelector(".sns-row");
         const tagList = document.getElementById("tagList");
-
-        const profileEmptyEl = document.getElementById("profileEmpty");
 
         const hasName = !!(nameEl?.dataset.value?.trim());
         const hasMeta = !!(metaEl?.dataset.birthDate?.trim() || metaEl?.dataset.birthPlace?.trim());
@@ -1745,7 +1626,9 @@
 
         const profileHasAny = hasName || hasMeta || hasBio || hasSns || hasTags;
 
-        if (profileEmptyEl) profileEmptyEl.classList.toggle("hidden", profileHasAny);
+        snsRow?.classList.toggle("is-empty", !hasSns);
+        tagList?.classList.toggle("is-empty", !hasTags);
+
         if (profileHeader) profileHeader.classList.toggle("is-empty", !profileHasAny);
 
         // ---- FILMOGRAPHY ----
@@ -1754,10 +1637,9 @@
         const filmEmpty  = document.getElementById("filmEmpty");
 
         const hasFilms = filmCards.length > 0;
-        // 1) 빈 카드 토글
+
         if (filmEmpty) filmEmpty.classList.toggle("hidden", hasFilms);
 
-        // 2) 실제 슬라이더 UI만 토글 (컨테이너 전체 숨기지 말기)
         const filmWrapper = document.querySelector("#filmSliderContainer .film-slider-wrapper");
         const filmPrev = document.getElementById("filmPrevBtn");
         const filmNext = document.getElementById("filmNextBtn");
@@ -1817,45 +1699,227 @@
         });
 
         document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape" && editOverlay.classList.contains("show")) {
-                closeEditOverlay();
-            }
+            if (e.key === "Escape" && editOverlay.classList.contains("show")) closeEditOverlay();
         });
     }
-
 </script>
 
 <script>
-    // ★ 로그인 오버레이 동작
     const loginBtn = document.getElementById("loginBtn");
     const loginOverlay = document.getElementById("loginOverlay");
 
     if (loginBtn && loginOverlay) {
-        // 헤더 로그인 버튼 클릭 → 오버레이 열기
-        loginBtn.addEventListener("click", () => {
-            loginOverlay.classList.add("show");
-        });
+        loginBtn.addEventListener("click", () => loginOverlay.classList.add("show"));
 
-        // 어두운 영역 클릭 → 닫기
         loginOverlay.addEventListener("click", (e) => {
-            if (e.target === loginOverlay) {
-                loginOverlay.classList.remove("show");
-            }
+            if (e.target === loginOverlay) loginOverlay.classList.remove("show");
         });
 
-        // ESC 키로 닫기
         document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") {
-                loginOverlay.classList.remove("show");
-            }
+            if (e.key === "Escape") loginOverlay.classList.remove("show");
         });
     }
 
-    // URL에 ?login=true 가 붙어 있으면 자동으로 로그인 오버레이 열기
     const params = new URLSearchParams(window.location.search);
     if (loginOverlay && params.get("login") === "true") {
         loginOverlay.classList.add("show");
     }
 </script>
+
+<script>
+    function renderLoggedOut(container){
+        container.innerHTML = `
+        <button type="button" class="login-btn" id="loginBtn">로그인</button>
+      `;
+
+        const loginBtn = document.getElementById("loginBtn");
+        const loginOverlay = document.getElementById("loginOverlay");
+        if (loginBtn && loginOverlay) {
+            loginBtn.addEventListener("click", () => loginOverlay.classList.add("show"));
+        }
+    }
+
+    function renderLoggedIn(container, me){
+        const displayName = (me && (me.displayName || me.username || me.name || me.email)) || "내 계정";
+        const avatarUrl = (me && (me.avatarUrl || me.profileImageUrl)) || "";
+
+        const initial = (displayName.trim().charAt(0) || "A").toUpperCase();
+
+        container.innerHTML = `
+            <div class="profile-menu">
+              <button type="button" class="profile-avatar-btn" id="profileAvatarBtn" aria-label="계정 메뉴 열기">
+                ${avatarUrl
+                    ? `<img src="${avatarUrl}" alt="${displayName}">`
+                    : `<span class="profile-avatar-initial">${initial}</span>`}
+              </button>
+
+              <div class="profile-dropdown" id="profileDropdown">
+                <button type="button" class="profile-item" data-action="actor-page">내 배우 페이지</button>
+                <button type="button" class="profile-item" data-action="edit-profile">프로필 편집 <span>기본정보</span></button>
+                <button type="button" class="profile-item" data-action="edit-filmography">필모 편집 <span>작품/역할</span></button>
+                <button type="button" class="profile-item" data-action="edit-gallery">갤러리 편집 <span>사진/영상</span></button>
+                <button type="button" class="profile-item" data-action="logout">로그아웃</button>
+              </div>
+            </div>
+        `;
+
+        const avatarBtn = document.getElementById("profileAvatarBtn");
+        const dropdown = document.getElementById("profileDropdown");
+        if (!avatarBtn || !dropdown) return;
+
+        const close = () => dropdown.classList.remove("open");
+        const toggle = () => dropdown.classList.toggle("open");
+
+        avatarBtn.addEventListener("click", (e) => { e.stopPropagation(); toggle(); });
+
+        dropdown.querySelectorAll(".profile-item").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const action = btn.dataset.action;
+                close();
+
+                if (action === "actor-page") {
+                    const uname = (me && me.username) ? String(me.username).trim() : "";
+                    if (!uname) {
+                        alert("username이 설정되어 있지 않습니다. 프로필에서 username을 설정해 주세요.");
+                        return;
+                    }
+                    window.location.href = "/onfilm/" + encodeURIComponent(uname);
+                }
+                if (action === "edit-profile") window.location.href = "edit-profile.html";
+                if (action === "edit-filmography") window.location.href = "edit-filmography.html";
+                if (action === "edit-gallery") window.location.href = "edit-gallery.html";
+
+                if (action === "logout") {
+                    await window.OnfilmAuth.logout();
+                    renderLoggedOut(container);
+                }
+            });
+        });
+
+        document.addEventListener("click", close);
+        document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+    }
+
+
+    async function renderHeaderActions(){
+        const container = document.getElementById("headerActions");
+        if (!container) return;
+
+        renderLoggedOut(container);
+
+        try {
+            const result = await window.OnfilmAuth.restoreSession();
+            if (result && result.ok && result.me) {
+                renderLoggedIn(container, result.me);
+            } else {
+                renderLoggedOut(container);
+            }
+        } catch (e) {
+            console.error("restoreSession failed", e);
+            renderLoggedOut(container);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        renderHeaderActions();
+
+        const params = new URLSearchParams(window.location.search);
+        const loginOverlay = document.getElementById("loginOverlay");
+        if (loginOverlay && params.get("login") === "true") {
+            loginOverlay.classList.add("show");
+        }
+    });
+</script>
+
+<script>
+    function getUsernameFromPath() {
+        // 예: /onfilm/wonhoeh
+        const parts = window.location.pathname.split("/").filter(Boolean);
+        // ["onfilm", "wonhoeh"]
+        if (parts.length >= 2 && parts[0] === "onfilm") return parts[1];
+        return null;
+    }
+
+    async function loadProfile() {
+        const username = getUsernameFromPath();
+        if (!username) return;
+
+        const res = await fetch(`/api/profiles/${encodeURIComponent(username)}`);
+        if (!res.ok) {
+            // 404 처리 등
+            return;
+        }
+        const data = await res.json();
+
+        // ✅ 예시: 화면 반영
+        const nameEl = document.getElementById("profileName");
+        if (nameEl) {
+            nameEl.textContent = data.username;
+            nameEl.dataset.value = data.username;
+        }
+
+        // 이후 bio/meta/사진 등도 data로 채우면 됨
+    }
+
+    document.addEventListener("DOMContentLoaded", loadProfile);
+</script>
+
+<script>
+    function getUsernameFromPath() {
+        // 예: /onfilm/wonhoeh  -> ["", "onfilm", "wonhoeh"]
+        const parts = window.location.pathname.split("/").filter(Boolean);
+        if (parts.length >= 2 && parts[0] === "onfilm") return parts[1];
+        return null;
+    }
+
+    async function fetchActorProfileByUsername(username) {
+        // ✅ 너 백엔드에 맞게 엔드포인트만 연결해주면 됨
+        // 예시) GET /api/users/{username}/profile
+        const res = await fetch("/api/users/" + encodeURIComponent(username) + "/profile", {
+            method: "GET",
+            credentials: "include",
+            headers: { "Accept": "application/json" }
+        });
+
+        if (!res.ok) {
+            throw new Error("PROFILE_FETCH_FAILED status=" + res.status);
+        }
+        return await res.json();
+    }
+
+    async function bootstrapProfilePage() {
+        const username = getUsernameFromPath();
+
+        // ✅ /onfilm/{username}로 들어온 경우: 공개 프로필 로드
+        if (username) {
+            try {
+                const profile = await fetchActorProfileByUsername(username);
+                // TODO: 여기서 profile 데이터를 너 DOM에 바인딩하면 됨
+                // 예) document.getElementById("profileName").textContent = profile.name;
+                console.log("public profile:", profile);
+            } catch (e) {
+                console.error(e);
+                // 필요하면 404 UI 처리
+            }
+            return;
+        }
+
+        // ✅ 기존처럼 임시로 ?me=1 지원하고 싶으면 유지(선택)
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("me") === "1") {
+            // /auth/me로 내 정보 기반 렌더링 하는 로직을 여기서 수행하면 됨
+            try {
+                const result = await window.OnfilmAuth.restoreSession();
+                console.log("me:", result.me);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", bootstrapProfilePage);
+</script>
+
+
 </body>
 </html>

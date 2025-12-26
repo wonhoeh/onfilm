@@ -67,7 +67,8 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/css/**"),
                                 new AntPathRequestMatcher("/images/**"),
                                 new AntPathRequestMatcher("/videos/**"),
-                                new AntPathRequestMatcher("/favicon.ico")
+                                new AntPathRequestMatcher("/favicon.ico"),
+                                new AntPathRequestMatcher("/onfilm/**")
                         ).permitAll()
 
                         // ✅ auth 정책
@@ -122,7 +123,8 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/css/**"),
                                 new AntPathRequestMatcher("/images/**"),
                                 new AntPathRequestMatcher("/videos/**"),
-                                new AntPathRequestMatcher("/favicon.ico")
+                                new AntPathRequestMatcher("/favicon.ico"),
+                                new AntPathRequestMatcher("/onfilm/**")
                         ).permitAll()
 
                         .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh").permitAll()

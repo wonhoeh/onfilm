@@ -884,12 +884,12 @@
 
         // ✅ 라우팅 (필요하면 너 파일명으로 수정)
         if (action === "actor-page") {
-          const { myActorId } = normalizeMe(me);
-          // actorId가 있으면 그걸로 가고, 없으면 me=1로 임시 처리
-          window.location.href = myActorId
-                  ? `actor-detail-temp.html?actorId=${encodeURIComponent(myActorId)}`
-                  : `actor-detail-temp.html?me=1`;
-          return;
+          const uname = (me && me.username) ? String(me.username).trim() : "";
+          if (!uname) {
+            alert("username이 설정되어 있지 않습니다. 프로필에서 username을 설정해 주세요.");
+            return;
+          }
+          window.location.href = "/onfilm/" + encodeURIComponent(uname);
         }
 
         if (action === "edit-profile") {
@@ -1021,18 +1021,18 @@
   });
 </script>
 
-<script>
-  window.addEventListener("load", async () => {
-    console.log("auth.js loaded?", !!window.OnfilmAuth);
+<!--<script>-->
+<!--  window.addEventListener("load", async () => {-->
+<!--    console.log("auth.js loaded?", !!window.OnfilmAuth);-->
 
-    if (!window.OnfilmAuth) return;
+<!--    if (!window.OnfilmAuth) return;-->
 
-    const r = await window.OnfilmAuth.restoreSession();
-    console.log("restoreSession result:", r);
+<!--    // const r = await window.OnfilmAuth.restoreSession();-->
+<!--    // console.log("restoreSession result:", r);-->
 
-    console.log("me after restore:", window.OnfilmAuth.getMe?.());
-  });
-</script>
+<!--    console.log("me after restore:", window.OnfilmAuth.getMe?.());-->
+<!--  });-->
+<!--</script>-->
 
 </body>
 </html>
