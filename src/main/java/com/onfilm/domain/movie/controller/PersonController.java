@@ -2,6 +2,7 @@ package com.onfilm.domain.movie.controller;
 
 import com.onfilm.domain.movie.dto.CreatePersonRequest;
 import com.onfilm.domain.movie.dto.FilmographyResponse;
+import com.onfilm.domain.movie.dto.PersonResponse;
 import com.onfilm.domain.movie.service.PersonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,12 @@ import java.util.List;
 public class PersonController {
 
     private final PersonService personService;
+
+    @GetMapping("/{username}")
+    public ResponseEntity<PersonResponse> getPersonByUsername(@PathVariable String username) {
+        PersonResponse personResponse = personService.getPersonByUsername(username);
+        return ResponseEntity.ok(personResponse);
+    }
 
     @PostMapping()
     public ResponseEntity<Long> createPerson(@RequestBody CreatePersonRequest request) {

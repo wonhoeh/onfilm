@@ -1,10 +1,10 @@
 package com.onfilm.domain.user.entity;
 
+import com.onfilm.domain.movie.entity.Person;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -15,7 +15,6 @@ import lombok.Setter;
                 @UniqueConstraint(name = "uk_users_username", columnNames = "username")
         })
 public class User {
-
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name ="user_id")
     private Long id;
@@ -31,11 +30,28 @@ public class User {
 
     private String avatarUrl;
 
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "person_id", unique = true)
+    private Person person;
+
     public static User create(String email, String password, String username) {
         User user = new User();
         user.email = email;
         user.password = password;
         user.username = username;
         return user;
+    }
+
+    public void assignPerson(Person person) {
+        this.person = person;
+        if (person != null && person.getUser() != this) {
+            person.assignUser(this);
+        }
+    }
+    public void unassignPerson() {
+        if (this.person == null) return;
+        Person old = this.person;
+        this.person = null;
+        if (old.getUser() == this) old.unassignUser();
     }
 }

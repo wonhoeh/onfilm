@@ -1831,90 +1831,127 @@
     });
 </script>
 
-<script>
-    function getUsernameFromPath() {
-        const parts = window.location.pathname.split("/").filter(Boolean);
-        if (parts.length >= 2 && parts[0] === "onfilm") return parts[1];
-        return null;
-    }
-
-    async function loadProfile() {
-        const username = getUsernameFromPath();
-        if (!username) return;
-
-        const res = await fetch(`/api/profiles/${encodeURIComponent(username)}`);
-        if (!res.ok) {
-            // 404 처리 등
-            return;
-        }
-        const data = await res.json();
-
-        const nameEl = document.getElementById("profileName");
-        if (nameEl) {
-            nameEl.textContent = data.username;
-            nameEl.dataset.value = data.username;
-        }
-
-        // 이후 bio/meta/사진 등도 data로 채우면 됨
-    }
-
-    document.addEventListener("DOMContentLoaded", loadProfile);
-</script>
 
 <script>
     function getUsernameFromPath() {
         const parts = window.location.pathname.split("/").filter(Boolean);
-        if (parts.length >= 2 && parts[0] === "onfilm") return parts[1];
+        if (parts.length >= 2 && parts[0] === "onfilm") return decodeURIComponent(parts[1]);
         return null;
     }
 
-    async function fetchActorProfileByUsername(username) {
-        // ✅ 너 백엔드에 맞게 엔드포인트만 연결해주면 됨
-        // 예시) GET /api/users/{username}/profile
-        const res = await fetch("/api/users/" + encodeURIComponent(username) + "/profile", {
+    async function fetchPersonByName(username) {
+        const res = await fetch(`/persons/${encodeURIComponent(username)}`, {
             method: "GET",
-            credentials: "include",
             headers: { "Accept": "application/json" }
         });
-
-        if (!res.ok) {
-            throw new Error("PROFILE_FETCH_FAILED status=" + res.status);
-        }
+        if (!res.ok) throw new Error("GET_PERSON_FAILED status=" + res.status);
         return await res.json();
     }
 
-    async function bootstrapProfilePage() {
-        const username = getUsernameFromPath();
-
-        // ✅ /onfilm/{username}로 들어온 경우: 공개 프로필 로드
-        if (username) {
-            try {
-                const profile = await fetchActorProfileByUsername(username);
-                // TODO: 여기서 profile 데이터를 너 DOM에 바인딩하면 됨
-                // 예) document.getElementById("profileName").textContent = profile.name;
-                console.log("public profile:", profile);
-            } catch (e) {
-                console.error(e);
-                // 필요하면 404 UI 처리
-            }
-            return;
+    function applyPersonToUI(p) {
+        // 이름
+        const nameEl = document.getElementById("profileName");
+        if (nameEl) {
+            nameEl.textContent = p?.name || "회원";
+            nameEl.dataset.value = p?.name || "";
         }
 
-        // ✅ 기존처럼 임시로 ?me=1 지원하고 싶으면 유지(선택)
-        const params = new URLSearchParams(window.location.search);
-        if (params.get("me") === "1") {
-            // /auth/me로 내 정보 기반 렌더링 하는 로직을 여기서 수행하면 됨
-            try {
-                const result = await window.OnfilmAuth.restoreSession();
-                console.log("me:", result.me);
-            } catch (e) {
-                console.error(e);
-            }
+        // 메타
+        const metaEl = document.getElementById("profileMeta");
+        if (metaEl) {
+            const birthDate = p?.birthDate || "";
+            const birthPlace = p?.birthPlace || "";
+            metaEl.dataset.birthDate = birthDate;
+            metaEl.dataset.birthPlace = birthPlace;
+
+            const left = birthDate ? birthDate : "생년월일 미등록";
+            const right = birthPlace ? birthPlace : "출생지 미등록";
+            metaEl.textContent = `${left} · ${right}`;
+        }
+
+        // 소개
+        const bioEl = document.getElementById("bioDisplay");
+        if (bioEl) {
+            bioEl.textContent = p?.oneLineIntro || "소개글을 입력해 주세요.";
+            bioEl.dataset.value = p?.oneLineIntro || "";
+        }
+
+        // 이미지
+        const imgEl = document.getElementById("profilePhoto");
+        if (imgEl) {
+            const placeholder = imgEl.getAttribute("src");
+            const real = (p?.profileImageUrl || "").trim();
+            imgEl.dataset.profileSrc = real;
+            imgEl.src = real || placeholder;
+            imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = placeholder; };
+        }
+
+        // SNS
+        const snsRow = document.getElementById("snsRow");
+        if (snsRow) {
+            snsRow.innerHTML = "";
+            const list = Array.isArray(p?.snsList) ? p.snsList : [];
+            list.forEach(sns => {
+                const type = (sns?.type || "").toString().toUpperCase();
+                const url = (sns?.url || "").toString();
+                if (!url) return;
+
+                const brand =
+                    type === "INSTAGRAM" ? "instagram" :
+                        type === "YOUTUBE" ? "youtube" :
+                            type === "NAVER" ? "naver" :
+                                (type === "TWITTER" || type === "X") ? "x" : "x";
+
+                const a = document.createElement("a");
+                a.className = "sns-pill";
+                a.href = url;
+                a.target = "_blank";
+                a.rel = "noopener";
+                a.dataset.brand = brand;
+                a.innerHTML = `
+          <span class="sns-badge"><span class="sns-icon"></span></span>
+          <span>${type}</span>
+          <span class="sns-handle">${new URL(url).hostname}</span>
+        `;
+                snsRow.appendChild(a);
+            });
+        }
+
+        // 태그
+        const tagListEl = document.getElementById("tagList");
+        if (tagListEl) {
+            tagListEl.innerHTML = "";
+            const tags = Array.isArray(p?.rawTags) ? p.rawTags : [];
+            tags.forEach(t => {
+                const raw = (t?.rawTag || "").toString().trim();
+                if (!raw) return;
+                const span = document.createElement("span");
+                span.className = "profile-tag";
+                span.textContent = raw.startsWith("#") ? raw : `#${raw}`;
+                tagListEl.appendChild(span);
+            });
+        }
+
+        // empty UI 반영
+        if (typeof updateEmptyUI === "function") updateEmptyUI();
+    }
+
+    async function initProfilePage() {
+        const username = getUsernameFromPath();
+        if (!username) return;
+
+        try {
+            const person = await fetchPersonByName(username);
+            applyPersonToUI(person);
+        } catch (e) {
+            console.error(e);
+            const nameEl = document.getElementById("profileName");
+            if (nameEl) nameEl.textContent = "존재하지 않는 프로필";
+            if (typeof updateEmptyUI === "function") updateEmptyUI();
         }
     }
 
-    document.addEventListener("DOMContentLoaded", bootstrapProfilePage);
+    document.addEventListener("DOMContentLoaded", initProfilePage);
 </script>
-
 </body>
 </html>

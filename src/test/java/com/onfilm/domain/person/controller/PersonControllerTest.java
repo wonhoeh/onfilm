@@ -3,8 +3,7 @@ package com.onfilm.domain.person.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onfilm.domain.common.config.JwtProvider;
 import com.onfilm.domain.movie.controller.PersonController;
-import com.onfilm.domain.movie.dto.CreatePersonRequest;
-import com.onfilm.domain.movie.dto.CreatePersonSnsRequest;
+import com.onfilm.domain.movie.dto.*;
 import com.onfilm.domain.movie.entity.SnsType;
 import com.onfilm.domain.movie.service.PersonService;
 import org.junit.jupiter.api.DisplayName;
@@ -21,8 +20,10 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @WebMvcTest(PersonController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -93,5 +94,49 @@ class PersonControllerTest {
                 )
                 .andExpect(status().isCreated())
                 .andExpect(content().string("2"));
+    }
+
+    @Test
+    @DisplayName("GET /persons/{name} -> 202 ACCEPTED + PersonResponse JSON 반환")
+    void getPerson_returnsAcceptedAndBody() throws Exception {
+        // given
+        String name = "디카프리오";
+
+        PersonSnsResponse sns1 = PersonSnsResponse.builder()
+                        .type(SnsType.INSTAGRAM)
+                        .url("https://instagram.com/leo")
+                        .build();
+
+        ProfileTagResponse tag1 = ProfileTagResponse.builder()
+                        .rawTag("헐리우드")
+                        .build();
+
+        PersonResponse response = PersonResponse.builder()
+                .id(1L)
+                .name(name)
+                .birthDate(LocalDate.of(1974, 11, 11))
+                .birthPlace("Los Angeles")
+                .oneLineIntro("actor")
+                .profileImageUrl("https://img.test/profile.png")
+                .snsList(List.of(sns1))
+                .rawTags(List.of(tag1))
+                .build();
+
+        when(personService.getPerson(name)).thenReturn(response);
+
+        // when & then
+        mockMvc.perform(get("/persons/{name}", name)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isAccepted())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value(name))
+                .andExpect(jsonPath("$.birthDate").value("1974-11-11"))
+                .andExpect(jsonPath("$.birthPlace").value("Los Angeles"))
+                .andExpect(jsonPath("$.oneLineIntro").value("actor"))
+                .andExpect(jsonPath("$.profileImageUrl").value("https://img.test/profile.png"))
+                .andExpect(jsonPath("$.snsList[0].type").value("INSTAGRAM"))
+                .andExpect(jsonPath("$.snsList[0].url").value("https://instagram.com/leo"))
+                .andExpect(jsonPath("$.rawTags[0].rawTag").value("헐리우드"));
     }
 }

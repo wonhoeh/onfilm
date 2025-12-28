@@ -1,5 +1,6 @@
 package com.onfilm.domain.movie.entity;
 
+import com.onfilm.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -37,6 +38,9 @@ public class Person {
 
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProfileTag> profileTags = new ArrayList<>();
+
+    @OneToOne(mappedBy = "person", fetch = FetchType.LAZY)
+    private User user;
 
     @Builder(access = AccessLevel.PRIVATE)
     private Person(
@@ -84,9 +88,7 @@ public class Person {
     public void addSns(PersonSns sns) {
         if (sns == null) return;
 
-        /**
-         * JPA 엔티티는 저장 전 id가 없을 수 있어 비즈니스 키(type+url)로 중복 체크
-         */
+        // JPA 엔티티는 저장 전 id가 없을 수 있어 비즈니스 키(type+url)로 중복 체크
         boolean duplicated = snsList.stream().anyMatch(s ->
                 s.getType() == sns.getType() &&
                 s.getUrl().equals(sns.getUrl())
@@ -117,4 +119,12 @@ public class Person {
 
         profileTags.removeIf(t -> t.getNormalized().equals(normalized));
     }
+
+    public void assignUser(User user) {
+        this.user = user;
+        if (user != null && user.getPerson() != this) {
+            user.assignPerson(this);
+        }
+    }
+    public void unassignUser() { this.user = null; }
 }
