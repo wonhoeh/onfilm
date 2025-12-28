@@ -109,7 +109,8 @@ public class MovieService {
     }
 
     private Movie getMovie(Long id) {
-        return movieRepository.findById(id).orElseThrow(MovieNotFoundException::new);
+        return movieRepository.findById(id)
+                .orElseThrow(() -> new MovieNotFoundException(id));
     }
 
     private void attachGenresHybrid(Movie movie, List<String> rawGenreTexts) {

@@ -122,7 +122,7 @@ class PersonControllerTest {
                 .rawTags(List.of(tag1))
                 .build();
 
-        when(personService.getPerson(name)).thenReturn(response);
+        when(personService.getPersonByUsername(name)).thenReturn(response);
 
         // when & then
         mockMvc.perform(get("/persons/{name}", name)

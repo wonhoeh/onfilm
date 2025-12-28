@@ -19,6 +19,10 @@
             --radius-md:10px;
             --radius-xl:20px;
             --shadow:0 10px 40px rgba(0,0,0,.5);
+
+            /* ✅ 스크린샷 느낌의 “파란 링크” */
+            --link-blue:#5aa7ff;
+            --icon-ring: rgba(255,255,255,.75);
         }
 
         *{box-sizing:border-box;}
@@ -30,20 +34,24 @@
                     radial-gradient(900px 400px at 80% 0%, rgba(124,92,255,.2), transparent 60%),
                     radial-gradient(700px 350px at 10% 10%, rgba(36,211,154,.15), transparent 60%),
                     var(--bg);
+            min-height:100vh;
+            display:flex;
+            flex-direction:column;
         }
         .container{
             width:min(1100px,92vw);
             margin:0 auto;
         }
 
-        /* 페이지 본문용 래퍼 */
+        main.container{ flex: 1; }
+
         .page-root{
             min-height:100vh;
             display:flex;
             flex-direction:column;
         }
+        .page-root > main { flex: 1; }
 
-        /* 헤더 줄 */
         header{
             position:sticky; top:0; z-index:10;
             background:rgba(11,12,15,.85);
@@ -57,8 +65,6 @@
             justify-content:space-between;
             height:56px;
         }
-
-
 
         nav ul{
             display:flex; list-style:none; gap:18px;
@@ -93,15 +99,13 @@
             line-height: 1.6;
         }
 
-        /* ★ NEW: 이름 + 톱니바퀴 버튼 래퍼 */
         .profile-title-row{
             display:flex;
             align-items:center;
             gap:8px;
-            position:relative; /* 드롭다운 위치 기준 */
+            position:relative;
         }
 
-        /* ★ NEW: 톱니바퀴 버튼 */
         .profile-settings-btn{
             width:28px;
             height:28px;
@@ -122,8 +126,6 @@
             transform:translateY(-1px);
         }
 
-        /* 편집 메뉴 오버레이 카드*/
-        /* ★ NEW: 프로필 편집 오버레이 (갤러리 라이트박스 느낌) */
         .profile-edit-overlay{
             position: fixed;
             inset: 0;
@@ -136,13 +138,10 @@
             pointer-events: none;
             transition: opacity .2s ease;
         }
-
         .profile-edit-overlay.show{
             opacity: 1;
             pointer-events: auto;
         }
-
-        /* 중앙 카드 */
         .profile-edit-card{
             width: min(320px, 90vw);
             background: var(--panel-2);
@@ -151,20 +150,14 @@
             box-shadow: 0 20px 60px rgba(0,0,0,.85);
             padding: 14px 16px 10px;
         }
-
-
-        /* 기존 profile-settings-item 재사용해도 됨 */
         .profile-edit-card .profile-settings-item{
             padding: 9px 10px;
             font-size: 13px;
         }
-
         .profile-edit-card .profile-settings-item + .profile-settings-item{
             border-top: 1px solid rgba(255,255,255,0.03);
         }
 
-
-        /* ★ NEW: 드롭다운 메뉴 */
         .profile-settings-menu{
             position:absolute;
             top:110%;
@@ -178,9 +171,7 @@
             display:none;
             z-index:20;
         }
-        .profile-settings-menu.show{
-            display:block;
-        }
+        .profile-settings-menu.show{ display:block; }
         .profile-settings-item{
             width:100%;
             border:none;
@@ -194,14 +185,79 @@
             align-items:center;
             justify-content:space-between;
         }
-        .profile-settings-item span{
-            pointer-events:none;
+        .profile-settings-item span{ pointer-events:none; }
+        .profile-settings-item:hover{ background:rgba(124,92,255,0.16); }
+        .profile-settings-item.close-item{ color:var(--muted); }
+
+        /* ============================
+           ✅ NEW EMPTY CTA (스크린샷 스타일)
+        ============================ */
+        .empty-cta{
+            margin-top: 14px;
+            padding: 42px 0 36px;
+            text-align:center;
+            user-select:none;
         }
-        .profile-settings-item:hover{
-            background:rgba(124,92,255,0.16);
+
+        /* 아이콘(원형 링) */
+        .empty-cta-icon{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            text-decoration:none;
+            outline:none;
         }
-        .profile-settings-item.close-item{
-            color:var(--muted);
+        .empty-cta-ring{
+            width:72px;
+            height:72px;
+            border-radius:999px;
+            border:2px solid var(--icon-ring);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background: rgba(255,255,255,0.03);
+            transition: transform .14s ease, border-color .14s ease, background .14s ease;
+        }
+        .empty-cta-icon:hover .empty-cta-ring{
+            transform: translateY(-2px);
+            border-color: var(--link-blue);
+            background: rgba(90,167,255,0.12);
+        }
+
+        .empty-cta svg{
+            width:30px;
+            height:30px;
+            stroke: rgba(255,255,255,.92);
+            fill: none;
+            stroke-width: 1.8;
+            transition: stroke .14s ease;
+        }
+        .empty-cta-icon:hover svg{
+            stroke: var(--link-blue);
+        }
+
+        .empty-cta-title{
+            margin-top: 18px;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+        }
+        .empty-cta-desc{
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+        .empty-cta-link{
+            display:inline-block;
+            margin-top: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--link-blue);
+            text-decoration:none;
+        }
+        .empty-cta-link:hover{
+            text-decoration: underline;
         }
 
         /* ============================
@@ -266,9 +322,7 @@
             z-index:10;
             padding:0 8px;
         }
-        .film-slider-container:hover .film-arrow{
-            opacity:1;
-        }
+        .film-slider-container:hover .film-arrow{ opacity:1; }
         .film-arrow.left{ left:-100px; }
         .film-arrow.right{ right:-100px; }
         .film-arrow:hover{
@@ -331,9 +385,7 @@
             display:block;
         }
 
-        .popup-info{
-            padding: 14px 16px;
-        }
+        .popup-info{ padding: 14px 16px; }
         .popup-title{
             font-size:20px;
             font-weight:900;
@@ -424,9 +476,7 @@
             color: white;
             transform: scale(1.15);
         }
-        .popup-like-btn:active {
-            transform: scale(0.92);
-        }
+        .popup-like-btn:active { transform: scale(0.92); }
 
         /* ============================
            GALLERY + 스크롤 로딩 스피너
@@ -457,9 +507,7 @@
             box-shadow: 0 6px 16px rgba(0,0,0,.55);
             border-color: var(--line);
         }
-        .gallery-item:focus {
-            outline: none;
-        }
+        .gallery-item:focus { outline: none; }
 
         .gallery-spinner{
             width: 40px;
@@ -477,9 +525,7 @@
             border-top-color: var(--accent);
             animation: gallery-spin .8s linear infinite;
         }
-        @keyframes gallery-spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes gallery-spin { to { transform: rotate(360deg); } }
 
         .gallery-lightbox-overlay{
             position:fixed;
@@ -526,14 +572,8 @@
             transition:opacity .3s ease, transform .2s ease, color .2s ease;
         }
 
-        .gallery-lightbox-arrow.left{
-            left:40px;
-        }
-
-        .gallery-lightbox-arrow.right{
-            right:40px;
-        }
-
+        .gallery-lightbox-arrow.left{ left:40px; }
+        .gallery-lightbox-arrow.right{ right:40px; }
         .gallery-lightbox-arrow:hover{
             color:var(--accent);
             transform:translateY(-50%) scale(1.1);
@@ -552,6 +592,15 @@
             margin-top: 10px;
             display: flex;
             gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            min-height: 34px;
+        }
+
+        .sns-row.is-empty::before {
+            content:"SNS를 추가하면 캐스팅 담당자가 더 쉽게 확인할 수 있어요.";
+            color:var(--muted);
+            font-size:13px;
         }
 
         .sns-pill{
@@ -566,26 +615,43 @@
             color: var(--text);
             text-decoration: none;
         }
+        .sns-pill:hover{ background: rgba(124,92,255,0.18); }
 
-        .sns-pill:hover{
-            background: rgba(124,92,255,0.18);
+        .sns-handle{ color: var(--muted); font-size: 12px; }
+
+        .sns-badge{
+            width:22px;
+            height:22px;
+            border-radius:999px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            flex:0 0 auto;
         }
 
-        .sns-handle{
-            color: var(--muted);
-            font-size: 12px;
+        .sns-icon{
+            width:14px;
+            height:14px;
+            background:#fff;
+            -webkit-mask: var(--sns-mask) center/contain no-repeat;
+            mask: var(--sns-mask) center/contain no-repeat;
         }
 
-        .empty-state{
-            margin-top: 12px;
-            font-size: 14px;
-            color: var(--muted);
+        .sns-pill[data-brand="instagram"] .sns-badge{
+            background: radial-gradient(circle at 30% 110%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+        }
+        .sns-pill[data-brand="instagram"] .sns-icon{ --sns-mask: url("https://cdn.jsdelivr.net/npm/simple-icons/icons/instagram.svg"); }
+        .sns-pill[data-brand="youtube"] .sns-badge{ background:#FF0000; }
+        .sns-pill[data-brand="youtube"] .sns-icon{ --sns-mask: url("https://cdn.jsdelivr.net/npm/simple-icons/icons/youtube.svg"); }
+        .sns-pill[data-brand="naver"] .sns-badge{ background:#03C75A; }
+        .sns-pill[data-brand="naver"] .sns-icon{ --sns-mask: url("https://cdn.jsdelivr.net/npm/simple-icons/icons/naver.svg"); }
+        .sns-pill[data-brand="x"] .sns-badge{ background:#FFFFFF; }
+        .sns-pill[data-brand="x"] .sns-icon{
+            background:#000;
+            --sns-mask: url("https://cdn.jsdelivr.net/npm/simple-icons/icons/x.svg");
         }
 
-        .profile-tag-section{
-            margin-top: 14px;
-        }
-
+        .profile-tag-section{ margin-top: 14px; }
         .profile-tag-title{
             font-size: 12px;
             font-weight: 700;
@@ -599,6 +665,12 @@
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
+            min-height:28px;
+        }
+        .profile-tag-list.is-empty::before{
+            content:"태그를 추가해 강점을 보여주세요. (예: #주연 #드라마)";
+            color:var(--muted);
+            font-size:13px;
         }
 
         .profile-tag{
@@ -609,13 +681,6 @@
             background: rgba(124,92,255,0.14);
             border: 1px solid rgba(124,92,255,0.4);
             color: var(--text);
-        }
-
-        .header-row{
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            height:56px;
         }
 
         .logo{
@@ -636,16 +701,13 @@
             font-weight:600;
             transition:background .15s ease, border-color .15s ease, transform .12s ease;
         }
-
         .login-btn:hover{
             background:rgba(124,92,255,0.22);
             border-color:var(--accent);
             transform:translateY(-1px);
         }
 
-        /* ===================================================
-           ★ 로그인 오버레이 전용 스타일
-        =================================================== */
+        /* 로그인 오버레이 */
         .login-overlay{
             position:fixed;
             inset:0;
@@ -698,9 +760,7 @@
             outline:none;
             transition:border-color .15s ease, background .15s ease;
         }
-        .login-input::placeholder{
-            color:rgba(154,160,173,.7);
-        }
+        .login-input::placeholder{ color:rgba(154,160,173,.7); }
         .login-input:focus{
             border-color:var(--accent);
             background:rgba(15,16,25,.95);
@@ -761,16 +821,9 @@
             transform:translateY(-1px);
             box-shadow:0 6px 18px rgba(0,0,0,.55);
         }
-        .social-google{
-            background:#ffffff;
-            color:#111111;
-        }
-        .social-naver{
-            background:#03c75a;
-            color:#ffffff;
-        }
+        .social-google{ background:#ffffff; color:#111111; }
+        .social-naver{ background:#03c75a; color:#ffffff; }
 
-        /* 로그인 밑 링크 */
         .login-links{
             margin-top:8px;
             font-size:11px;
@@ -785,7 +838,6 @@
             color:var(--muted);
             text-decoration:none;
         }
-
         .login-links a:hover{
             color:var(--text);
             text-decoration:underline;
@@ -793,208 +845,248 @@
 
         html{
             scrollbar-gutter: stable;
+            height: 100%;
         }
 
+        .hidden{ display:none !important; }
+
+        .profile-header.is-empty{ align-items:flex-start; }
+        .profile-header.is-empty .profile-photo{
+            filter:saturate(.9) brightness(.95);
+            opacity:.92;
+        }
+
+        /* ✅ 갤러리 empty가 grid 전체를 차지하도록 유지 */
+        #galleryGrid #galleryEmpty{ grid-column: 1 / -1; }
+
+        .header-right{
+            display:flex;
+            align-items:center;
+            gap:10px;
+        }
+
+        .profile-menu{ position:relative; }
+
+        .profile-avatar-btn{
+            width:32px; height:32px;
+            border-radius:999px;
+            border:1px solid var(--line);
+            padding:0;
+            background:rgba(255,255,255,0.04);
+            cursor:pointer;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            overflow:hidden;
+            transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;
+        }
+        .profile-avatar-btn:hover{
+            transform:translateY(-1px);
+            border-color:var(--accent);
+            box-shadow:0 6px 18px rgba(0,0,0,.6);
+        }
+        .profile-avatar-btn img{
+            width:100%;
+            height:100%;
+            object-fit:cover;
+        }
+        .profile-avatar-initial{
+            font-size:13px;
+            font-weight:700;
+            color:var(--text);
+        }
+
+        .profile-dropdown{
+            position:absolute;
+            top:120%;
+            right:0;
+            min-width:180px;
+            background:var(--panel-2);
+            border-radius:12px;
+            border:1px solid var(--line);
+            box-shadow:0 14px 40px rgba(0,0,0,.9);
+            padding:6px 0;
+            opacity:0;
+            pointer-events:none;
+            transform:translateY(-6px);
+            transition:opacity .16s ease, transform .16s ease;
+            z-index:9999;
+        }
+        .profile-dropdown.open{
+            opacity:1;
+            pointer-events:auto;
+            transform:translateY(0);
+        }
+        .profile-item{
+            width:100%;
+            padding:8px 12px;
+            text-align:left;
+            background:transparent;
+            border:none;
+            color:var(--text);
+            font-size:13px;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:6px;
+        }
+        .profile-item span{
+            font-size:11px;
+            color:var(--muted);
+        }
+        .profile-item:hover{
+            background:rgba(255,255,255,0.06);
+        }
     </style>
 </head>
+
 <body>
+<div class="page-root">
+    <header>
+        <div class="container header-row">
+            <a href="index.html" class="logo">OnFilm</a>
+            <div class="header-right" id="headerActions"></div>
+        </div>
+    </header>
 
-<header>
-    <div class="container header-row">
-        <a href="index.html" class="logo">OnFilm</a>
-        <button type="button" class="login-btn" id="loginBtn">로그인</button>
-    </div>
-</header>
+    <main class="container">
 
-<main class="container">
+        <!-- PROFILE -->
+        <div class="profile-header">
+            <img id="profilePhoto"
+                 class="profile-photo"
+                 src="/videos/profile-placeholder.png"
+                 data-profile-src=""
+                 alt="프로필 사진" />
 
-    <!-- PROFILE -->
-    <div class="profile-header">
-        <img id="profilePhoto"
-             class="profile-photo"
-             src="videos/profile-placeholder.png"
-             data-profile-src="videos/rugi.jpeg"
-             alt="프로필 사진" />
-
-        <div class="profile-info">
-            <div class="profile-title-row">
-                <h1>회원명</h1>
-                <button
-                        type="button"
-                        class="profile-settings-btn"
-                        id="profileSettingsBtn"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                        title="편집 메뉴 열기">
-                    ⚙️
-                </button>
-            </div>
-
-            <div class="meta">
-                0000.00.00 · ㅇㅇ 출생
-            </div>
-
-            <p class="bio" id="bioDisplay">
-                소개글 한 줄.
-            </p>
-
-            <div class="sns-row">
-                <a href="https://instagram.com/j__hoi/" class="sns-pill" target="_blank">
-                    <span class="sns-icon">📷</span>
-                    <span class="sns-label">Instagram</span>
-                    <span class="sns-handle">@j__hoi</span>
-                </a>
-            </div>
-
-            <section class="profile-tag-section">
-                <div class="profile-tag-title">PROFILE TAGS</div>
-                <div class="profile-tag-list" id="tagList">
-                    <span class="profile-tag">#아역</span>
-                    <span class="profile-tag">#밝은 이미지</span>
-                    <span class="profile-tag">#광고 친화적</span>
-                    <span class="profile-tag">#자연스러운 표정</span>
+            <div class="profile-info">
+                <div class="profile-title-row">
+                    <h1 id="profileName" data-value="">회원</h1>
+                    <button type="button"
+                            class="profile-settings-btn"
+                            id="profileSettingsBtn"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            title="편집 메뉴 열기">⚙️</button>
                 </div>
-            </section>
-        </div>
-    </div>
 
-    <!-- FILMOGRAPHY -->
-    <section class="filmography-section" id="filmographySection">
-        <h2>필모그래피</h2>
-
-        <div class="film-slider-container">
-            <button class="film-arrow left" id="filmPrevBtn">‹</button>
-
-            <div class="film-slider-wrapper">
-                <div class="film-slider" id="filmSlider">
-                    <article class="film-card"
-                             data-title="반품"
-                             data-genre="SF / 스릴러"
-                             data-runtime="148분"
-                             data-age="15"
-                             data-video="videos/trailer.mp4"
-                             data-thumb="videos/thumbnail.png">
-                        <img class="film-poster" src="videos/thumbnail.png">
-                        <div class="film-body">
-                            <div class="film-title">반품</div>
-                            <div class="film-meta">2025 · 주연</div>
-                        </div>
-                    </article>
-
-                    <article class="film-card"
-                             data-title="두 번째 영화"
-                             data-genre="드라마"
-                             data-runtime="132분"
-                             data-age="12"
-                             data-video="videos/trailer.mp4"
-                             data-thumb="videos/thumbnail.png">
-                        <img class="film-poster" src="videos/thumbnail.png">
-                        <div class="film-body">
-                            <div class="film-title">두 번째 영화</div>
-                            <div class="film-meta">2024 · 조연</div>
-                        </div>
-                    </article>
-
-                    <article class="film-card"
-                             data-title="세 번째 영화"
-                             data-genre="로맨스"
-                             data-runtime="110분"
-                             data-age="15"
-                             data-video="videos/trailer.mp4"
-                             data-thumb="videos/thumbnail.png">
-                        <img class="film-poster" src="videos/thumbnail.png">
-                        <div class="film-body">
-                            <div class="film-title">세 번째 영화</div>
-                            <div class="film-meta">2023 · 주연</div>
-                        </div>
-                    </article>
-
-                    <article class="film-card"
-                             data-title="네 번째 영화"
-                             data-genre="로맨스"
-                             data-runtime="110분"
-                             data-age="15"
-                             data-video="videos/trailer.mp4"
-                             data-thumb="videos/thumbnail.png">
-                        <img class="film-poster" src="videos/thumbnail.png">
-                        <div class="film-body">
-                            <div class="film-title">네 번째 영화</div>
-                            <div class="film-meta">2023 · 주연</div>
-                        </div>
-                    </article>
+                <div class="meta" id="profileMeta" data-birth-date="" data-birth-place="">
+                    생년월일 · 출생지 미등록
                 </div>
+
+                <p class="bio" id="bioDisplay" data-value="">
+                    소개글을 입력해 주세요.
+                </p>
+
+                <div class="sns-row" id="snsRow"></div>
+
+                <section class="profile-tag-section">
+                    <div class="profile-tag-title">PROFILE TAGS</div>
+                    <div class="profile-tag-list" id="tagList"></div>
+                </section>
+            </div>
+        </div>
+
+        <!-- FILMOGRAPHY -->
+        <section class="filmography-section" id="filmographySection">
+            <h2>필모그래피</h2>
+
+            <div class="film-slider-container" id="filmSliderContainer">
+
+                <!-- ✅ NEW: 스크린샷 스타일 빈 상태 (필름 아이콘) -->
+                <div class="empty-cta hidden" id="filmEmpty">
+                    <a class="empty-cta-icon" href="edit-filmography.html" aria-label="필모그래피 등록하기">
+              <span class="empty-cta-ring">
+                <!-- Film icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M4 6.5h16v11H4z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M8 6.5v11M16 6.5v11"/>
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M6.2 8.2h.01M6.2 10.2h.01M6.2 12.2h.01M6.2 14.2h.01"/>
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M17.8 8.2h.01M17.8 10.2h.01M17.8 12.2h.01M17.8 14.2h.01"/>
+                </svg>
+              </span>
+                    </a>
+
+                    <div class="empty-cta-title">필모그래피 공유</div>
+                    <div class="empty-cta-desc">작품을 등록하면 회원님의 프로필에 표시됩니다.</div>
+                    <a class="empty-cta-link" href="edit-filmography.html">첫 작품 등록하기</a>
+                </div>
+
+                <button class="film-arrow left" id="filmPrevBtn">‹</button>
+
+                <div class="film-slider-wrapper">
+                    <div class="film-slider" id="filmSlider"></div>
+                </div>
+
+                <button class="film-arrow right" id="filmNextBtn">›</button>
+            </div>
+        </section>
+
+        <!-- GALLERY -->
+        <section class="gallery-section" id="gallerySection">
+            <h2>사진 갤러리</h2>
+            <div class="gallery-grid" id="galleryGrid">
+
+                <!-- ✅ NEW: 스크린샷 스타일 빈 상태 (카메라 아이콘) -->
+                <div class="empty-cta hidden" id="galleryEmpty">
+                    <a class="empty-cta-icon" href="edit-gallery.html" aria-label="사진 공유하기">
+              <span class="empty-cta-ring">
+                <!-- Camera icon (screenshot vibe) -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M7 7.5h2l1-1.5h4l1 1.5h2A3 3 0 0 1 20 10.5v7A3 3 0 0 1 17 20.5H7A3 3 0 0 1 4 17.5v-7A3 3 0 0 1 7 7.5Z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 11a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 7.5l.9-1.2"/>
+                </svg>
+              </span>
+                    </a>
+
+                    <div class="empty-cta-title">사진 공유</div>
+                    <div class="empty-cta-desc">사진을 공유하면 회원님의 프로필에 표시됩니다.</div>
+                    <a class="empty-cta-link" href="edit-gallery.html">첫 사진 등록하기</a>
+                </div>
+
+                <!-- gallery-item들은 실제 데이터가 있으면 여기에 들어옴 -->
             </div>
 
-            <button class="film-arrow right" id="filmNextBtn">›</button>
-        </div>
-    </section>
+            <div class="gallery-spinner" id="gallerySpinner">
+                <div class="spinner-circle"></div>
+            </div>
+        </section>
+    </main>
 
-    <!-- GALLERY -->
-    <section class="gallery-section" id="gallerySection">
-        <h2>사진 갤러리</h2>
-        <div class="gallery-grid" id="galleryGrid">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1544725121-4a7c40b15175?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=900">
-            <img class="gallery-item" src="https://images.unsplash.com/photo-1512070679279-8988d32161be?q=80&w=900">
-        </div>
+    <footer>© 2025 OnFilm · Indie Actor & Film Platform</footer>
+</div>
 
-        <div class="gallery-spinner" id="gallerySpinner">
-            <div class="spinner-circle"></div>
-        </div>
-    </section>
-
-    <footer>
-        © 2025 OnFilm · Indie Actor & Film Platform
-    </footer>
-
-</main>
-
-<!-- ★ NEW: 프로필 편집 오버레이 -->
+<!-- 프로필 편집 오버레이 -->
 <div class="profile-edit-overlay" id="profileEditOverlay">
     <div class="profile-edit-card">
-        <button class="profile-settings-item" data-action="profile">
-            <span>프로필 편집</span>
-        </button>
-        <button class="profile-settings-item" data-action="filmography">
-            <span>필모그래피 편집</span>
-        </button>
-        <button class="profile-settings-item" data-action="gallery">
-            <span>사진 갤러리 편집</span>
-        </button>
-        <button class="profile-settings-item close-item" data-action="close">
-            <span>창 닫기</span>
-        </button>
+        <button class="profile-settings-item" data-action="profile"><span>프로필 편집</span></button>
+        <button class="profile-settings-item" data-action="filmography"><span>필모그래피 편집</span></button>
+        <button class="profile-settings-item" data-action="gallery"><span>사진 갤러리 편집</span></button>
+        <button class="profile-settings-item close-item" data-action="close"><span>창 닫기</span></button>
     </div>
 </div>
 
-<!-- ★ 로그인 오버레이 -->
+<!-- 로그인 오버레이 -->
 <div class="login-overlay" id="loginOverlay">
     <div class="login-card">
         <div class="login-brand">OnFilm</div>
 
         <label class="login-label" for="loginEmail">아이디</label>
-        <input
-                id="loginEmail"
-                class="login-input"
-                type="email"
-                placeholder="name@example.com"
-        />
+        <input id="loginEmail" class="login-input" type="email" placeholder="name@example.com" />
 
         <label class="login-label" for="loginPassword">비밀번호</label>
-        <input
-                id="loginPassword"
-                class="login-input"
-                type="password"
-                placeholder="비밀번호"
-        />
+        <input id="loginPassword" class="login-input" type="password" placeholder="비밀번호" />
 
-        <button class="login-submit-btn" type="button">
-            로그인
-        </button>
+        <button class="login-submit-btn" type="button">로그인</button>
 
         <div class="login-links">
             <a href="signup.html">회원가입</a>
@@ -1011,15 +1103,15 @@
         </div>
 
         <div class="social-row">
-            <button type="button" class="social-btn social-google">
-                Google로 계속하기
-            </button>
-            <button type="button" class="social-btn social-naver">
-                네이버로 계속하기
-            </button>
+            <button type="button" class="social-btn social-google">Google로 계속하기</button>
+            <button type="button" class="social-btn social-naver">네이버로 계속하기</button>
         </div>
     </div>
 </div>
+
+<script src="/js/auth.js"></script>
+
+<script>let popup = null;</script>
 
 <!-- JS 1: FILMOGRAPHY SLIDER -->
 <script>
@@ -1093,7 +1185,6 @@
 
 <!-- JS 2: MOVIE POPUP -->
 <script>
-    let popup = null;
     let hideTimer = null;
     let activeCard = null;
 
@@ -1103,30 +1194,30 @@
 
         popup.innerHTML = `
         <div class="popup-video-box">
-            <img class="popup-thumb" />
-            <video muted loop playsinline></video>
+          <img class="popup-thumb" />
+          <video muted loop playsinline></video>
 
-            <div class="popup-mute-btn">
-                <svg class="popup-sound-on" xmlns="http://www.w3.org/2000/svg"
-                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                     width="26" height="26" style="display:none;">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25
-                        l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51
-                        c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396
-                        C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
-                </svg>
+          <div class="popup-mute-btn">
+            <svg class="popup-sound-on" xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+              width="26" height="26" style="display:none;">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25
+                l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51
+                c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396
+                C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
+            </svg>
 
-                <svg class="popup-sound-off" xmlns="http://www.w3.org/2000/svg"
-                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                     width="26" height="26">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6
-                        4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51
-                        c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396
-                        C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
-                </svg>
-            </div>
+            <svg class="popup-sound-off" xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+              width="26" height="26">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6
+                4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51
+                c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396
+                C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
+            </svg>
+          </div>
         </div>
 
         <div class="popup-info">
@@ -1138,7 +1229,7 @@
             <button class="popup-like-btn"><span>👍</span></button>
           </div>
         </div>
-        `;
+      `;
 
         document.body.appendChild(popup);
 
@@ -1168,7 +1259,7 @@
         popup.querySelector(".popup-play-btn-circle").onclick = (e) => {
             e.stopPropagation();
             sessionStorage.setItem("allowSoundPlay", "true");
-            window.location.href = "video-player-temp.html";
+            window.location.href = "/video-player-temp.html";
         };
 
         const likeBtn = popup.querySelector(".popup-like-btn");
@@ -1178,14 +1269,12 @@
 
             if (likeBtn.classList.contains("liked")) {
                 likeBtn.style.transform = "scale(1.25)";
-                setTimeout(() => {
-                    likeBtn.style.transform = "scale(1)";
-                }, 250);
+                setTimeout(() => { likeBtn.style.transform = "scale(1)"; }, 250);
             }
         };
 
         popup.addEventListener("click", () => {
-            window.location.href = "movie-detail.html";
+            window.location.href = "/movie-detail.html";
         });
     }
     createPopup();
@@ -1204,9 +1293,9 @@
 
         popup.querySelector(".popup-title").textContent = card.dataset.title ?? "";
         popup.querySelector(".popup-meta").innerHTML = `
-            ${card.dataset.genre ?? ""} · ${card.dataset.runtime ?? ""}
-            <span class="popup-age">${card.dataset.age ?? ""}</span>
-        `;
+        ${card.dataset.genre ?? ""} · ${card.dataset.runtime ?? ""}
+        <span class="popup-age">${card.dataset.age ?? ""}</span>
+      `;
 
         const thumb = card.dataset.thumb;
         if (thumb) {
@@ -1256,19 +1345,33 @@
             popup.style.transform = "scale(0.85) translateY(10px)";
 
             videoEl.pause();
-            if (thumbEl) {
-                thumbEl.style.opacity = "1";
-            }
+            if (thumbEl) thumbEl.style.opacity = "1";
 
             setTimeout(() => popup.classList.remove("show"), 180);
             activeCard = null;
         }, 120);
     }
 
-    document.querySelectorAll(".film-card").forEach(card => {
-        card.addEventListener("mouseenter", () => showPopup(card));
-        card.addEventListener("mouseleave", hidePopup);
-    });
+    const filmSliderEl = document.getElementById("filmSlider");
+
+    if (filmSliderEl) {
+        filmSliderEl.addEventListener("mouseover", (e) => {
+            const card = e.target.closest(".film-card");
+            if (!card || !filmSliderEl.contains(card)) return;
+            if (activeCard === card) return;
+            showPopup(card);
+        });
+
+        filmSliderEl.addEventListener("mouseout", (e) => {
+            const fromCard = e.target.closest(".film-card");
+            if (!fromCard) return;
+
+            const toEl = e.relatedTarget;
+            if (toEl && fromCard.contains(toEl)) return;
+
+            hidePopup();
+        });
+    }
 
     function hidePopupImmediate() {
         if (!popup) return;
@@ -1287,7 +1390,7 @@
     window.addEventListener("load", updateArrows);
 </script>
 
-<!-- JS 3: GALLERY + LIGHTBOX + ★ NEW: 편집 메뉴 JS -->
+<!-- JS 3: GALLERY + LIGHTBOX + 편집 메뉴 JS -->
 <script>
     const gallerySection = document.querySelector(".gallery-section");
     const galleryGrid    = document.querySelector(".gallery-grid");
@@ -1348,14 +1451,17 @@
         }
     }
 
+    let lightboxPrevArrow = null;
+    let lightboxNextArrow = null;
+
     function createLightbox() {
         lightboxOverlay = document.createElement("div");
         lightboxOverlay.className = "gallery-lightbox-overlay";
         lightboxOverlay.innerHTML = `
-      <button class="gallery-lightbox-arrow left">‹</button>
-      <img class="gallery-lightbox-image" src="" alt="photo detail">
-      <button class="gallery-lightbox-arrow right">›</button>
-    `;
+        <button class="gallery-lightbox-arrow left">‹</button>
+        <img class="gallery-lightbox-image" src="" alt="photo detail">
+        <button class="gallery-lightbox-arrow right">›</button>
+      `;
         document.body.appendChild(lightboxOverlay);
 
         lightboxImg       = lightboxOverlay.querySelector(".gallery-lightbox-image");
@@ -1363,9 +1469,7 @@
         lightboxNextArrow = lightboxOverlay.querySelector(".gallery-lightbox-arrow.right");
 
         lightboxOverlay.addEventListener("click", (e) => {
-            if (e.target === lightboxImg || e.target === lightboxPrevArrow || e.target === lightboxNextArrow) {
-                return;
-            }
+            if (e.target === lightboxImg || e.target === lightboxPrevArrow || e.target === lightboxNextArrow) return;
             closeLightbox();
         });
 
@@ -1383,13 +1487,9 @@
         window.addEventListener("keydown", (e) => {
             if (!lightboxOverlay.classList.contains("show")) return;
 
-            if (e.key === "Escape") {
-                closeLightbox();
-            } else if (e.key === "ArrowLeft") {
-                showPrevPhoto();
-            } else if (e.key === "ArrowRight") {
-                showNextPhoto();
-            }
+            if (e.key === "Escape") closeLightbox();
+            else if (e.key === "ArrowLeft") showPrevPhoto();
+            else if (e.key === "ArrowRight") showNextPhoto();
         });
     }
 
@@ -1397,23 +1497,12 @@
         const total = galleryItems.length;
         if (!lightboxPrevArrow || !lightboxNextArrow) return;
 
-        if (currentIndex <= 0) {
-            lightboxPrevArrow.style.display = "none";
-        } else {
-            lightboxPrevArrow.style.display = "flex";
-        }
-
-        if (currentIndex >= total - 1) {
-            lightboxNextArrow.style.display = "none";
-        } else {
-            lightboxNextArrow.style.display = "flex";
-        }
+        lightboxPrevArrow.style.display = (currentIndex <= 0) ? "none" : "flex";
+        lightboxNextArrow.style.display = (currentIndex >= total - 1) ? "none" : "flex";
     }
 
     function openLightbox(index) {
-        if (!lightboxOverlay) {
-            createLightbox();
-        }
+        if (!lightboxOverlay) createLightbox();
         currentIndex = index;
         lightboxImg.src = galleryItems[currentIndex].src;
         lightboxOverlay.classList.add("show");
@@ -1439,156 +1528,430 @@
         updateLightboxArrows();
     }
 
-    /* ★ NEW: 프로필 편집 메뉴 JS */
     window.addEventListener("load", () => {
         const profileImg = document.getElementById("profilePhoto");
-        if (!profileImg) return;
+        if (profileImg) {
+            const placeholder = profileImg.getAttribute("src");
+            const realSrc = profileImg.dataset.profileSrc;
 
-        const placeholder = profileImg.getAttribute("src");
-        const realSrc = profileImg.dataset.profileSrc;
-
-        if (realSrc && realSrc.trim() !== "") {
-            profileImg.src = realSrc;
-            profileImg.onerror = () => {
-                profileImg.onerror = null;
-                profileImg.src = placeholder;
-            };
-        }
-
-        initGallery();
-
-        galleryItems.forEach((img, idx) => {
-            img.style.cursor = "pointer";
-            img.addEventListener("click", () => openLightbox(idx));
-        });
-
-        if (galleryItems.length > INITIAL_COUNT) {
-            window.addEventListener("scroll", handleScroll);
-            handleScroll();
-        }
-
-        const filmSection = document.getElementById("filmographySection");
-        if (filmSection) {
-            const filmCards   = filmSection.querySelectorAll(".film-card");
-            const filmSliderContainer = filmSection.querySelector(".film-slider-container");
-
-            if (filmCards.length === 0) {
-                if (filmSliderContainer) {
-                    filmSliderContainer.style.display = "none";
-                }
-
-                const empty = document.createElement("p");
-                empty.className = "empty-state";
-                empty.textContent = "아직 등록된 필모그래피가 없어요.";
-                filmSection.appendChild(empty);
+            if (realSrc && realSrc.trim() !== "") {
+                profileImg.src = realSrc;
+                profileImg.onerror = () => {
+                    profileImg.onerror = null;
+                    profileImg.src = placeholder;
+                };
             }
         }
 
-        const gallerySectionEl = document.getElementById("gallerySection");
-        if (gallerySectionEl) {
-            const galleryGridEl  = gallerySectionEl.querySelector(".gallery-grid");
-            const galleryItems2 = galleryGridEl ? galleryGridEl.querySelectorAll(".gallery-item") : [];
+        updateEmptyUI();
 
-            if (galleryItems2.length === 0) {
-                if (galleryGridEl) {
-                    galleryGridEl.style.display = "none";
-                }
+        if (galleryItems.length > 0) {
+            initGallery();
+            galleryItems.forEach((img, idx) => {
+                img.style.cursor = "pointer";
+                img.addEventListener("click", () => openLightbox(idx));
+            });
 
-                const empty2 = document.createElement("p");
-                empty2.className = "empty-state";
-                empty2.textContent = "아직 등록된 사진이 없어요.";
-                gallerySectionEl.appendChild(empty2);
+            if (galleryItems.length > INITIAL_COUNT) {
+                window.addEventListener("scroll", handleScroll);
+                handleScroll();
             }
         }
 
-        // ★ 여기부터 톱니바퀴 메뉴 동작
-        // ★ 여기부터 톱니바퀴 메뉴 동작 (오버레이 버전)
-        const settingsBtn   = document.getElementById("profileSettingsBtn");
-        const editOverlay   = document.getElementById("profileEditOverlay");
-        const editCard      = editOverlay ? editOverlay.querySelector(".profile-edit-card") : null;
+        const isOwner = true;
+        document.getElementById("profileSettingsBtn")?.classList.toggle("hidden", !isOwner);
+        document.getElementById("profileEditOverlay")?.classList.toggle("hidden", !isOwner);
 
-        if (settingsBtn && editOverlay && editCard) {
-            // ⚙️ 버튼 클릭 → 오버레이 열기
-            settingsBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                editOverlay.classList.add("show");
-                settingsBtn.setAttribute("aria-expanded", "true");
-            });
-
-            // 오버레이 안 메뉴 클릭 처리
-            editOverlay.addEventListener("click", (e) => {
-                // 카드 바깥 클릭하면 닫기
-                if (!editCard.contains(e.target)) {
-                    editOverlay.classList.remove("show");
-                    settingsBtn.setAttribute("aria-expanded", "false");
-                    return;
-                }
-
-                // 버튼이 아니면 무시
-                const item = e.target.closest(".profile-settings-item");
-                if (!item) return;
-
-                const action = item.dataset.action;
-
-                if (action === "profile") {
-                    window.location.href = "edit-profile.html";
-                } else if (action === "filmography") {
-                    window.location.href = "edit-filmography.html";
-                } else if (action === "gallery") {
-                    window.location.href = "edit-gallery.html";
-                } else if (action === "close") {
-                    // 그냥 닫기
-                }
-
-                // 액션 처리 후 오버레이 닫기
-                editOverlay.classList.remove("show");
-                settingsBtn.setAttribute("aria-expanded", "false");
-            });
-
-            // Esc로 닫기
-            document.addEventListener("keydown", (e) => {
-                if (e.key === "Escape" && editOverlay.classList.contains("show")) {
-                    editOverlay.classList.remove("show");
-                    settingsBtn.setAttribute("aria-expanded", "false");
-                }
-            });
-        }
-
+        if (isOwner) setupEditOverlay();
     });
 </script>
 
 <script>
-    // ★ 로그인 오버레이 동작
+    (function autoUpdateEmptyUI(){
+        if (window.__emptyUIObserver) {
+            window.__emptyUIObserver.disconnect();
+            window.__emptyUIObserver = null;
+        }
+
+        const filmSlider   = document.getElementById("filmSlider");
+        const galleryGrid  = document.getElementById("galleryGrid");
+        const profileInfo  = document.querySelector(".profile-info");
+
+        let scheduled = false;
+        const schedule = () => {
+            if (scheduled) return;
+            scheduled = true;
+
+            requestAnimationFrame(() => {
+                scheduled = false;
+
+                if (typeof updateEmptyUI === "function") updateEmptyUI();
+                if (typeof updateArrows === "function") updateArrows();
+            });
+        };
+
+        const observer = new MutationObserver(() => { schedule(); });
+
+        const config = {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            characterData: true
+        };
+
+        if (filmSlider)  observer.observe(filmSlider, config);
+        if (galleryGrid) observer.observe(galleryGrid, config);
+        if (profileInfo) observer.observe(profileInfo, config);
+
+        window.__emptyUIObserver = observer;
+        schedule();
+    })();
+</script>
+
+<script>
+    function updateEmptyUI(){
+        const profileHeader = document.querySelector(".profile-header");
+        const nameEl = document.getElementById("profileName");
+        const metaEl = document.getElementById("profileMeta");
+        const bioEl  = document.getElementById("bioDisplay");
+
+        const snsRow = document.querySelector(".sns-row");
+        const tagList = document.getElementById("tagList");
+
+        const hasName = !!(nameEl?.dataset.value?.trim());
+        const hasMeta = !!(metaEl?.dataset.birthDate?.trim() || metaEl?.dataset.birthPlace?.trim());
+        const hasBio  = !!(bioEl?.dataset.value?.trim());
+        const hasSns  = snsRow && snsRow.querySelectorAll("a.sns-pill").length > 0;
+        const hasTags = tagList && tagList.querySelectorAll(".profile-tag").length > 0;
+
+        const profileHasAny = hasName || hasMeta || hasBio || hasSns || hasTags;
+
+        snsRow?.classList.toggle("is-empty", !hasSns);
+        tagList?.classList.toggle("is-empty", !hasTags);
+
+        if (profileHeader) profileHeader.classList.toggle("is-empty", !profileHasAny);
+
+        // ---- FILMOGRAPHY ----
+        const filmSlider = document.getElementById("filmSlider");
+        const filmCards  = filmSlider ? filmSlider.querySelectorAll(".film-card") : [];
+        const filmEmpty  = document.getElementById("filmEmpty");
+
+        const hasFilms = filmCards.length > 0;
+
+        if (filmEmpty) filmEmpty.classList.toggle("hidden", hasFilms);
+
+        const filmWrapper = document.querySelector("#filmSliderContainer .film-slider-wrapper");
+        const filmPrev = document.getElementById("filmPrevBtn");
+        const filmNext = document.getElementById("filmNextBtn");
+
+        if (filmWrapper) filmWrapper.classList.toggle("hidden", !hasFilms);
+        if (filmPrev) filmPrev.classList.toggle("hidden", !hasFilms);
+        if (filmNext) filmNext.classList.toggle("hidden", !hasFilms);
+
+        // ---- GALLERY ----
+        const galleryGridEl = document.getElementById("galleryGrid");
+        const galleryEmpty  = document.getElementById("galleryEmpty");
+        const galleryImgs   = galleryGridEl ? galleryGridEl.querySelectorAll(".gallery-item") : [];
+        const hasGallery = galleryImgs.length > 0;
+
+        if (galleryEmpty) galleryEmpty.classList.toggle("hidden", hasGallery);
+    }
+
+    function setupEditOverlay(){
+        const settingsBtn = document.getElementById("profileSettingsBtn");
+        const editOverlay = document.getElementById("profileEditOverlay");
+        const editCard    = editOverlay ? editOverlay.querySelector(".profile-edit-card") : null;
+
+        if (!settingsBtn || !editOverlay || !editCard) return;
+
+        function lockScroll(lock){
+            document.body.style.overflow = lock ? "hidden" : "";
+        }
+
+        function closeEditOverlay(){
+            editOverlay.classList.remove("show");
+            settingsBtn.setAttribute("aria-expanded", "false");
+            lockScroll(false);
+        }
+
+        settingsBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            editOverlay.classList.add("show");
+            settingsBtn.setAttribute("aria-expanded", "true");
+            lockScroll(true);
+        });
+
+        editOverlay.addEventListener("click", (e) => {
+            if (!editCard.contains(e.target)) {
+                closeEditOverlay();
+                return;
+            }
+
+            const item = e.target.closest(".profile-settings-item");
+            if (!item) return;
+
+            const action = item.dataset.action;
+            if (action === "profile") window.location.href = "/edit-profile.html";
+            else if (action === "filmography") window.location.href = "/edit-filmography.html";
+            else if (action === "gallery") window.location.href = "/edit-gallery.html";
+
+            closeEditOverlay();
+        });
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && editOverlay.classList.contains("show")) closeEditOverlay();
+        });
+    }
+</script>
+
+<script>
     const loginBtn = document.getElementById("loginBtn");
     const loginOverlay = document.getElementById("loginOverlay");
 
     if (loginBtn && loginOverlay) {
-        // 헤더 로그인 버튼 클릭 → 오버레이 열기
-        loginBtn.addEventListener("click", () => {
-            loginOverlay.classList.add("show");
-        });
+        loginBtn.addEventListener("click", () => loginOverlay.classList.add("show"));
 
-        // 어두운 영역 클릭 → 닫기
         loginOverlay.addEventListener("click", (e) => {
-            if (e.target === loginOverlay) {
-                loginOverlay.classList.remove("show");
-            }
+            if (e.target === loginOverlay) loginOverlay.classList.remove("show");
         });
 
-        // ESC 키로 닫기
         document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") {
-                loginOverlay.classList.remove("show");
-            }
+            if (e.key === "Escape") loginOverlay.classList.remove("show");
         });
     }
 
-    // URL에 ?login=true 가 붙어 있으면 자동으로 로그인 오버레이 열기
     const params = new URLSearchParams(window.location.search);
     if (loginOverlay && params.get("login") === "true") {
         loginOverlay.classList.add("show");
     }
 </script>
 
+<script>
+    function renderLoggedOut(container){
+        container.innerHTML = `
+        <button type="button" class="login-btn" id="loginBtn">로그인</button>
+      `;
+
+        const loginBtn = document.getElementById("loginBtn");
+        const loginOverlay = document.getElementById("loginOverlay");
+        if (loginBtn && loginOverlay) {
+            loginBtn.addEventListener("click", () => loginOverlay.classList.add("show"));
+        }
+    }
+
+    function renderLoggedIn(container, me){
+        const displayName = (me && (me.displayName || me.username || me.name || me.email)) || "내 계정";
+        const avatarUrl = (me && (me.avatarUrl || me.profileImageUrl)) || "";
+
+        const initial = (displayName.trim().charAt(0) || "A").toUpperCase();
+
+        container.innerHTML = `
+            <div class="profile-menu">
+              <button type="button" class="profile-avatar-btn" id="profileAvatarBtn" aria-label="계정 메뉴 열기">
+                ${avatarUrl
+            ? `<img src="${avatarUrl}" alt="${displayName}">`
+            : `<span class="profile-avatar-initial">${initial}</span>`}
+              </button>
+
+              <div class="profile-dropdown" id="profileDropdown">
+                <button type="button" class="profile-item" data-action="actor-page">내 배우 페이지</button>
+                <button type="button" class="profile-item" data-action="edit-profile">프로필 편집 <span>기본정보</span></button>
+                <button type="button" class="profile-item" data-action="edit-filmography">필모 편집 <span>작품/역할</span></button>
+                <button type="button" class="profile-item" data-action="edit-gallery">갤러리 편집 <span>사진/영상</span></button>
+                <button type="button" class="profile-item" data-action="logout">로그아웃</button>
+              </div>
+            </div>
+        `;
+
+        const avatarBtn = document.getElementById("profileAvatarBtn");
+        const dropdown = document.getElementById("profileDropdown");
+        if (!avatarBtn || !dropdown) return;
+
+        const close = () => dropdown.classList.remove("open");
+        const toggle = () => dropdown.classList.toggle("open");
+
+        avatarBtn.addEventListener("click", (e) => { e.stopPropagation(); toggle(); });
+
+        dropdown.querySelectorAll(".profile-item").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const action = btn.dataset.action;
+                close();
+
+                if (action === "actor-page") {
+                    const uname = (me && me.username) ? String(me.username).trim() : "";
+                    if (!uname) {
+                        alert("username이 설정되어 있지 않습니다. 프로필에서 username을 설정해 주세요.");
+                        return;
+                    }
+                    window.location.href = "/onfilm/" + encodeURIComponent(uname);
+                }
+                if (action === "edit-profile") window.location.href = "/edit-profile.html";
+                if (action === "edit-filmography") window.location.href = "/edit-filmography.html";
+                if (action === "edit-gallery") window.location.href = "/edit-gallery.html";
+
+                if (action === "logout") {
+                    await window.OnfilmAuth.logout();
+                    renderLoggedOut(container);
+                }
+            });
+        });
+
+        document.addEventListener("click", close);
+        document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+    }
+
+
+    async function renderHeaderActions(){
+        const container = document.getElementById("headerActions");
+        if (!container) return;
+
+        renderLoggedOut(container);
+
+        try {
+            const result = await window.OnfilmAuth.restoreSession();
+            if (result && result.ok && result.me) {
+                renderLoggedIn(container, result.me);
+            } else {
+                renderLoggedOut(container);
+            }
+        } catch (e) {
+            console.error("restoreSession failed", e);
+            renderLoggedOut(container);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        renderHeaderActions();
+
+        const params = new URLSearchParams(window.location.search);
+        const loginOverlay = document.getElementById("loginOverlay");
+        if (loginOverlay && params.get("login") === "true") {
+            loginOverlay.classList.add("show");
+        }
+    });
+</script>
+
+
+<script>
+    function getUsernameFromPath() {
+        const parts = window.location.pathname.split("/").filter(Boolean);
+        if (parts.length >= 2 && parts[0] === "onfilm") return decodeURIComponent(parts[1]);
+        return null;
+    }
+
+    async function fetchPersonByName(username) {
+        const res = await fetch(`/persons/${encodeURIComponent(username)}`, {
+            method: "GET",
+            headers: { "Accept": "application/json" }
+        });
+        if (!res.ok) throw new Error("GET_PERSON_FAILED status=" + res.status);
+        return await res.json();
+    }
+
+    function applyPersonToUI(p) {
+        // 이름
+        const nameEl = document.getElementById("profileName");
+        if (nameEl) {
+            nameEl.textContent = p?.name || "회원";
+            nameEl.dataset.value = p?.name || "";
+        }
+
+        // 메타
+        const metaEl = document.getElementById("profileMeta");
+        if (metaEl) {
+            const birthDate = p?.birthDate || "";
+            const birthPlace = p?.birthPlace || "";
+            metaEl.dataset.birthDate = birthDate;
+            metaEl.dataset.birthPlace = birthPlace;
+
+            const left = birthDate ? birthDate : "생년월일 미등록";
+            const right = birthPlace ? birthPlace : "출생지 미등록";
+            metaEl.textContent = `${left} · ${right}`;
+        }
+
+        // 소개
+        const bioEl = document.getElementById("bioDisplay");
+        if (bioEl) {
+            bioEl.textContent = p?.oneLineIntro || "소개글을 입력해 주세요.";
+            bioEl.dataset.value = p?.oneLineIntro || "";
+        }
+
+        // 이미지
+        const imgEl = document.getElementById("profilePhoto");
+        if (imgEl) {
+            const placeholder = imgEl.getAttribute("src");
+            const real = (p?.profileImageUrl || "").trim();
+            imgEl.dataset.profileSrc = real;
+            imgEl.src = real || placeholder;
+            imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = placeholder; };
+        }
+
+        // SNS
+        const snsRow = document.getElementById("snsRow");
+        if (snsRow) {
+            snsRow.innerHTML = "";
+            const list = Array.isArray(p?.snsList) ? p.snsList : [];
+            list.forEach(sns => {
+                const type = (sns?.type || "").toString().toUpperCase();
+                const url = (sns?.url || "").toString();
+                if (!url) return;
+
+                const brand =
+                    type === "INSTAGRAM" ? "instagram" :
+                        type === "YOUTUBE" ? "youtube" :
+                            type === "NAVER" ? "naver" :
+                                (type === "TWITTER" || type === "X") ? "x" : "x";
+
+                const a = document.createElement("a");
+                a.className = "sns-pill";
+                a.href = url;
+                a.target = "_blank";
+                a.rel = "noopener";
+                a.dataset.brand = brand;
+                a.innerHTML = `
+          <span class="sns-badge"><span class="sns-icon"></span></span>
+          <span>${type}</span>
+          <span class="sns-handle">${new URL(url).hostname}</span>
+        `;
+                snsRow.appendChild(a);
+            });
+        }
+
+        // 태그
+        const tagListEl = document.getElementById("tagList");
+        if (tagListEl) {
+            tagListEl.innerHTML = "";
+            const tags = Array.isArray(p?.rawTags) ? p.rawTags : [];
+            tags.forEach(t => {
+                const raw = (t?.rawTag || "").toString().trim();
+                if (!raw) return;
+                const span = document.createElement("span");
+                span.className = "profile-tag";
+                span.textContent = raw.startsWith("#") ? raw : `#${raw}`;
+                tagListEl.appendChild(span);
+            });
+        }
+
+        // empty UI 반영
+        if (typeof updateEmptyUI === "function") updateEmptyUI();
+    }
+
+    async function initProfilePage() {
+        const username = getUsernameFromPath();
+        if (!username) return;
+
+        try {
+            const person = await fetchPersonByName(username);
+            applyPersonToUI(person);
+        } catch (e) {
+            console.error(e);
+            const nameEl = document.getElementById("profileName");
+            if (nameEl) nameEl.textContent = "존재하지 않는 프로필";
+            if (typeof updateEmptyUI === "function") updateEmptyUI();
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", initProfilePage);
+</script>
 </body>
 </html>

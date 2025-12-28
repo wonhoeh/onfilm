@@ -30,6 +30,11 @@ public class PersonController {
         return ResponseEntity.status(HttpStatus.CREATED).body(personId);
     }
 
+//    @PutMapping("/{username}")
+//    public ResponseEntity<Long> updatePerson(@RequestBody UpdatePersonRequest request) {
+//
+//    }
+
     @GetMapping("/{id}/filmography")
     public ResponseEntity<List<FilmographyResponse>> getFilmography(@PathVariable Long id) {
         List<FilmographyResponse> filmographyResponses = personService.getFilmography(id).stream()

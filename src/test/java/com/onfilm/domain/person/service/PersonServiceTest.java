@@ -60,7 +60,7 @@ public class PersonServiceTest {
         when(personRepository.findByName(person.getName())).thenReturn(Optional.of(person));
 
         // when
-        PersonResponse res = personService.getPerson(person.getName());
+        PersonResponse res = personService.getPersonByUsername(person.getName());
 
         // then
         assertThat(res).isNotNull();

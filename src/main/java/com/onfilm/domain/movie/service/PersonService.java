@@ -1,5 +1,7 @@
 package com.onfilm.domain.movie.service;
 
+import com.onfilm.domain.common.error.exception.PersonNotFoundException;
+import com.onfilm.domain.common.error.exception.UserNotFoundException;
 import com.onfilm.domain.common.util.SecurityUtil;
 import com.onfilm.domain.movie.dto.CreatePersonRequest;
 import com.onfilm.domain.movie.dto.CreatePersonSnsRequest;
@@ -28,15 +30,13 @@ public class PersonService {
     private final PersonRepository personRepository;
     private final UserRepository userRepository;
 
-    @Transactional
+    @Transactional(readOnly = true)
     public PersonResponse getPersonByUsername(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("USER NOT FOUND"));
+        User user = userRepository.findByUsernameWithPerson(username)
+                .orElseThrow(() -> new UserNotFoundException(username));
 
         Person person = user.getPerson();
-        if (person == null) {
-            throw new IllegalArgumentException("PERSON NOT FOUND");
-        }
+        if (person == null) throw new PersonNotFoundException(username);
 
         return PersonResponse.from(person);
     }
@@ -47,27 +47,9 @@ public class PersonService {
         log.info("userId = {}", userId);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("USER NOT FOUND"));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
-        List<PersonSns> snsList = new ArrayList<>();
-        if (request.getSnsList() != null) {
-            for (CreatePersonSnsRequest snsRequest : request.getSnsList()) {
-                snsList.add(PersonSns.builder()
-                        .type(snsRequest.getType())
-                        .url(snsRequest.getUrl())
-                        .build());
-            }
-        }
-
-        Person person = Person.create(
-                request.getName(),
-                request.getBirthDate(),
-                request.getBirthPlace(),
-                request.getOneLineIntro(),
-                request.getProfileImageUrl(),
-                snsList,
-                request.getRawTags()
-        );
+        Person person = request.toEntity();
 
         user.assignPerson(person);
 
