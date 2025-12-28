@@ -5,6 +5,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 @Getter
 @Entity
 @Table(
@@ -63,5 +65,17 @@ public class ProfileTag {
         if (t.length() > 40) throw new IllegalArgumentException("tag is too long (max 40)");
 
         return t;
+    }
+
+    public void updateRawTextKeepingNormalized(String rawText) {
+        String cleaned = validate(rawText);
+        String n = normalize(cleaned);
+
+        // 기존 normalized와 다르면 다른 태그로 취급해야 하니 막는 게 안전
+        if (!Objects.equals(this.normalized, n)) {
+            throw new IllegalArgumentException("normalized mismatch");
+        }
+
+        this.rawText = cleaned;
     }
 }

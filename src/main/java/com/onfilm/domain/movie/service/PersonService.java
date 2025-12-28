@@ -6,6 +6,7 @@ import com.onfilm.domain.common.util.SecurityUtil;
 import com.onfilm.domain.movie.dto.CreatePersonRequest;
 import com.onfilm.domain.movie.dto.CreatePersonSnsRequest;
 import com.onfilm.domain.movie.dto.PersonResponse;
+import com.onfilm.domain.movie.dto.UpdatePersonRequest;
 import com.onfilm.domain.movie.entity.MoviePerson;
 import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.movie.entity.PersonSns;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -56,6 +58,45 @@ public class PersonService {
         userRepository.save(user);
 
         return person.getId();
+    }
+
+    @Transactional
+    public void updatePerson(Long id, UpdatePersonRequest request) {
+        Long userId = SecurityUtil.currentUserId();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        Person person = personRepository.findById(id)
+                .orElseThrow(() -> new PersonNotFoundException(id));
+
+        // ✅ 권한 체크: 내 Person만 수정
+        if (user.getPerson() == null || !Objects.equals(user.getPerson().getId(), id)) {
+            // 401이 아니라 보통 403이 맞음 (예외 매핑도 같이 확인 추천)
+            throw new IllegalStateException("FORBIDDEN");
+        }
+
+        // ✅ 기본 필드 업데이트
+        person.updateBasic(
+                request.getName(),
+                request.getBirthDate(),
+                request.getBirthPlace(),
+                request.getOneLineIntro(),
+                request.getProfileImageUrl()
+        );
+
+        // ✅ SNS 전체 교체
+        List<PersonSns> snsEntities = (request.getSnsList() == null) ? List.of()
+                : request.getSnsList().stream()
+                .map(r -> PersonSns.builder()
+                        .type(r.getType())
+                        .url(r.getUrl())
+                        .build())
+                .toList();
+        person.replaceSns(snsEntities);
+
+        // ✅ TAG 전체 교체 (핵심: replaceProfileTags에서 중복/flush순서 안전 처리)
+        person.replaceProfileTags(request.getRawTags());
     }
 
     @Transactional(readOnly = true)

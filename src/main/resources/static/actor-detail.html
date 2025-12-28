@@ -20,7 +20,6 @@
             --radius-xl:20px;
             --shadow:0 10px 40px rgba(0,0,0,.5);
 
-            /* ✅ 스크린샷 느낌의 “파란 링크” */
             --link-blue:#5aa7ff;
             --icon-ring: rgba(255,255,255,.75);
         }
@@ -189,17 +188,13 @@
         .profile-settings-item:hover{ background:rgba(124,92,255,0.16); }
         .profile-settings-item.close-item{ color:var(--muted); }
 
-        /* ============================
-           ✅ NEW EMPTY CTA (스크린샷 스타일)
-        ============================ */
+        /* EMPTY CTA */
         .empty-cta{
             margin-top: 14px;
             padding: 42px 0 36px;
             text-align:center;
             user-select:none;
         }
-
-        /* 아이콘(원형 링) */
         .empty-cta-icon{
             display:inline-flex;
             align-items:center;
@@ -260,9 +255,22 @@
             text-decoration: underline;
         }
 
-        /* ============================
-           FILMOGRAPHY (슬라이더 + 카드)
-        ============================ */
+        /* ✅ 비소유자 empty: 클릭/호버 없는 안내용 */
+        .empty-cta.view-only .empty-cta-icon{
+            pointer-events:none;
+            cursor:default;
+        }
+        .empty-cta.view-only .empty-cta-icon:hover .empty-cta-ring{
+            transform:none;
+            border-color: var(--icon-ring);
+            background: rgba(255,255,255,0.03);
+        }
+        .empty-cta.view-only .empty-cta-link{
+            display:none; /* 비소유자는 링크 숨김 */
+        }
+
+
+        /* FILMOGRAPHY */
         .filmography-section h2{
             font-size:22px; font-weight:900; margin:40px 0 14px;
         }
@@ -330,9 +338,7 @@
             transform:translateY(-50%) scale(1.1);
         }
 
-        /* ============================
-           MOVIE POPUP
-        ============================ */
+        /* MOVIE POPUP */
         .movie-popup {
             position: fixed;
             z-index: 999;
@@ -478,9 +484,7 @@
         }
         .popup-like-btn:active { transform: scale(0.92); }
 
-        /* ============================
-           GALLERY + 스크롤 로딩 스피너
-        ============================ */
+        /* GALLERY */
         .gallery-section h2{
             font-size:22px;
             font-weight:900;
@@ -490,6 +494,10 @@
             display:grid;
             grid-template-columns:repeat(3,1fr);
             gap:12px;
+        }
+        /* gallery-grid 안에 있는 empty-cta는 전부 한 줄(전체폭) */
+        .gallery-grid > .empty-cta{
+            grid-column: 1 / -1;
         }
         .gallery-item{
             width:100%;
@@ -859,16 +867,23 @@
         /* ✅ 갤러리 empty가 grid 전체를 차지하도록 유지 */
         #galleryGrid #galleryEmpty{ grid-column: 1 / -1; }
 
+        /* ===== 헤더 오른쪽 영역 & 프로필 메뉴 (index.html과 동일) ===== */
         .header-right{
             display:flex;
             align-items:center;
             gap:10px;
         }
+        .header-nav-links{
+            display:flex;
+            align-items:center;
+            gap:8px;
+        }
 
         .profile-menu{ position:relative; }
 
         .profile-avatar-btn{
-            width:32px; height:32px;
+            width:32px;
+            height:32px;
             border-radius:999px;
             border:1px solid var(--line);
             padding:0;
@@ -900,7 +915,7 @@
             position:absolute;
             top:120%;
             right:0;
-            min-width:180px;
+            min-width:210px; /* ✅ index와 동일 */
             background:var(--panel-2);
             border-radius:12px;
             border:1px solid var(--line);
@@ -917,6 +932,20 @@
             pointer-events:auto;
             transform:translateY(0);
         }
+
+        .profile-group-title{
+            padding:8px 12px 6px;
+            font-size:11px;
+            color:var(--muted);
+            letter-spacing:.12em;
+            text-transform:uppercase;
+        }
+        .profile-divider{
+            height:1px;
+            margin:6px 0;
+            background:rgba(255,255,255,.08);
+        }
+
         .profile-item{
             width:100%;
             padding:8px 12px;
@@ -929,7 +958,7 @@
             display:flex;
             align-items:center;
             justify-content:space-between;
-            gap:6px;
+            gap:10px; /* ✅ index와 동일 */
         }
         .profile-item span{
             font-size:11px;
@@ -938,6 +967,15 @@
         .profile-item:hover{
             background:rgba(255,255,255,0.06);
         }
+
+
+
+
+        /* ✅ owner-only: “숨김이지만 공간 유지” (필모/갤러리 영역 구조 유지용) */
+        .owner-only.hidden-keep-space{
+            visibility:hidden;
+            pointer-events:none;
+        }
     </style>
 </head>
 
@@ -945,7 +983,7 @@
 <div class="page-root">
     <header>
         <div class="container header-row">
-            <a href="index.html" class="logo">OnFilm</a>
+            <a href="/index.html" class="logo">OnFilm</a>
             <div class="header-right" id="headerActions"></div>
         </div>
     </header>
@@ -994,28 +1032,40 @@
 
             <div class="film-slider-container" id="filmSliderContainer">
 
-                <!-- ✅ NEW: 스크린샷 스타일 빈 상태 (필름 아이콘) -->
-                <div class="empty-cta hidden" id="filmEmpty">
+                <!-- ✅ owner-only: 소유자만 등록 CTA 보임 -->
+                <div class="empty-cta hidden owner-only" id="filmEmpty">
                     <a class="empty-cta-icon" href="edit-filmography.html" aria-label="필모그래피 등록하기">
-              <span class="empty-cta-ring">
-                <!-- Film icon -->
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M4 6.5h16v11H4z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M8 6.5v11M16 6.5v11"/>
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M6.2 8.2h.01M6.2 10.2h.01M6.2 12.2h.01M6.2 14.2h.01"/>
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M17.8 8.2h.01M17.8 10.2h.01M17.8 12.2h.01M17.8 14.2h.01"/>
-                </svg>
-              </span>
+                        <span class="empty-cta-ring">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6.5h16v11H4z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 6.5v11M16 6.5v11"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.2 8.2h.01M6.2 10.2h.01M6.2 12.2h.01M6.2 14.2h.01"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.8 8.2h.01M17.8 10.2h.01M17.8 12.2h.01M17.8 14.2h.01"/>
+                          </svg>
+                        </span>
                     </a>
 
                     <div class="empty-cta-title">필모그래피 공유</div>
                     <div class="empty-cta-desc">작품을 등록하면 회원님의 프로필에 표시됩니다.</div>
                     <a class="empty-cta-link" href="edit-filmography.html">첫 작품 등록하기</a>
                 </div>
+
+                <!-- ✅ view-only: 비소유자/비로그인 + 게시물 없음 -->
+                <div class="empty-cta hidden view-only" id="filmEmptyViewOnly">
+                    <a class="empty-cta-icon" href="javascript:void(0)" aria-label="필모그래피 게시물 없음">
+                        <span class="empty-cta-ring">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6.5h16v11H4z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 6.5v11M16 6.5v11"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.2 8.2h.01M6.2 10.2h.01M6.2 12.2h.01M6.2 14.2h.01"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.8 8.2h.01M17.8 10.2h.01M17.8 12.2h.01M17.8 14.2h.01"/>
+                          </svg>
+                        </span>
+                    </a>
+
+                    <div class="empty-cta-title">게시물 없음</div>
+                </div>
+
 
                 <button class="film-arrow left" id="filmPrevBtn">‹</button>
 
@@ -1032,26 +1082,42 @@
             <h2>사진 갤러리</h2>
             <div class="gallery-grid" id="galleryGrid">
 
-                <!-- ✅ NEW: 스크린샷 스타일 빈 상태 (카메라 아이콘) -->
-                <div class="empty-cta hidden" id="galleryEmpty">
+                <!-- ✅ owner-only: 소유자만 등록 CTA 보임 -->
+                <div class="empty-cta hidden owner-only" id="galleryEmpty">
                     <a class="empty-cta-icon" href="edit-gallery.html" aria-label="사진 공유하기">
-              <span class="empty-cta-ring">
-                <!-- Camera icon (screenshot vibe) -->
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M7 7.5h2l1-1.5h4l1 1.5h2A3 3 0 0 1 20 10.5v7A3 3 0 0 1 17 20.5H7A3 3 0 0 1 4 17.5v-7A3 3 0 0 1 7 7.5Z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M12 11a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M9 7.5l.9-1.2"/>
-                </svg>
-              </span>
+                        <span class="empty-cta-ring">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M7 7.5h2l1-1.5h4l1 1.5h2A3 3 0 0 1 20 10.5v7A3 3 0 0 1 17 20.5H7A3 3 0 0 1 4 17.5v-7A3 3 0 0 1 7 7.5Z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M12 11a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 7.5l.9-1.2"/>
+                          </svg>
+                        </span>
                     </a>
 
                     <div class="empty-cta-title">사진 공유</div>
                     <div class="empty-cta-desc">사진을 공유하면 회원님의 프로필에 표시됩니다.</div>
                     <a class="empty-cta-link" href="edit-gallery.html">첫 사진 등록하기</a>
                 </div>
+
+                <!-- ✅ view-only: 비소유자/비로그인 + 게시물 없음 -->
+                <div class="empty-cta hidden view-only" id="galleryEmptyViewOnly">
+                    <a class="empty-cta-icon" href="javascript:void(0)" aria-label="갤러리 게시물 없음">
+                        <span class="empty-cta-ring">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M7 7.5h2l1-1.5h4l1 1.5h2A3 3 0 0 1 20 10.5v7A3 3 0 0 1 17 20.5H7A3 3 0 0 1 4 17.5v-7A3 3 0 0 1 7 7.5Z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M12 11a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 7.5l.9-1.2"/>
+                          </svg>
+                        </span>
+                    </a>
+
+                    <div class="empty-cta-title">게시물 없음</div>
+                </div>
+
 
                 <!-- gallery-item들은 실제 데이터가 있으면 여기에 들어옴 -->
             </div>
@@ -1086,7 +1152,7 @@
         <label class="login-label" for="loginPassword">비밀번호</label>
         <input id="loginPassword" class="login-input" type="password" placeholder="비밀번호" />
 
-        <button class="login-submit-btn" type="button">로그인</button>
+        <button class="login-submit-btn" id="loginSubmitBtn" type="button">로그인</button>
 
         <div class="login-links">
             <a href="signup.html">회원가입</a>
@@ -1193,43 +1259,43 @@
         popup.className = "movie-popup";
 
         popup.innerHTML = `
-        <div class="popup-video-box">
-          <img class="popup-thumb" />
-          <video muted loop playsinline></video>
+      <div class="popup-video-box">
+        <img class="popup-thumb" />
+        <video muted loop playsinline></video>
 
-          <div class="popup-mute-btn">
-            <svg class="popup-sound-on" xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-              width="26" height="26" style="display:none;">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25
-                l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51
-                c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396
-                C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
-            </svg>
+        <div class="popup-mute-btn">
+          <svg class="popup-sound-on" xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+            width="26" height="26" style="display:none;">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25
+              l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51
+              c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396
+              C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
+          </svg>
 
-            <svg class="popup-sound-off" xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-              width="26" height="26">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6
-                4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51
-                c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396
-                C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
-            </svg>
-          </div>
+          <svg class="popup-sound-off" xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+            width="26" height="26">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l2.25 2.25m-10.5-6
+              4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51
+              c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396
+              C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
+          </svg>
         </div>
+      </div>
 
-        <div class="popup-info">
-          <div class="popup-title"></div>
-          <div class="popup-meta"></div>
+      <div class="popup-info">
+        <div class="popup-title"></div>
+        <div class="popup-meta"></div>
 
-          <div class="popup-action-row">
-            <button class="popup-play-btn-circle"><span>▶</span></button>
-            <button class="popup-like-btn"><span>👍</span></button>
-          </div>
+        <div class="popup-action-row">
+          <button class="popup-play-btn-circle"><span>▶</span></button>
+          <button class="popup-like-btn"><span>👍</span></button>
         </div>
-      `;
+      </div>
+    `;
 
         document.body.appendChild(popup);
 
@@ -1293,9 +1359,9 @@
 
         popup.querySelector(".popup-title").textContent = card.dataset.title ?? "";
         popup.querySelector(".popup-meta").innerHTML = `
-        ${card.dataset.genre ?? ""} · ${card.dataset.runtime ?? ""}
-        <span class="popup-age">${card.dataset.age ?? ""}</span>
-      `;
+      ${card.dataset.genre ?? ""} · ${card.dataset.runtime ?? ""}
+      <span class="popup-age">${card.dataset.age ?? ""}</span>
+    `;
 
         const thumb = card.dataset.thumb;
         if (thumb) {
@@ -1390,6 +1456,70 @@
     window.addEventListener("load", updateArrows);
 </script>
 
+<!-- ✅ 권한/소유자 판별 헬퍼 (ID 기반) -->
+<script>
+    // 현재 프로필 페이지의 username을 경로에서 추출 (/onfilm/{username})
+    function getUsernameFromPath() {
+        const parts = window.location.pathname.split("/").filter(Boolean);
+        if (parts.length >= 2 && parts[0] === "onfilm") return decodeURIComponent(parts[1]);
+        return null;
+    }
+
+    // 서버에서 person(프로필 주인) 조회 (반드시 id 포함하도록)
+    async function fetchPersonByName(username) {
+        const res = await fetch(`/persons/${encodeURIComponent(username)}`, {
+            method: "GET",
+            headers: { "Accept": "application/json" }
+        });
+        if (!res.ok) throw new Error("GET_PERSON_FAILED status=" + res.status);
+        return await res.json();
+    }
+
+    // 세션 복구해서 me 가져오기
+    async function restoreMeSafe() {
+        try {
+            const result = await window.OnfilmAuth.restoreSession();
+            console.log("restoreSession result:", result);
+            console.log("me.id =", result?.me?.id);
+            if (result && result.ok && result.me) return result.me;
+        } catch (e) {}
+        return null;
+    }
+
+    // ID 기반 소유자 판별:
+    // - me.id === person.id (or person.ownerId)
+    function computeIsOwnerById(me, person) {
+        const myId = me?.id;
+        if (myId === null || myId === undefined) return false;
+
+        // 백엔드가 person.id 로 주는 경우
+        const personId = person?.id;
+
+        // 혹시 ownerId 로 주는 경우까지 대비 (둘 중 하나만 있어도 됨)
+        const ownerId = person?.ownerId;
+
+        return (personId !== undefined && personId !== null && String(myId) === String(personId))
+            || (ownerId !== undefined && ownerId !== null && String(myId) === String(ownerId));
+    }
+
+    // isOwner에 따라 편집 UI 토글
+    function applyOwnerUI(isOwner){
+        // ⚙️ / 편집 오버레이는 완전 숨김
+        document.getElementById("profileSettingsBtn")?.classList.toggle("hidden", !isOwner);
+        document.getElementById("profileEditOverlay")?.classList.toggle("hidden", !isOwner);
+
+        // 필모/갤러리 empty CTA는 "구조 유지" 위해 비소유자면 공간만 남기기(visibility hidden)
+        const ownerCtas = document.querySelectorAll(".owner-only");
+        ownerCtas.forEach(el => {
+            el.classList.remove("hidden-keep-space");
+            if (!isOwner) el.classList.add("hidden-keep-space");
+        });
+
+        // 전역 상태 저장(다른 함수에서 활용)
+        window.__isOwner = !!isOwner;
+    }
+</script>
+
 <!-- JS 3: GALLERY + LIGHTBOX + 편집 메뉴 JS -->
 <script>
     const gallerySection = document.querySelector(".gallery-section");
@@ -1458,10 +1588,10 @@
         lightboxOverlay = document.createElement("div");
         lightboxOverlay.className = "gallery-lightbox-overlay";
         lightboxOverlay.innerHTML = `
-        <button class="gallery-lightbox-arrow left">‹</button>
-        <img class="gallery-lightbox-image" src="" alt="photo detail">
-        <button class="gallery-lightbox-arrow right">›</button>
-      `;
+      <button class="gallery-lightbox-arrow left">‹</button>
+      <img class="gallery-lightbox-image" src="" alt="photo detail">
+      <button class="gallery-lightbox-arrow right">›</button>
+    `;
         document.body.appendChild(lightboxOverlay);
 
         lightboxImg       = lightboxOverlay.querySelector(".gallery-lightbox-image");
@@ -1528,7 +1658,8 @@
         updateLightboxArrows();
     }
 
-    window.addEventListener("load", () => {
+    // ✅ load에서 권한 적용 + 기존 기능 유지
+    window.addEventListener("load", async () => {
         const profileImg = document.getElementById("profilePhoto");
         if (profileImg) {
             const placeholder = profileImg.getAttribute("src");
@@ -1543,8 +1674,26 @@
             }
         }
 
+        // (1) 로그인 사용자 복구
+        const me = await restoreMeSafe();
+
+        // (2) 현재 프로필 person 조회 (id 필수)
+        let person = null;
+        try {
+            const username = getUsernameFromPath();
+            if (username) person = await fetchPersonByName(username);
+        } catch (e) {}
+
+        // (3) id 기반 owner 판단
+        const isOwner = computeIsOwnerById(me, person);
+
+        // (4) UI 토글 적용
+        applyOwnerUI(isOwner);
+
+        // (5) 기존 empty UI 반영
         updateEmptyUI();
 
+        // 기존 갤러리 로직 유지
         if (galleryItems.length > 0) {
             initGallery();
             galleryItems.forEach((img, idx) => {
@@ -1558,14 +1707,12 @@
             }
         }
 
-        const isOwner = true;
-        document.getElementById("profileSettingsBtn")?.classList.toggle("hidden", !isOwner);
-        document.getElementById("profileEditOverlay")?.classList.toggle("hidden", !isOwner);
-
+        // 편집 오버레이 이벤트는 소유자일 때만
         if (isOwner) setupEditOverlay();
     });
 </script>
 
+<!-- empty UI 자동 갱신 옵저버 -->
 <script>
     (function autoUpdateEmptyUI(){
         if (window.__emptyUIObserver) {
@@ -1608,6 +1755,7 @@
     })();
 </script>
 
+<!-- empty UI 토글 -->
 <script>
     function updateEmptyUI(){
         const profileHeader = document.querySelector(".profile-header");
@@ -1631,14 +1779,21 @@
 
         if (profileHeader) profileHeader.classList.toggle("is-empty", !profileHasAny);
 
+        const isOwner = !!window.__isOwner;
+
         // ---- FILMOGRAPHY ----
         const filmSlider = document.getElementById("filmSlider");
         const filmCards  = filmSlider ? filmSlider.querySelectorAll(".film-card") : [];
-        const filmEmpty  = document.getElementById("filmEmpty");
+        const filmEmpty  = document.getElementById("filmEmpty"); // owner CTA
+        const filmEmptyViewOnly = document.getElementById("filmEmptyViewOnly"); // ✅ 추가
 
         const hasFilms = filmCards.length > 0;
 
-        if (filmEmpty) filmEmpty.classList.toggle("hidden", hasFilms);
+        // 소유자 CTA
+        if (filmEmpty) filmEmpty.classList.toggle("hidden", hasFilms || !isOwner);
+
+        // ✅ 비소유자(비로그인 포함) 안내
+        if (filmEmptyViewOnly) filmEmptyViewOnly.classList.toggle("hidden", hasFilms || isOwner);
 
         const filmWrapper = document.querySelector("#filmSliderContainer .film-slider-wrapper");
         const filmPrev = document.getElementById("filmPrevBtn");
@@ -1650,11 +1805,17 @@
 
         // ---- GALLERY ----
         const galleryGridEl = document.getElementById("galleryGrid");
-        const galleryEmpty  = document.getElementById("galleryEmpty");
+        const galleryEmpty  = document.getElementById("galleryEmpty"); // owner CTA
+        const galleryEmptyViewOnly = document.getElementById("galleryEmptyViewOnly"); // ✅ 추가
+
         const galleryImgs   = galleryGridEl ? galleryGridEl.querySelectorAll(".gallery-item") : [];
         const hasGallery = galleryImgs.length > 0;
 
-        if (galleryEmpty) galleryEmpty.classList.toggle("hidden", hasGallery);
+        // 소유자 CTA
+        if (galleryEmpty) galleryEmpty.classList.toggle("hidden", hasGallery || !isOwner);
+
+        // ✅ 비소유자 안내
+        if (galleryEmptyViewOnly) galleryEmptyViewOnly.classList.toggle("hidden", hasGallery || isOwner);
     }
 
     function setupEditOverlay(){
@@ -1704,73 +1865,170 @@
     }
 </script>
 
+<!-- 로그인 오버레이: 열기/닫기(ESC/바깥클릭) + 로그인 제출 연결 -->
 <script>
-    const loginBtn = document.getElementById("loginBtn");
-    const loginOverlay = document.getElementById("loginOverlay");
-
-    if (loginBtn && loginOverlay) {
-        loginBtn.addEventListener("click", () => loginOverlay.classList.add("show"));
-
-        loginOverlay.addEventListener("click", (e) => {
-            if (e.target === loginOverlay) loginOverlay.classList.remove("show");
-        });
-
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") loginOverlay.classList.remove("show");
-        });
+    function openLoginOverlay(){
+        const overlay = document.getElementById("loginOverlay");
+        if (!overlay) return;
+        overlay.classList.add("show");
     }
 
-    const params = new URLSearchParams(window.location.search);
-    if (loginOverlay && params.get("login") === "true") {
-        loginOverlay.classList.add("show");
+    function closeLoginOverlay(){
+        const overlay = document.getElementById("loginOverlay");
+        if (!overlay) return;
+        overlay.classList.remove("show");
     }
+
+    // ✅ 1) loginBtn은 헤더에서 동적으로 생성되므로 "이벤트 위임"으로 처리
+    document.addEventListener("click", (e) => {
+        // 로그인 버튼 클릭 -> 오버레이 열기
+        const loginBtn = e.target?.closest?.("#loginBtn");
+        if (loginBtn) {
+            openLoginOverlay();
+            return;
+        }
+
+        // 오버레이 바깥 클릭 -> 닫기
+        const overlay = document.getElementById("loginOverlay");
+        if (overlay && overlay.classList.contains("show") && e.target === overlay) {
+            closeLoginOverlay();
+        }
+    });
+
+    // ✅ 2) ESC -> 닫기
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeLoginOverlay();
+    });
+
+    // ✅ 3) 로그인 제출 버튼 클릭 -> OnfilmAuth.login 호출
+    document.addEventListener("click", async (e) => {
+        const submitBtn = e.target?.closest?.("#loginSubmitBtn");
+        if (!submitBtn) return;
+
+        const email = document.getElementById("loginEmail")?.value?.trim() || "";
+        const password = document.getElementById("loginPassword")?.value || "";
+
+        if (!email || !password) {
+            alert("아이디와 비밀번호를 입력해 주세요.");
+            return;
+        }
+
+        // 중복 클릭 방지
+        submitBtn.disabled = true;
+
+        try {
+            // auth.js에 이미 존재하는 함수
+            await window.OnfilmAuth.login(email, password);
+
+            // 성공: 오버레이 닫고 헤더/권한 UI 갱신
+            closeLoginOverlay();
+
+            if (typeof renderHeaderActions === "function") {
+                await renderHeaderActions();
+            }
+
+            // 프로필 소유자 UI 즉시 재판정(있으면)
+            if (typeof initProfilePage === "function") {
+                await initProfilePage();
+            }
+        } catch (err) {
+            console.error(err);
+            alert(err?.message || "로그인 실패");
+        } finally {
+            submitBtn.disabled = false;
+        }
+    });
+
+    // ?login=true면 자동 오픈
+    document.addEventListener("DOMContentLoaded", () => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("login") === "true") openLoginOverlay();
+    });
 </script>
 
+
+<!-- 헤더 로그인/로그아웃 메뉴 -->
 <script>
+    function normalizeMe(me) {
+        const username = me?.username ? String(me.username).trim() : "";
+        const displayName = (me?.displayName || me?.name || username || me?.email || "내 계정");
+        const avatarUrl = me?.avatarUrl || me?.profileImageUrl || me?.profileImage || "";
+        return { username, displayName, avatarUrl };
+    }
+
     function renderLoggedOut(container){
         container.innerHTML = `
-        <button type="button" class="login-btn" id="loginBtn">로그인</button>
-      `;
-
-        const loginBtn = document.getElementById("loginBtn");
-        const loginOverlay = document.getElementById("loginOverlay");
-        if (loginBtn && loginOverlay) {
-            loginBtn.addEventListener("click", () => loginOverlay.classList.add("show"));
-        }
+      <button type="button" class="login-btn" id="loginBtn">로그인</button>
+    `;
+        // ✅ 클릭 이벤트는 위에서 이미 (이벤트 위임으로) openLoginOverlay 처리하고 있으니 여기선 안 붙임
     }
 
     function renderLoggedIn(container, me){
-        const displayName = (me && (me.displayName || me.username || me.name || me.email)) || "내 계정";
-        const avatarUrl = (me && (me.avatarUrl || me.profileImageUrl)) || "";
+        const { username, displayName, avatarUrl } = normalizeMe(me);
 
-        const initial = (displayName.trim().charAt(0) || "A").toUpperCase();
+        const baseForInitial = username || displayName; // ✅ index처럼 username 우선
+        const initial = (baseForInitial.trim().charAt(0) || "A").toUpperCase();
 
         container.innerHTML = `
-            <div class="profile-menu">
-              <button type="button" class="profile-avatar-btn" id="profileAvatarBtn" aria-label="계정 메뉴 열기">
-                ${avatarUrl
-            ? `<img src="${avatarUrl}" alt="${displayName}">`
-            : `<span class="profile-avatar-initial">${initial}</span>`}
-              </button>
+      <div class="profile-menu">
+        <button type="button" class="profile-avatar-btn" id="profileAvatarBtn" aria-label="계정 메뉴 열기">
+          ${
+            avatarUrl
+                ? `<img src="${avatarUrl}" alt="${displayName} 프로필" />`
+                : `<span class="profile-avatar-initial">${initial}</span>`
+        }
+        </button>
 
-              <div class="profile-dropdown" id="profileDropdown">
-                <button type="button" class="profile-item" data-action="actor-page">내 배우 페이지</button>
-                <button type="button" class="profile-item" data-action="edit-profile">프로필 편집 <span>기본정보</span></button>
-                <button type="button" class="profile-item" data-action="edit-filmography">필모 편집 <span>작품/역할</span></button>
-                <button type="button" class="profile-item" data-action="edit-gallery">갤러리 편집 <span>사진/영상</span></button>
-                <button type="button" class="profile-item" data-action="logout">로그아웃</button>
-              </div>
-            </div>
-        `;
+        <div class="profile-dropdown" id="profileDropdown">
+          <div class="profile-group-title">${displayName}</div>
+
+          <button type="button" class="profile-item" data-action="actor-page">
+            내 배우 페이지
+            <span>프로필 보기</span>
+          </button>
+
+          <div class="profile-divider"></div>
+          <div class="profile-group-title">편집</div>
+
+          <button type="button" class="profile-item" data-action="edit-profile">
+            프로필 편집
+            <span>기본정보</span>
+          </button>
+
+          <button type="button" class="profile-item" data-action="edit-filmography">
+            필모그래피 편집
+            <span>작품/역할</span>
+          </button>
+
+          <button type="button" class="profile-item" data-action="edit-gallery">
+            갤러리 편집
+            <span>사진/영상</span>
+          </button>
+
+          <div class="profile-divider"></div>
+
+          <button type="button" class="profile-item" data-action="account-settings">
+            계정 설정
+            <span>비밀번호/연동</span>
+          </button>
+
+          <button type="button" class="profile-item" data-action="logout">
+            로그아웃
+          </button>
+        </div>
+      </div>
+    `;
 
         const avatarBtn = document.getElementById("profileAvatarBtn");
-        const dropdown = document.getElementById("profileDropdown");
+        const dropdown  = document.getElementById("profileDropdown");
         if (!avatarBtn || !dropdown) return;
 
         const close = () => dropdown.classList.remove("open");
-        const toggle = () => dropdown.classList.toggle("open");
 
-        avatarBtn.addEventListener("click", (e) => { e.stopPropagation(); toggle(); });
+        avatarBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle("open");
+        });
 
         dropdown.querySelectorAll(".profile-item").forEach(btn => {
             btn.addEventListener("click", async () => {
@@ -1778,28 +2036,90 @@
                 close();
 
                 if (action === "actor-page") {
-                    const uname = (me && me.username) ? String(me.username).trim() : "";
-                    if (!uname) {
-                        alert("username이 설정되어 있지 않습니다. 프로필에서 username을 설정해 주세요.");
+                    const myId = me?.id;
+                    if (!myId) {
+                        openLoginOverlay?.();
                         return;
                     }
-                    window.location.href = "/onfilm/" + encodeURIComponent(uname);
+
+                    const uname = (me?.username ? String(me.username).trim() : "");
+                    if (!uname) {
+                        window.location.href = "/edit-profile.html";
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch(`/persons/${encodeURIComponent(uname)}`, {
+                            headers: { "Accept": "application/json" }
+                        });
+
+                        if (!res.ok) {
+                            window.location.href = "/edit-profile.html";
+                            return;
+                        }
+
+                        const p = await res.json();
+
+                        const hasAny =
+                            !!(p?.name && String(p.name).trim()) ||
+                            !!(p?.oneLineIntro && String(p.oneLineIntro).trim()) ||
+                            !!(p?.birthDate && String(p.birthDate).trim()) ||
+                            !!(p?.birthPlace && String(p.birthPlace).trim()) ||
+                            !!(p?.profileImageUrl && String(p.profileImageUrl).trim()) ||
+                            (Array.isArray(p?.snsList) && p.snsList.length > 0) ||
+                            (Array.isArray(p?.rawTags) && p.rawTags.length > 0);
+
+                        if (!hasAny) {
+                            window.location.href = "/edit-profile.html";
+                            return;
+                        }
+
+                        window.location.href = "/onfilm/" + encodeURIComponent(uname);
+                    } catch (_) {
+                        window.location.href = "/edit-profile.html";
+                    }
+                    return;
                 }
-                if (action === "edit-profile") window.location.href = "/edit-profile.html";
-                if (action === "edit-filmography") window.location.href = "/edit-filmography.html";
-                if (action === "edit-gallery") window.location.href = "/edit-gallery.html";
+
+                if (action === "edit-profile") {
+                    window.location.href = "/edit-profile.html";
+                    return;
+                }
+                if (action === "edit-filmography") {
+                    window.location.href = "/edit-filmography.html";
+                    return;
+                }
+                if (action === "edit-gallery") {
+                    window.location.href = "/edit-gallery.html";
+                    return;
+                }
+                if (action === "account-settings") {
+                    window.location.href = "/account-settings.html";
+                    return;
+                }
 
                 if (action === "logout") {
                     await window.OnfilmAuth.logout();
                     renderLoggedOut(container);
+
+                    // ✅ 로그아웃하면 owner UI 내려주기 (기존 로직 유지)
+                    applyOwnerUI(false);
+                    if (typeof updateEmptyUI === "function") updateEmptyUI();
+                    return;
                 }
             });
         });
 
-        document.addEventListener("click", close);
-        document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
-    }
+        // 바깥 클릭 시 닫기 (index와 동일한 방식)
+        document.addEventListener("click", (e) => {
+            if (!dropdown.contains(e.target) && e.target !== avatarBtn) close();
+        });
 
+        // ESC로 닫기
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") close();
+        });
+    }
 
     async function renderHeaderActions(){
         const container = document.getElementById("headerActions");
@@ -1832,22 +2152,8 @@
 </script>
 
 
+<!-- 프로필 데이터 바인딩 -->
 <script>
-    function getUsernameFromPath() {
-        const parts = window.location.pathname.split("/").filter(Boolean);
-        if (parts.length >= 2 && parts[0] === "onfilm") return decodeURIComponent(parts[1]);
-        return null;
-    }
-
-    async function fetchPersonByName(username) {
-        const res = await fetch(`/persons/${encodeURIComponent(username)}`, {
-            method: "GET",
-            headers: { "Accept": "application/json" }
-        });
-        if (!res.ok) throw new Error("GET_PERSON_FAILED status=" + res.status);
-        return await res.json();
-    }
-
     function applyPersonToUI(p) {
         // 이름
         const nameEl = document.getElementById("profileName");
@@ -1943,10 +2249,34 @@
         try {
             const person = await fetchPersonByName(username);
             applyPersonToUI(person);
+
+            // ✅ person 로딩이 끝난 시점에, me도 다시 가져와서 owner 판단을 “확정” (id 기반)
+            const me = await restoreMeSafe();
+            const isOwner = computeIsOwnerById(me, person);
+            applyOwnerUI(isOwner);
+            // ✅ 내 프로필인데 "아무 정보도 없으면" edit로 리다이렉트
+            if (isOwner) {
+                const hasAny =
+                    !!(person?.name && String(person.name).trim()) ||
+                    !!(person?.oneLineIntro && String(person.oneLineIntro).trim()) ||
+                    !!(person?.birthDate && String(person.birthDate).trim()) ||
+                    !!(person?.birthPlace && String(person.birthPlace).trim()) ||
+                    !!(person?.profileImageUrl && String(person.profileImageUrl).trim()) ||
+                    (Array.isArray(person?.snsList) && person.snsList.length > 0) ||
+                    (Array.isArray(person?.rawTags) && person.rawTags.length > 0);
+
+                if (!hasAny) {
+                    window.location.replace("/edit-profile.html");
+                    return;
+                }
+            }
+
+            if (typeof updateEmptyUI === "function") updateEmptyUI();
         } catch (e) {
             console.error(e);
             const nameEl = document.getElementById("profileName");
             if (nameEl) nameEl.textContent = "존재하지 않는 프로필";
+            applyOwnerUI(false);
             if (typeof updateEmptyUI === "function") updateEmptyUI();
         }
     }

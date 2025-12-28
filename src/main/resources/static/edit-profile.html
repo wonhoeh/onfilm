@@ -342,7 +342,7 @@
 <div class="page-shell">
     <header>
         <div class="header-inner">
-            <a href="actor-detail.html" class="back-link">
+            <a href="#" class="back-link" id="backToProfileLink">
                 ← 프로필로 돌아가기
             </a>
             <div class="header-title">프로필 편집</div>
@@ -830,6 +830,18 @@
                 profileImageUrl = await uploadProfileImageIfAny();
             }
 
+            // ✅ 새 파일 업로드가 없으면 기존 이미지 URL 유지
+            if (!profileImageUrl) {
+                const existing = (window.__EXISTING_PROFILE_IMAGE_URL__ || "").trim();
+                const currentSrc = (profilePreview.getAttribute("src") || "").trim();
+                const isPlaceholderNow = currentSrc.includes(PLACEHOLDER_SRC);
+
+                // 기존 이미지가 있었고, 지금도 placeholder가 아니면 기존값 유지
+                if (!hasNewFile && existing && !isPlaceholderNow) {
+                    profileImageUrl = existing;
+                }
+            }
+
             // ✅ 2) CreatePersonRequest에 URL 넣고 /persons 호출
             const payload = {
                 name,
@@ -841,8 +853,16 @@
                 rawTags: rawTags.length ? rawTags : null,
             };
 
-            const res = await window.OnfilmAuth.apiFetchWithAutoRefresh("/persons", {
-                method: "POST",
+            const editingPersonIdRaw = window.__EDITING_PERSON_ID__;
+            const editingPersonId = Number(editingPersonIdRaw);
+            const isEdit = Number.isFinite(editingPersonId) && editingPersonId > 0;
+
+            const url = isEdit ? `/persons/${editingPersonId}` : "/persons";
+            const method = isEdit ? "PUT" : "POST";
+
+            const res = await window.OnfilmAuth.apiFetchWithAutoRefresh(url, {
+                method,
+                headers: { "Content-Type": "application/json" }, // auth wrapper가 넣어줘도 안전하게 명시 추천
                 body: JSON.stringify(payload),
             });
 
@@ -852,8 +872,8 @@
                 return;
             }
 
-            const personIdText = await res.text();
-            const personId = Number(personIdText);
+            const savedIdText = await res.text().catch(() => "");
+            const savedPersonId = Number(savedIdText || "0"); // 필요하면 사용
 
             alert("저장 완료!");
 
@@ -893,6 +913,191 @@
             location.href = `/login.html?next=${next}`;
         }
     });
+</script>
+
+<script>
+    // "프로필로 돌아가기":
+    // - 프로필이 존재하고(또는 내용이 있으면) /onfilm/{username}
+    // - 프로필이 없으면(404 또는 내용 없음) /index.html
+    document.addEventListener("DOMContentLoaded", () => {
+        const link = document.getElementById("backToProfileLink");
+        if (!link) return;
+
+        link.addEventListener("click", async (e) => {
+            e.preventDefault();
+
+            try {
+                // 1) username 확보
+                let me = window.OnfilmAuth?.getMe?.() || null;
+                if (!me || !me.username) {
+                    const r = await window.OnfilmAuth?.restoreSession?.().catch(() => null);
+                    me = r?.me || me;
+                }
+                const uname = me?.username ? String(me.username).trim() : "";
+                if (!uname) {
+                    window.location.href = "/index.html";
+                    return;
+                }
+
+                // 2) 프로필 존재/내용 확인
+                //    (인증 필요할 수 있으니 apiFetchWithAutoRefresh 우선 사용)
+                const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
+                    ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
+                    : fetch;
+
+                const res = await fetcher(`/persons/${encodeURIComponent(uname)}`, {
+                    method: "GET",
+                    headers: { "Accept": "application/json" }
+                });
+
+                // 404(프로필 없음) 또는 기타 실패 => 랜딩
+                if (!res.ok) {
+                    window.location.href = "/index.html";
+                    return;
+                }
+
+                const p = await res.json().catch(() => null);
+
+                // "프로필이 없다" 기준: 아무 정보도 없는 경우
+                const hasAny =
+                    !!(p?.name && String(p.name).trim()) ||
+                    !!(p?.oneLineIntro && String(p.oneLineIntro).trim()) ||
+                    !!(p?.birthDate && String(p.birthDate).trim()) ||
+                    !!(p?.birthPlace && String(p.birthPlace).trim()) ||
+                    !!(p?.profileImageUrl && String(p.profileImageUrl).trim()) ||
+                    (Array.isArray(p?.snsList) && p.snsList.length > 0) ||
+                    (Array.isArray(p?.rawTags) && p.rawTags.length > 0);
+
+                if (!hasAny) {
+                    window.location.href = "/index.html";
+                    return;
+                }
+
+                // 3) 정상 프로필이면 공개 페이지로
+                window.location.href = "/onfilm/" + encodeURIComponent(uname);
+            } catch (_) {
+                window.location.href = "/index.html";
+            }
+        });
+    });
+</script>
+
+<script>
+    // ===============================
+    // ✅ 프로필 편집 페이지: 저장된 데이터 프리필
+    // ===============================
+
+    function mapServerSnsTypeToUi(typeUpper) {
+        const t = (typeUpper || "").toUpperCase();
+        if (t === "INSTAGRAM") return "instagram";
+        if (t === "YOUTUBE") return "youtube";
+        if (t === "TIKTOK") return "tiktok";
+        // NAVER/X/TWITTER/기타는 UI에 없으니 etc로
+        return "etc";
+    }
+
+    function normalizeRawTags(rawTags) {
+        const arr = Array.isArray(rawTags) ? rawTags : [];
+        return arr
+            .map(t => (typeof t === "string" ? t : (t?.rawTag || "")))
+            .map(s => String(s || "").trim())
+            .filter(Boolean);
+    }
+
+    async function preloadProfileToEditForm() {
+        // auth 준비 기다림
+        const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
+        if (!authReady?.ok) return;
+
+        // me에서 username 확보
+        let me = window.OnfilmAuth?.getMe?.() || authReady.me || null;
+        if (!me?.username) {
+            const r = await window.OnfilmAuth?.restoreSession?.().catch(() => null);
+            me = r?.me || me;
+        }
+        const uname = me?.username ? String(me.username).trim() : "";
+        if (!uname) return; // username 없으면 저장된 프로필 조회 불가(그냥 빈 폼)
+
+        // 프로필 조회 (공개 GET이면 fetch로도 되지만, 인증/갱신 안정성 위해 apiFetch 사용)
+        const res = await window.OnfilmAuth.apiFetchWithAutoRefresh(`/persons/${encodeURIComponent(uname)}`, {
+            method: "GET",
+            headers: { "Accept": "application/json" }
+        });
+        if (!res.ok) return;
+
+        const p = await res.json();
+
+        window.__EDITING_PERSON_ID__ = p?.id ?? null;
+
+        // ✅ (중요) 기존 이미지 URL 보관 (나중에 저장 시 null로 덮어쓰기 방지)
+        window.__EXISTING_PROFILE_IMAGE_URL__ = (p?.profileImageUrl || "").trim();
+
+        // ---- 기본 필드 ----
+        const nameEl = document.getElementById("actorName");
+        if (nameEl) nameEl.value = p?.name || "";
+
+        const birthPlaceEl = document.getElementById("birthPlace");
+        if (birthPlaceEl) birthPlaceEl.value = p?.birthPlace || "";
+
+        const bioEl = document.getElementById("bioInput");
+        if (bioEl) bioEl.value = p?.oneLineIntro || "";
+
+        // ---- 생년월일(YYYY-MM-DD) -> year/month/day + hidden ----
+        const birth = (p?.birthDate || "").trim();
+        if (birth) {
+            const [yy, mm, dd] = birth.split("-");
+            if (yy) document.getElementById("birthYear").value = yy;
+            if (mm) document.getElementById("birthMonth").value = mm;
+            if (dd) document.getElementById("birthDay").value = dd;
+
+            const hidden = document.getElementById("birthDate");
+            if (hidden) hidden.value = birth;
+        }
+
+        // ---- 프로필 이미지 ----
+        const preview = document.getElementById("profilePreview");
+        if (preview) {
+            const placeholder = preview.getAttribute("src");
+            const real = (p?.profileImageUrl || "").trim();
+            if (real) {
+                preview.src = real;
+                preview.onerror = () => { preview.onerror = null; preview.src = placeholder; };
+            } else {
+                preview.src = placeholder; // 없으면 placeholder 유지
+            }
+        }
+
+        // ---- SNS ----
+        // 기존에 기본 1행 + 사용자가 추가한 행 + 저장된 행이 섞이지 않게 초기화 후 채움
+        const snsWrap = document.getElementById("snsList");
+        if (snsWrap) {
+            snsWrap.innerHTML = "";
+
+            const list = Array.isArray(p?.snsList) ? p.snsList : [];
+            if (list.length > 0) {
+                list.forEach(s => {
+                    const uiType = mapServerSnsTypeToUi(s?.type);
+                    const url = (s?.url || "").toString().trim();
+                    // createSnsRow는 위 스크립트에 이미 존재하므로 그대로 재사용
+                    createSnsRow({ type: uiType, url });
+                });
+            } else {
+                // SNS가 없으면 최소 1행은 유지
+                addSnsRow();
+            }
+        }
+
+        // ---- TAGS ----
+        // 샘플 태그(#아역...)가 이미 들어가 있으므로 "초기화 후" 저장값만 넣기
+        const tagList = document.getElementById("tagList");
+        if (tagList) {
+            tagList.innerHTML = "";
+            const tags = normalizeRawTags(p?.rawTags);
+            tags.forEach(t => addTag(t));
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", preloadProfileToEditForm);
 </script>
 
 </body>

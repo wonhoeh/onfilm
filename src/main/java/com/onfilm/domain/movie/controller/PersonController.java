@@ -3,6 +3,7 @@ package com.onfilm.domain.movie.controller;
 import com.onfilm.domain.movie.dto.CreatePersonRequest;
 import com.onfilm.domain.movie.dto.FilmographyResponse;
 import com.onfilm.domain.movie.dto.PersonResponse;
+import com.onfilm.domain.movie.dto.UpdatePersonRequest;
 import com.onfilm.domain.movie.service.PersonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,10 +31,12 @@ public class PersonController {
         return ResponseEntity.status(HttpStatus.CREATED).body(personId);
     }
 
-//    @PutMapping("/{username}")
-//    public ResponseEntity<Long> updatePerson(@RequestBody UpdatePersonRequest request) {
-//
-//    }
+    @PutMapping("/{id}")
+    public ResponseEntity<Long> updatePerson(@PathVariable Long id,
+                                             @RequestBody UpdatePersonRequest request) {
+        personService.updatePerson(id, request);
+        return ResponseEntity.ok(id);
+    }
 
     @GetMapping("/{id}/filmography")
     public ResponseEntity<List<FilmographyResponse>> getFilmography(@PathVariable Long id) {
