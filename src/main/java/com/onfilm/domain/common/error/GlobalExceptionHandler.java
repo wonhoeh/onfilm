@@ -1,8 +1,11 @@
 package com.onfilm.domain.common.error;
 
+import com.onfilm.domain.common.error.exception.InvalidProfileTagException;
 import com.onfilm.domain.common.error.exception.MovieNotFoundException;
 import com.onfilm.domain.common.error.exception.PersonNotFoundException;
 import com.onfilm.domain.common.error.exception.UserNotFoundException;
+import org.apache.coyote.Response;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -10,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.List;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RestControllerAdvice
@@ -47,5 +51,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMovieNotFound(MovieNotFoundException e) {
         return ResponseEntity.status(NOT_FOUND)
                 .body(ErrorResponse.of("MOVIE_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidProfileTagException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidProfileTag(InvalidProfileTagException e) {
+        return ResponseEntity.status(BAD_REQUEST)
+                .body(ErrorResponse.of("INVALID_PROFILE_TAG", e.getMessage()));
     }
 }

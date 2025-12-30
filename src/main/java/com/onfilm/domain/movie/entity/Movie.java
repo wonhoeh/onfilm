@@ -21,16 +21,19 @@ public class Movie {
     @Column(name = "movie_id", nullable = false)
     private Long id;
 
+    @Column(nullable = false)
     private String title;
 
+    @Column(nullable = false)
     private int runtime;
 
+    @Column(nullable = false)
     private Integer releaseYear;
 
-    private String synopsis;
-
+    @Column(nullable = false)
     private String movieUrl;
 
+    @Column(nullable = true)
     private String thumbnailUrl;
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -38,7 +41,7 @@ public class Movie {
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 100)
-    private List<MovieTrailer> movieTrailers = new ArrayList<>();
+    private List<Trailer> trailers = new ArrayList<>();
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MovieGenre> genres = new ArrayList<>();
@@ -53,16 +56,15 @@ public class Movie {
     @Builder(access = AccessLevel.PRIVATE)
     public Movie(String title,
                  int runtime,
-                 AgeRating ageRating,
                  Integer releaseYear,
-                 String synopsis,
                  String movieUrl,
-                 String thumbnailUrl) {
+                 String thumbnailUrl,
+                 AgeRating ageRating) {
+
         this.title = title;
         this.runtime = runtime;
         this.ageRating = ageRating;
         this.releaseYear = releaseYear;
-        this.synopsis = synopsis;
         this.movieUrl = movieUrl;
         this.thumbnailUrl = thumbnailUrl;
     }
@@ -70,12 +72,12 @@ public class Movie {
     public static Movie create(
             String title,
             int runtime,
-            AgeRating ageRating,
             Integer releaseYear,
-            String synopsis,
             String movieUrl,
             String thumbnailUrl,
-            List<String> rawGenreTexts) {
+            List<String> trailerUrls,
+            List<String> rawGenreTexts,
+            AgeRating ageRating) {
         if (title == null || title.isBlank()) {
             throw new IllegalArgumentException("invalid title");
         }
@@ -87,21 +89,22 @@ public class Movie {
         Movie movie = Movie.builder()
                 .title(title)
                 .runtime(runtime)
-                .ageRating(ageRating)
                 .releaseYear(releaseYear)
-                .synopsis(synopsis)
                 .movieUrl(movieUrl)
                 .thumbnailUrl(thumbnailUrl)
+                .ageRating(ageRating)
                 .build();
 
+        if (trailerUrls != null) trailerUrls.forEach(movie::addTrailer);
         if (rawGenreTexts != null) rawGenreTexts.forEach(movie::addGenreRaw);
+
 
         return movie;
     }
 
-    // =================================
-    // 연관관계 편의 메서드
-    // =================================
+    // ======================================================================
+    // ======= 연관관계 편의 메서드: Genre =======
+    // ======================================================================
 
     public void addGenreRaw(String rawText) {
         if (rawText == null) return;
@@ -118,75 +121,38 @@ public class Movie {
         genres.add(mg);
     }
 
+    // ======================================================================
+    // ======= 연관관계 편의 메서드: MoviePerson =======
+    // ======================================================================
 
     public void addMoviePerson(MoviePerson moviePerson) {
-        moviePeople.add(moviePerson);
-        moviePerson.setMovie(this);
+        moviePerson.setMovie(this);         // 배우 필모에 this 영화 추가
+        moviePeople.add(moviePerson);       // 영화에 출연한 배우에 moviePerson 추가
     }
 
-    public void addTrailer(MovieTrailer movieTrailer) {
-        movieTrailers.add(movieTrailer);
-        movieTrailer.setMovie(this);
+    // ======================================================================
+    // ======= 연관관계 편의 메서드: MovieTrailer =======
+    // ======================================================================
+
+    public void addTrailer(String trailerUrl) {
+        if (trailerUrl == null) return;
+
+        // 중복 방지
+        boolean duplicated = trailers.stream()
+                        .anyMatch(t -> t.getUrl().equals(trailerUrl));
+        if (duplicated) return;
+
+        Trailer trailer = Trailer.builder()
+                .movie(this)
+                .url(trailerUrl)
+                .build();
+        trailers.add(trailer);
     }
 
-    public void addMovieUrl(String movieUrl) {
-        this.movieUrl = movieUrl;
-    }
 
-    // =================================
-    // Setter
-    // =================================
-
-    public void addLike(String movieLikeId) {
-        likes.add(movieLikeId);
-    }
-
-    public void removeLike(String movieLikeId) {
-        likes.remove(movieLikeId);
-    }
-
-
-    //=== 필드 업데이트 ===//
-    private void updateTitle(String title) {
-        this.title = title;
-    }
-
-    private void updateRuntime(int runtime) {
-        this.runtime = runtime;
-    }
-
-    private void updateReleaseDate(Integer releaseYear) {
-        this.releaseYear = releaseYear;
-    }
-
-    private void updateSynopsis(String synopsis) {
-        this.synopsis = synopsis;
-    }
-
-    private void updateMovieUrl(String movieUrl) {
-        this.movieUrl = movieUrl;
-    }
-
-    public void updateFrom(UpdateMovieRequest request) {
-        if (request.getTitle() != null) {
-            this.title = request.getTitle();
-        }
-        if (request.getRuntime() != null) {
-            this.runtime = request.getRuntime();
-        }
-        if (request.getReleaseYear() != null) {
-            this.releaseYear = request.getReleaseYear();
-        }
-        if (request.getSynopsis() != null) {
-            this.synopsis = request.getSynopsis();
-        }
-        if (request.getMovieUrl() != null) {
-            this.movieUrl = request.getMovieUrl();
-        }
-        if (request.getThumbnailUrl() != null) {
-            this.thumbnailUrl = request.getThumbnailUrl();
-        }
-    }
+    // ======================================================================
+    // ======= 기본정보 변경 메서드 =======
+    // ======================================================================
 
 
 }

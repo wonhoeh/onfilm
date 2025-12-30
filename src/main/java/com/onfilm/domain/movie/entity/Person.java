@@ -1,6 +1,7 @@
 package com.onfilm.domain.movie.entity;
 
 import com.onfilm.domain.common.TextNormalizer;
+import com.onfilm.domain.common.error.exception.InvalidProfileTagException;
 import com.onfilm.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -21,6 +22,10 @@ import java.util.stream.Collectors;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Person {
 
+    // ======================================================================
+    // ======= 식별자 / 기본 컬럼 =======
+    // ======================================================================
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -38,18 +43,31 @@ public class Person {
     @Column(length = 512)
     private String profileImageUrl;
 
+    // ======================================================================
+    // ======= 연관관계: SNS =======
+    // ======================================================================
+
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PersonSns> snsList = new ArrayList<>();
+
+    // ======================================================================
+    // ======= 연관관계: 프로필 태그 =======
+    // ======================================================================
 
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProfileTag> profileTags = new ArrayList<>();
 
+    // ======================================================================
+    // ======= 연관관계: User =======
+    // ======================================================================
+
     @OneToOne(mappedBy = "person", fetch = FetchType.LAZY)
     private User user;
 
-    // ===========================
-    // 생성자
-    // ===========================
+    // ======================================================================
+    // ======= 생성자 / 정적 팩토리 =======
+    // ======================================================================
+
     @Builder(access = AccessLevel.PRIVATE)
     private Person(
             String name,
@@ -88,22 +106,40 @@ public class Person {
         return person;
     }
 
-    // ===========================
-    // 연관관계 메서드
-    // ===========================
+    // ======================================================================
+    // ======= 연관관계 편의 메서드: SNS =======
+    // ======================================================================
+
     public void addSns(PersonSns sns) {
         if (sns == null) return;
 
         // JPA 엔티티는 저장 전 id가 없을 수 있어 비즈니스 키(type+url)로 중복 체크
         boolean duplicated = snsList.stream().anyMatch(s ->
                 s.getType() == sns.getType() &&
-                s.getUrl().equals(sns.getUrl())
+                        s.getUrl().equals(sns.getUrl())
         );
         if (duplicated) return;
 
         sns.setPerson(this);
         snsList.add(sns);
     }
+
+    public void clearSns() {
+        // 양방향 끊기 + orphanRemoval 삭제 유도
+        for (PersonSns s : new ArrayList<>(snsList)) {
+            s.setPerson(null);
+        }
+        snsList.clear();
+    }
+
+    public void replaceSns(List<PersonSns> newList) {
+        clearSns();
+        if (newList != null) newList.forEach(this::addSns);
+    }
+
+    // ======================================================================
+    // ======= 연관관계 편의 메서드: 프로필 태그 =======
+    // ======================================================================
 
     public void addProfileTag(String rawText) {
         if (rawText == null) return;
@@ -119,46 +155,11 @@ public class Person {
         profileTags.add(tag);
     }
 
-    // ===========================
-    // 메서드
-    // ===========================
     public void removeProfileTag(String rawText) {
         if (rawText == null) return;
+
         String normalized = ProfileTag.normalize(rawText);
-
         profileTags.removeIf(t -> t.getNormalized().equals(normalized));
-    }
-
-    public void assignUser(User user) {
-        this.user = user;
-        if (user != null && user.getPerson() != this) {
-            user.assignPerson(this);
-        }
-    }
-    public void unassignUser() { this.user = null; }
-
-    // Person.java 안에 추가
-
-    public void updateBasic(
-            String name,
-            LocalDate birthDate,
-            String birthPlace,
-            String oneLineIntro,
-            String profileImageUrl
-    ) {
-        this.name = name;
-        this.birthDate = birthDate;
-        this.birthPlace = birthPlace;
-        this.oneLineIntro = oneLineIntro;
-        this.profileImageUrl = profileImageUrl;
-    }
-
-    public void clearSns() {
-        // 양방향 끊기 + orphanRemoval 삭제 유도
-        for (PersonSns s : new ArrayList<>(snsList)) {
-            s.setPerson(null);
-        }
-        snsList.clear();
     }
 
     public void clearProfileTags() {
@@ -167,19 +168,11 @@ public class Person {
         profileTags.clear();
     }
 
-    public void replaceSns(List<PersonSns> newList) {
-        clearSns();
-        if (newList != null) newList.forEach(this::addSns);
-    }
-
-    // 예시: 매핑이 이런 식이어야 remove가 DB delete로 나감
-    // @OneToMany(mappedBy="person", cascade = CascadeType.ALL, orphanRemoval = true)
-    // private List<ProfileTag> profileTags = new ArrayList<>();
     public void replaceProfileTags(List<String> rawTags) {
         List<String> input = (rawTags == null) ? List.of() : rawTags;
 
         // 1) 요청 태그를 "정규화 기준으로" 중복 제거
-        //    (같은 normalized면 최초 입력(rawText)만 유지)
+        // (같은 normalized면 최초 입력(rawText)만 유지)
         Map<String, String> normToRaw = new LinkedHashMap<>();
         for (String raw : input) {
             String cleaned = ProfileTag.validate(raw);              // blank 방지 + 길이 체크
@@ -191,15 +184,17 @@ public class Person {
             // ⚠️ 컬럼이 length=30인데 validate는 40으로 되어있어서 불일치.
             // 아래에서 안전하게 막거나, validate max를 30으로 맞추는 걸 추천.
             if (normalized.length() > 30) {
-                throw new IllegalArgumentException("tag is too long (max 30)");
+                throw new InvalidProfileTagException("tag is too long (max 30)");
             }
 
             normToRaw.putIfAbsent(normalized, cleaned);
         }
 
         // 2) 기존 태그를 normalized로 인덱싱
-        Map<String, ProfileTag> existing = this.profileTags.stream()
-                .collect(Collectors.toMap(ProfileTag::getNormalized, Function.identity(), (a, b) -> a));
+        Map<String, ProfileTag> existing = new LinkedHashMap<>();
+        for (ProfileTag tag : this.profileTags) {
+            existing.putIfAbsent(tag.getNormalized(), tag);
+        }
 
         // 3) 삭제: 요청에 없는 기존 태그 제거 (orphanRemoval이면 DB delete로 나감)
         this.profileTags.removeIf(tag -> !normToRaw.containsKey(tag.getNormalized()));
@@ -217,5 +212,38 @@ public class Person {
                 tag.updateRawTextKeepingNormalized(cleanedRaw);
             }
         }
+    }
+
+    // ======================================================================
+    // ======= 기본정보 변경 메서드 =======
+    // ======================================================================
+
+    public void updateBasic(
+            String name,
+            LocalDate birthDate,
+            String birthPlace,
+            String oneLineIntro,
+            String profileImageUrl
+    ) {
+        this.name = name;
+        this.birthDate = birthDate;
+        this.birthPlace = birthPlace;
+        this.oneLineIntro = oneLineIntro;
+        this.profileImageUrl = profileImageUrl;
+    }
+
+    // ======================================================================
+    // ======= 연관관계 편의 메서드: User =======
+    // ======================================================================
+
+    public void assignUser(User user) {
+        this.user = user;
+        if (user != null && user.getPerson() != this) {
+            user.assignPerson(this);
+        }
+    }
+
+    public void unassignUser() {
+        this.user = null;
     }
 }

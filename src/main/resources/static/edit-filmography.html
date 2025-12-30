@@ -169,20 +169,6 @@
       align-items:center;
       gap:8px;
     }
-    .like-pill{
-      display:inline-flex;
-      align-items:center;
-      gap:4px;
-      padding:4px 8px;
-      border-radius:999px;
-      background:rgba(255,255,255,.05);
-      font-size:11px;
-      color:var(--muted);
-    }
-    .like-pill span.heart{
-      color:#ff7b9c;
-      font-size:13px;
-    }
     .delete-film-btn{
       border:0;
       border-radius:999px;
@@ -236,16 +222,16 @@
     .film-meta-grid{
       display:grid;
       grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:8px;
+      gap:12px; /* ✅ (항목+입력칸) 사이 간격 조금 넓힘 */
     }
 
-    /* 비디오 업로드 영역 */
-    .video-upload-block{
+    /* 업로드 영역 공통 */
+    .upload-block{
       display:flex;
       flex-direction:column;
       gap:6px;
     }
-    .video-dropzone{
+    .dropzone{
       border-radius:var(--radius-md);
       border:1px dashed var(--line);
       background:rgba(10,12,18,.9);
@@ -260,14 +246,12 @@
       color:var(--muted);
       transition:border-color .15s ease, background .15s ease;
     }
-    .video-dropzone.is-dragover{
+    .dropzone.is-dragover{
       border-color:var(--accent-2);
       background:rgba(36,211,154,.08);
     }
-    .video-dropzone strong{
-      color:var(--text);
-    }
-    .video-dropzone button{
+    .dropzone strong{ color:var(--text); }
+    .dropzone button{
       margin-top:4px;
       padding:4px 10px;
       font-size:12px;
@@ -277,13 +261,52 @@
       color:var(--text);
       cursor:pointer;
     }
-    .video-dropzone button:hover{
+    .dropzone button:hover{
       background:rgba(255,255,255,.16);
     }
-    .video-file-info{
+    .file-info{
       font-size:11px;
       color:var(--muted);
     }
+
+    /* 장르 칩 입력 */
+    .chip-input-wrap{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .chip-box{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+
+      /* ✅ 바깥을 둘러싼 박스(테두리/배경) 제거 */
+      padding:0;
+      border:0;
+      background:transparent;
+      min-height:0;
+    }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:5px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      font-size:12px;
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .chip button{
+      border:0;
+      background:transparent;
+      color:var(--muted);
+      cursor:pointer;
+      font-size:14px;
+      line-height:1;
+      padding:0;
+    }
+    .chip button:hover{ color:var(--text); }
 
     .form-footer{
       margin-top:14px;
@@ -356,7 +379,7 @@
         <div>
           <div class="edit-header-title">필모그래피</div>
           <div class="edit-header-hint">
-            작품을 추가하고 순서를 드래그해서 정리하세요. (배우/관리자만 좋아요 수를 볼 수 있어요)
+            작품을 추가하고 순서를 드래그해서 정리하세요.
           </div>
         </div>
         <button type="button" id="addFilmBtn" class="add-film-btn">+ 작품 추가</button>
@@ -396,8 +419,13 @@
     card.setAttribute("draggable", "true");
     card.dataset.filmId = initial.id || `temp-${filmIdSeq++}`;
 
-    // 비디오 파일 reference를 카드 객체에 붙여두기(런타임용)
-    card._videoFile = null;
+    // 파일 reference를 카드 객체에 붙여두기(런타임용)
+    card._thumbnailFile = null;
+    card._trailerFile = null;
+    card._videoFile = null; // ✅ 영상 업로드 추가
+
+    // 장르(칩) 상태
+    card._genres = Array.isArray(initial.genres) ? [...initial.genres] : [];
 
     card.innerHTML = `
       <div class="film-card-header">
@@ -406,10 +434,6 @@
           <div class="film-card-title">새 작품</div>
         </div>
         <div class="film-card-actions">
-          <div class="like-pill" title="좋아요 수는 배우/관리자만 확인">
-            <span class="heart">♥</span>
-            <span class="like-count">${initial.likeCount ?? 0}</span>
-          </div>
           <button type="button" class="delete-film-btn">삭제</button>
         </div>
       </div>
@@ -428,26 +452,8 @@
             </div>
 
             <div class="field-group">
-              <label class="field-label">배역</label>
-              <select class="select-input film-role-input">
-                <option value="">선택</option>
-                <option value="LEAD">주연</option>
-                <option value="SUPPORTING">조연</option>
-                <option value="CAMEO">단역</option>
-                <option value="OTHER">기타</option>
-              </select>
-            </div>
-
-            <div class="field-group">
               <label class="field-label">런타임(분)</label>
               <input class="text-input film-runtime-input" type="number" min="1" placeholder="예) 120" value="${initial.runtime || ""}">
-            </div>
-          </div>
-
-          <div class="film-meta-grid">
-            <div class="field-group">
-              <label class="field-label">장르</label>
-              <input class="text-input film-genre-input" type="text" placeholder="예) 드라마, 스릴러" value="${initial.genre || ""}">
             </div>
 
             <div class="field-group">
@@ -460,43 +466,108 @@
                 <option value="18">청소년 관람불가</option>
               </select>
             </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">장르</label>
+            <div class="field-hint">입력 후 엔터를 누르면 장르가 추가됩니다.</div>
+
+            <div class="chip-input-wrap">
+              <input class="text-input genre-chip-input" type="text" placeholder="예) 드라마 (엔터로 추가)">
+              <div class="chip-box genre-chip-box" aria-label="장르 목록"></div>
+            </div>
+          </div>
+
+          <div class="film-meta-grid">
+            <div class="field-group">
+              <label class="field-label">PersonRole</label>
+              <select class="select-input mp-person-role">
+                <option value="">선택</option>
+                <option value="ACTOR">배우</option>
+                <option value="DIRECTOR">감독</option>
+                <option value="WRITER">작가</option>
+              </select>
+            </div>
 
             <div class="field-group">
-              <label class="field-label">좋아요</label>
-              <div class="field-hint">
-                실제 좋아요 수는 서버에서 계산됩니다. (여기선 미리보기용)
-              </div>
+              <label class="field-label">CastType</label>
+              <select class="select-input mp-cast-type">
+                <option value="">선택</option>
+                <option value="LEAD">주연</option>
+                <option value="SUPPORTING">조연</option>
+                <option value="CAMEO">단역</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">극중 배역이름</label>
+              <input class="text-input mp-character-name" type="text" placeholder="예) 코브" value="${initial.characterName || ""}">
             </div>
           </div>
         </div>
 
-        <div class="video-upload-block">
+        <div class="upload-block">
           <div class="field-group">
+            <label class="field-label">섬네일 업로드</label>
+            <div class="field-hint">
+              로컬에서 이미지를 드래그 앤 드롭하거나 파일 선택 버튼을 눌러 업로드하세요.
+            </div>
+          </div>
+
+          <div class="dropzone thumb-dropzone">
+            <div><strong>여기로 파일을 드래그하세요</strong></div>
+            <div>또는 아래 버튼을 눌러 파일을 선택하세요.</div>
+            <button type="button" class="thumb-browse-btn">파일 선택</button>
+            <div class="file-info thumb-file-info">선택된 파일 없음</div>
+            <input type="file" class="thumb-file-input" accept="image/*" style="display:none;">
+          </div>
+
+          <div class="field-group" style="margin-top:10px;">
+            <label class="field-label">트레일러 업로드</label>
+            <div class="field-hint">
+              로컬에서 영상을 드래그 앤 드롭하거나 파일 선택 버튼을 눌러 업로드하세요.
+            </div>
+          </div>
+
+          <div class="dropzone trailer-dropzone">
+            <div><strong>여기로 파일을 드래그하세요</strong></div>
+            <div>또는 아래 버튼을 눌러 파일을 선택하세요.</div>
+            <button type="button" class="trailer-browse-btn">파일 선택</button>
+            <div class="file-info trailer-file-info">선택된 파일 없음</div>
+            <input type="file" class="trailer-file-input" accept="video/*" style="display:none;">
+          </div>
+
+          <!-- ✅ 영상 업로드(원본/작품 파일) 추가 -->
+          <div class="field-group" style="margin-top:10px;">
             <label class="field-label">영상 업로드</label>
             <div class="field-hint">
               로컬에서 영상을 드래그 앤 드롭하거나 파일 선택 버튼을 눌러 업로드하세요.
             </div>
           </div>
 
-          <div class="video-dropzone">
+          <div class="dropzone video-dropzone">
             <div><strong>여기로 파일을 드래그하세요</strong></div>
             <div>또는 아래 버튼을 눌러 파일을 선택하세요.</div>
             <button type="button" class="video-browse-btn">파일 선택</button>
-            <div class="video-file-info">선택된 파일 없음</div>
+            <div class="file-info video-file-info">선택된 파일 없음</div>
             <input type="file" class="video-file-input" accept="video/*" style="display:none;">
           </div>
         </div>
       </div>
     `;
 
-    // 선택된 role 초기값
-    if (initial.role) {
-      const roleSelect = card.querySelector(".film-role-input");
-      roleSelect.value = initial.role;
-    }
+    // 선택된 초기값들
     if (initial.ageRating) {
       const ageSelect = card.querySelector(".film-age-input");
       ageSelect.value = initial.ageRating;
+    }
+    if (initial.personRole) {
+      const pr = card.querySelector(".mp-person-role");
+      pr.value = initial.personRole;
+    }
+    if (initial.castType) {
+      const ct = card.querySelector(".mp-cast-type");
+      ct.value = initial.castType;
     }
 
     // 제목 입력 시, 카드 상단 타이틀도 같이 업데이트
@@ -514,11 +585,19 @@
       }
     });
 
-    // 비디오 업로드 영역 셋업
-    setupVideoDropzone(card);
+    // 장르 칩 렌더 + 입력 이벤트
+    setupGenreChips(card);
+
+    // 섬네일/트레일러/영상 드래그 앤 드롭 셋업
+    setupThumbDropzone(card);
+    setupTrailerDropzone(card);
+    setupVideoDropzone(card); // ✅ 추가
 
     // 드래그 앤 드롭(정렬) 이벤트는 컨테이너 단위로 처리
     filmList.appendChild(card);
+
+    // 카드 생성 직후 장르 초기 렌더
+    renderGenreChips(card);
   }
 
   addFilmBtn.addEventListener("click", () => {
@@ -529,34 +608,99 @@
   createFilmCard({});
 
   /* ============================
-   * 비디오 드래그 & 드롭 설정
+   * 장르 칩 입력
    * ============================ */
 
-  function setupVideoDropzone(card) {
-    const dropzone = card.querySelector(".video-dropzone");
-    const browseBtn = card.querySelector(".video-browse-btn");
-    const fileInput = card.querySelector(".video-file-input");
-    const fileInfo  = card.querySelector(".video-file-info");
+  function normalizeGenre(text){
+    return String(text || "").trim().replace(/\s+/g, " ");
+  }
+
+  function setupGenreChips(card){
+    const input = card.querySelector(".genre-chip-input");
+
+    // ✅ 한글 IME 조합 중 Enter 처리로 "드라마"+"마" 쪼개지는 문제 방지
+    let composing = false;
+    input.addEventListener("compositionstart", () => composing = true);
+    input.addEventListener("compositionend", () => composing = false);
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+
+      // 조합 중 Enter는 무시
+      if (e.isComposing || composing) return;
+
+      e.preventDefault();
+
+      const value = normalizeGenre(input.value);
+      if (!value) return;
+
+      // 중복 방지(대소문자 무시)
+      const exists = card._genres.some(g => g.toLowerCase() === value.toLowerCase());
+      if (exists) {
+        input.value = "";
+        return;
+      }
+
+      card._genres.push(value);
+      input.value = "";
+      renderGenreChips(card);
+    });
+  }
+
+  function renderGenreChips(card){
+    const box = card.querySelector(".genre-chip-box");
+    box.innerHTML = "";
+
+    (card._genres || []).forEach((g, idx) => {
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.innerHTML = `
+        <span>${escapeHtml(g)}</span>
+        <button type="button" aria-label="장르 삭제">×</button>
+      `;
+      chip.querySelector("button").addEventListener("click", () => {
+        card._genres.splice(idx, 1);
+        renderGenreChips(card);
+      });
+      box.appendChild(chip);
+    });
+  }
+
+  function escapeHtml(str){
+    return String(str)
+            .replaceAll("&","&amp;")
+            .replaceAll("<","&lt;")
+            .replaceAll(">","&gt;")
+            .replaceAll('"',"&quot;")
+            .replaceAll("'","&#39;");
+  }
+
+  /* ============================
+   * 섬네일 드래그 & 드롭 설정
+   * ============================ */
+
+  function setupThumbDropzone(card) {
+    const dropzone = card.querySelector(".thumb-dropzone");
+    const browseBtn = card.querySelector(".thumb-browse-btn");
+    const fileInput = card.querySelector(".thumb-file-input");
+    const fileInfo  = card.querySelector(".thumb-file-info");
 
     function handleFiles(files) {
       if (!files || !files.length) return;
       const file = files[0];
 
-      if (!file.type.startsWith("video/")) {
-        alert("영상 파일만 업로드할 수 있습니다.");
+      if (!file.type.startsWith("image/")) {
+        alert("이미지 파일만 업로드할 수 있습니다.");
         return;
       }
 
-      card._videoFile = file;
-      fileInfo.textContent = `선택된 파일: ${file.name} (${Math.round(file.size/1024/1024)}MB)`;
+      card._thumbnailFile = file;
+      fileInfo.textContent = `선택된 파일: ${file.name} (${Math.round(file.size/1024)}KB)`;
     }
 
     browseBtn.addEventListener("click", () => fileInput.click());
-    fileInput.addEventListener("change", (e) => {
-      handleFiles(e.target.files);
-    });
+    fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
 
-    // Drag & Drop 이벤트
     ["dragenter","dragover"].forEach(evtName => {
       dropzone.addEventListener(evtName, (e) => {
         e.preventDefault();
@@ -579,9 +723,111 @@
       dropzone.classList.remove("is-dragover");
 
       const dt = e.dataTransfer;
-      if (dt && dt.files && dt.files.length) {
-        handleFiles(dt.files);
+      if (dt && dt.files && dt.files.length) handleFiles(dt.files);
+    });
+  }
+
+  /* ============================
+   * 트레일러 드래그 & 드롭 설정
+   * ============================ */
+
+  function setupTrailerDropzone(card) {
+    const dropzone = card.querySelector(".trailer-dropzone");
+    const browseBtn = card.querySelector(".trailer-browse-btn");
+    const fileInput = card.querySelector(".trailer-file-input");
+    const fileInfo  = card.querySelector(".trailer-file-info");
+
+    function handleFiles(files) {
+      if (!files || !files.length) return;
+      const file = files[0];
+
+      if (!file.type.startsWith("video/")) {
+        alert("영상 파일만 업로드할 수 있습니다.");
+        return;
       }
+
+      card._trailerFile = file;
+      fileInfo.textContent = `선택된 파일: ${file.name} (${Math.round(file.size/1024/1024)}MB)`;
+    }
+
+    browseBtn.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
+
+    ["dragenter","dragover"].forEach(evtName => {
+      dropzone.addEventListener(evtName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.add("is-dragover");
+      });
+    });
+
+    ["dragleave","dragend"].forEach(evtName => {
+      dropzone.addEventListener(evtName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove("is-dragover");
+      });
+    });
+
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.classList.remove("is-dragover");
+
+      const dt = e.dataTransfer;
+      if (dt && dt.files && dt.files.length) handleFiles(dt.files);
+    });
+  }
+
+  /* ============================
+   * 영상 드래그 & 드롭 설정
+   * ============================ */
+
+  function setupVideoDropzone(card) {
+    const dropzone = card.querySelector(".video-dropzone");
+    const browseBtn = card.querySelector(".video-browse-btn");
+    const fileInput = card.querySelector(".video-file-input");
+    const fileInfo  = card.querySelector(".video-file-info");
+
+    function handleFiles(files) {
+      if (!files || !files.length) return;
+      const file = files[0];
+
+      if (!file.type.startsWith("video/")) {
+        alert("영상 파일만 업로드할 수 있습니다.");
+        return;
+      }
+
+      card._videoFile = file;
+      fileInfo.textContent = `선택된 파일: ${file.name} (${Math.round(file.size/1024/1024)}MB)`;
+    }
+
+    browseBtn.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
+
+    ["dragenter","dragover"].forEach(evtName => {
+      dropzone.addEventListener(evtName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.add("is-dragover");
+      });
+    });
+
+    ["dragleave","dragend"].forEach(evtName => {
+      dropzone.addEventListener(evtName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove("is-dragover");
+      });
+    });
+
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.classList.remove("is-dragover");
+
+      const dt = e.dataTransfer;
+      if (dt && dt.files && dt.files.length) handleFiles(dt.files);
     });
   }
 
@@ -647,34 +893,39 @@
     cards.forEach((card, index) => {
       const title    = card.querySelector(".film-title-input").value.trim();
       const year     = card.querySelector(".film-year-input").value.trim();
-      const role     = card.querySelector(".film-role-input").value;
       const runtime  = card.querySelector(".film-runtime-input").value.trim();
-      const genre    = card.querySelector(".film-genre-input").value.trim();
       const ageRate  = card.querySelector(".film-age-input").value;
-      const likeCnt  = Number(card.querySelector(".like-count").textContent || "0");
-      const video    = card._videoFile;
+
+      const personRole = card.querySelector(".mp-person-role").value;
+      const castType   = card.querySelector(".mp-cast-type").value;
+      const characterName = card.querySelector(".mp-character-name").value.trim();
+
+      const thumbnail = card._thumbnailFile;
+      const trailer   = card._trailerFile;
+      const video     = card._videoFile;
 
       films.push({
         tempId: card.dataset.filmId,
-        sortOrder: index,              // actor-detail.html 에 필모 순서 반영할 때 사용
+        sortOrder: index,
         title,
         year,
-        role,
-        genre,
         ageRating: ageRate,
         runtimeMinutes: runtime ? Number(runtime) : null,
-        likeCount: likeCnt,           // 실제에선 서버에서만 관리
-        video: video ? {
-          name: video.name,
-          size: video.size,
-          type: video.type
-        } : null
+        genres: [...(card._genres || [])],
+
+        moviePerson: {
+          personRole,
+          castType,
+          characterName: characterName || null
+        },
+
+        thumbnail: thumbnail ? { name: thumbnail.name, size: thumbnail.size, type: thumbnail.type } : null,
+        trailer: trailer ? { name: trailer.name, size: trailer.size, type: trailer.type } : null,
+        video: video ? { name: video.name, size: video.size, type: video.type } : null
       });
     });
 
-    const payload = {
-      films
-    };
+    const payload = { films };
 
     console.log("필모그래피 저장 payload:", payload);
 
@@ -682,10 +933,16 @@
     // const formData = new FormData();
     // films.forEach((film, idx) => {
     //   formData.append(`films[${idx}].title`, film.title);
-    //   ...
-    //   if (cards[idx]._videoFile) {
-    //     formData.append(`films[${idx}].video`, cards[idx]._videoFile);
-    //   }
+    //   formData.append(`films[${idx}].releaseYear`, film.year);
+    //   formData.append(`films[${idx}].runtimeMinutes`, film.runtimeMinutes ?? "");
+    //   formData.append(`films[${idx}].ageRating`, film.ageRating);
+    //   film.genres.forEach((g, gi) => formData.append(`films[${idx}].genres[${gi}]`, g));
+    //   formData.append(`films[${idx}].personRole`, film.moviePerson.personRole);
+    //   formData.append(`films[${idx}].castType`, film.moviePerson.castType);
+    //   formData.append(`films[${idx}].characterName`, film.moviePerson.characterName ?? "");
+    //   if (cards[idx]._thumbnailFile) formData.append(`films[${idx}].thumbnail`, cards[idx]._thumbnailFile);
+    //   if (cards[idx]._trailerFile) formData.append(`films[${idx}].trailer`, cards[idx]._trailerFile);
+    //   if (cards[idx]._videoFile) formData.append(`films[${idx}].video`, cards[idx]._videoFile);
     // });
     // fetch("/api/actors/{actorId}/filmography", { method:"POST", body:formData });
 

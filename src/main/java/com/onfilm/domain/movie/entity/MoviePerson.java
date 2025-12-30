@@ -1,8 +1,9 @@
 package com.onfilm.domain.movie.entity;
 
-import com.onfilm.domain.movie.dto.MoviePersonRequest;
+import com.onfilm.domain.movie.dto.CreateMoviePersonRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -34,15 +35,32 @@ public class MoviePerson {
     @Column(name = "characterName", nullable = true)
     private String characterName;
 
-    private MoviePerson(Person person, PersonRole role, String characterName) {
+    @Builder(access = AccessLevel.PRIVATE)
+    private MoviePerson(Movie movie,
+                        Person person,
+                        PersonRole role,
+                        CastType castType,
+                        String characterName) {
+
+        this.movie = movie;
         this.person = person;
         this.role = role;
+        this.castType = castType;
         this.characterName = characterName;
     }
 
-    public static MoviePerson create(Movie movie, Person person, MoviePersonRequest request) {
-        MoviePerson moviePerson = new MoviePerson(person, request.getRole(), request.getCharacterName());
-        movie.addMoviePerson(moviePerson); // 연관관계 양방향 설정: movie <-> moviePerson
+    public static MoviePerson create(Movie movie,
+                                     Person person,
+                                     PersonRole role,
+                                     CastType castType,
+                                     String characterName) {
+        MoviePerson moviePerson = MoviePerson.builder()
+                .movie(movie)
+                .person(person)
+                .role(role)
+                .castType(castType)
+                .characterName(characterName)
+                .build();
 
         return moviePerson;
     }

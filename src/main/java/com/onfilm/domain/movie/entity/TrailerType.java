@@ -1,6 +1,6 @@
 package com.onfilm.domain.movie.entity;
 
-public enum MovieTrailerType {
+public enum TrailerType {
     MAIN,
     PREVIEW
 }
