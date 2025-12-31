@@ -14,8 +14,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -176,7 +174,7 @@ public class Person {
         Map<String, String> normToRaw = new LinkedHashMap<>();
         for (String raw : input) {
             String cleaned = ProfileTag.validate(raw);              // blank 방지 + 길이 체크
-            String normalized = TextNormalizer.normalizeTag(cleaned);
+            String normalized = TextNormalizer.textNormalizer(cleaned);
 
             // normalized가 비어있으면 스킵 (validate에서 거의 걸러지겠지만 안전장치)
             if (normalized.isBlank()) continue;
@@ -236,14 +234,14 @@ public class Person {
     // ======= 연관관계 편의 메서드: User =======
     // ======================================================================
 
-    public void assignUser(User user) {
+    public void attachUser(User user) {
         this.user = user;
         if (user != null && user.getPerson() != this) {
-            user.assignPerson(this);
+            user.attachPerson(this);
         }
     }
 
-    public void unassignUser() {
+    public void detachUser() {
         this.user = null;
     }
 }

@@ -1,0 +1,71 @@
+package com.onfilm.domain.movie.service;
+
+import com.onfilm.domain.common.TextNormalizer;
+import com.onfilm.domain.genre.entity.Genre;
+import com.onfilm.domain.genre.repository.GenreRepository;
+import com.onfilm.domain.movie.entity.Movie;
+import com.onfilm.domain.movie.entity.MovieGenre;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
+
+@Component
+@RequiredArgsConstructor
+public class MovieGenreFactory {
+
+    private final GenreRepository genreRepository;
+
+    public void attachHybrid(Movie movie, List<String> rawGenreTexts) {
+        if (movie == null) throw new IllegalArgumentException("movie is required");
+        if (rawGenreTexts == null || rawGenreTexts.isEmpty()) return;
+
+        // 1) 입력 정리 + (normalized 기준) 중복 제거
+        List<RawAndNormalized> inputs = rawGenreTexts.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .map(raw -> new RawAndNormalized(raw, TextNormalizer.textNormalizer(raw)))
+                .collect(collectDistinctByNormalized());
+
+        if (inputs.isEmpty()) return;
+
+        // 2) DB Genre 매칭 (활성만)
+        List<String> normalizedList = inputs.stream()
+                .map(RawAndNormalized::normalized)
+                .distinct()
+                .toList();
+
+        List<Genre> found = genreRepository.findByNormalizedInAndIsActiveTrue(normalizedList);
+
+        Map<String, Genre> genreByNormalized = found.stream()
+                .collect(Collectors.toMap(Genre::getNormalized, Function.identity()));
+
+        // 3) MovieGenre 생성 + Movie에 추가(중복 방지는 Movie에서)
+        for (RawAndNormalized input : inputs) {
+            Genre matched = genreByNormalized.get(input.normalized());
+            MovieGenre mg = MovieGenre.create(movie, matched, input.raw());
+            movie.addMovieGenre(mg);
+        }
+    }
+
+    private record RawAndNormalized(String raw, String normalized) {}
+
+    private static Collector<RawAndNormalized, ?, List<RawAndNormalized>> collectDistinctByNormalized() {
+        return Collectors.collectingAndThen(
+                Collectors.toMap(
+                        RawAndNormalized::normalized,
+                        Function.identity(),
+                        (a, b) -> a,           // normalized 중복이면 첫 번째 유지
+                        LinkedHashMap::new
+                ),
+                m -> new ArrayList<>(m.values())
+        );
+    }
+
+
+}

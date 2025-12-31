@@ -42,16 +42,16 @@ public class User {
         return user;
     }
 
-    public void assignPerson(Person person) {
+    public void attachPerson(Person person) {
         this.person = person;
         if (person != null && person.getUser() != this) {
-            person.assignUser(this);
+            person.attachUser(this);
         }
     }
-    public void unassignPerson() {
+    public void detachPerson() {
         if (this.person == null) return;
         Person old = this.person;
         this.person = null;
-        if (old.getUser() == this) old.unassignUser();
+        if (old.getUser() == this) old.detachUser();
     }
 }

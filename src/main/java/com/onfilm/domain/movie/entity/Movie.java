@@ -1,7 +1,5 @@
 package com.onfilm.domain.movie.entity;
 
-import com.onfilm.domain.common.TextNormalizer;
-import com.onfilm.domain.movie.dto.UpdateMovieRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -12,6 +10,7 @@ import org.hibernate.annotations.BatchSize;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -47,7 +46,7 @@ public class Movie {
     private List<MovieGenre> genres = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false)
     private AgeRating ageRating;
 
     @ElementCollection
@@ -76,7 +75,6 @@ public class Movie {
             String movieUrl,
             String thumbnailUrl,
             List<String> trailerUrls,
-            List<String> rawGenreTexts,
             AgeRating ageRating) {
         if (title == null || title.isBlank()) {
             throw new IllegalArgumentException("invalid title");
@@ -96,29 +94,23 @@ public class Movie {
                 .build();
 
         if (trailerUrls != null) trailerUrls.forEach(movie::addTrailer);
-        if (rawGenreTexts != null) rawGenreTexts.forEach(movie::addGenreRaw);
-
 
         return movie;
     }
 
     // ======================================================================
-    // ======= 연관관계 편의 메서드: Genre =======
+    // ======= 연관관계 편의 메서드: MovieGenre =======
     // ======================================================================
 
-    public void addGenreRaw(String rawText) {
-        if (rawText == null) return;
+    public void addMovieGenre(MovieGenre mg) {
+        if (mg == null) return;
 
-        String normalized = TextNormalizer.normalizeTag(rawText);
-        if (normalized.isBlank()) return;
-
-        // ✅ normalized 기준 중복 방지
+        // ✅ normalized 기준 중복 방지(정책 통일)
         boolean duplicated = genres.stream()
-                .anyMatch(g -> g.getNormalizedText().equals(normalized));
-        if (duplicated) return;
+                .anyMatch(g -> g.getNormalizedText().equals(mg.getNormalizedText()));
+        if (duplicated) return; // 또는 throw (정책에 따라)
 
-        MovieGenre mg = MovieGenre.fromRaw(this, rawText);
-        genres.add(mg);
+        genres.add(mg); // mg.movie는 create에서 이미 세팅됨
     }
 
     // ======================================================================
@@ -126,8 +118,18 @@ public class Movie {
     // ======================================================================
 
     public void addMoviePerson(MoviePerson moviePerson) {
-        moviePerson.setMovie(this);         // 배우 필모에 this 영화 추가
-        moviePeople.add(moviePerson);       // 영화에 출연한 배우에 moviePerson 추가
+        if (moviePerson == null) return;
+
+        boolean duplicated = moviePeople.stream().anyMatch(x ->
+                x.getPerson().getId().equals(moviePerson.getId()) &&
+                        (x.getRole() == moviePerson.getRole()) &&
+                        (x.getCastType() == moviePerson.getCastType()) &&
+                        Objects.equals(x.getCharacterName(), moviePerson.getCharacterName())
+        );
+        if (duplicated) return; // or throw new XXX
+
+        moviePerson.attachMovie(this);         // 배우 필모에 this 영화 추가
+        moviePeople.add(moviePerson);          // 영화에 출연한 배우에 moviePerson 추가
     }
 
     // ======================================================================
@@ -148,6 +150,8 @@ public class Movie {
                 .build();
         trailers.add(trailer);
     }
+
+
 
 
     // ======================================================================

@@ -1,7 +1,5 @@
 package com.onfilm.domain.genre.controller;
 
-import com.onfilm.domain.genre.dto.CreateGenreRequest;
-import com.onfilm.domain.genre.dto.GenreResponse;
 import com.onfilm.domain.genre.service.GenreService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

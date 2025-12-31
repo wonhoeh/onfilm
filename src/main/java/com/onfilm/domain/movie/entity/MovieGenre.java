@@ -39,30 +39,26 @@ public class MovieGenre {
     private String normalizedText;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private MovieGenre(Movie movie, Genre genre, String rawText) {
+    private MovieGenre(Movie movie, Genre genre, String rawText, String normalizedText) {
         this.movie = movie;
-        this.genre = genre; // null 가능
-        this.rawText = rawText.trim();
-        this.normalizedText = TextNormalizer.normalizeTag(rawText);
+        this.genre = genre;
+        this.rawText = rawText;
+        this.normalizedText = normalizedText;
     }
 
-    public static MovieGenre create(Movie movie, Genre genre, String rawText, String normalizedText) {
-        MovieGenre movieGenre = MovieGenre.builder()
-                .movie(movie)
-                .genre(genre)
-                .rawText(rawText)
-                .build();
-
-        return movieGenre;
-    }
-
-    public static MovieGenre fromRaw(Movie movie, String rawText) {
+    public static MovieGenre create(Movie movie, Genre matchedGenreOrNull, String rawText) {
         if (movie == null) throw new IllegalArgumentException("movie is required");
         if (rawText == null || rawText.isBlank()) throw new IllegalArgumentException("rawText is required");
 
+        String cleanedRaw = rawText.trim();
+        String normalized = TextNormalizer.textNormalizer(cleanedRaw);
+        if (normalized.isBlank()) throw new IllegalArgumentException("normalizedText is blank");
+
         return MovieGenre.builder()
                 .movie(movie)
-                .rawText(rawText)
+                .genre(matchedGenreOrNull)   // ✅ 있으면 연결, 없으면 null
+                .rawText(cleanedRaw)
+                .normalizedText(normalized)
                 .build();
     }
 

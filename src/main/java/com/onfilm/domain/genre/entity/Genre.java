@@ -6,10 +6,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -31,9 +27,9 @@ public class Genre {
     private boolean isActive = true;  // 사용하지 않는 장르는 delete 대신 deactivate
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Genre(String name, String description) {
+    private Genre(String name) {
         this.name = name.trim();
-        this.normalized = TextNormalizer.normalizeTag(name);
+        this.normalized = TextNormalizer.textNormalizer(name);
         this.isActive = true;
     }
 

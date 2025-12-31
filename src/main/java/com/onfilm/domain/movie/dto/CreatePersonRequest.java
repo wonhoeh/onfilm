@@ -21,27 +21,4 @@ public class CreatePersonRequest {
     private String profileImageUrl;
     private List<CreatePersonSnsRequest> snsList;
     private List<String> rawTags;
-
-    public Person toEntity() {
-        return Person.create(
-                name,
-                birthDate,
-                birthPlace,
-                oneLineIntro,
-                profileImageUrl,
-                toSnsEntity(),
-                rawTags == null ? List.of() : rawTags
-        );
-    }
-
-    private List<PersonSns> toSnsEntity() {
-        if (snsList == null || snsList.isEmpty()) return List.of();
-
-        return snsList.stream()
-                .map(req -> PersonSns.builder()
-                        .type(req.getType())
-                        .url(req.getUrl())
-                        .build())
-                .toList();
-    }
 }

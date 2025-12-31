@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -30,5 +32,18 @@ public class PersonSns {
 
     public void setPerson(Person person) {
         this.person = person;
+    }
+
+    public static PersonSns create(SnsType type, String url) {
+        if (type == null) {
+            throw new IllegalArgumentException("sns type is required");
+        }
+        if (url == null || url.isBlank()) {
+            throw new IllegalArgumentException("sns url is required");
+        }
+        return PersonSns.builder()
+                .type(type)
+                .url(url)
+                .build();
     }
 }

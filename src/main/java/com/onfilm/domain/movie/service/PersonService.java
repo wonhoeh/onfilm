@@ -4,7 +4,6 @@ import com.onfilm.domain.common.error.exception.PersonNotFoundException;
 import com.onfilm.domain.common.error.exception.UserNotFoundException;
 import com.onfilm.domain.common.util.SecurityUtil;
 import com.onfilm.domain.movie.dto.CreatePersonRequest;
-import com.onfilm.domain.movie.dto.CreatePersonSnsRequest;
 import com.onfilm.domain.movie.dto.PersonResponse;
 import com.onfilm.domain.movie.dto.UpdatePersonRequest;
 import com.onfilm.domain.movie.entity.MoviePerson;
@@ -19,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -51,9 +49,21 @@ public class PersonService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
-        Person person = request.toEntity();
+        // rawSns -> PersonSns 변환
+        List<PersonSns> snsList = request.getSnsList().stream()
+                .map(s -> PersonSns.create(s.getType(), s.getUrl()))
+                .toList();
 
-        user.assignPerson(person);
+        Person person = Person.create(
+                request.getName(),
+                request.getBirthDate(),
+                request.getBirthPlace(),
+                request.getOneLineIntro(),
+                request.getProfileImageUrl(),
+                snsList,
+                request.getRawTags() == null ? List.of() : request.getRawTags());
+
+        user.attachPerson(person);
 
         userRepository.save(user);
 

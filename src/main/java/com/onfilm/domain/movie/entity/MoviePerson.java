@@ -1,6 +1,5 @@
 package com.onfilm.domain.movie.entity;
 
-import com.onfilm.domain.movie.dto.CreateMoviePersonRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -10,6 +9,11 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(
+        uniqueConstraints = @UniqueConstraint(
+                name="uk_movie_person",
+                columnNames={"movie_id","person_id","role","cast_type","character_name"}
+        ))
 public class MoviePerson {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,36 +40,53 @@ public class MoviePerson {
     private String characterName;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private MoviePerson(Movie movie,
-                        Person person,
-                        PersonRole role,
-                        CastType castType,
-                        String characterName) {
+    private MoviePerson(
+            Person person,
+            PersonRole role,
+            CastType castType,
+            String characterName) {
 
-        this.movie = movie;
         this.person = person;
         this.role = role;
         this.castType = castType;
         this.characterName = characterName;
     }
 
-    public static MoviePerson create(Movie movie,
-                                     Person person,
-                                     PersonRole role,
-                                     CastType castType,
-                                     String characterName) {
+    public static MoviePerson create(
+            Movie movie,
+            Person person,
+            PersonRole role,
+            CastType castType,
+            String characterName) {
+
+        if (movie == null) {
+            throw new IllegalArgumentException("movie is required");
+        }
+        if (person == null) {
+            throw new IllegalArgumentException("person is required");
+        }
+        if (role == null) {
+            throw new IllegalArgumentException("role is required");
+        }
+        if (castType == null) {
+            throw new IllegalArgumentException("castType is required");
+        }
+
+        String cn = (characterName == null) ? null : characterName.trim();
+        if (cn != null && cn.isBlank()) cn = null;
+
         MoviePerson moviePerson = MoviePerson.builder()
-                .movie(movie)
                 .person(person)
                 .role(role)
                 .castType(castType)
                 .characterName(characterName)
                 .build();
+        movie.addMoviePerson(moviePerson);
 
         return moviePerson;
     }
 
-    void setMovie(Movie movie) {
+    void attachMovie(Movie movie) {
         this.movie = movie;
     }
 }
