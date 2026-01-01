@@ -23,17 +23,4 @@ public class CreateMovieRequest {
     private PersonRole role;
     private CastType castType;
     private String characterName;
-
-    public Movie toEntity() {
-        return Movie.create(
-                title,
-                runtime,
-                releaseYear,
-                movieUrl,
-                thumbnailUrl,
-                trailerUrls,
-                rawGenreTexts,
-                ageRating
-        );
-    }
 }

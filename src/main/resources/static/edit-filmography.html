@@ -222,7 +222,7 @@
     .film-meta-grid{
       display:grid;
       grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:12px; /* ✅ (항목+입력칸) 사이 간격 조금 넓힘 */
+      gap:12px;
     }
 
     /* 업로드 영역 공통 */
@@ -267,6 +267,7 @@
     .file-info{
       font-size:11px;
       color:var(--muted);
+      word-break:break-all;
     }
 
     /* 장르 칩 입력 */
@@ -279,8 +280,6 @@
       display:flex;
       flex-wrap:wrap;
       gap:6px;
-
-      /* ✅ 바깥을 둘러싼 박스(테두리/배경) 제거 */
       padding:0;
       border:0;
       background:transparent;
@@ -339,6 +338,10 @@
     .primary-btn:hover{
       background:#8a6dff;
     }
+    .primary-btn:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
 
     footer{
       width:100%;
@@ -355,11 +358,6 @@
         grid-template-columns:1fr;
       }
     }
-    @media (max-width:800px){
-      .edit-card{
-        grid-template-columns:1fr;
-      }
-    }
   </style>
 </head>
 <body>
@@ -372,23 +370,18 @@
     </div>
   </header>
 
-  <!-- TODO 시놉시스 추가, 장르 여러 개 입력 받도록 수정, 좋아요 문장 빼기 -->
   <main>
     <section class="edit-shell">
       <div class="edit-header-row">
         <div>
           <div class="edit-header-title">필모그래피</div>
-          <div class="edit-header-hint">
-            작품을 추가하고 순서를 드래그해서 정리하세요.
-          </div>
+          <div class="edit-header-hint">작품을 추가하고 순서를 드래그해서 정리하세요.</div>
         </div>
         <button type="button" id="addFilmBtn" class="add-film-btn">+ 작품 추가</button>
       </div>
 
       <form id="filmographyForm">
-        <div id="filmList" class="film-list">
-          <!-- JS로 카드가 추가됩니다 -->
-        </div>
+        <div id="filmList" class="film-list"></div>
 
         <div class="form-footer">
           <button type="button" class="ghost-btn" onclick="history.back()">취소</button>
@@ -398,10 +391,34 @@
     </section>
   </main>
 
-  <footer>
-    © 2025 OnFilm · Indie Actor & Film Platform
-  </footer>
+  <footer>© 2025 OnFilm · Indie Actor & Film Platform</footer>
 </div>
+
+<script src="/js/auth.js"></script>
+
+<script>
+  window.__ONFILM_AUTH_READY_PROMISE__ = (async () => {
+    try {
+      if (!window.OnfilmAuth?.restoreSession) return { ok:false, me:null };
+      return await window.OnfilmAuth.restoreSession();
+    } catch {
+      return { ok:false, me:null };
+    }
+  })();
+
+</script>
+
+<script>
+  // [ADD] edit-profile처럼 페이지 진입 시점에 로그인 보장
+  document.addEventListener("DOMContentLoaded", async () => {
+    const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
+    if (!authReady?.ok) {
+      const next = encodeURIComponent(location.pathname + location.search);
+      location.href = `/login.html?next=${next}`;
+    }
+  });
+</script>
+
 
 <script>
   /* ============================
@@ -411,7 +428,7 @@
   const filmList = document.getElementById("filmList");
   const addFilmBtn = document.getElementById("addFilmBtn");
 
-  let filmIdSeq = 1; // 간단한 로컬 ID
+  let filmIdSeq = 1;
 
   function createFilmCard(initial = {}) {
     const card = document.createElement("div");
@@ -419,12 +436,17 @@
     card.setAttribute("draggable", "true");
     card.dataset.filmId = initial.id || `temp-${filmIdSeq++}`;
 
-    // 파일 reference를 카드 객체에 붙여두기(런타임용)
+    // ✅ 파일(선택 상태)
     card._thumbnailFile = null;
     card._trailerFile = null;
-    card._videoFile = null; // ✅ 영상 업로드 추가
+    card._videoFile = null;
 
-    // 장르(칩) 상태
+    // ✅ 업로드 결과 URL(저장 시 채움)
+    card._thumbnailUrl = initial.thumbnailUrl || "";
+    card._trailerUrls = Array.isArray(initial.trailerUrls) ? [...initial.trailerUrls] : [];
+    card._movieUrl = initial.movieUrl || "";
+
+    // ✅ 장르
     card._genres = Array.isArray(initial.genres) ? [...initial.genres] : [];
 
     card.innerHTML = `
@@ -461,9 +483,9 @@
               <select class="select-input film-age-input">
                 <option value="">선택</option>
                 <option value="ALL">전체 관람가</option>
-                <option value="12">12세 이상</option>
-                <option value="15">15세 이상</option>
-                <option value="18">청소년 관람불가</option>
+                <option value="AGE_12">12세 이상</option>
+                <option value="AGE_15">15세 이상</option>
+                <option value="AGE_18">청소년 관람불가</option>
               </select>
             </div>
           </div>
@@ -471,7 +493,6 @@
           <div class="field-group">
             <label class="field-label">장르</label>
             <div class="field-hint">입력 후 엔터를 누르면 장르가 추가됩니다.</div>
-
             <div class="chip-input-wrap">
               <input class="text-input genre-chip-input" type="text" placeholder="예) 드라마 (엔터로 추가)">
               <div class="chip-box genre-chip-box" aria-label="장르 목록"></div>
@@ -509,103 +530,73 @@
         <div class="upload-block">
           <div class="field-group">
             <label class="field-label">섬네일 업로드</label>
-            <div class="field-hint">
-              로컬에서 이미지를 드래그 앤 드롭하거나 파일 선택 버튼을 눌러 업로드하세요.
-            </div>
+            <div class="field-hint">이미지 파일을 드래그 앤 드롭하거나 파일 선택 버튼을 눌러 업로드하세요.</div>
           </div>
 
           <div class="dropzone thumb-dropzone">
             <div><strong>여기로 파일을 드래그하세요</strong></div>
             <div>또는 아래 버튼을 눌러 파일을 선택하세요.</div>
             <button type="button" class="thumb-browse-btn">파일 선택</button>
-            <div class="file-info thumb-file-info">선택된 파일 없음</div>
+            <div class="file-info thumb-file-info">${card._thumbnailUrl ? "현재 URL: " + escapeHtml(card._thumbnailUrl) : "선택된 파일 없음"}</div>
             <input type="file" class="thumb-file-input" accept="image/*" style="display:none;">
           </div>
 
           <div class="field-group" style="margin-top:10px;">
             <label class="field-label">트레일러 업로드</label>
-            <div class="field-hint">
-              로컬에서 영상을 드래그 앤 드롭하거나 파일 선택 버튼을 눌러 업로드하세요.
-            </div>
+            <div class="field-hint">영상 파일을 드래그 앤 드롭하거나 파일 선택 버튼을 눌러 업로드하세요.</div>
           </div>
 
           <div class="dropzone trailer-dropzone">
             <div><strong>여기로 파일을 드래그하세요</strong></div>
             <div>또는 아래 버튼을 눌러 파일을 선택하세요.</div>
             <button type="button" class="trailer-browse-btn">파일 선택</button>
-            <div class="file-info trailer-file-info">선택된 파일 없음</div>
+            <div class="file-info trailer-file-info">${card._trailerUrls.length ? "현재 URL: " + escapeHtml(card._trailerUrls[0]) : "선택된 파일 없음"}</div>
             <input type="file" class="trailer-file-input" accept="video/*" style="display:none;">
           </div>
 
-          <!-- ✅ 영상 업로드(원본/작품 파일) 추가 -->
           <div class="field-group" style="margin-top:10px;">
             <label class="field-label">영상 업로드</label>
-            <div class="field-hint">
-              로컬에서 영상을 드래그 앤 드롭하거나 파일 선택 버튼을 눌러 업로드하세요.
-            </div>
+            <div class="field-hint">작품(원본) 영상을 드래그 앤 드롭하거나 파일 선택 버튼을 눌러 업로드하세요.</div>
           </div>
 
           <div class="dropzone video-dropzone">
             <div><strong>여기로 파일을 드래그하세요</strong></div>
             <div>또는 아래 버튼을 눌러 파일을 선택하세요.</div>
             <button type="button" class="video-browse-btn">파일 선택</button>
-            <div class="file-info video-file-info">선택된 파일 없음</div>
+            <div class="file-info video-file-info">${card._movieUrl ? "현재 URL: " + escapeHtml(card._movieUrl) : "선택된 파일 없음"}</div>
             <input type="file" class="video-file-input" accept="video/*" style="display:none;">
           </div>
         </div>
       </div>
     `;
 
-    // 선택된 초기값들
-    if (initial.ageRating) {
-      const ageSelect = card.querySelector(".film-age-input");
-      ageSelect.value = initial.ageRating;
-    }
-    if (initial.personRole) {
-      const pr = card.querySelector(".mp-person-role");
-      pr.value = initial.personRole;
-    }
-    if (initial.castType) {
-      const ct = card.querySelector(".mp-cast-type");
-      ct.value = initial.castType;
-    }
+    // 초기 select 값
+    if (initial.ageRating) card.querySelector(".film-age-input").value = initial.ageRating;
+    if (initial.personRole) card.querySelector(".mp-person-role").value = initial.personRole;
+    if (initial.castType) card.querySelector(".mp-cast-type").value = initial.castType;
 
-    // 제목 입력 시, 카드 상단 타이틀도 같이 업데이트
+    // 제목 입력 → 헤더 업데이트
     const titleInput = card.querySelector(".film-title-input");
     const headerTitle = card.querySelector(".film-card-title");
-    titleInput.addEventListener("input", () => {
-      headerTitle.textContent = titleInput.value || "새 작품";
+    titleInput.addEventListener("input", () => headerTitle.textContent = titleInput.value || "새 작품");
+
+    // 삭제
+    card.querySelector(".delete-film-btn").addEventListener("click", () => {
+      if (confirm("이 작품을 삭제할까요?")) card.remove();
     });
 
-    // 삭제 버튼
-    const deleteBtn = card.querySelector(".delete-film-btn");
-    deleteBtn.addEventListener("click", () => {
-      if (confirm("이 작품을 삭제할까요?")) {
-        card.remove();
-      }
-    });
-
-    // 장르 칩 렌더 + 입력 이벤트
     setupGenreChips(card);
 
-    // 섬네일/트레일러/영상 드래그 앤 드롭 셋업
     setupThumbDropzone(card);
     setupTrailerDropzone(card);
-    setupVideoDropzone(card); // ✅ 추가
+    setupVideoDropzone(card);
 
-    // 드래그 앤 드롭(정렬) 이벤트는 컨테이너 단위로 처리
     filmList.appendChild(card);
-
-    // 카드 생성 직후 장르 초기 렌더
     renderGenreChips(card);
   }
 
-  addFilmBtn.addEventListener("click", () => {
-    createFilmCard({});
-  });
-
-  // 페이지 진입 시 기본 카드 하나
-  createFilmCard({});
+  addFilmBtn.addEventListener("click", () => createFilmCard({}));
+  createFilmCard({}); // 기본 1개
 
   /* ============================
    * 장르 칩 입력
@@ -618,15 +609,13 @@
   function setupGenreChips(card){
     const input = card.querySelector(".genre-chip-input");
 
-    // ✅ 한글 IME 조합 중 Enter 처리로 "드라마"+"마" 쪼개지는 문제 방지
+    // ✅ 한글 IME 조합 Enter 분리 버그 방지
     let composing = false;
     input.addEventListener("compositionstart", () => composing = true);
     input.addEventListener("compositionend", () => composing = false);
 
     input.addEventListener("keydown", (e) => {
       if (e.key !== "Enter") return;
-
-      // 조합 중 Enter는 무시
       if (e.isComposing || composing) return;
 
       e.preventDefault();
@@ -634,12 +623,8 @@
       const value = normalizeGenre(input.value);
       if (!value) return;
 
-      // 중복 방지(대소문자 무시)
       const exists = card._genres.some(g => g.toLowerCase() === value.toLowerCase());
-      if (exists) {
-        input.value = "";
-        return;
-      }
+      if (exists) { input.value = ""; return; }
 
       card._genres.push(value);
       input.value = "";
@@ -676,7 +661,50 @@
   }
 
   /* ============================
-   * 섬네일 드래그 & 드롭 설정
+ * 가짜 URL 생성 (업로드 API 없이 테스트용)
+ * ============================ */
+
+  function fakeHttpUrl(kind, fileName) {
+    // kind: thumbnail | trailer | movie
+    const safeName = encodeURIComponent(fileName || "file");
+    const uid =
+            (crypto && crypto.randomUUID) ? crypto.randomUUID()
+                    : (Date.now().toString(36) + Math.random().toString(36).slice(2));
+
+    // "URL처럼 생긴 문자열"을 만들기만 하면 됨
+    return `http://localhost/mock-upload/${kind}/${uid}/${safeName}`;
+  }
+
+  /* ============================
+   * Dropzone 공통 헬퍼
+   * ============================ */
+
+  function bindDropzone(dropzone, onFiles) {
+    ["dragenter","dragover"].forEach(evtName => {
+      dropzone.addEventListener(evtName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.add("is-dragover");
+      });
+    });
+    ["dragleave","dragend"].forEach(evtName => {
+      dropzone.addEventListener(evtName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove("is-dragover");
+      });
+    });
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.classList.remove("is-dragover");
+      const dt = e.dataTransfer;
+      if (dt && dt.files && dt.files.length) onFiles(dt.files);
+    });
+  }
+
+  /* ============================
+   * 섬네일
    * ============================ */
 
   function setupThumbDropzone(card) {
@@ -688,47 +716,25 @@
     function handleFiles(files) {
       if (!files || !files.length) return;
       const file = files[0];
-
-      if (!file.type.startsWith("image/")) {
-        alert("이미지 파일만 업로드할 수 있습니다.");
-        return;
-      }
+      if (!file.type.startsWith("image/")) { alert("이미지 파일만 업로드할 수 있습니다."); return; }
 
       card._thumbnailFile = file;
-      fileInfo.textContent = `선택된 파일: ${file.name} (${Math.round(file.size/1024)}KB)`;
+
+      // ✅ 업로드 대신 "가짜 http URL"을 즉시 생성해서 넣는다
+      card._thumbnailUrl = fakeHttpUrl("thumbnail", file.name);
+
+      fileInfo.textContent =
+              `선택됨: ${file.name} (${Math.round(file.size/1024)}KB)\n` +
+              `가짜 URL: ${card._thumbnailUrl}`;
     }
 
     browseBtn.addEventListener("click", () => fileInput.click());
     fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
-
-    ["dragenter","dragover"].forEach(evtName => {
-      dropzone.addEventListener(evtName, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzone.classList.add("is-dragover");
-      });
-    });
-
-    ["dragleave","dragend"].forEach(evtName => {
-      dropzone.addEventListener(evtName, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzone.classList.remove("is-dragover");
-      });
-    });
-
-    dropzone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dropzone.classList.remove("is-dragover");
-
-      const dt = e.dataTransfer;
-      if (dt && dt.files && dt.files.length) handleFiles(dt.files);
-    });
+    bindDropzone(dropzone, handleFiles);
   }
 
   /* ============================
-   * 트레일러 드래그 & 드롭 설정
+   * 트레일러
    * ============================ */
 
   function setupTrailerDropzone(card) {
@@ -740,47 +746,25 @@
     function handleFiles(files) {
       if (!files || !files.length) return;
       const file = files[0];
-
-      if (!file.type.startsWith("video/")) {
-        alert("영상 파일만 업로드할 수 있습니다.");
-        return;
-      }
+      if (!file.type.startsWith("video/")) { alert("영상 파일만 업로드할 수 있습니다."); return; }
 
       card._trailerFile = file;
-      fileInfo.textContent = `선택된 파일: ${file.name} (${Math.round(file.size/1024/1024)}MB)`;
+
+      // ✅ 1개만 쓴다고 했으니 배열에 1개 URL 넣기
+      card._trailerUrls = [fakeHttpUrl("trailer", file.name)];
+
+      fileInfo.textContent =
+              `선택됨: ${file.name} (${Math.round(file.size/1024/1024)}MB)\n` +
+              `가짜 URL: ${card._trailerUrls[0]}`;
     }
 
     browseBtn.addEventListener("click", () => fileInput.click());
     fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
-
-    ["dragenter","dragover"].forEach(evtName => {
-      dropzone.addEventListener(evtName, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzone.classList.add("is-dragover");
-      });
-    });
-
-    ["dragleave","dragend"].forEach(evtName => {
-      dropzone.addEventListener(evtName, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzone.classList.remove("is-dragover");
-      });
-    });
-
-    dropzone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dropzone.classList.remove("is-dragover");
-
-      const dt = e.dataTransfer;
-      if (dt && dt.files && dt.files.length) handleFiles(dt.files);
-    });
+    bindDropzone(dropzone, handleFiles);
   }
 
   /* ============================
-   * 영상 드래그 & 드롭 설정
+   * 영상(원본)
    * ============================ */
 
   function setupVideoDropzone(card) {
@@ -792,47 +776,25 @@
     function handleFiles(files) {
       if (!files || !files.length) return;
       const file = files[0];
-
-      if (!file.type.startsWith("video/")) {
-        alert("영상 파일만 업로드할 수 있습니다.");
-        return;
-      }
+      if (!file.type.startsWith("video/")) { alert("영상 파일만 업로드할 수 있습니다."); return; }
 
       card._videoFile = file;
-      fileInfo.textContent = `선택된 파일: ${file.name} (${Math.round(file.size/1024/1024)}MB)`;
+
+      // ✅ 업로드 대신 movieUrl을 가짜 URL로 채운다
+      card._movieUrl = fakeHttpUrl("movie", file.name);
+
+      fileInfo.textContent =
+              `선택됨: ${file.name} (${Math.round(file.size/1024/1024)}MB)\n` +
+              `가짜 URL: ${card._movieUrl}`;
     }
 
     browseBtn.addEventListener("click", () => fileInput.click());
     fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
-
-    ["dragenter","dragover"].forEach(evtName => {
-      dropzone.addEventListener(evtName, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzone.classList.add("is-dragover");
-      });
-    });
-
-    ["dragleave","dragend"].forEach(evtName => {
-      dropzone.addEventListener(evtName, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzone.classList.remove("is-dragover");
-      });
-    });
-
-    dropzone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dropzone.classList.remove("is-dragover");
-
-      const dt = e.dataTransfer;
-      if (dt && dt.files && dt.files.length) handleFiles(dt.files);
-    });
+    bindDropzone(dropzone, handleFiles);
   }
 
   /* ============================
-   * 카드 드래그 앤 드롭으로 순서 변경
+   * 카드 드래그 앤 드롭 정렬
    * ============================ */
 
   let draggedCard = null;
@@ -855,111 +817,188 @@
     if (!draggedCard) return;
 
     const afterElement = getDragAfterElement(filmList, e.clientY);
-    if (!afterElement) {
-      filmList.appendChild(draggedCard);
-    } else {
-      filmList.insertBefore(draggedCard, afterElement);
-    }
+    if (!afterElement) filmList.appendChild(draggedCard);
+    else filmList.insertBefore(draggedCard, afterElement);
   });
 
   function getDragAfterElement(container, y) {
     const draggableElements = [...container.querySelectorAll(".film-card:not(.dragging)")];
-
     let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
 
     draggableElements.forEach(el => {
       const rect = el.getBoundingClientRect();
       const offset = y - rect.top - rect.height / 2;
-      if (offset < 0 && offset > closest.offset) {
-        closest = { offset, element: el };
-      }
+      if (offset < 0 && offset > closest.offset) closest = { offset, element: el };
     });
 
     return closest.element;
   }
+</script>
 
+<script>
   /* ============================
-   * 폼 submit → payload 만들기
+   * 저장: 업로드 → URL 세팅 → /movies 생성 → redirect
    * ============================ */
+
+  const CREATE_MOVIE_ENDPOINT = "/movies";
 
   const form = document.getElementById("filmographyForm");
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const films = [];
-    const cards = filmList.querySelectorAll(".film-card");
+    // ✅ auth 준비(restoreSession) 완료 보장
+    const authReady = window.__ONFILM_AUTH_READY_PROMISE__
+            ? await window.__ONFILM_AUTH_READY_PROMISE__
+            : await window.OnfilmAuth?.restoreSession?.().catch(() => ({ ok:false }));
 
-    cards.forEach((card, index) => {
-      const title    = card.querySelector(".film-title-input").value.trim();
-      const year     = card.querySelector(".film-year-input").value.trim();
-      const runtime  = card.querySelector(".film-runtime-input").value.trim();
-      const ageRate  = card.querySelector(".film-age-input").value;
-
-      const personRole = card.querySelector(".mp-person-role").value;
-      const castType   = card.querySelector(".mp-cast-type").value;
-      const characterName = card.querySelector(".mp-character-name").value.trim();
-
-      const thumbnail = card._thumbnailFile;
-      const trailer   = card._trailerFile;
-      const video     = card._videoFile;
-
-      films.push({
-        tempId: card.dataset.filmId,
-        sortOrder: index,
-        title,
-        year,
-        ageRating: ageRate,
-        runtimeMinutes: runtime ? Number(runtime) : null,
-        genres: [...(card._genres || [])],
-
-        moviePerson: {
-          personRole,
-          castType,
-          characterName: characterName || null
-        },
-
-        thumbnail: thumbnail ? { name: thumbnail.name, size: thumbnail.size, type: thumbnail.type } : null,
-        trailer: trailer ? { name: trailer.name, size: trailer.size, type: trailer.type } : null,
-        video: video ? { name: video.name, size: video.size, type: video.type } : null
-      });
-    });
-
-    const payload = { films };
-
-    console.log("필모그래피 저장 payload:", payload);
-
-    // 실제 구현 시에는 FormData + 파일까지 같이 전송:
-    // const formData = new FormData();
-    // films.forEach((film, idx) => {
-    //   formData.append(`films[${idx}].title`, film.title);
-    //   formData.append(`films[${idx}].releaseYear`, film.year);
-    //   formData.append(`films[${idx}].runtimeMinutes`, film.runtimeMinutes ?? "");
-    //   formData.append(`films[${idx}].ageRating`, film.ageRating);
-    //   film.genres.forEach((g, gi) => formData.append(`films[${idx}].genres[${gi}]`, g));
-    //   formData.append(`films[${idx}].personRole`, film.moviePerson.personRole);
-    //   formData.append(`films[${idx}].castType`, film.moviePerson.castType);
-    //   formData.append(`films[${idx}].characterName`, film.moviePerson.characterName ?? "");
-    //   if (cards[idx]._thumbnailFile) formData.append(`films[${idx}].thumbnail`, cards[idx]._thumbnailFile);
-    //   if (cards[idx]._trailerFile) formData.append(`films[${idx}].trailer`, cards[idx]._trailerFile);
-    //   if (cards[idx]._videoFile) formData.append(`films[${idx}].video`, cards[idx]._videoFile);
-    // });
-    // fetch("/api/actors/{actorId}/filmography", { method:"POST", body:formData });
-
-    alert("지금은 프론트 미리보기만 됩니다.\n콘솔에 필모그래피 payload가 출력됐어요.");
-  });
-
-</script>
-<script src="/js/auth.js"></script>
-<script>
-  document.addEventListener("DOMContentLoaded", async () => {
-    const { ok } = await window.OnfilmAuth.restoreSession();
-    if (!ok) {
-      // 로그인 페이지로 보내고, 돌아올 주소를 붙여줌
+    if (!authReady?.ok) {
       const next = encodeURIComponent(location.pathname + location.search);
       location.href = `/login.html?next=${next}`;
+      return;
+    }
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+
+    try {
+      // 1) 로그인 유저 username 가져오기
+      // [CHANGE] getMe()가 async일 가능성까지 안전 처리
+      const me =
+              (await Promise.resolve(window.OnfilmAuth.getMe?.()).catch(() => null))
+              || authReady.me;
+      const username = (me && me.username) ? String(me.username).trim() : "";
+      if (!username) {
+        throw new Error("username이 설정되어 있지 않습니다. 프로필에서 username을 설정해 주세요.");
+      }
+
+      const cards = [...document.querySelectorAll(".film-card")];
+
+      // 2) 순서대로 처리 (대용량 업로드라 병렬보다 순차가 안전)
+      for (let i = 0; i < cards.length; i++) {
+        const card = cards[i];
+
+        const title    = card.querySelector(".film-title-input").value.trim();
+        const yearStr  = card.querySelector(".film-year-input").value.trim();
+        const runtimeStr = card.querySelector(".film-runtime-input").value.trim();
+        const ageRate  = card.querySelector(".film-age-input").value;
+
+        const role = card.querySelector(".mp-person-role").value || null;
+        const castType = card.querySelector(".mp-cast-type").value || null;
+        const characterName = card.querySelector(".mp-character-name").value.trim() || null;
+
+        const rawGenreTexts = [...(card._genres || [])];
+
+        // ✅ 최소 검증 (백엔드 Movie.create 검증과 맞추기)
+        if (!title) throw new Error(`(${i+1}번째 작품) 제목은 필수입니다.`);
+        const runtime = runtimeStr ? Number(runtimeStr) : 0;
+        if (!runtime || runtime <= 0) throw new Error(`(${i+1}번째 작품) 런타임은 1분 이상이어야 합니다.`);
+        const releaseYear = yearStr ? Number(yearStr) : null;
+        if (!ageRate) throw new Error(`(${i+1}번째 작품) 관람연령을 선택해주세요.`);
+
+
+        if (!card._movieUrl) {
+          throw new Error(`(${i+1}번째 작품) 영상 파일을 선택해서 가짜 URL을 생성해야 합니다.`);
+        }
+
+        // 4) /movies 생성 (URL 기반)
+        const body = {
+          title,
+          runtime,
+          releaseYear,
+          movieUrl: card._movieUrl,
+          thumbnailUrl: card._thumbnailUrl || null,
+          trailerUrls: card._trailerUrls || [],
+          rawGenreTexts,
+          ageRating: ageRate,
+
+          role,
+          castType,
+          characterName
+        };
+
+        const movieId = await postJson(CREATE_MOVIE_ENDPOINT, body);
+        console.log("created movieId:", movieId);
+      }
+
+      // 5) 모두 성공 → 배우 페이지 이동
+      location.href = "/onfilm/" + encodeURIComponent(username);
+
+    } catch (err) {
+      console.error(err);
+      alert(err?.message ? String(err.message) : "저장 중 오류가 발생했습니다.");
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
     }
   });
+
+  function setFileInfo(card, kind, text) {
+    if (kind === "thumb") {
+      const el = card.querySelector(".thumb-file-info");
+      if (el) el.textContent = text;
+    }
+    if (kind === "trailer") {
+      const el = card.querySelector(".trailer-file-info");
+      if (el) el.textContent = text;
+    }
+    if (kind === "video") {
+      const el = card.querySelector(".video-file-info");
+      if (el) el.textContent = text;
+    }
+  }
+
+  async function postJson(url, body) {
+    const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
+    if (!authReady?.ok) throw new Error("로그인이 필요합니다.");
+
+    // [ADD] 토큰을 직접 꺼내서 Authorization을 내가 직접 만든다
+    const token = await Promise.resolve(window.OnfilmAuth.getAccessToken?.()).catch(() => null);
+
+    // 디버그(토큰 전체 출력은 위험하니 앞부분만)
+    console.log("token head:", token ? token.slice(0, 12) + "..." : "(none)");
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      credentials: "include",
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`요청 실패 (${res.status}) ${text}`);
+    }
+
+    const ct = res.headers.get("content-type") || "";
+    if (ct.includes("application/json")) return await res.json();
+
+    const t = await res.text();
+    const num = Number(t);
+    return Number.isFinite(num) ? num : t;
+  }
+
+
+
+
+  // auth.js 구현이 뭐든 최대한 맞추기
+  async function getCurrentMeSafely() {
+    if (window.OnfilmAuth && typeof window.OnfilmAuth.getMe === "function") return await window.OnfilmAuth.getMe();
+    if (window.OnfilmAuth && typeof window.OnfilmAuth.me === "function") return await window.OnfilmAuth.me();
+    if (window.OnfilmAuth && typeof window.OnfilmAuth.restoreSession === "function") {
+      const r = await window.OnfilmAuth.restoreSession();
+      if (r && r.me) return r.me;
+      if (r && r.user) return r.user;
+    }
+    try {
+      const raw = localStorage.getItem("me") || localStorage.getItem("user") || "";
+      if (raw) return JSON.parse(raw);
+    } catch (_) {}
+    return null;
+  }
+
 </script>
 
 </body>

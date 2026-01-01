@@ -62,7 +62,7 @@ public class MovieService {
         );
 
         // 장르는 도메인 서비스(팩토리)로만 부착
-        movieGenreFactory.attachHybrid(movie, request.getRawGenreTexts());
+        movieGenreFactory.attachGenre(movie, request.getRawGenreTexts());
 
         Movie saved = movieRepository.save(movie);
         return saved.getId();
