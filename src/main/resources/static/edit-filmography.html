@@ -364,7 +364,9 @@
 <div class="page-shell">
   <header>
     <div class="header-inner">
-      <a href="actor-detail.html" class="back-link">← 프로필로 돌아가기</a>
+      <a href="#" class="back-link" id="backToProfileLink">
+        ← 프로필로 돌아가기
+      </a>
       <div class="header-title">필모그래피 편집</div>
       <div style="width:70px;"></div>
     </div>
@@ -999,6 +1001,73 @@
     return null;
   }
 
+</script>
+
+<script>
+  // "프로필로 돌아가기":
+  // - 프로필이 존재하고(또는 내용이 있으면) /onfilm/{username}
+  // - 프로필이 없으면(404 또는 내용 없음) /index.html
+  document.addEventListener("DOMContentLoaded", () => {
+    const link = document.getElementById("backToProfileLink");
+    if (!link) return;
+
+    link.addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      try {
+        // 1) username 확보
+        let me = window.OnfilmAuth?.getMe?.() || null;
+        if (!me || !me.username) {
+          const r = await window.OnfilmAuth?.restoreSession?.().catch(() => null);
+          me = r?.me || me;
+        }
+        const uname = me?.username ? String(me.username).trim() : "";
+        if (!uname) {
+          window.location.href = "/index.html";
+          return;
+        }
+
+        // 2) 프로필 존재/내용 확인
+        //    (인증 필요할 수 있으니 apiFetchWithAutoRefresh 우선 사용)
+        const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
+                ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
+                : fetch;
+
+        const res = await fetcher(`/persons/${encodeURIComponent(uname)}`, {
+          method: "GET",
+          headers: { "Accept": "application/json" }
+        });
+
+        // 404(프로필 없음) 또는 기타 실패 => 랜딩
+        if (!res.ok) {
+          window.location.href = "/index.html";
+          return;
+        }
+
+        const p = await res.json().catch(() => null);
+
+        // "프로필이 없다" 기준: 아무 정보도 없는 경우
+        const hasAny =
+                !!(p?.name && String(p.name).trim()) ||
+                !!(p?.oneLineIntro && String(p.oneLineIntro).trim()) ||
+                !!(p?.birthDate && String(p.birthDate).trim()) ||
+                !!(p?.birthPlace && String(p.birthPlace).trim()) ||
+                !!(p?.profileImageUrl && String(p.profileImageUrl).trim()) ||
+                (Array.isArray(p?.snsList) && p.snsList.length > 0) ||
+                (Array.isArray(p?.rawTags) && p.rawTags.length > 0);
+
+        if (!hasAny) {
+          window.location.href = "/index.html";
+          return;
+        }
+
+        // 3) 정상 프로필이면 공개 페이지로
+        window.location.href = "/onfilm/" + encodeURIComponent(uname);
+      } catch (_) {
+        window.location.href = "/index.html";
+      }
+    });
+  });
 </script>
 
 </body>

@@ -7,7 +7,9 @@ import com.onfilm.domain.common.util.SecurityUtil;
 import com.onfilm.domain.genre.entity.Genre;
 import com.onfilm.domain.genre.repository.GenreRepository;
 import com.onfilm.domain.movie.dto.CreateMovieRequest;
+import com.onfilm.domain.movie.dto.MovieCardResponse;
 import com.onfilm.domain.movie.entity.*;
+import com.onfilm.domain.movie.repository.MoviePersonRepository;
 import com.onfilm.domain.movie.repository.MovieRepository;
 import com.onfilm.domain.user.entity.User;
 import com.onfilm.domain.user.repository.UserRepository;
@@ -27,9 +29,9 @@ import java.util.stream.Collectors;
 public class MovieService {
 
     private final MovieRepository movieRepository;
-    private final GenreRepository genreRepository;
     private final UserRepository userRepository;
     private final MovieGenreFactory movieGenreFactory;
+    private final MoviePersonRepository moviePersonRepository;
 
     @Transactional
     public Long createMovie(CreateMovieRequest request) {

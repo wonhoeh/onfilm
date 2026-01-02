@@ -1,9 +1,10 @@
 package com.onfilm.domain.movie.controller;
 
 import com.onfilm.domain.movie.dto.CreatePersonRequest;
-import com.onfilm.domain.movie.dto.FilmographyResponse;
+import com.onfilm.domain.movie.dto.MovieCardResponse;
 import com.onfilm.domain.movie.dto.PersonResponse;
 import com.onfilm.domain.movie.dto.UpdatePersonRequest;
+import com.onfilm.domain.movie.service.MovieReadService;
 import com.onfilm.domain.movie.service.PersonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,7 +19,11 @@ import java.util.List;
 public class PersonController {
 
     private final PersonService personService;
+    private final MovieReadService movieReadService;
 
+    // =============================
+    // PROFILE
+    // =============================
     @GetMapping("/{username}")
     public ResponseEntity<PersonResponse> getPersonByUsername(@PathVariable String username) {
         PersonResponse personResponse = personService.getPersonByUsername(username);
@@ -38,11 +43,12 @@ public class PersonController {
         return ResponseEntity.ok(id);
     }
 
-    @GetMapping("/{id}/filmography")
-    public ResponseEntity<List<FilmographyResponse>> getFilmography(@PathVariable Long id) {
-        List<FilmographyResponse> filmographyResponses = personService.getFilmography(id).stream()
-                .map(FilmographyResponse::new)
-                .toList();
-        return ResponseEntity.ok(filmographyResponses);
+    // =============================
+    // FILMOGRAPHY
+    // =============================
+    @GetMapping("/{name}/movies")
+    public ResponseEntity<List<MovieCardResponse>> getPersonFilmography(@PathVariable String name) {
+        List<MovieCardResponse> personFilmography = movieReadService.getPersonFilmography(name);
+        return ResponseEntity.ok(personFilmography);
     }
 }

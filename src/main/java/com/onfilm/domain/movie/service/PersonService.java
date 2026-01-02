@@ -6,7 +6,6 @@ import com.onfilm.domain.common.util.SecurityUtil;
 import com.onfilm.domain.movie.dto.CreatePersonRequest;
 import com.onfilm.domain.movie.dto.PersonResponse;
 import com.onfilm.domain.movie.dto.UpdatePersonRequest;
-import com.onfilm.domain.movie.entity.MoviePerson;
 import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.movie.entity.PersonSns;
 import com.onfilm.domain.movie.repository.MoviePersonRepository;
@@ -107,10 +106,5 @@ public class PersonService {
 
         // ✅ TAG 전체 교체 (핵심: replaceProfileTags에서 중복/flush순서 안전 처리)
         person.replaceProfileTags(request.getRawTags());
-    }
-
-    @Transactional(readOnly = true)
-    public List<MoviePerson> getFilmography(Long personId) {
-        return moviePersonRepository.findFilmography(personId);
     }
 }
