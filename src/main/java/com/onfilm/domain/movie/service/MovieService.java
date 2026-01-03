@@ -1,13 +1,9 @@
 package com.onfilm.domain.movie.service;
 
-import com.onfilm.domain.common.TextNormalizer;
 import com.onfilm.domain.common.error.exception.PersonNotFoundException;
 import com.onfilm.domain.common.error.exception.UserNotFoundException;
 import com.onfilm.domain.common.util.SecurityUtil;
-import com.onfilm.domain.genre.entity.Genre;
-import com.onfilm.domain.genre.repository.GenreRepository;
 import com.onfilm.domain.movie.dto.CreateMovieRequest;
-import com.onfilm.domain.movie.dto.MovieCardResponse;
 import com.onfilm.domain.movie.entity.*;
 import com.onfilm.domain.movie.repository.MoviePersonRepository;
 import com.onfilm.domain.movie.repository.MovieRepository;
@@ -18,10 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service

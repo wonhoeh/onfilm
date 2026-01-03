@@ -20,4 +20,5 @@ public interface MoviePersonRepository extends JpaRepository<MoviePerson, Long> 
             mp.id desc
     """)
     List<MoviePerson> findFilmographyByPersonName(@Param("name") String name);
+
 }

@@ -2242,6 +2242,139 @@
         if (typeof updateEmptyUI === "function") updateEmptyUI();
     }
 
+    // ===== FILMOGRAPHY: API로 카드 렌더링 =====
+
+    // name은 너가 URL에 쓰는 식별자(현재는 username이지만, 앞으로 name으로 바꿀 예정이니까 변수명은 name으로)
+    async function fetchFilmographyByName(name) {
+        // ⚠️ 여기 URL만 너 백엔드에 맞춰 수정하면 됨
+        // 예: /persons/{name}/movies   또는 /persons/{name}/filmography
+        const res = await fetch(`/persons/${encodeURIComponent(name)}/movies`, {
+            method: "GET",
+            headers: { "Accept": "application/json" }
+        });
+
+        if (!res.ok) {
+            // 404면 필모 0개로 처리하고 싶으면 여기서 [] 리턴해도 됨
+            throw new Error("GET_FILMOGRAPHY_FAILED status=" + res.status);
+        }
+        return await res.json(); // List<MovieCardResponse>
+    }
+
+    function ageToBadge(ageRating) {
+        // 백엔드 enum: ALL, AGE_12, AGE_15, AGE_18
+        switch ((ageRating || "").toUpperCase()) {
+            case "ALL": return "ALL";
+            case "AGE_12": return "12";
+            case "AGE_15": return "15";
+            case "AGE_18": return "18";
+            default: return ""; // fallback
+        }
+    }
+
+    function castTypeToKorean(castType) {
+        switch ((castType || "").toUpperCase()) {
+            case "LEAD": return "주연";
+            case "SUPPORTING": return "조연";
+            case "CAMEO": return "카메오";
+            default: return "";
+        }
+    }
+
+    // film-card 한 장 생성
+    function createFilmCard(item) {
+        const article = document.createElement("article");
+        article.className = "film-card";
+
+        const title = item?.title ?? "";
+        const genre = item?.genre ?? "";
+        const runtime = (item?.runtime !== undefined && item?.runtime !== null) ? `${item.runtime}분` : "";
+        const age = ageToBadge(item?.ageRating);
+        const video = item?.trailerUrl || "";      // 팝업 video src로 사용
+        const thumb = item?.thumbnailUrl || "";    // 팝업 thumb로 사용
+
+        const releaseYear = (item?.releaseYear !== undefined && item?.releaseYear !== null)
+            ? String(item.releaseYear)
+            : "";
+
+        const castLabel = castTypeToKorean(item?.castType);
+
+        // ✅ "2025 · 주연" 형식 만들기
+        const metaText =
+            (releaseYear && castLabel) ? `${releaseYear} · ${castLabel}` :
+                (releaseYear) ? releaseYear :
+                    (castLabel) ? castLabel :
+                        "";
+
+        article.dataset.title = title;
+        article.dataset.genre = genre;
+        article.dataset.runtime = runtime;
+        article.dataset.age = age;
+        article.dataset.video = video;
+        article.dataset.thumb = thumb;
+        article.dataset.releaseYear = releaseYear;
+        article.dataset.castLabel = castLabel;
+
+
+        article.innerHTML = `
+    <img class="film-poster" src="${thumb || "/videos/thumbnail.png"}" alt="">
+    <div class="film-body">
+      <div class="film-title">${escapeHtml(title)}</div>
+      <div class="film-meta">${escapeHtml(metaText)}</div>
+    </div>
+  `;
+
+        // poster 깨지면 placeholder
+        const img = article.querySelector("img.film-poster");
+        if (img) {
+            img.onerror = () => {
+                img.onerror = null;
+                img.src = "/videos/thumbnail.png";
+            };
+        }
+
+        return article;
+    }
+
+    // XSS 방지용(간단)
+    function escapeHtml(str) {
+        return String(str ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    // filmSlider 비우고 다시 렌더
+    async function renderFilmography(name) {
+        const filmSlider = document.getElementById("filmSlider");
+        if (!filmSlider) return;
+
+        // 기존 카드 제거
+        filmSlider.innerHTML = "";
+
+        try {
+            const list = await fetchFilmographyByName(name);
+            const movies = Array.isArray(list) ? list : [];
+
+            movies.forEach(item => {
+                filmSlider.appendChild(createFilmCard(item));
+            });
+
+            // 슬라이더 index 초기화 + UI 갱신
+            if (typeof window.index !== "undefined") window.index = 0; // 네 코드의 index 변수 재사용
+            if (typeof updateSlider === "function") updateSlider();
+            if (typeof updateEmptyUI === "function") updateEmptyUI();
+            if (typeof updateArrows === "function") updateArrows();
+        } catch (e) {
+            console.error("renderFilmography error:", e);
+
+            // 실패해도 empty UI는 맞춰주기
+            if (typeof updateEmptyUI === "function") updateEmptyUI();
+            if (typeof updateArrows === "function") updateArrows();
+        }
+    }
+
     async function initProfilePage() {
         const username = getUsernameFromPath();
         if (!username) return;
@@ -2249,6 +2382,8 @@
         try {
             const person = await fetchPersonByName(username);
             applyPersonToUI(person);
+
+            await renderFilmography(username);
 
             // ✅ person 로딩이 끝난 시점에, me도 다시 가져와서 owner 판단을 “확정” (id 기반)
             const me = await restoreMeSafe();
