@@ -30,7 +30,7 @@ public class PersonService {
     private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
-    public PersonResponse getPersonByUsername(String username) {
+    public PersonResponse getProfileByUsername(String username) {
         User user = userRepository.findByUsernameWithPerson(username)
                 .orElseThrow(() -> new UserNotFoundException(username));
 

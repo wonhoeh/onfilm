@@ -14,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class PersonResponse {
-    private Long id;
+    private String publicId;
     private String name;
     private LocalDate birthDate;
     private String birthPlace;
@@ -25,7 +25,7 @@ public class PersonResponse {
 
     public static PersonResponse from(Person person) {
         return PersonResponse.builder()
-                .id(person.getId())
+                .publicId(person.getPublicId())
                 .name(person.getName())
                 .birthDate(person.getBirthDate())
                 .birthPlace(person.getBirthPlace())

@@ -1467,7 +1467,7 @@
 
     // 서버에서 person(프로필 주인) 조회 (반드시 id 포함하도록)
     async function fetchPersonByName(username) {
-        const res = await fetch(`/persons/${encodeURIComponent(username)}`, {
+        const res = await fetch(`/api/persons/${encodeURIComponent(username)}`, {
             method: "GET",
             headers: { "Accept": "application/json" }
         });

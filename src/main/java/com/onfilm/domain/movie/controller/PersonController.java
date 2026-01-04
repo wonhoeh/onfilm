@@ -5,6 +5,7 @@ import com.onfilm.domain.movie.dto.MovieCardResponse;
 import com.onfilm.domain.movie.dto.PersonResponse;
 import com.onfilm.domain.movie.dto.UpdatePersonRequest;
 import com.onfilm.domain.movie.service.MovieReadService;
+import com.onfilm.domain.movie.service.PersonReadService;
 import com.onfilm.domain.movie.service.PersonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,18 +16,19 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/persons")
+@RequestMapping("/api/people")
 public class PersonController {
 
     private final PersonService personService;
+    private final PersonReadService personReadService;
     private final MovieReadService movieReadService;
 
     // =============================
     // PROFILE
     // =============================
-    @GetMapping("/{username}")
-    public ResponseEntity<PersonResponse> getPersonByUsername(@PathVariable String username) {
-        PersonResponse personResponse = personService.getPersonByUsername(username);
+    @GetMapping("/{publicId}")
+    public ResponseEntity<PersonResponse> getProfile(@PathVariable String publicId) {
+        PersonResponse personResponse = personReadService.getProfileByPublicId(publicId);
         return ResponseEntity.ok(personResponse);
     }
 

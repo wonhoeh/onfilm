@@ -4,12 +4,9 @@ package com.onfilm.domain.person.service;
 import com.onfilm.domain.movie.dto.PersonResponse;
 import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.movie.entity.PersonSns;
-import com.onfilm.domain.movie.entity.ProfileTag;
 import com.onfilm.domain.movie.entity.SnsType;
 import com.onfilm.domain.movie.repository.PersonRepository;
 import com.onfilm.domain.movie.service.PersonService;
-import org.aspectj.lang.annotation.Before;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,7 +56,7 @@ public class PersonServiceTest {
         when(personRepository.findByName(person.getName())).thenReturn(Optional.of(person));
 
         // when
-        PersonResponse res = personService.getPersonByUsername(person.getName());
+        PersonResponse res = personService.getProfileByUsername(person.getName());
 
         // then
         assertThat(res).isNotNull();

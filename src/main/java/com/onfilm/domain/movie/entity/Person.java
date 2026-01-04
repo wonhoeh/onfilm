@@ -10,10 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Entity
 @Getter
@@ -41,6 +38,9 @@ public class Person {
     @Column(length = 512)
     private String profileImageUrl;
 
+    @Column(nullable = false, unique = true, updatable = false, length = 36)
+    private String publicId;  // UUID
+
     // ======================================================================
     // ======= 연관관계: SNS =======
     // ======================================================================
@@ -65,6 +65,12 @@ public class Person {
     // ======================================================================
     // ======= 생성자 / 정적 팩토리 =======
     // ======================================================================
+    @PrePersist
+    private void prePersist() {
+        if (this.publicId == null || this.publicId.isBlank()) {
+            this.publicId = UUID.randomUUID().toString();
+        }
+    }
 
     @Builder(access = AccessLevel.PRIVATE)
     private Person(
