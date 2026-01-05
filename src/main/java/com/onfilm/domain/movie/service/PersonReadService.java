@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PersonReadService {
 
     private final PersonRepository personRepository;
+
     public PersonResponse getProfileByPublicId(String publicId) {
         Person person = personRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new PersonNotFoundException(publicId));

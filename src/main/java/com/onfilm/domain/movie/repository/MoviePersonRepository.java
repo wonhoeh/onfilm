@@ -9,16 +9,10 @@ import java.util.List;
 
 public interface MoviePersonRepository extends JpaRepository<MoviePerson, Long> {
     @Query("""
-        select mp
-        from MoviePerson mp
-        join fetch mp.movie m
-        join mp.person p
-        where p.name = :name
-        order by
-            case when m.releaseYear is null then 1 else 0 end,
-            m.releaseYear desc,
-            mp.id desc
-    """)
-    List<MoviePerson> findFilmographyByPersonName(@Param("name") String name);
+            select mp from MoviePerson mp
+            join fetch mp.movie m
+            where mp.person.id = :personId
+            """)
+    List<MoviePerson> findFilmographyByPersonId(@Param("personId") Long personId);
 
 }

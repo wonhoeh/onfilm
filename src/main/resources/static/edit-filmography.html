@@ -225,7 +225,6 @@
       gap:12px;
     }
 
-    /* 업로드 영역 공통 */
     .upload-block{
       display:flex;
       flex-direction:column;
@@ -268,9 +267,9 @@
       font-size:11px;
       color:var(--muted);
       word-break:break-all;
+      white-space:pre-line;
     }
 
-    /* 장르 칩 입력 */
     .chip-input-wrap{
       display:flex;
       flex-direction:column;
@@ -360,13 +359,12 @@
     }
   </style>
 </head>
+
 <body>
 <div class="page-shell">
   <header>
     <div class="header-inner">
-      <a href="#" class="back-link" id="backToProfileLink">
-        ← 프로필로 돌아가기
-      </a>
+      <a href="#" class="back-link" id="backToProfileLink">← 프로필로 돌아가기</a>
       <div class="header-title">필모그래피 편집</div>
       <div style="width:70px;"></div>
     </div>
@@ -399,6 +397,16 @@
 <script src="/js/auth.js"></script>
 
 <script>
+  /* =========================================================
+   * Filmography Edit - "한 파일처럼" 모듈화 정리본
+   * - ✅ username -> publicId (/api/person/{username})
+   * - ✅ 프로필 확인 GET: /api/people/{publicId}
+   * - ✅ 영화 생성 POST: /api/movie   (기존 /movies -> 수정)
+   * ========================================================= */
+
+  /* ============================
+   * 1) AUTH READY PROMISE + GUARD
+   * ============================ */
   window.__ONFILM_AUTH_READY_PROMISE__ = (async () => {
     try {
       if (!window.OnfilmAuth?.restoreSession) return { ok:false, me:null };
@@ -408,10 +416,6 @@
     }
   })();
 
-</script>
-
-<script>
-  // [ADD] edit-profile처럼 페이지 진입 시점에 로그인 보장
   document.addEventListener("DOMContentLoaded", async () => {
     const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
     if (!authReady?.ok) {
@@ -419,39 +423,136 @@
       location.href = `/login.html?next=${next}`;
     }
   });
-</script>
 
-
-<script>
   /* ============================
-   * 필모그래피 카드 생성 / 삭제
+   * 2) COMMON UTIL
    * ============================ */
+  const Util = (() => {
+    function escapeHtml(str){
+      return String(str)
+              .replaceAll("&","&amp;")
+              .replaceAll("<","&lt;")
+              .replaceAll(">","&gt;")
+              .replaceAll('"',"&quot;")
+              .replaceAll("'","&#39;");
+    }
+    function normalizeGenre(text){
+      return String(text || "").trim().replace(/\s+/g, " ");
+    }
+    function fakeHttpUrl(kind, fileName) {
+      const safeName = encodeURIComponent(fileName || "file");
+      const uid =
+              (crypto && crypto.randomUUID) ? crypto.randomUUID()
+                      : (Date.now().toString(36) + Math.random().toString(36).slice(2));
+      return `http://localhost/mock-upload/${kind}/${uid}/${safeName}`;
+    }
+    function bindDropzone(dropzone, onFiles) {
+      ["dragenter","dragover"].forEach(evtName => {
+        dropzone.addEventListener(evtName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.add("is-dragover");
+        });
+      });
+      ["dragleave","dragend"].forEach(evtName => {
+        dropzone.addEventListener(evtName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.remove("is-dragover");
+        });
+      });
+      dropzone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove("is-dragover");
+        const dt = e.dataTransfer;
+        if (dt && dt.files && dt.files.length) onFiles(dt.files);
+      });
+    }
+    return { escapeHtml, normalizeGenre, fakeHttpUrl, bindDropzone };
+  })();
 
-  const filmList = document.getElementById("filmList");
-  const addFilmBtn = document.getElementById("addFilmBtn");
+  /* ============================
+   * 3) username -> publicId
+   * ============================ */
+  async function resolvePublicIdByUsername(username) {
+    const uname = String(username || "").trim();
+    if (!uname) return null;
 
-  let filmIdSeq = 1;
+    const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
+            ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
+            : fetch;
 
-  function createFilmCard(initial = {}) {
-    const card = document.createElement("div");
-    card.className = "film-card";
-    card.setAttribute("draggable", "true");
-    card.dataset.filmId = initial.id || `temp-${filmIdSeq++}`;
+    const res = await fetcher(`/api/person/${encodeURIComponent(uname)}`, {
+      method: "GET",
+      headers: { "Accept": "application/json" }
+    });
 
-    // ✅ 파일(선택 상태)
-    card._thumbnailFile = null;
-    card._trailerFile = null;
-    card._videoFile = null;
+    if (!res.ok) return null;
 
-    // ✅ 업로드 결과 URL(저장 시 채움)
-    card._thumbnailUrl = initial.thumbnailUrl || "";
-    card._trailerUrls = Array.isArray(initial.trailerUrls) ? [...initial.trailerUrls] : [];
-    card._movieUrl = initial.movieUrl || "";
+    const ct = res.headers.get("content-type") || "";
+    if (ct.includes("application/json")) {
+      const data = await res.json().catch(() => null);
+      if (typeof data === "string") return data.trim() || null;
 
-    // ✅ 장르
-    card._genres = Array.isArray(initial.genres) ? [...initial.genres] : [];
+      const candidates = [
+        data?.publicId,
+        data?.id,
+        data?.personPublicId,
+        data?.personId,
+        data?.data?.publicId,
+        data?.data?.id,
+      ].filter(Boolean);
 
-    card.innerHTML = `
+      return candidates.length ? String(candidates[0]).trim() : null;
+    }
+
+    const text = await res.text().catch(() => "");
+    return text.trim() || null;
+  }
+
+  /* ============================
+   * 4) FilmCardModule
+   * ============================ */
+  const FilmCardModule = (() => {
+    let idSeq = 1;
+
+    function create(containerEl, initial = {}) {
+      const card = document.createElement("div");
+      card.className = "film-card";
+      card.setAttribute("draggable", "true");
+      card.dataset.filmId = initial.id || `temp-${idSeq++}`;
+
+      card._thumbnailFile = null;
+      card._trailerFile = null;
+      card._videoFile = null;
+
+      card._thumbnailUrl = initial.thumbnailUrl || "";
+      card._trailerUrls  = Array.isArray(initial.trailerUrls) ? [...initial.trailerUrls] : [];
+      card._movieUrl     = initial.movieUrl || "";
+      card._genres = Array.isArray(initial.genres) ? [...initial.genres] : [];
+
+      card.innerHTML = template(card, initial);
+
+      if (initial.ageRating) card.querySelector(".film-age-input").value = initial.ageRating;
+      if (initial.personRole) card.querySelector(".mp-person-role").value = initial.personRole;
+      if (initial.castType) card.querySelector(".mp-cast-type").value = initial.castType;
+
+      bindHeaderTitleSync(card);
+      bindDelete(card);
+      bindGenreChips(card);
+      bindThumbDropzone(card);
+      bindTrailerDropzone(card);
+      bindVideoDropzone(card);
+
+      containerEl.appendChild(card);
+      renderGenreChips(card);
+
+      return card;
+    }
+
+    function template(card, initial) {
+      return `
       <div class="film-card-header">
         <div class="film-card-left">
           <div class="drag-handle">≡</div>
@@ -539,7 +640,9 @@
             <div><strong>여기로 파일을 드래그하세요</strong></div>
             <div>또는 아래 버튼을 눌러 파일을 선택하세요.</div>
             <button type="button" class="thumb-browse-btn">파일 선택</button>
-            <div class="file-info thumb-file-info">${card._thumbnailUrl ? "현재 URL: " + escapeHtml(card._thumbnailUrl) : "선택된 파일 없음"}</div>
+            <div class="file-info thumb-file-info">${
+              card._thumbnailUrl ? ("현재 URL: " + Util.escapeHtml(card._thumbnailUrl)) : "선택된 파일 없음"
+      }</div>
             <input type="file" class="thumb-file-input" accept="image/*" style="display:none;">
           </div>
 
@@ -552,7 +655,9 @@
             <div><strong>여기로 파일을 드래그하세요</strong></div>
             <div>또는 아래 버튼을 눌러 파일을 선택하세요.</div>
             <button type="button" class="trailer-browse-btn">파일 선택</button>
-            <div class="file-info trailer-file-info">${card._trailerUrls.length ? "현재 URL: " + escapeHtml(card._trailerUrls[0]) : "선택된 파일 없음"}</div>
+            <div class="file-info trailer-file-info">${
+              card._trailerUrls.length ? ("현재 URL: " + Util.escapeHtml(card._trailerUrls[0])) : "선택된 파일 없음"
+      }</div>
             <input type="file" class="trailer-file-input" accept="video/*" style="display:none;">
           </div>
 
@@ -565,401 +670,235 @@
             <div><strong>여기로 파일을 드래그하세요</strong></div>
             <div>또는 아래 버튼을 눌러 파일을 선택하세요.</div>
             <button type="button" class="video-browse-btn">파일 선택</button>
-            <div class="file-info video-file-info">${card._movieUrl ? "현재 URL: " + escapeHtml(card._movieUrl) : "선택된 파일 없음"}</div>
+            <div class="file-info video-file-info">${
+              card._movieUrl ? ("현재 URL: " + Util.escapeHtml(card._movieUrl)) : "선택된 파일 없음"
+      }</div>
             <input type="file" class="video-file-input" accept="video/*" style="display:none;">
           </div>
         </div>
       </div>
     `;
+    }
 
-    // 초기 select 값
-    if (initial.ageRating) card.querySelector(".film-age-input").value = initial.ageRating;
-    if (initial.personRole) card.querySelector(".mp-person-role").value = initial.personRole;
-    if (initial.castType) card.querySelector(".mp-cast-type").value = initial.castType;
+    function bindHeaderTitleSync(card) {
+      const titleInput = card.querySelector(".film-title-input");
+      const headerTitle = card.querySelector(".film-card-title");
+      titleInput.addEventListener("input", () => {
+        headerTitle.textContent = titleInput.value || "새 작품";
+      });
+    }
 
-    // 제목 입력 → 헤더 업데이트
-    const titleInput = card.querySelector(".film-title-input");
-    const headerTitle = card.querySelector(".film-card-title");
-    titleInput.addEventListener("input", () => headerTitle.textContent = titleInput.value || "새 작품");
+    function bindDelete(card) {
+      card.querySelector(".delete-film-btn").addEventListener("click", () => {
+        if (confirm("이 작품을 삭제할까요?")) card.remove();
+      });
+    }
 
-    // 삭제
-    card.querySelector(".delete-film-btn").addEventListener("click", () => {
-      if (confirm("이 작품을 삭제할까요?")) card.remove();
-    });
+    function bindGenreChips(card){
+      const input = card.querySelector(".genre-chip-input");
 
-    setupGenreChips(card);
+      let composing = false;
+      input.addEventListener("compositionstart", () => composing = true);
+      input.addEventListener("compositionend", () => composing = false);
 
-    setupThumbDropzone(card);
-    setupTrailerDropzone(card);
-    setupVideoDropzone(card);
+      input.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter") return;
+        if (e.isComposing || composing) return;
 
-    filmList.appendChild(card);
-    renderGenreChips(card);
-  }
+        e.preventDefault();
 
-  addFilmBtn.addEventListener("click", () => createFilmCard({}));
-  createFilmCard({}); // 기본 1개
+        const value = Util.normalizeGenre(input.value);
+        if (!value) return;
 
-  /* ============================
-   * 장르 칩 입력
-   * ============================ */
+        const exists = card._genres.some(g => g.toLowerCase() === value.toLowerCase());
+        if (exists) { input.value = ""; return; }
 
-  function normalizeGenre(text){
-    return String(text || "").trim().replace(/\s+/g, " ");
-  }
-
-  function setupGenreChips(card){
-    const input = card.querySelector(".genre-chip-input");
-
-    // ✅ 한글 IME 조합 Enter 분리 버그 방지
-    let composing = false;
-    input.addEventListener("compositionstart", () => composing = true);
-    input.addEventListener("compositionend", () => composing = false);
-
-    input.addEventListener("keydown", (e) => {
-      if (e.key !== "Enter") return;
-      if (e.isComposing || composing) return;
-
-      e.preventDefault();
-
-      const value = normalizeGenre(input.value);
-      if (!value) return;
-
-      const exists = card._genres.some(g => g.toLowerCase() === value.toLowerCase());
-      if (exists) { input.value = ""; return; }
-
-      card._genres.push(value);
-      input.value = "";
-      renderGenreChips(card);
-    });
-  }
-
-  function renderGenreChips(card){
-    const box = card.querySelector(".genre-chip-box");
-    box.innerHTML = "";
-
-    (card._genres || []).forEach((g, idx) => {
-      const chip = document.createElement("span");
-      chip.className = "chip";
-      chip.innerHTML = `
-        <span>${escapeHtml(g)}</span>
-        <button type="button" aria-label="장르 삭제">×</button>
-      `;
-      chip.querySelector("button").addEventListener("click", () => {
-        card._genres.splice(idx, 1);
+        card._genres.push(value);
+        input.value = "";
         renderGenreChips(card);
       });
-      box.appendChild(chip);
-    });
-  }
+    }
 
-  function escapeHtml(str){
-    return String(str)
-            .replaceAll("&","&amp;")
-            .replaceAll("<","&lt;")
-            .replaceAll(">","&gt;")
-            .replaceAll('"',"&quot;")
-            .replaceAll("'","&#39;");
-  }
+    function renderGenreChips(card){
+      const box = card.querySelector(".genre-chip-box");
+      box.innerHTML = "";
 
-  /* ============================
- * 가짜 URL 생성 (업로드 API 없이 테스트용)
- * ============================ */
-
-  function fakeHttpUrl(kind, fileName) {
-    // kind: thumbnail | trailer | movie
-    const safeName = encodeURIComponent(fileName || "file");
-    const uid =
-            (crypto && crypto.randomUUID) ? crypto.randomUUID()
-                    : (Date.now().toString(36) + Math.random().toString(36).slice(2));
-
-    // "URL처럼 생긴 문자열"을 만들기만 하면 됨
-    return `http://localhost/mock-upload/${kind}/${uid}/${safeName}`;
-  }
-
-  /* ============================
-   * Dropzone 공통 헬퍼
-   * ============================ */
-
-  function bindDropzone(dropzone, onFiles) {
-    ["dragenter","dragover"].forEach(evtName => {
-      dropzone.addEventListener(evtName, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzone.classList.add("is-dragover");
+      (card._genres || []).forEach((g, idx) => {
+        const chip = document.createElement("span");
+        chip.className = "chip";
+        chip.innerHTML = `
+          <span>${Util.escapeHtml(g)}</span>
+          <button type="button" aria-label="장르 삭제">×</button>
+        `;
+        chip.querySelector("button").addEventListener("click", () => {
+          card._genres.splice(idx, 1);
+          renderGenreChips(card);
+        });
+        box.appendChild(chip);
       });
-    });
-    ["dragleave","dragend"].forEach(evtName => {
-      dropzone.addEventListener(evtName, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzone.classList.remove("is-dragover");
-      });
-    });
-    dropzone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dropzone.classList.remove("is-dragover");
-      const dt = e.dataTransfer;
-      if (dt && dt.files && dt.files.length) onFiles(dt.files);
-    });
-  }
-
-  /* ============================
-   * 섬네일
-   * ============================ */
-
-  function setupThumbDropzone(card) {
-    const dropzone = card.querySelector(".thumb-dropzone");
-    const browseBtn = card.querySelector(".thumb-browse-btn");
-    const fileInput = card.querySelector(".thumb-file-input");
-    const fileInfo  = card.querySelector(".thumb-file-info");
-
-    function handleFiles(files) {
-      if (!files || !files.length) return;
-      const file = files[0];
-      if (!file.type.startsWith("image/")) { alert("이미지 파일만 업로드할 수 있습니다."); return; }
-
-      card._thumbnailFile = file;
-
-      // ✅ 업로드 대신 "가짜 http URL"을 즉시 생성해서 넣는다
-      card._thumbnailUrl = fakeHttpUrl("thumbnail", file.name);
-
-      fileInfo.textContent =
-              `선택됨: ${file.name} (${Math.round(file.size/1024)}KB)\n` +
-              `가짜 URL: ${card._thumbnailUrl}`;
     }
 
-    browseBtn.addEventListener("click", () => fileInput.click());
-    fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
-    bindDropzone(dropzone, handleFiles);
-  }
+    function bindThumbDropzone(card) {
+      const dropzone = card.querySelector(".thumb-dropzone");
+      const browseBtn = card.querySelector(".thumb-browse-btn");
+      const fileInput = card.querySelector(".thumb-file-input");
+      const fileInfo  = card.querySelector(".thumb-file-info");
 
-  /* ============================
-   * 트레일러
-   * ============================ */
+      function handleFiles(files) {
+        if (!files || !files.length) return;
+        const file = files[0];
+        if (!file.type.startsWith("image/")) { alert("이미지 파일만 업로드할 수 있습니다."); return; }
 
-  function setupTrailerDropzone(card) {
-    const dropzone = card.querySelector(".trailer-dropzone");
-    const browseBtn = card.querySelector(".trailer-browse-btn");
-    const fileInput = card.querySelector(".trailer-file-input");
-    const fileInfo  = card.querySelector(".trailer-file-info");
+        card._thumbnailFile = file;
+        card._thumbnailUrl = Util.fakeHttpUrl("thumbnail", file.name);
 
-    function handleFiles(files) {
-      if (!files || !files.length) return;
-      const file = files[0];
-      if (!file.type.startsWith("video/")) { alert("영상 파일만 업로드할 수 있습니다."); return; }
-
-      card._trailerFile = file;
-
-      // ✅ 1개만 쓴다고 했으니 배열에 1개 URL 넣기
-      card._trailerUrls = [fakeHttpUrl("trailer", file.name)];
-
-      fileInfo.textContent =
-              `선택됨: ${file.name} (${Math.round(file.size/1024/1024)}MB)\n` +
-              `가짜 URL: ${card._trailerUrls[0]}`;
-    }
-
-    browseBtn.addEventListener("click", () => fileInput.click());
-    fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
-    bindDropzone(dropzone, handleFiles);
-  }
-
-  /* ============================
-   * 영상(원본)
-   * ============================ */
-
-  function setupVideoDropzone(card) {
-    const dropzone = card.querySelector(".video-dropzone");
-    const browseBtn = card.querySelector(".video-browse-btn");
-    const fileInput = card.querySelector(".video-file-input");
-    const fileInfo  = card.querySelector(".video-file-info");
-
-    function handleFiles(files) {
-      if (!files || !files.length) return;
-      const file = files[0];
-      if (!file.type.startsWith("video/")) { alert("영상 파일만 업로드할 수 있습니다."); return; }
-
-      card._videoFile = file;
-
-      // ✅ 업로드 대신 movieUrl을 가짜 URL로 채운다
-      card._movieUrl = fakeHttpUrl("movie", file.name);
-
-      fileInfo.textContent =
-              `선택됨: ${file.name} (${Math.round(file.size/1024/1024)}MB)\n` +
-              `가짜 URL: ${card._movieUrl}`;
-    }
-
-    browseBtn.addEventListener("click", () => fileInput.click());
-    fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
-    bindDropzone(dropzone, handleFiles);
-  }
-
-  /* ============================
-   * 카드 드래그 앤 드롭 정렬
-   * ============================ */
-
-  let draggedCard = null;
-
-  filmList.addEventListener("dragstart", (e) => {
-    const card = e.target.closest(".film-card");
-    if (!card) return;
-    draggedCard = card;
-    card.classList.add("dragging");
-  });
-
-  filmList.addEventListener("dragend", (e) => {
-    const card = e.target.closest(".film-card");
-    if (card) card.classList.remove("dragging");
-    draggedCard = null;
-  });
-
-  filmList.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    if (!draggedCard) return;
-
-    const afterElement = getDragAfterElement(filmList, e.clientY);
-    if (!afterElement) filmList.appendChild(draggedCard);
-    else filmList.insertBefore(draggedCard, afterElement);
-  });
-
-  function getDragAfterElement(container, y) {
-    const draggableElements = [...container.querySelectorAll(".film-card:not(.dragging)")];
-    let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
-
-    draggableElements.forEach(el => {
-      const rect = el.getBoundingClientRect();
-      const offset = y - rect.top - rect.height / 2;
-      if (offset < 0 && offset > closest.offset) closest = { offset, element: el };
-    });
-
-    return closest.element;
-  }
-</script>
-
-<script>
-  /* ============================
-   * 저장: 업로드 → URL 세팅 → /movies 생성 → redirect
-   * ============================ */
-
-  const CREATE_MOVIE_ENDPOINT = "/movies";
-
-  const form = document.getElementById("filmographyForm");
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    // ✅ auth 준비(restoreSession) 완료 보장
-    const authReady = window.__ONFILM_AUTH_READY_PROMISE__
-            ? await window.__ONFILM_AUTH_READY_PROMISE__
-            : await window.OnfilmAuth?.restoreSession?.().catch(() => ({ ok:false }));
-
-    if (!authReady?.ok) {
-      const next = encodeURIComponent(location.pathname + location.search);
-      location.href = `/login.html?next=${next}`;
-      return;
-    }
-
-    const submitBtn = form.querySelector('button[type="submit"]');
-    if (submitBtn) submitBtn.disabled = true;
-
-    try {
-      // 1) 로그인 유저 username 가져오기
-      // [CHANGE] getMe()가 async일 가능성까지 안전 처리
-      const me =
-              (await Promise.resolve(window.OnfilmAuth.getMe?.()).catch(() => null))
-              || authReady.me;
-      const username = (me && me.username) ? String(me.username).trim() : "";
-      if (!username) {
-        throw new Error("username이 설정되어 있지 않습니다. 프로필에서 username을 설정해 주세요.");
+        fileInfo.textContent =
+                `선택됨: ${file.name} (${Math.round(file.size/1024)}KB)\n` +
+                `가짜 URL: ${card._thumbnailUrl}`;
       }
 
-      const cards = [...document.querySelectorAll(".film-card")];
+      browseBtn.addEventListener("click", () => fileInput.click());
+      fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
+      Util.bindDropzone(dropzone, handleFiles);
+    }
 
-      // 2) 순서대로 처리 (대용량 업로드라 병렬보다 순차가 안전)
-      for (let i = 0; i < cards.length; i++) {
-        const card = cards[i];
+    function bindTrailerDropzone(card) {
+      const dropzone = card.querySelector(".trailer-dropzone");
+      const browseBtn = card.querySelector(".trailer-browse-btn");
+      const fileInput = card.querySelector(".trailer-file-input");
+      const fileInfo  = card.querySelector(".trailer-file-info");
 
-        const title    = card.querySelector(".film-title-input").value.trim();
-        const yearStr  = card.querySelector(".film-year-input").value.trim();
-        const runtimeStr = card.querySelector(".film-runtime-input").value.trim();
-        const ageRate  = card.querySelector(".film-age-input").value;
+      function handleFiles(files) {
+        if (!files || !files.length) return;
+        const file = files[0];
+        if (!file.type.startsWith("video/")) { alert("영상 파일만 업로드할 수 있습니다."); return; }
 
-        const role = card.querySelector(".mp-person-role").value || null;
-        const castType = card.querySelector(".mp-cast-type").value || null;
-        const characterName = card.querySelector(".mp-character-name").value.trim() || null;
+        card._trailerFile = file;
+        card._trailerUrls = [Util.fakeHttpUrl("trailer", file.name)];
 
-        const rawGenreTexts = [...(card._genres || [])];
-
-        // ✅ 최소 검증 (백엔드 Movie.create 검증과 맞추기)
-        if (!title) throw new Error(`(${i+1}번째 작품) 제목은 필수입니다.`);
-        const runtime = runtimeStr ? Number(runtimeStr) : 0;
-        if (!runtime || runtime <= 0) throw new Error(`(${i+1}번째 작품) 런타임은 1분 이상이어야 합니다.`);
-        const releaseYear = yearStr ? Number(yearStr) : null;
-        if (!ageRate) throw new Error(`(${i+1}번째 작품) 관람연령을 선택해주세요.`);
-
-
-        if (!card._movieUrl) {
-          throw new Error(`(${i+1}번째 작품) 영상 파일을 선택해서 가짜 URL을 생성해야 합니다.`);
-        }
-
-        // 4) /movies 생성 (URL 기반)
-        const body = {
-          title,
-          runtime,
-          releaseYear,
-          movieUrl: card._movieUrl,
-          thumbnailUrl: card._thumbnailUrl || null,
-          trailerUrls: card._trailerUrls || [],
-          rawGenreTexts,
-          ageRating: ageRate,
-
-          role,
-          castType,
-          characterName
-        };
-
-        const movieId = await postJson(CREATE_MOVIE_ENDPOINT, body);
-        console.log("created movieId:", movieId);
+        fileInfo.textContent =
+                `선택됨: ${file.name} (${Math.round(file.size/1024/1024)}MB)\n` +
+                `가짜 URL: ${card._trailerUrls[0]}`;
       }
 
-      // 5) 모두 성공 → 배우 페이지 이동
-      location.href = "/onfilm/" + encodeURIComponent(username);
+      browseBtn.addEventListener("click", () => fileInput.click());
+      fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
+      Util.bindDropzone(dropzone, handleFiles);
+    }
 
-    } catch (err) {
-      console.error(err);
-      alert(err?.message ? String(err.message) : "저장 중 오류가 발생했습니다.");
-    } finally {
-      if (submitBtn) submitBtn.disabled = false;
-    }
-  });
+    function bindVideoDropzone(card) {
+      const dropzone = card.querySelector(".video-dropzone");
+      const browseBtn = card.querySelector(".video-browse-btn");
+      const fileInput = card.querySelector(".video-file-input");
+      const fileInfo  = card.querySelector(".video-file-info");
 
-  function setFileInfo(card, kind, text) {
-    if (kind === "thumb") {
-      const el = card.querySelector(".thumb-file-info");
-      if (el) el.textContent = text;
-    }
-    if (kind === "trailer") {
-      const el = card.querySelector(".trailer-file-info");
-      if (el) el.textContent = text;
-    }
-    if (kind === "video") {
-      const el = card.querySelector(".video-file-info");
-      if (el) el.textContent = text;
-    }
-  }
+      function handleFiles(files) {
+        if (!files || !files.length) return;
+        const file = files[0];
+        if (!file.type.startsWith("video/")) { alert("영상 파일만 업로드할 수 있습니다."); return; }
 
+        card._videoFile = file;
+        card._movieUrl = Util.fakeHttpUrl("movie", file.name);
+
+        fileInfo.textContent =
+                `선택됨: ${file.name} (${Math.round(file.size/1024/1024)}MB)\n` +
+                `가짜 URL: ${card._movieUrl}`;
+      }
+
+      browseBtn.addEventListener("click", () => fileInput.click());
+      fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
+      Util.bindDropzone(dropzone, handleFiles);
+    }
+
+    function getPayload(card) {
+      const title      = card.querySelector(".film-title-input").value.trim();
+      const yearStr    = card.querySelector(".film-year-input").value.trim();
+      const runtimeStr = card.querySelector(".film-runtime-input").value.trim();
+      const ageRate    = card.querySelector(".film-age-input").value;
+
+      const role          = card.querySelector(".mp-person-role").value || null;
+      const castType      = card.querySelector(".mp-cast-type").value || null;
+      const characterName = card.querySelector(".mp-character-name").value.trim() || null;
+
+      return {
+        title,
+        runtimeStr,
+        yearStr,
+        ageRate,
+        role,
+        castType,
+        characterName,
+        rawGenreTexts: [...(card._genres || [])],
+        thumbnailUrl: card._thumbnailUrl || null,
+        trailerUrls: card._trailerUrls || [],
+        movieUrl: card._movieUrl || ""
+      };
+    }
+
+    return { create, getPayload };
+  })();
+
+  /* ============================
+   * 5) DragSortModule
+   * ============================ */
+  const DragSortModule = (() => {
+    let draggedCard = null;
+
+    function attach(containerEl) {
+      containerEl.addEventListener("dragstart", (e) => {
+        const card = e.target.closest(".film-card");
+        if (!card) return;
+        draggedCard = card;
+        card.classList.add("dragging");
+      });
+
+      containerEl.addEventListener("dragend", (e) => {
+        const card = e.target.closest(".film-card");
+        if (card) card.classList.remove("dragging");
+        draggedCard = null;
+      });
+
+      containerEl.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        if (!draggedCard) return;
+
+        const afterElement = getDragAfterElement(containerEl, e.clientY);
+        if (!afterElement) containerEl.appendChild(draggedCard);
+        else containerEl.insertBefore(draggedCard, afterElement);
+      });
+    }
+
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll(".film-card:not(.dragging)")];
+      let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+
+      draggableElements.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        const offset = y - rect.top - rect.height / 2;
+        if (offset < 0 && offset > closest.offset) closest = { offset, element: el };
+      });
+
+      return closest.element;
+    }
+
+    return { attach };
+  })();
+
+  /* ============================
+   * 6) POST JSON (✅ apiFetchWithAutoRefresh 우선)
+   * ============================ */
   async function postJson(url, body) {
     const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
     if (!authReady?.ok) throw new Error("로그인이 필요합니다.");
 
-    // [ADD] 토큰을 직접 꺼내서 Authorization을 내가 직접 만든다
-    const token = await Promise.resolve(window.OnfilmAuth.getAccessToken?.()).catch(() => null);
+    const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
+            ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
+            : fetch;
 
-    // 디버그(토큰 전체 출력은 위험하니 앞부분만)
+    const token = await Promise.resolve(window.OnfilmAuth?.getAccessToken?.()).catch(() => null);
     console.log("token head:", token ? token.slice(0, 12) + "..." : "(none)");
 
-    const res = await fetch(url, {
+    const res = await fetcher(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -982,32 +921,10 @@
     return Number.isFinite(num) ? num : t;
   }
 
-
-
-
-  // auth.js 구현이 뭐든 최대한 맞추기
-  async function getCurrentMeSafely() {
-    if (window.OnfilmAuth && typeof window.OnfilmAuth.getMe === "function") return await window.OnfilmAuth.getMe();
-    if (window.OnfilmAuth && typeof window.OnfilmAuth.me === "function") return await window.OnfilmAuth.me();
-    if (window.OnfilmAuth && typeof window.OnfilmAuth.restoreSession === "function") {
-      const r = await window.OnfilmAuth.restoreSession();
-      if (r && r.me) return r.me;
-      if (r && r.user) return r.user;
-    }
-    try {
-      const raw = localStorage.getItem("me") || localStorage.getItem("user") || "";
-      if (raw) return JSON.parse(raw);
-    } catch (_) {}
-    return null;
-  }
-
-</script>
-
-<script>
-  // "프로필로 돌아가기":
-  // - 프로필이 존재하고(또는 내용이 있으면) /onfilm/{username}
-  // - 프로필이 없으면(404 또는 내용 없음) /index.html
-  document.addEventListener("DOMContentLoaded", () => {
+  /* ============================
+   * 7) "프로필로 돌아가기" (publicId 기반)
+   * ============================ */
+  function setupBackToProfileLink() {
     const link = document.getElementById("backToProfileLink");
     if (!link) return;
 
@@ -1027,18 +944,23 @@
           return;
         }
 
-        // 2) 프로필 존재/내용 확인
-        //    (인증 필요할 수 있으니 apiFetchWithAutoRefresh 우선 사용)
+        // 2) username -> publicId (프로필 존재 확인용)
+        const publicId = await resolvePublicIdByUsername(uname);
+        if (!publicId) {
+          window.location.href = "/index.html";
+          return;
+        }
+
+        // 3) publicId로 프로필 확인: GET /api/people/{publicId}
         const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
                 ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
                 : fetch;
 
-        const res = await fetcher(`/persons/${encodeURIComponent(uname)}`, {
+        const res = await fetcher(`/api/people/${encodeURIComponent(publicId)}`, {
           method: "GET",
           headers: { "Accept": "application/json" }
         });
 
-        // 404(프로필 없음) 또는 기타 실패 => 랜딩
         if (!res.ok) {
           window.location.href = "/index.html";
           return;
@@ -1046,7 +968,6 @@
 
         const p = await res.json().catch(() => null);
 
-        // "프로필이 없다" 기준: 아무 정보도 없는 경우
         const hasAny =
                 !!(p?.name && String(p.name).trim()) ||
                 !!(p?.oneLineIntro && String(p.oneLineIntro).trim()) ||
@@ -1061,13 +982,105 @@
           return;
         }
 
-        // 3) 정상 프로필이면 공개 페이지로
+        // ✅ 최종 라우팅은 username
         window.location.href = "/onfilm/" + encodeURIComponent(uname);
+
       } catch (_) {
         window.location.href = "/index.html";
       }
     });
-  });
+  }
+
+  /* ============================
+   * 8) MAIN
+   * ============================ */
+  function main() {
+    const filmListEl = document.getElementById("filmList");
+    const addFilmBtn = document.getElementById("addFilmBtn");
+    const form = document.getElementById("filmographyForm");
+
+    DragSortModule.attach(filmListEl);
+    FilmCardModule.create(filmListEl, {});
+    addFilmBtn.addEventListener("click", () => FilmCardModule.create(filmListEl, {}));
+    setupBackToProfileLink();
+
+    // ✅ 백엔드 MovieController 기준: POST /api/movie
+    const CREATE_MOVIE_ENDPOINT = "/api/movie";
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const authReady = window.__ONFILM_AUTH_READY_PROMISE__
+              ? await window.__ONFILM_AUTH_READY_PROMISE__
+              : await window.OnfilmAuth?.restoreSession?.().catch(() => ({ ok:false }));
+
+      if (!authReady?.ok) {
+        const next = encodeURIComponent(location.pathname + location.search);
+        location.href = `/login.html?next=${next}`;
+        return;
+      }
+
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        const me =
+                (await Promise.resolve(window.OnfilmAuth.getMe?.()).catch(() => null))
+                || authReady.me;
+
+        const username = (me && me.username) ? String(me.username).trim() : "";
+        if (!username) {
+          throw new Error("username이 설정되어 있지 않습니다. 프로필에서 username을 설정해 주세요.");
+        }
+
+        const publicId = await resolvePublicIdByUsername(username);
+        if (!publicId) {
+          throw new Error("publicId를 찾을 수 없습니다. (/api/person/{username} 응답 확인 필요)");
+        }
+
+        const cards = [...filmListEl.querySelectorAll(".film-card")];
+
+        for (let i = 0; i < cards.length; i++) {
+          const card = cards[i];
+          const data = FilmCardModule.getPayload(card);
+
+          if (!data.title) throw new Error(`(${i+1}번째 작품) 제목은 필수입니다.`);
+          const runtime = data.runtimeStr ? Number(data.runtimeStr) : 0;
+          if (!runtime || runtime <= 0) throw new Error(`(${i+1}번째 작품) 런타임은 1분 이상이어야 합니다.`);
+          const releaseYear = data.yearStr ? Number(data.yearStr) : null;
+          if (!data.ageRate) throw new Error(`(${i+1}번째 작품) 관람연령을 선택해주세요.`);
+          if (!data.movieUrl) throw new Error(`(${i+1}번째 작품) 영상 파일을 선택해서 가짜 URL을 생성해야 합니다.`);
+
+          const body = {
+            title: data.title,
+            runtime,
+            releaseYear,
+            movieUrl: data.movieUrl,
+            thumbnailUrl: data.thumbnailUrl,
+            trailerUrls: data.trailerUrls,
+            rawGenreTexts: data.rawGenreTexts,
+            ageRating: data.ageRate,
+            role: data.role,
+            castType: data.castType,
+            characterName: data.characterName
+          };
+
+          const movieId = await postJson(CREATE_MOVIE_ENDPOINT, body);
+          console.log("created movieId:", movieId);
+        }
+
+        location.href = "/onfilm/" + encodeURIComponent(username);
+
+      } catch (err) {
+        console.error(err);
+        alert(err?.message ? String(err.message) : "저장 중 오류가 발생했습니다.");
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", main);
 </script>
 
 </body>

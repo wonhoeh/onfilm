@@ -48,9 +48,9 @@ public class PersonController {
     // =============================
     // FILMOGRAPHY
     // =============================
-    @GetMapping("/{name}/movies")
-    public ResponseEntity<List<MovieCardResponse>> getFilmographyByPersonName(@PathVariable String name) {
-        List<MovieCardResponse> personFilmography = movieReadService.getFilmographyByPersonName(name);
+    @GetMapping("/{publicId}/movies")
+    public ResponseEntity<List<MovieCardResponse>> getFilmographyByPublicId(@PathVariable String publicId) {
+        List<MovieCardResponse> personFilmography = movieReadService.getFilmographyByPublicId(publicId);
         return ResponseEntity.ok(personFilmography);
     }
 }

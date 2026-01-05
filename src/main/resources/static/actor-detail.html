@@ -266,9 +266,8 @@
             background: rgba(255,255,255,0.03);
         }
         .empty-cta.view-only .empty-cta-link{
-            display:none; /* 비소유자는 링크 숨김 */
+            display:none;
         }
-
 
         /* FILMOGRAPHY */
         .filmography-section h2{
@@ -495,7 +494,6 @@
             grid-template-columns:repeat(3,1fr);
             gap:12px;
         }
-        /* gallery-grid 안에 있는 empty-cta는 전부 한 줄(전체폭) */
         .gallery-grid > .empty-cta{
             grid-column: 1 / -1;
         }
@@ -915,7 +913,7 @@
             position:absolute;
             top:120%;
             right:0;
-            min-width:210px; /* ✅ index와 동일 */
+            min-width:210px;
             background:var(--panel-2);
             border-radius:12px;
             border:1px solid var(--line);
@@ -958,7 +956,7 @@
             display:flex;
             align-items:center;
             justify-content:space-between;
-            gap:10px; /* ✅ index와 동일 */
+            gap:10px;
         }
         .profile-item span{
             font-size:11px;
@@ -968,10 +966,7 @@
             background:rgba(255,255,255,0.06);
         }
 
-
-
-
-        /* ✅ owner-only: “숨김이지만 공간 유지” (필모/갤러리 영역 구조 유지용) */
+        /* ✅ owner-only: “숨김이지만 공간 유지” */
         .owner-only.hidden-keep-space{
             visibility:hidden;
             pointer-events:none;
@@ -1032,17 +1027,17 @@
 
             <div class="film-slider-container" id="filmSliderContainer">
 
-                <!-- ✅ owner-only: 소유자만 등록 CTA 보임 -->
+                <!-- ✅ owner-only -->
                 <div class="empty-cta hidden owner-only" id="filmEmpty">
                     <a class="empty-cta-icon" href="/edit-filmography.html" aria-label="필모그래피 등록하기">
-                        <span class="empty-cta-ring">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6.5h16v11H4z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 6.5v11M16 6.5v11"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.2 8.2h.01M6.2 10.2h.01M6.2 12.2h.01M6.2 14.2h.01"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.8 8.2h.01M17.8 10.2h.01M17.8 12.2h.01M17.8 14.2h.01"/>
-                          </svg>
-                        </span>
+            <span class="empty-cta-ring">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6.5h16v11H4z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 6.5v11M16 6.5v11"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.2 8.2h.01M6.2 10.2h.01M6.2 12.2h.01M6.2 14.2h.01"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.8 8.2h.01M17.8 10.2h.01M17.8 12.2h.01M17.8 14.2h.01"/>
+              </svg>
+            </span>
                     </a>
 
                     <div class="empty-cta-title">필모그래피 공유</div>
@@ -1050,22 +1045,21 @@
                     <a class="empty-cta-link" href="/edit-filmography.html">첫 작품 등록하기</a>
                 </div>
 
-                <!-- ✅ view-only: 비소유자/비로그인 + 게시물 없음 -->
+                <!-- ✅ view-only -->
                 <div class="empty-cta hidden view-only" id="filmEmptyViewOnly">
                     <a class="empty-cta-icon" href="javascript:void(0)" aria-label="필모그래피 게시물 없음">
-                        <span class="empty-cta-ring">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6.5h16v11H4z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 6.5v11M16 6.5v11"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.2 8.2h.01M6.2 10.2h.01M6.2 12.2h.01M6.2 14.2h.01"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.8 8.2h.01M17.8 10.2h.01M17.8 12.2h.01M17.8 14.2h.01"/>
-                          </svg>
-                        </span>
+            <span class="empty-cta-ring">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6.5h16v11H4z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 6.5v11M16 6.5v11"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.2 8.2h.01M6.2 10.2h.01M6.2 12.2h.01M6.2 14.2h.01"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.8 8.2h.01M17.8 10.2h.01M17.8 12.2h.01M17.8 14.2h.01"/>
+              </svg>
+            </span>
                     </a>
 
                     <div class="empty-cta-title">게시물 없음</div>
                 </div>
-
 
                 <button class="film-arrow left" id="filmPrevBtn">‹</button>
 
@@ -1082,18 +1076,18 @@
             <h2>사진 갤러리</h2>
             <div class="gallery-grid" id="galleryGrid">
 
-                <!-- ✅ owner-only: 소유자만 등록 CTA 보임 -->
+                <!-- ✅ owner-only -->
                 <div class="empty-cta hidden owner-only" id="galleryEmpty">
                     <a class="empty-cta-icon" href="/edit-gallery.html" aria-label="사진 공유하기">
-                        <span class="empty-cta-ring">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M7 7.5h2l1-1.5h4l1 1.5h2A3 3 0 0 1 20 10.5v7A3 3 0 0 1 17 20.5H7A3 3 0 0 1 4 17.5v-7A3 3 0 0 1 7 7.5Z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M12 11a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 7.5l.9-1.2"/>
-                          </svg>
-                        </span>
+            <span class="empty-cta-ring">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M7 7.5h2l1-1.5h4l1 1.5h2A3 3 0 0 1 20 10.5v7A3 3 0 0 1 17 20.5H7A3 3 0 0 1 4 17.5v-7A3 3 0 0 1 7 7.5Z"/>
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 11a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 7.5l.9-1.2"/>
+              </svg>
+            </span>
                     </a>
 
                     <div class="empty-cta-title">사진 공유</div>
@@ -1101,25 +1095,24 @@
                     <a class="empty-cta-link" href="/edit-gallery.html">첫 사진 등록하기</a>
                 </div>
 
-                <!-- ✅ view-only: 비소유자/비로그인 + 게시물 없음 -->
+                <!-- ✅ view-only -->
                 <div class="empty-cta hidden view-only" id="galleryEmptyViewOnly">
                     <a class="empty-cta-icon" href="javascript:void(0)" aria-label="갤러리 게시물 없음">
-                        <span class="empty-cta-ring">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M7 7.5h2l1-1.5h4l1 1.5h2A3 3 0 0 1 20 10.5v7A3 3 0 0 1 17 20.5H7A3 3 0 0 1 4 17.5v-7A3 3 0 0 1 7 7.5Z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M12 11a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 7.5l.9-1.2"/>
-                          </svg>
-                        </span>
+            <span class="empty-cta-ring">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M7 7.5h2l1-1.5h4l1 1.5h2A3 3 0 0 1 20 10.5v7A3 3 0 0 1 17 20.5H7A3 3 0 0 1 4 17.5v-7A3 3 0 0 1 7 7.5Z"/>
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 11a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 7.5l.9-1.2"/>
+              </svg>
+            </span>
                     </a>
 
                     <div class="empty-cta-title">게시물 없음</div>
                 </div>
 
-
-                <!-- gallery-item들은 실제 데이터가 있으면 여기에 들어옴 -->
+                <!-- gallery-item들은 데이터 있으면 여기에 append -->
             </div>
 
             <div class="gallery-spinner" id="gallerySpinner">
@@ -1177,19 +1170,231 @@
 
 <script src="/js/auth.js"></script>
 
-<script>let popup = null;</script>
-
-<!-- JS 1: FILMOGRAPHY SLIDER -->
 <script>
-    const slider   = document.getElementById("filmSlider");
-    const prevBtn  = document.getElementById("filmPrevBtn");
-    const nextBtn  = document.getElementById("filmNextBtn");
-    const filmLine = document.querySelector(".film-slider-container");
+    /* =========================================================
+       OnFilm Actor Detail
+       URL:  /onfilm/{username}
+       API:  /api/person/{username} -> { publicId }
+             /api/people/{publicId}
+             /api/people/{publicId}/movies
+             /api/people/{publicId}/gallery   (있으면 사용, 없으면 empty 처리)
+    ========================================================= */
+
+    let popup = null;
+
+    /* ---------------------------
+       0) Utils
+    --------------------------- */
+    const $  = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+    function escapeHtml(str) {
+        return String(str ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    function safeHostname(url) {
+        try { return new URL(url).hostname; }
+        catch { return ""; }
+    }
+
+    function lockBodyScroll(lock) {
+        document.body.style.overflow = lock ? "hidden" : "";
+    }
+
+    /* ---------------------------
+       1) Path
+    --------------------------- */
+    function getUsernameFromPath() {
+        const parts = window.location.pathname.split("/").filter(Boolean);
+        if (parts.length >= 2 && parts[0] === "onfilm") return decodeURIComponent(parts[1]);
+        return null;
+    }
+
+    /* ---------------------------
+       2) API helpers
+    --------------------------- */
+    async function apiGetJson(url) {
+        const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
+            ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
+            : fetch;
+
+        const res = await fetcher(url, { headers: { "Accept": "application/json" }});
+        if (!res.ok) throw new Error(`API_FAILED ${res.status} ${url}`);
+        return await res.json();
+    }
+
+    async function fetchPublicIdByUsername(username) {
+        return apiGetJson(`/api/person/${encodeURIComponent(username)}`); // { publicId }
+    }
+
+    async function fetchPersonByPublicId(publicId) {
+        return apiGetJson(`/api/people/${encodeURIComponent(publicId)}`);
+    }
+
+    async function fetchFilmographyByPublicId(publicId) {
+        return apiGetJson(`/api/people/${encodeURIComponent(publicId)}/movies`);
+    }
+
+    async function fetchGalleryByPublicId(publicId) {
+        // ✅ 서버에 없을 수 있으니 실패해도 빈 배열로 처리
+        try {
+            return await apiGetJson(`/api/people/${encodeURIComponent(publicId)}/gallery`);
+        } catch (e) {
+            return [];
+        }
+    }
+
+    /* ---------------------------
+       3) Auth / Owner helpers
+    --------------------------- */
+    async function restoreMeSafe() {
+        try {
+            if (!window.OnfilmAuth?.restoreSession) return null;
+            const result = await window.OnfilmAuth.restoreSession();
+            if (result && result.ok && result.me) return result.me;
+        } catch (_) {}
+        return null;
+    }
+
+    // ✅ owner 판정 개선: id/ownerId 뿐 아니라 username도 비교 (서버 스펙이 바뀌어도 안전)
+    function computeIsOwner(me, person, pathUsername) {
+        if (!me) return false;
+
+        const myId = me?.id;
+        const personId = person?.id;
+        const ownerId  = person?.ownerId;
+
+        if (myId != null && personId != null && String(myId) === String(personId)) return true;
+        if (myId != null && ownerId  != null && String(myId) === String(ownerId))  return true;
+
+        const myUsername = String(me?.username || "").trim();
+        const uname = String(pathUsername || "").trim();
+        if (myUsername && uname && myUsername === uname) return true;
+
+        return false;
+    }
+
+    function applyOwnerUI(isOwner){
+        $("#profileSettingsBtn")?.classList.toggle("hidden", !isOwner);
+
+        const overlay = $("#profileEditOverlay");
+        overlay?.classList.toggle("hidden", !isOwner);
+
+        if (!isOwner && overlay) {
+            overlay.classList.remove("show");
+            lockBodyScroll(false);
+        }
+
+        $$(".owner-only").forEach(el => {
+            el.classList.remove("hidden-keep-space");
+            if (!isOwner) el.classList.add("hidden-keep-space");
+        });
+
+        window.__isOwner = !!isOwner;
+    }
+
+    /* ---------------------------
+       4) Profile binding UI
+    --------------------------- */
+    function applyPersonToUI(p) {
+        const nameEl = $("#profileName");
+        if (nameEl) {
+            nameEl.textContent = p?.name || "회원";
+            nameEl.dataset.value = p?.name || "";
+        }
+
+        const metaEl = $("#profileMeta");
+        if (metaEl) {
+            const birthDate  = p?.birthDate  || "";
+            const birthPlace = p?.birthPlace || "";
+            metaEl.dataset.birthDate  = birthDate;
+            metaEl.dataset.birthPlace = birthPlace;
+
+            const left  = birthDate  ? birthDate  : "생년월일 미등록";
+            const right = birthPlace ? birthPlace : "출생지 미등록";
+            metaEl.textContent = `${left} · ${right}`;
+        }
+
+        const bioEl = $("#bioDisplay");
+        if (bioEl) {
+            bioEl.textContent = p?.oneLineIntro || "소개글을 입력해 주세요.";
+            bioEl.dataset.value = p?.oneLineIntro || "";
+        }
+
+        const imgEl = $("#profilePhoto");
+        if (imgEl) {
+            const placeholder = imgEl.getAttribute("src");
+            const real = (p?.profileImageUrl || "").trim();
+            imgEl.dataset.profileSrc = real;
+            imgEl.src = real || placeholder;
+            imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = placeholder; };
+        }
+
+        const snsRow = $("#snsRow");
+        if (snsRow) {
+            snsRow.innerHTML = "";
+            const list = Array.isArray(p?.snsList) ? p.snsList : [];
+            list.forEach(sns => {
+                const type = (sns?.type || "").toString().toUpperCase();
+                let url = (sns?.url || "").toString().trim();
+                if (!url) return;
+                if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+
+                const brand =
+                    type === "INSTAGRAM" ? "instagram" :
+                        type === "YOUTUBE"   ? "youtube"   :
+                            type === "NAVER"     ? "naver"     :
+                                (type === "TWITTER" || type === "X") ? "x" : "x";
+
+                const a = document.createElement("a");
+                a.className = "sns-pill";
+                a.href = url;
+                a.target = "_blank";
+                a.rel = "noopener";
+                a.dataset.brand = brand;
+                a.innerHTML = `
+          <span class="sns-badge"><span class="sns-icon"></span></span>
+          <span>${escapeHtml(type)}</span>
+          <span class="sns-handle">${escapeHtml(safeHostname(url))}</span>
+        `;
+                snsRow.appendChild(a);
+            });
+        }
+
+        const tagListEl = $("#tagList");
+        if (tagListEl) {
+            tagListEl.innerHTML = "";
+            const tags = Array.isArray(p?.rawTags) ? p.rawTags : [];
+            tags.forEach(t => {
+                const raw = (typeof t === "string" ? t : (t?.rawTag || "")).toString().trim();
+                if (!raw) return;
+                const span = document.createElement("span");
+                span.className = "profile-tag";
+                span.textContent = raw.startsWith("#") ? raw : `#${raw}`;
+                tagListEl.appendChild(span);
+            });
+        }
+
+        updateEmptyUI();
+    }
+
+    /* ---------------------------
+       5) Filmography (cards + slider + popup)
+    --------------------------- */
+    const slider   = $("#filmSlider");
+    const prevBtn  = $("#filmPrevBtn");
+    const nextBtn  = $("#filmNextBtn");
+    const filmLine = $(".film-slider-container");
 
     let index = 0;
 
     function getCardWidth(){
-        const card = slider.children[0];
+        const card = slider?.children?.[0];
         if (!card) return 0;
         const style = window.getComputedStyle(card);
         const marginRight = parseInt(style.marginRight) || 0;
@@ -1197,6 +1402,8 @@
     }
 
     function updateArrows() {
+        if (!slider || !prevBtn || !nextBtn) return;
+
         const cardCount = slider.children.length;
         const maxIndex = cardCount - 3;
 
@@ -1206,51 +1413,124 @@
             return;
         }
 
+        if (index > maxIndex) index = maxIndex;
+        if (index < 0) index = 0;
+
         prevBtn.style.display = (index === 0) ? "none" : "flex";
         nextBtn.style.display = (index >= maxIndex) ? "none" : "flex";
     }
 
     function updateSlider(){
+        if (!slider) return;
         const w = getCardWidth();
         slider.style.transform = `translateX(${-w * index}px)`;
         updateArrows();
     }
 
-    nextBtn.addEventListener("click", () => {
+    nextBtn?.addEventListener("click", () => {
         const maxIndex = slider.children.length - 3;
-        if(index < maxIndex){
-            index++;
-            updateSlider();
-        }
+        if (index < maxIndex) { index++; updateSlider(); }
     });
 
-    prevBtn.addEventListener("click", () => {
-        if(index > 0){
-            index--;
-            updateSlider();
-        }
+    prevBtn?.addEventListener("click", () => {
+        if (index > 0) { index--; updateSlider(); }
     });
 
     window.addEventListener("mousemove", (e) => {
-        if (!filmLine) return;
+        if (!filmLine || !prevBtn || !nextBtn) return;
         const rect = filmLine.getBoundingClientRect();
         const y = e.clientY;
-
         const inFilmLine = y >= rect.top && y <= rect.bottom;
 
-        if (inFilmLine) {
-            updateArrows();
-        } else {
+        if (inFilmLine) updateArrows();
+        else {
             if (!popup || !popup.classList.contains("show")) {
                 prevBtn.style.display = "none";
                 nextBtn.style.display = "none";
             }
         }
     });
-</script>
 
-<!-- JS 2: MOVIE POPUP -->
-<script>
+    function ageToBadge(ageRating) {
+        switch ((ageRating || "").toUpperCase()) {
+            case "ALL": return "ALL";
+            case "AGE_12": return "12";
+            case "AGE_15": return "15";
+            case "AGE_18": return "18";
+            default: return "";
+        }
+    }
+
+    function castTypeToKorean(castType) {
+        switch ((castType || "").toUpperCase()) {
+            case "LEAD": return "주연";
+            case "SUPPORTING": return "조연";
+            case "CAMEO": return "카메오";
+            default: return "";
+        }
+    }
+
+    function createFilmCard(item) {
+        const article = document.createElement("article");
+        article.className = "film-card";
+
+        const title = item?.title ?? "";
+        const genre = item?.genre ?? "";
+        const runtime = (item?.runtime != null) ? `${item.runtime}분` : "";
+        const age = ageToBadge(item?.ageRating);
+        const video = item?.trailerUrl || "";
+        const thumb = item?.thumbnailUrl || "";
+
+        const releaseYear = (item?.releaseYear != null) ? String(item.releaseYear) : "";
+        const castLabel = castTypeToKorean(item?.castType);
+
+        const metaText =
+            (releaseYear && castLabel) ? `${releaseYear} · ${castLabel}` :
+                (releaseYear) ? releaseYear :
+                    (castLabel) ? castLabel : "";
+
+        article.dataset.title = title;
+        article.dataset.genre = genre;
+        article.dataset.runtime = runtime;
+        article.dataset.age = age;
+        article.dataset.video = video;
+        article.dataset.thumb = thumb;
+
+        article.innerHTML = `
+      <img class="film-poster" src="${thumb || "/videos/thumbnail.png"}" alt="">
+      <div class="film-body">
+        <div class="film-title">${escapeHtml(title)}</div>
+        <div class="film-meta">${escapeHtml(metaText)}</div>
+      </div>
+    `;
+
+        const img = article.querySelector("img.film-poster");
+        if (img) img.onerror = () => { img.onerror = null; img.src = "/videos/thumbnail.png"; };
+
+        return article;
+    }
+
+    async function renderFilmography(publicId) {
+        if (!slider) return;
+        slider.innerHTML = "";
+
+        try {
+            const list = await fetchFilmographyByPublicId(publicId);
+            const movies = Array.isArray(list) ? list : [];
+
+            movies.forEach(item => slider.appendChild(createFilmCard(item)));
+
+            index = 0;
+            updateSlider();
+            updateEmptyUI();
+        } catch (e) {
+            console.error("renderFilmography error:", e);
+            updateEmptyUI();
+            updateArrows();
+        }
+    }
+
+    /* ---- movie popup ---- */
     let hideTimer = null;
     let activeCard = null;
 
@@ -1299,10 +1579,7 @@
 
         document.body.appendChild(popup);
 
-        popup.addEventListener("mouseenter", () => {
-            if (hideTimer) clearTimeout(hideTimer);
-        });
-
+        popup.addEventListener("mouseenter", () => { if (hideTimer) clearTimeout(hideTimer); });
         popup.addEventListener("mouseleave", hidePopup);
 
         popup.querySelector(".popup-mute-btn").onclick = (e) => {
@@ -1312,14 +1589,8 @@
             const soundOff = popup.querySelector(".popup-sound-off");
 
             v.muted = !v.muted;
-
-            if (v.muted) {
-                soundOn.style.display = "none";
-                soundOff.style.display = "block";
-            } else {
-                soundOn.style.display = "block";
-                soundOff.style.display = "none";
-            }
+            soundOn.style.display = v.muted ? "none" : "block";
+            soundOff.style.display = v.muted ? "block" : "none";
         };
 
         popup.querySelector(".popup-play-btn-circle").onclick = (e) => {
@@ -1332,22 +1603,18 @@
         likeBtn.onclick = (e) => {
             e.stopPropagation();
             likeBtn.classList.toggle("liked");
-
             if (likeBtn.classList.contains("liked")) {
                 likeBtn.style.transform = "scale(1.25)";
                 setTimeout(() => { likeBtn.style.transform = "scale(1)"; }, 250);
             }
         };
 
-        popup.addEventListener("click", () => {
-            window.location.href = "/movie-detail.html";
-        });
+        popup.addEventListener("click", () => { window.location.href = "/movie-detail.html"; });
     }
     createPopup();
 
     function showPopup(card){
         if (!popup) return;
-
         if (hideTimer) clearTimeout(hideTimer);
         activeCard = card;
 
@@ -1373,7 +1640,7 @@
         }
 
         videoEl.pause();
-        videoEl.src = card.dataset.video;
+        videoEl.src = card.dataset.video || "";
         videoEl.currentTime = 0;
 
         const onTimeUpdate = () => {
@@ -1383,7 +1650,6 @@
             }
         };
         videoEl.addEventListener("timeupdate", onTimeUpdate);
-
         videoEl.play().catch(() => {});
 
         const EXTRA_INFO_HEIGHT = 60;
@@ -1418,26 +1684,20 @@
         }, 120);
     }
 
-    const filmSliderEl = document.getElementById("filmSlider");
+    slider?.addEventListener("mouseover", (e) => {
+        const card = e.target.closest(".film-card");
+        if (!card || !slider.contains(card)) return;
+        if (activeCard === card) return;
+        showPopup(card);
+    });
 
-    if (filmSliderEl) {
-        filmSliderEl.addEventListener("mouseover", (e) => {
-            const card = e.target.closest(".film-card");
-            if (!card || !filmSliderEl.contains(card)) return;
-            if (activeCard === card) return;
-            showPopup(card);
-        });
-
-        filmSliderEl.addEventListener("mouseout", (e) => {
-            const fromCard = e.target.closest(".film-card");
-            if (!fromCard) return;
-
-            const toEl = e.relatedTarget;
-            if (toEl && fromCard.contains(toEl)) return;
-
-            hidePopup();
-        });
-    }
+    slider?.addEventListener("mouseout", (e) => {
+        const fromCard = e.target.closest(".film-card");
+        if (!fromCard) return;
+        const toEl = e.relatedTarget;
+        if (toEl && fromCard.contains(toEl)) return;
+        hidePopup();
+    });
 
     function hidePopupImmediate() {
         if (!popup) return;
@@ -1453,79 +1713,12 @@
     window.addEventListener("scroll", () => { if (activeCard) hidePopupImmediate(); });
     window.addEventListener("touchmove", () => { if (activeCard) hidePopupImmediate(); });
 
-    window.addEventListener("load", updateArrows);
-</script>
-
-<!-- ✅ 권한/소유자 판별 헬퍼 (ID 기반) -->
-<script>
-    // 현재 프로필 페이지의 username을 경로에서 추출 (/onfilm/{username})
-    function getUsernameFromPath() {
-        const parts = window.location.pathname.split("/").filter(Boolean);
-        if (parts.length >= 2 && parts[0] === "onfilm") return decodeURIComponent(parts[1]);
-        return null;
-    }
-
-    // 서버에서 person(프로필 주인) 조회 (반드시 id 포함하도록)
-    async function fetchPersonByName(username) {
-        const res = await fetch(`/api/persons/${encodeURIComponent(username)}`, {
-            method: "GET",
-            headers: { "Accept": "application/json" }
-        });
-        if (!res.ok) throw new Error("GET_PERSON_FAILED status=" + res.status);
-        return await res.json();
-    }
-
-    // 세션 복구해서 me 가져오기
-    async function restoreMeSafe() {
-        try {
-            const result = await window.OnfilmAuth.restoreSession();
-            console.log("restoreSession result:", result);
-            console.log("me.id =", result?.me?.id);
-            if (result && result.ok && result.me) return result.me;
-        } catch (e) {}
-        return null;
-    }
-
-    // ID 기반 소유자 판별:
-    // - me.id === person.id (or person.ownerId)
-    function computeIsOwnerById(me, person) {
-        const myId = me?.id;
-        if (myId === null || myId === undefined) return false;
-
-        // 백엔드가 person.id 로 주는 경우
-        const personId = person?.id;
-
-        // 혹시 ownerId 로 주는 경우까지 대비 (둘 중 하나만 있어도 됨)
-        const ownerId = person?.ownerId;
-
-        return (personId !== undefined && personId !== null && String(myId) === String(personId))
-            || (ownerId !== undefined && ownerId !== null && String(myId) === String(ownerId));
-    }
-
-    // isOwner에 따라 편집 UI 토글
-    function applyOwnerUI(isOwner){
-        // ⚙️ / 편집 오버레이는 완전 숨김
-        document.getElementById("profileSettingsBtn")?.classList.toggle("hidden", !isOwner);
-        document.getElementById("profileEditOverlay")?.classList.toggle("hidden", !isOwner);
-
-        // 필모/갤러리 empty CTA는 "구조 유지" 위해 비소유자면 공간만 남기기(visibility hidden)
-        const ownerCtas = document.querySelectorAll(".owner-only");
-        ownerCtas.forEach(el => {
-            el.classList.remove("hidden-keep-space");
-            if (!isOwner) el.classList.add("hidden-keep-space");
-        });
-
-        // 전역 상태 저장(다른 함수에서 활용)
-        window.__isOwner = !!isOwner;
-    }
-</script>
-
-<!-- JS 3: GALLERY + LIGHTBOX + 편집 메뉴 JS -->
-<script>
-    const gallerySection = document.querySelector(".gallery-section");
-    const galleryGrid    = document.querySelector(".gallery-grid");
-    const galleryItems   = Array.from(galleryGrid.querySelectorAll(".gallery-item"));
-    const gallerySpinner = document.getElementById("gallerySpinner");
+    /* ---------------------------
+       6) Gallery + Lightbox
+    --------------------------- */
+    const gallerySection = $("#gallerySection");
+    const galleryGrid    = $("#galleryGrid");
+    const gallerySpinner = $("#gallerySpinner");
 
     const INITIAL_COUNT = 6;
     const BATCH_SIZE    = 6;
@@ -1537,32 +1730,71 @@
     let lightboxImg     = null;
     let currentIndex    = 0;
 
-    function initGallery() {
-        galleryItems.forEach((img, idx) => {
+    function getGalleryItems() {
+        return galleryGrid ? Array.from(galleryGrid.querySelectorAll(".gallery-item")) : [];
+    }
+
+    function createGalleryItem(src) {
+        const img = document.createElement("img");
+        img.className = "gallery-item";
+        img.src = src || "/videos/gallery-placeholder.png";
+        img.alt = "gallery";
+        img.loading = "lazy";
+        img.onerror = () => { img.onerror = null; img.src = "/videos/gallery-placeholder.png"; };
+        return img;
+    }
+
+    async function renderGallery(publicId) {
+        if (!galleryGrid) return;
+
+        // ✅ empty CTA div 2개는 유지하고, 실제 이미지들만 제거
+        getGalleryItems().forEach(el => el.remove());
+
+        const list = await fetchGalleryByPublicId(publicId);
+        const photos = Array.isArray(list) ? list : [];
+
+        // 서버가 [{url}] 또는 ["url"] 둘 다 대응
+        const urls = photos
+            .map(x => (typeof x === "string" ? x : (x?.url || x?.imageUrl || x?.photoUrl || "")))
+            .map(s => String(s || "").trim())
+            .filter(Boolean);
+
+        urls.forEach(u => galleryGrid.appendChild(createGalleryItem(u)));
+
+        initGalleryIfAny();
+        updateEmptyUI();
+    }
+
+    function initGalleryIfAny() {
+        const items = getGalleryItems();
+        if (items.length === 0) return;
+
+        items.forEach((img, idx) => {
             img.style.display = (idx < INITIAL_COUNT) ? "block" : "none";
         });
-        visibleCount = Math.min(INITIAL_COUNT, galleryItems.length);
 
-        if (galleryItems.length <= INITIAL_COUNT && gallerySpinner) {
-            gallerySpinner.style.display = "none";
-        }
+        visibleCount = Math.min(INITIAL_COUNT, items.length);
+        if (items.length <= INITIAL_COUNT && gallerySpinner) gallerySpinner.style.display = "none";
     }
 
     function showMoreImages() {
-        const remaining = galleryItems.length - visibleCount;
+        const items = getGalleryItems();
+        const remaining = items.length - visibleCount;
         if (remaining <= 0) return;
 
         const toShow = Math.min(BATCH_SIZE, remaining);
         for (let i = 0; i < toShow; i++) {
-            const img = galleryItems[visibleCount + i];
+            const img = items[visibleCount + i];
             if (img) img.style.display = "block";
         }
         visibleCount += toShow;
     }
 
     function handleScroll() {
+        const items = getGalleryItems();
         if (isLoading) return;
-        if (visibleCount >= galleryItems.length) return;
+        if (visibleCount >= items.length) return;
+        if (!gallerySection) return;
 
         const rect = gallerySection.getBoundingClientRect();
         const viewHeight = window.innerHeight || document.documentElement.clientHeight;
@@ -1571,8 +1803,7 @@
             isLoading = true;
             if (gallerySpinner) gallerySpinner.style.display = "flex";
 
-            const delay = 700 + Math.random() * 500;
-
+            const delay = 500;
             setTimeout(() => {
                 showMoreImages();
                 isLoading = false;
@@ -1605,18 +1836,11 @@
 
         lightboxImg.addEventListener("click", closeLightbox);
 
-        lightboxPrevArrow.addEventListener("click", (e) => {
-            e.stopPropagation();
-            showPrevPhoto();
-        });
-        lightboxNextArrow.addEventListener("click", (e) => {
-            e.stopPropagation();
-            showNextPhoto();
-        });
+        lightboxPrevArrow.addEventListener("click", (e) => { e.stopPropagation(); showPrevPhoto(); });
+        lightboxNextArrow.addEventListener("click", (e) => { e.stopPropagation(); showNextPhoto(); });
 
         window.addEventListener("keydown", (e) => {
             if (!lightboxOverlay.classList.contains("show")) return;
-
             if (e.key === "Escape") closeLightbox();
             else if (e.key === "ArrowLeft") showPrevPhoto();
             else if (e.key === "ArrowRight") showNextPhoto();
@@ -1624,17 +1848,21 @@
     }
 
     function updateLightboxArrows() {
-        const total = galleryItems.length;
+        const items = getGalleryItems();
+        const total = items.length;
         if (!lightboxPrevArrow || !lightboxNextArrow) return;
-
         lightboxPrevArrow.style.display = (currentIndex <= 0) ? "none" : "flex";
         lightboxNextArrow.style.display = (currentIndex >= total - 1) ? "none" : "flex";
     }
 
     function openLightbox(index) {
+        const items = getGalleryItems();
+        if (items.length === 0) return;
+
         if (!lightboxOverlay) createLightbox();
         currentIndex = index;
-        lightboxImg.src = galleryItems[currentIndex].src;
+
+        lightboxImg.src = items[currentIndex].src;
         lightboxOverlay.classList.add("show");
         updateLightboxArrows();
     }
@@ -1645,208 +1873,56 @@
     }
 
     function showPrevPhoto() {
+        const items = getGalleryItems();
         if (currentIndex <= 0) return;
         currentIndex--;
-        lightboxImg.src = galleryItems[currentIndex].src;
+        lightboxImg.src = items[currentIndex].src;
         updateLightboxArrows();
     }
 
     function showNextPhoto() {
-        if (currentIndex >= galleryItems.length - 1) return;
+        const items = getGalleryItems();
+        if (currentIndex >= items.length - 1) return;
         currentIndex++;
-        lightboxImg.src = galleryItems[currentIndex].src;
+        lightboxImg.src = items[currentIndex].src;
         updateLightboxArrows();
     }
 
-    // ✅ load에서 권한 적용 + 기존 기능 유지
-    window.addEventListener("load", async () => {
-        const profileImg = document.getElementById("profilePhoto");
-        if (profileImg) {
-            const placeholder = profileImg.getAttribute("src");
-            const realSrc = profileImg.dataset.profileSrc;
-
-            if (realSrc && realSrc.trim() !== "") {
-                profileImg.src = realSrc;
-                profileImg.onerror = () => {
-                    profileImg.onerror = null;
-                    profileImg.src = placeholder;
-                };
-            }
-        }
-
-        // (1) 로그인 사용자 복구
-        const me = await restoreMeSafe();
-
-        // (2) 현재 프로필 person 조회 (id 필수)
-        let person = null;
-        try {
-            const username = getUsernameFromPath();
-            if (username) person = await fetchPersonByName(username);
-        } catch (e) {}
-
-        // (3) id 기반 owner 판단
-        const isOwner = computeIsOwnerById(me, person);
-
-        // (4) UI 토글 적용
-        applyOwnerUI(isOwner);
-
-        // (5) 기존 empty UI 반영
-        updateEmptyUI();
-
-        // 기존 갤러리 로직 유지
-        if (galleryItems.length > 0) {
-            initGallery();
-            galleryItems.forEach((img, idx) => {
-                img.style.cursor = "pointer";
-                img.addEventListener("click", () => openLightbox(idx));
-            });
-
-            if (galleryItems.length > INITIAL_COUNT) {
-                window.addEventListener("scroll", handleScroll);
-                handleScroll();
-            }
-        }
-
-        // 편집 오버레이 이벤트는 소유자일 때만
-        if (isOwner) setupEditOverlay();
+    galleryGrid?.addEventListener("click", (e) => {
+        const img = e.target.closest(".gallery-item");
+        if (!img) return;
+        const items = getGalleryItems();
+        const idx = items.indexOf(img);
+        if (idx >= 0) openLightbox(idx);
     });
-</script>
 
-<!-- empty UI 자동 갱신 옵저버 -->
-<script>
-    (function autoUpdateEmptyUI(){
-        if (window.__emptyUIObserver) {
-            window.__emptyUIObserver.disconnect();
-            window.__emptyUIObserver = null;
-        }
-
-        const filmSlider   = document.getElementById("filmSlider");
-        const galleryGrid  = document.getElementById("galleryGrid");
-        const profileInfo  = document.querySelector(".profile-info");
-
-        let scheduled = false;
-        const schedule = () => {
-            if (scheduled) return;
-            scheduled = true;
-
-            requestAnimationFrame(() => {
-                scheduled = false;
-
-                if (typeof updateEmptyUI === "function") updateEmptyUI();
-                if (typeof updateArrows === "function") updateArrows();
-            });
-        };
-
-        const observer = new MutationObserver(() => { schedule(); });
-
-        const config = {
-            childList: true,
-            subtree: true,
-            attributes: true,
-            characterData: true
-        };
-
-        if (filmSlider)  observer.observe(filmSlider, config);
-        if (galleryGrid) observer.observe(galleryGrid, config);
-        if (profileInfo) observer.observe(profileInfo, config);
-
-        window.__emptyUIObserver = observer;
-        schedule();
-    })();
-</script>
-
-<!-- empty UI 토글 -->
-<script>
-    function updateEmptyUI(){
-        const profileHeader = document.querySelector(".profile-header");
-        const nameEl = document.getElementById("profileName");
-        const metaEl = document.getElementById("profileMeta");
-        const bioEl  = document.getElementById("bioDisplay");
-
-        const snsRow = document.querySelector(".sns-row");
-        const tagList = document.getElementById("tagList");
-
-        const hasName = !!(nameEl?.dataset.value?.trim());
-        const hasMeta = !!(metaEl?.dataset.birthDate?.trim() || metaEl?.dataset.birthPlace?.trim());
-        const hasBio  = !!(bioEl?.dataset.value?.trim());
-        const hasSns  = snsRow && snsRow.querySelectorAll("a.sns-pill").length > 0;
-        const hasTags = tagList && tagList.querySelectorAll(".profile-tag").length > 0;
-
-        const profileHasAny = hasName || hasMeta || hasBio || hasSns || hasTags;
-
-        snsRow?.classList.toggle("is-empty", !hasSns);
-        tagList?.classList.toggle("is-empty", !hasTags);
-
-        if (profileHeader) profileHeader.classList.toggle("is-empty", !profileHasAny);
-
-        const isOwner = !!window.__isOwner;
-
-        // ---- FILMOGRAPHY ----
-        const filmSlider = document.getElementById("filmSlider");
-        const filmCards  = filmSlider ? filmSlider.querySelectorAll(".film-card") : [];
-        const filmEmpty  = document.getElementById("filmEmpty"); // owner CTA
-        const filmEmptyViewOnly = document.getElementById("filmEmptyViewOnly"); // ✅ 추가
-
-        const hasFilms = filmCards.length > 0;
-
-        // 소유자 CTA
-        if (filmEmpty) filmEmpty.classList.toggle("hidden", hasFilms || !isOwner);
-
-        // ✅ 비소유자(비로그인 포함) 안내
-        if (filmEmptyViewOnly) filmEmptyViewOnly.classList.toggle("hidden", hasFilms || isOwner);
-
-        const filmWrapper = document.querySelector("#filmSliderContainer .film-slider-wrapper");
-        const filmPrev = document.getElementById("filmPrevBtn");
-        const filmNext = document.getElementById("filmNextBtn");
-
-        if (filmWrapper) filmWrapper.classList.toggle("hidden", !hasFilms);
-        if (filmPrev) filmPrev.classList.toggle("hidden", !hasFilms);
-        if (filmNext) filmNext.classList.toggle("hidden", !hasFilms);
-
-        // ---- GALLERY ----
-        const galleryGridEl = document.getElementById("galleryGrid");
-        const galleryEmpty  = document.getElementById("galleryEmpty"); // owner CTA
-        const galleryEmptyViewOnly = document.getElementById("galleryEmptyViewOnly"); // ✅ 추가
-
-        const galleryImgs   = galleryGridEl ? galleryGridEl.querySelectorAll(".gallery-item") : [];
-        const hasGallery = galleryImgs.length > 0;
-
-        // 소유자 CTA
-        if (galleryEmpty) galleryEmpty.classList.toggle("hidden", hasGallery || !isOwner);
-
-        // ✅ 비소유자 안내
-        if (galleryEmptyViewOnly) galleryEmptyViewOnly.classList.toggle("hidden", hasGallery || isOwner);
-    }
-
+    /* ---------------------------
+       7) Edit overlay (⚙️)
+    --------------------------- */
     function setupEditOverlay(){
-        const settingsBtn = document.getElementById("profileSettingsBtn");
-        const editOverlay = document.getElementById("profileEditOverlay");
-        const editCard    = editOverlay ? editOverlay.querySelector(".profile-edit-card") : null;
+        const settingsBtn = $("#profileSettingsBtn");
+        const editOverlay = $("#profileEditOverlay");
+        const editCard    = editOverlay?.querySelector(".profile-edit-card");
 
         if (!settingsBtn || !editOverlay || !editCard) return;
-
-        function lockScroll(lock){
-            document.body.style.overflow = lock ? "hidden" : "";
-        }
 
         function closeEditOverlay(){
             editOverlay.classList.remove("show");
             settingsBtn.setAttribute("aria-expanded", "false");
-            lockScroll(false);
+            lockBodyScroll(false);
         }
 
         settingsBtn.addEventListener("click", (e) => {
             e.stopPropagation();
+            if (!window.__isOwner) return;
+
             editOverlay.classList.add("show");
             settingsBtn.setAttribute("aria-expanded", "true");
-            lockScroll(true);
+            lockBodyScroll(true);
         });
 
         editOverlay.addEventListener("click", (e) => {
-            if (!editCard.contains(e.target)) {
-                closeEditOverlay();
-                return;
-            }
+            if (!editCard.contains(e.target)) { closeEditOverlay(); return; }
 
             const item = e.target.closest(".profile-settings-item");
             if (!item) return;
@@ -1863,74 +1939,111 @@
             if (e.key === "Escape" && editOverlay.classList.contains("show")) closeEditOverlay();
         });
     }
-</script>
 
-<!-- 로그인 오버레이: 열기/닫기(ESC/바깥클릭) + 로그인 제출 연결 -->
-<script>
-    function openLoginOverlay(){
-        const overlay = document.getElementById("loginOverlay");
-        if (!overlay) return;
-        overlay.classList.add("show");
+    /* ---------------------------
+       8) Empty UI (핵심)
+    --------------------------- */
+    function updateEmptyUI(){
+        const profileHeader = $(".profile-header");
+        const nameEl = $("#profileName");
+        const metaEl = $("#profileMeta");
+        const bioEl  = $("#bioDisplay");
+
+        const snsRow = $("#snsRow");
+        const tagList = $("#tagList");
+
+        const hasName = !!(nameEl?.dataset.value?.trim());
+        const hasMeta = !!(metaEl?.dataset.birthDate?.trim() || metaEl?.dataset.birthPlace?.trim());
+        const hasBio  = !!(bioEl?.dataset.value?.trim());
+        const hasSns  = snsRow && snsRow.querySelectorAll("a.sns-pill").length > 0;
+        const hasTags = tagList && tagList.querySelectorAll(".profile-tag").length > 0;
+
+        const profileHasAny = hasName || hasMeta || hasBio || hasSns || hasTags;
+
+        snsRow?.classList.toggle("is-empty", !hasSns);
+        tagList?.classList.toggle("is-empty", !hasTags);
+        profileHeader?.classList.toggle("is-empty", !profileHasAny);
+
+        const isOwner = !!window.__isOwner;
+
+        // FILMOGRAPHY
+        const filmCards  = slider ? slider.querySelectorAll(".film-card") : [];
+        const filmEmpty  = $("#filmEmpty");
+        const filmEmptyViewOnly = $("#filmEmptyViewOnly");
+        const hasFilms = filmCards.length > 0;
+
+        filmEmpty?.classList.toggle("hidden", hasFilms || !isOwner);
+        filmEmptyViewOnly?.classList.toggle("hidden", hasFilms || isOwner);
+
+        $("#filmSliderContainer .film-slider-wrapper")?.classList.toggle("hidden", !hasFilms);
+        prevBtn?.classList.toggle("hidden", !hasFilms);
+        nextBtn?.classList.toggle("hidden", !hasFilms);
+
+        // GALLERY
+        const galleryImgs = getGalleryItems();
+        const hasGallery = galleryImgs.length > 0;
+
+        $("#galleryEmpty")?.classList.toggle("hidden", hasGallery || !isOwner);
+        $("#galleryEmptyViewOnly")?.classList.toggle("hidden", hasGallery || isOwner);
     }
 
-    function closeLoginOverlay(){
-        const overlay = document.getElementById("loginOverlay");
-        if (!overlay) return;
-        overlay.classList.remove("show");
-    }
+    (function autoUpdateEmptyUI(){
+        const filmSliderEl = $("#filmSlider");
+        const galleryGridEl  = $("#galleryGrid");
+        const profileInfo  = $(".profile-info");
 
-    // ✅ 1) loginBtn은 헤더에서 동적으로 생성되므로 "이벤트 위임"으로 처리
+        let scheduled = false;
+        const schedule = () => {
+            if (scheduled) return;
+            scheduled = true;
+            requestAnimationFrame(() => {
+                scheduled = false;
+                updateEmptyUI();
+                updateArrows();
+            });
+        };
+
+        const observer = new MutationObserver(schedule);
+        const config = { childList:true, subtree:true, attributes:true, characterData:true };
+
+        filmSliderEl  && observer.observe(filmSliderEl, config);
+        galleryGridEl && observer.observe(galleryGridEl, config);
+        profileInfo   && observer.observe(profileInfo, config);
+
+        schedule();
+    })();
+
+    /* ---------------------------
+       9) Login overlay + Header menu
+    --------------------------- */
+    function openLoginOverlay(){ $("#loginOverlay")?.classList.add("show"); }
+    function closeLoginOverlay(){ $("#loginOverlay")?.classList.remove("show"); }
+
     document.addEventListener("click", (e) => {
-        // 로그인 버튼 클릭 -> 오버레이 열기
         const loginBtn = e.target?.closest?.("#loginBtn");
-        if (loginBtn) {
-            openLoginOverlay();
-            return;
-        }
+        if (loginBtn) { openLoginOverlay(); return; }
 
-        // 오버레이 바깥 클릭 -> 닫기
-        const overlay = document.getElementById("loginOverlay");
-        if (overlay && overlay.classList.contains("show") && e.target === overlay) {
-            closeLoginOverlay();
-        }
+        const overlay = $("#loginOverlay");
+        if (overlay && overlay.classList.contains("show") && e.target === overlay) closeLoginOverlay();
     });
-
-    // ✅ 2) ESC -> 닫기
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") closeLoginOverlay();
     });
 
-    // ✅ 3) 로그인 제출 버튼 클릭 -> OnfilmAuth.login 호출
     document.addEventListener("click", async (e) => {
         const submitBtn = e.target?.closest?.("#loginSubmitBtn");
         if (!submitBtn) return;
 
-        const email = document.getElementById("loginEmail")?.value?.trim() || "";
-        const password = document.getElementById("loginPassword")?.value || "";
+        const email = $("#loginEmail")?.value?.trim() || "";
+        const password = $("#loginPassword")?.value || "";
+        if (!email || !password) { alert("아이디와 비밀번호를 입력해 주세요."); return; }
 
-        if (!email || !password) {
-            alert("아이디와 비밀번호를 입력해 주세요.");
-            return;
-        }
-
-        // 중복 클릭 방지
         submitBtn.disabled = true;
-
         try {
-            // auth.js에 이미 존재하는 함수
             await window.OnfilmAuth.login(email, password);
-
-            // 성공: 오버레이 닫고 헤더/권한 UI 갱신
             closeLoginOverlay();
-
-            if (typeof renderHeaderActions === "function") {
-                await renderHeaderActions();
-            }
-
-            // 프로필 소유자 UI 즉시 재판정(있으면)
-            if (typeof initProfilePage === "function") {
-                await initProfilePage();
-            }
+            await renderHeaderActions();
+            await initProfilePage();
         } catch (err) {
             console.error(err);
             alert(err?.message || "로그인 실패");
@@ -1939,16 +2052,6 @@
         }
     });
 
-    // ?login=true면 자동 오픈
-    document.addEventListener("DOMContentLoaded", () => {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get("login") === "true") openLoginOverlay();
-    });
-</script>
-
-
-<!-- 헤더 로그인/로그아웃 메뉴 -->
-<script>
     function normalizeMe(me) {
         const username = me?.username ? String(me.username).trim() : "";
         const displayName = (me?.displayName || me?.name || username || me?.email || "내 계정");
@@ -1957,30 +2060,33 @@
     }
 
     function renderLoggedOut(container){
-        container.innerHTML = `
-      <button type="button" class="login-btn" id="loginBtn">로그인</button>
-    `;
-        // ✅ 클릭 이벤트는 위에서 이미 (이벤트 위임으로) openLoginOverlay 처리하고 있으니 여기선 안 붙임
+        container.innerHTML = `<button type="button" class="login-btn" id="loginBtn">로그인</button>`;
+    }
+
+    function personHasAnyContent(p) {
+        return !!(p?.name && String(p.name).trim())
+            || !!(p?.oneLineIntro && String(p.oneLineIntro).trim())
+            || !!(p?.birthDate && String(p.birthDate).trim())
+            || !!(p?.birthPlace && String(p.birthPlace).trim())
+            || !!(p?.profileImageUrl && String(p.profileImageUrl).trim())
+            || (Array.isArray(p?.snsList) && p.snsList.length > 0)
+            || (Array.isArray(p?.rawTags) && p.rawTags.length > 0);
     }
 
     function renderLoggedIn(container, me){
         const { username, displayName, avatarUrl } = normalizeMe(me);
-
-        const baseForInitial = username || displayName; // ✅ index처럼 username 우선
+        const baseForInitial = username || displayName;
         const initial = (baseForInitial.trim().charAt(0) || "A").toUpperCase();
 
         container.innerHTML = `
       <div class="profile-menu">
         <button type="button" class="profile-avatar-btn" id="profileAvatarBtn" aria-label="계정 메뉴 열기">
-          ${
-            avatarUrl
-                ? `<img src="${avatarUrl}" alt="${displayName} 프로필" />`
-                : `<span class="profile-avatar-initial">${initial}</span>`
-        }
+          ${avatarUrl ? `<img src="${avatarUrl}" alt="${escapeHtml(displayName)} 프로필" />`
+            : `<span class="profile-avatar-initial">${escapeHtml(initial)}</span>`}
         </button>
 
         <div class="profile-dropdown" id="profileDropdown">
-          <div class="profile-group-title">${displayName}</div>
+          <div class="profile-group-title">${escapeHtml(displayName)}</div>
 
           <button type="button" class="profile-item" data-action="actor-page">
             내 배우 페이지
@@ -1991,36 +2097,28 @@
           <div class="profile-group-title">편집</div>
 
           <button type="button" class="profile-item" data-action="edit-profile">
-            프로필 편집
-            <span>기본정보</span>
+            프로필 편집 <span>기본정보</span>
           </button>
-
           <button type="button" class="profile-item" data-action="edit-filmography">
-            필모그래피 편집
-            <span>작품/역할</span>
+            필모그래피 편집 <span>작품/역할</span>
           </button>
-
           <button type="button" class="profile-item" data-action="edit-gallery">
-            갤러리 편집
-            <span>사진/영상</span>
+            갤러리 편집 <span>사진/영상</span>
           </button>
 
           <div class="profile-divider"></div>
 
           <button type="button" class="profile-item" data-action="account-settings">
-            계정 설정
-            <span>비밀번호/연동</span>
+            계정 설정 <span>비밀번호/연동</span>
           </button>
 
-          <button type="button" class="profile-item" data-action="logout">
-            로그아웃
-          </button>
+          <button type="button" class="profile-item" data-action="logout">로그아웃</button>
         </div>
       </div>
     `;
 
-        const avatarBtn = document.getElementById("profileAvatarBtn");
-        const dropdown  = document.getElementById("profileDropdown");
+        const avatarBtn = $("#profileAvatarBtn");
+        const dropdown  = $("#profileDropdown");
         if (!avatarBtn || !dropdown) return;
 
         const close = () => dropdown.classList.remove("open");
@@ -2036,387 +2134,117 @@
                 close();
 
                 if (action === "actor-page") {
-                    const myId = me?.id;
-                    if (!myId) {
-                        openLoginOverlay?.();
-                        return;
-                    }
-
                     const uname = (me?.username ? String(me.username).trim() : "");
-                    if (!uname) {
-                        window.location.href = "/edit-profile.html";
-                        return;
-                    }
+                    if (!uname) { window.location.href = "/edit-profile.html"; return; }
 
+                    let goEdit = false;
                     try {
-                        const res = await fetch(`/persons/${encodeURIComponent(uname)}`, {
-                            headers: { "Accept": "application/json" }
-                        });
-
-                        if (!res.ok) {
-                            window.location.href = "/edit-profile.html";
-                            return;
+                        const map = await fetchPublicIdByUsername(uname);
+                        const pid = map?.publicId;
+                        if (pid) {
+                            const p = await fetchPersonByPublicId(pid);
+                            goEdit = !personHasAnyContent(p);
                         }
-
-                        const p = await res.json();
-
-                        const hasAny =
-                            !!(p?.name && String(p.name).trim()) ||
-                            !!(p?.oneLineIntro && String(p.oneLineIntro).trim()) ||
-                            !!(p?.birthDate && String(p.birthDate).trim()) ||
-                            !!(p?.birthPlace && String(p.birthPlace).trim()) ||
-                            !!(p?.profileImageUrl && String(p.profileImageUrl).trim()) ||
-                            (Array.isArray(p?.snsList) && p.snsList.length > 0) ||
-                            (Array.isArray(p?.rawTags) && p.rawTags.length > 0);
-
-                        if (!hasAny) {
-                            window.location.href = "/edit-profile.html";
-                            return;
-                        }
-
-                        window.location.href = "/onfilm/" + encodeURIComponent(uname);
                     } catch (_) {
-                        window.location.href = "/edit-profile.html";
+                        goEdit = false;
                     }
+                    window.location.href = goEdit ? "/edit-profile.html" : ("/onfilm/" + encodeURIComponent(uname));
                     return;
                 }
 
-                if (action === "edit-profile") {
-                    window.location.href = "/edit-profile.html";
-                    return;
-                }
-                if (action === "edit-filmography") {
-                    window.location.href = "/edit-filmography.html";
-                    return;
-                }
-                if (action === "edit-gallery") {
-                    window.location.href = "/edit-gallery.html";
-                    return;
-                }
-                if (action === "account-settings") {
-                    window.location.href = "/account-settings.html";
-                    return;
-                }
+                if (action === "edit-profile")     { window.location.href = "/edit-profile.html"; return; }
+                if (action === "edit-filmography") { window.location.href = "/edit-filmography.html"; return; }
+                if (action === "edit-gallery")     { window.location.href = "/edit-gallery.html"; return; }
+                if (action === "account-settings") { window.location.href = "/account-settings.html"; return; }
 
                 if (action === "logout") {
                     await window.OnfilmAuth.logout();
                     renderLoggedOut(container);
-
-                    // ✅ 로그아웃하면 owner UI 내려주기 (기존 로직 유지)
                     applyOwnerUI(false);
-                    if (typeof updateEmptyUI === "function") updateEmptyUI();
+                    updateEmptyUI();
                     return;
                 }
             });
         });
 
-        // 바깥 클릭 시 닫기 (index와 동일한 방식)
         document.addEventListener("click", (e) => {
             if (!dropdown.contains(e.target) && e.target !== avatarBtn) close();
         });
-
-        // ESC로 닫기
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") close();
-        });
+        document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
     }
 
     async function renderHeaderActions(){
-        const container = document.getElementById("headerActions");
+        const container = $("#headerActions");
         if (!container) return;
 
         renderLoggedOut(container);
 
         try {
             const result = await window.OnfilmAuth.restoreSession();
-            if (result && result.ok && result.me) {
-                renderLoggedIn(container, result.me);
-            } else {
-                renderLoggedOut(container);
-            }
+            if (result && result.ok && result.me) renderLoggedIn(container, result.me);
+            else renderLoggedOut(container);
         } catch (e) {
             console.error("restoreSession failed", e);
             renderLoggedOut(container);
         }
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-        renderHeaderActions();
-
-        const params = new URLSearchParams(window.location.search);
-        const loginOverlay = document.getElementById("loginOverlay");
-        if (loginOverlay && params.get("login") === "true") {
-            loginOverlay.classList.add("show");
-        }
-    });
-</script>
-
-
-<!-- 프로필 데이터 바인딩 -->
-<script>
-    function applyPersonToUI(p) {
-        // 이름
-        const nameEl = document.getElementById("profileName");
-        if (nameEl) {
-            nameEl.textContent = p?.name || "회원";
-            nameEl.dataset.value = p?.name || "";
-        }
-
-        // 메타
-        const metaEl = document.getElementById("profileMeta");
-        if (metaEl) {
-            const birthDate = p?.birthDate || "";
-            const birthPlace = p?.birthPlace || "";
-            metaEl.dataset.birthDate = birthDate;
-            metaEl.dataset.birthPlace = birthPlace;
-
-            const left = birthDate ? birthDate : "생년월일 미등록";
-            const right = birthPlace ? birthPlace : "출생지 미등록";
-            metaEl.textContent = `${left} · ${right}`;
-        }
-
-        // 소개
-        const bioEl = document.getElementById("bioDisplay");
-        if (bioEl) {
-            bioEl.textContent = p?.oneLineIntro || "소개글을 입력해 주세요.";
-            bioEl.dataset.value = p?.oneLineIntro || "";
-        }
-
-        // 이미지
-        const imgEl = document.getElementById("profilePhoto");
-        if (imgEl) {
-            const placeholder = imgEl.getAttribute("src");
-            const real = (p?.profileImageUrl || "").trim();
-            imgEl.dataset.profileSrc = real;
-            imgEl.src = real || placeholder;
-            imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = placeholder; };
-        }
-
-        // SNS
-        const snsRow = document.getElementById("snsRow");
-        if (snsRow) {
-            snsRow.innerHTML = "";
-            const list = Array.isArray(p?.snsList) ? p.snsList : [];
-            list.forEach(sns => {
-                const type = (sns?.type || "").toString().toUpperCase();
-                const url = (sns?.url || "").toString();
-                if (!url) return;
-
-                const brand =
-                    type === "INSTAGRAM" ? "instagram" :
-                        type === "YOUTUBE" ? "youtube" :
-                            type === "NAVER" ? "naver" :
-                                (type === "TWITTER" || type === "X") ? "x" : "x";
-
-                const a = document.createElement("a");
-                a.className = "sns-pill";
-                a.href = url;
-                a.target = "_blank";
-                a.rel = "noopener";
-                a.dataset.brand = brand;
-                a.innerHTML = `
-          <span class="sns-badge"><span class="sns-icon"></span></span>
-          <span>${type}</span>
-          <span class="sns-handle">${new URL(url).hostname}</span>
-        `;
-                snsRow.appendChild(a);
-            });
-        }
-
-        // 태그
-        const tagListEl = document.getElementById("tagList");
-        if (tagListEl) {
-            tagListEl.innerHTML = "";
-            const tags = Array.isArray(p?.rawTags) ? p.rawTags : [];
-            tags.forEach(t => {
-                const raw = (t?.rawTag || "").toString().trim();
-                if (!raw) return;
-                const span = document.createElement("span");
-                span.className = "profile-tag";
-                span.textContent = raw.startsWith("#") ? raw : `#${raw}`;
-                tagListEl.appendChild(span);
-            });
-        }
-
-        // empty UI 반영
-        if (typeof updateEmptyUI === "function") updateEmptyUI();
-    }
-
-    // ===== FILMOGRAPHY: API로 카드 렌더링 =====
-
-    // name은 너가 URL에 쓰는 식별자(현재는 username이지만, 앞으로 name으로 바꿀 예정이니까 변수명은 name으로)
-    async function fetchFilmographyByName(name) {
-        // ⚠️ 여기 URL만 너 백엔드에 맞춰 수정하면 됨
-        // 예: /persons/{name}/movies   또는 /persons/{name}/filmography
-        const res = await fetch(`/persons/${encodeURIComponent(name)}/movies`, {
-            method: "GET",
-            headers: { "Accept": "application/json" }
-        });
-
-        if (!res.ok) {
-            // 404면 필모 0개로 처리하고 싶으면 여기서 [] 리턴해도 됨
-            throw new Error("GET_FILMOGRAPHY_FAILED status=" + res.status);
-        }
-        return await res.json(); // List<MovieCardResponse>
-    }
-
-    function ageToBadge(ageRating) {
-        // 백엔드 enum: ALL, AGE_12, AGE_15, AGE_18
-        switch ((ageRating || "").toUpperCase()) {
-            case "ALL": return "ALL";
-            case "AGE_12": return "12";
-            case "AGE_15": return "15";
-            case "AGE_18": return "18";
-            default: return ""; // fallback
-        }
-    }
-
-    function castTypeToKorean(castType) {
-        switch ((castType || "").toUpperCase()) {
-            case "LEAD": return "주연";
-            case "SUPPORTING": return "조연";
-            case "CAMEO": return "카메오";
-            default: return "";
-        }
-    }
-
-    // film-card 한 장 생성
-    function createFilmCard(item) {
-        const article = document.createElement("article");
-        article.className = "film-card";
-
-        const title = item?.title ?? "";
-        const genre = item?.genre ?? "";
-        const runtime = (item?.runtime !== undefined && item?.runtime !== null) ? `${item.runtime}분` : "";
-        const age = ageToBadge(item?.ageRating);
-        const video = item?.trailerUrl || "";      // 팝업 video src로 사용
-        const thumb = item?.thumbnailUrl || "";    // 팝업 thumb로 사용
-
-        const releaseYear = (item?.releaseYear !== undefined && item?.releaseYear !== null)
-            ? String(item.releaseYear)
-            : "";
-
-        const castLabel = castTypeToKorean(item?.castType);
-
-        // ✅ "2025 · 주연" 형식 만들기
-        const metaText =
-            (releaseYear && castLabel) ? `${releaseYear} · ${castLabel}` :
-                (releaseYear) ? releaseYear :
-                    (castLabel) ? castLabel :
-                        "";
-
-        article.dataset.title = title;
-        article.dataset.genre = genre;
-        article.dataset.runtime = runtime;
-        article.dataset.age = age;
-        article.dataset.video = video;
-        article.dataset.thumb = thumb;
-        article.dataset.releaseYear = releaseYear;
-        article.dataset.castLabel = castLabel;
-
-
-        article.innerHTML = `
-    <img class="film-poster" src="${thumb || "/videos/thumbnail.png"}" alt="">
-    <div class="film-body">
-      <div class="film-title">${escapeHtml(title)}</div>
-      <div class="film-meta">${escapeHtml(metaText)}</div>
-    </div>
-  `;
-
-        // poster 깨지면 placeholder
-        const img = article.querySelector("img.film-poster");
-        if (img) {
-            img.onerror = () => {
-                img.onerror = null;
-                img.src = "/videos/thumbnail.png";
-            };
-        }
-
-        return article;
-    }
-
-    // XSS 방지용(간단)
-    function escapeHtml(str) {
-        return String(str ?? "")
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;");
-    }
-
-    // filmSlider 비우고 다시 렌더
-    async function renderFilmography(name) {
-        const filmSlider = document.getElementById("filmSlider");
-        if (!filmSlider) return;
-
-        // 기존 카드 제거
-        filmSlider.innerHTML = "";
-
-        try {
-            const list = await fetchFilmographyByName(name);
-            const movies = Array.isArray(list) ? list : [];
-
-            movies.forEach(item => {
-                filmSlider.appendChild(createFilmCard(item));
-            });
-
-            // 슬라이더 index 초기화 + UI 갱신
-            if (typeof window.index !== "undefined") window.index = 0; // 네 코드의 index 변수 재사용
-            if (typeof updateSlider === "function") updateSlider();
-            if (typeof updateEmptyUI === "function") updateEmptyUI();
-            if (typeof updateArrows === "function") updateArrows();
-        } catch (e) {
-            console.error("renderFilmography error:", e);
-
-            // 실패해도 empty UI는 맞춰주기
-            if (typeof updateEmptyUI === "function") updateEmptyUI();
-            if (typeof updateArrows === "function") updateArrows();
-        }
-    }
-
+    /* ---------------------------
+       10) Page init (수정 핵심)
+    --------------------------- */
     async function initProfilePage() {
         const username = getUsernameFromPath();
         if (!username) return;
 
         try {
-            const person = await fetchPersonByName(username);
+            const onfilm = await fetchPublicIdByUsername(username);
+            const publicId = onfilm?.publicId;
+            if (!publicId) throw new Error("PUBLIC_ID_MISSING");
+
+            // 1) person 먼저
+            const person = await fetchPersonByPublicId(publicId);
             applyPersonToUI(person);
 
-            await renderFilmography(username);
-
-            // ✅ person 로딩이 끝난 시점에, me도 다시 가져와서 owner 판단을 “확정” (id 기반)
+            // 2) owner 판정 -> UI 적용 (✅ 여기서 먼저 해야 empty CTA가 제대로 뜸)
             const me = await restoreMeSafe();
-            const isOwner = computeIsOwnerById(me, person);
+            const isOwner = computeIsOwner(me, person, username);
             applyOwnerUI(isOwner);
-            // ✅ 내 프로필인데 "아무 정보도 없으면" edit로 리다이렉트
-            if (isOwner) {
-                const hasAny =
-                    !!(person?.name && String(person.name).trim()) ||
-                    !!(person?.oneLineIntro && String(person.oneLineIntro).trim()) ||
-                    !!(person?.birthDate && String(person.birthDate).trim()) ||
-                    !!(person?.birthPlace && String(person.birthPlace).trim()) ||
-                    !!(person?.profileImageUrl && String(person.profileImageUrl).trim()) ||
-                    (Array.isArray(person?.snsList) && person.snsList.length > 0) ||
-                    (Array.isArray(person?.rawTags) && person.rawTags.length > 0);
 
-                if (!hasAny) {
-                    window.location.replace("/edit-profile.html");
-                    return;
-                }
+            // 3) 필모/갤러리 렌더 (owner 상태가 이미 반영된 뒤)
+            await renderFilmography(publicId);
+            await renderGallery(publicId);
+
+            // 4) empty 재갱신
+            updateEmptyUI();
+
+            // 5) 갤러리 lazy scroll
+            const items = getGalleryItems();
+            if (items.length > INITIAL_COUNT) {
+                window.addEventListener("scroll", handleScroll);
+                handleScroll();
             }
-
-            if (typeof updateEmptyUI === "function") updateEmptyUI();
         } catch (e) {
             console.error(e);
-            const nameEl = document.getElementById("profileName");
-            if (nameEl) nameEl.textContent = "존재하지 않는 프로필";
+            $("#profileName") && ($("#profileName").textContent = "존재하지 않는 프로필");
             applyOwnerUI(false);
-            if (typeof updateEmptyUI === "function") updateEmptyUI();
+            updateEmptyUI();
         }
     }
 
-    document.addEventListener("DOMContentLoaded", initProfilePage);
+    /* ---------------------------
+       11) Bootstrap
+    --------------------------- */
+    document.addEventListener("DOMContentLoaded", async () => {
+        await renderHeaderActions();
+        setupEditOverlay();
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("login") === "true") openLoginOverlay();
+
+        await initProfilePage();
+        updateArrows();
+    });
 </script>
+
 </body>
 </html>

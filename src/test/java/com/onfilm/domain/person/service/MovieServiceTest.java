@@ -31,7 +31,8 @@ public class MovieServiceTest {
     @Mock UserRepository userRepository;
     @Mock MovieGenreFactory movieGenreFactory;
 
-    @InjectMocks MovieService movieService;
+    @InjectMocks
+    MovieService movieService;
 
     @Test
     void createMovie_success_savesMovie_attachesGenre_and_createsMoviePerson() throws Exception {

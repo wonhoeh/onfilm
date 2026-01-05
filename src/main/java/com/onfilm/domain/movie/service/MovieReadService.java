@@ -1,12 +1,11 @@
 package com.onfilm.domain.movie.service;
 
+import com.onfilm.domain.common.error.exception.PersonNotFoundException;
 import com.onfilm.domain.movie.dto.MovieCardResponse;
-import com.onfilm.domain.movie.entity.Movie;
-import com.onfilm.domain.movie.entity.MovieGenre;
-import com.onfilm.domain.movie.entity.MoviePerson;
-import com.onfilm.domain.movie.entity.Trailer;
+import com.onfilm.domain.movie.entity.*;
 import com.onfilm.domain.movie.repository.MovieGenreRepository;
 import com.onfilm.domain.movie.repository.MoviePersonRepository;
+import com.onfilm.domain.movie.repository.PersonRepository;
 import com.onfilm.domain.movie.repository.TrailerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,10 +23,15 @@ public class MovieReadService {
     private final MoviePersonRepository moviePersonRepository;
     private final MovieGenreRepository movieGenreRepository;
     private final TrailerRepository trailerRepository;
+    private final PersonRepository personRepository;
 
-    public List<MovieCardResponse> getFilmographyByPersonName(String name) {
-        // 1) mp + movie 조회
-        List<MoviePerson> moviePeople = moviePersonRepository.findFilmographyByPersonName(name);
+    public List<MovieCardResponse> getFilmographyByPublicId(String publicId) {
+        // 0) publicId -> Person 찾기
+        Person person = personRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new PersonNotFoundException(publicId));
+
+        // 1) mp + movie 조회 (personId 사용)
+        List<MoviePerson> moviePeople = moviePersonRepository.findFilmographyByPersonId(person.getId());
         if (moviePeople.isEmpty()) return List.of();
 
         // movieId 목록(중복 제거)

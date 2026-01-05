@@ -64,9 +64,7 @@
             align-items:center;
             gap:4px;
         }
-        .back-link:hover{
-            color:var(--text);
-        }
+        .back-link:hover{ color:var(--text); }
 
         main{
             flex:1;
@@ -95,11 +93,6 @@
             align-items:center;
             gap:16px;
         }
-        /* 드래그로 파일이 올라왔을 때 강조 스타일 */
-        .photo-preview.drop-hover {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(124,92,255,.7);
-        }
         .photo-preview{
             width:210px;
             height:280px;
@@ -107,6 +100,10 @@
             border:1px solid var(--line);
             object-fit:cover;
             background:#050608;
+        }
+        .photo-preview.drop-hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(124,92,255,.7);
         }
         .photo-hint{
             font-size:12px;
@@ -132,9 +129,7 @@
             background:rgba(124,92,255,.35);
             transform:translateY(-1px);
         }
-        .pill-btn input[type="file"]{
-            display:none;
-        }
+        .pill-btn input[type="file"]{ display:none; }
 
         /* 우측: 폼 필드들 */
         .form-section{
@@ -175,17 +170,10 @@
             box-shadow:0 0 0 1px rgba(124,92,255,.35);
         }
 
-        /* 출생년도 date 인풋 달력 아이콘을 밝게(흰색 느낌) 보이게 */
-        #birthDate::-webkit-calendar-picker-indicator {
-            filter: invert(1);      /* 어두운 배경에서 아이콘을 밝게 */
-            cursor: pointer;
-        }
-
         .two-col{
             display:grid;
             grid-template-columns:repeat(2,minmax(0,1fr));
             gap:12px;
-            /*margin-top:12px;*/
         }
 
         /* SNS 섹션 */
@@ -222,9 +210,7 @@
             color:var(--text);
             cursor:pointer;
         }
-        .sns-add-btn:hover{
-            background:rgba(255,255,255,.16);
-        }
+        .sns-add-btn:hover{ background:rgba(255,255,255,.16); }
         .sns-list{
             display:flex;
             flex-direction:column;
@@ -238,9 +224,7 @@
             gap:6px;
             margin-top:6px;
         }
-        .tag-input{
-            flex:1;
-        }
+        .tag-input{ flex:1; }
         .tag-add-btn{
             font-size:12px;
             padding:6px 12px;
@@ -250,9 +234,7 @@
             color:var(--text);
             cursor:pointer;
         }
-        .tag-add-btn:hover{
-            background:rgba(255,255,255,.16);
-        }
+        .tag-add-btn:hover{ background:rgba(255,255,255,.16); }
         .tag-list{
             display:flex;
             flex-wrap:wrap;
@@ -266,21 +248,11 @@
             background:rgba(124,92,255,0.18);
             border:1px solid rgba(124,92,255,0.6);
             cursor:pointer;
-
-            /* ↓ 추가 */
             cursor: grab;
         }
-        .tag-chip:active{
-            cursor: grabbing;
-        }
-
-        /* 드래그 중 시각 효과 */
-        .tag-chip.dragging{
-            opacity: .5;
-        }
-        .tag-chip:hover{
-            background:rgba(124,92,255,0.32);
-        }
+        .tag-chip:active{ cursor: grabbing; }
+        .tag-chip.dragging{ opacity: .5; }
+        .tag-chip:hover{ background:rgba(124,92,255,0.32); }
 
         /* 하단 버튼 */
         .form-actions{
@@ -302,9 +274,7 @@
             background:var(--accent);
             color:white;
         }
-        .primary-btn:hover{
-            background:#8a6dff;
-        }
+        .primary-btn:hover{ background:#8a6dff; }
         .ghost-btn{
             background:transparent;
             color:var(--muted);
@@ -326,9 +296,7 @@
         }
 
         @media (max-width:800px){
-            .edit-card{
-                grid-template-columns:1fr;
-            }
+            .edit-card{ grid-template-columns:1fr; }
             .photo-section{
                 border-right:none;
                 border-bottom:1px solid var(--line);
@@ -338,13 +306,12 @@
         }
     </style>
 </head>
+
 <body>
 <div class="page-shell">
     <header>
         <div class="header-inner">
-            <a href="#" class="back-link" id="backToProfileLink">
-                ← 프로필로 돌아가기
-            </a>
+            <a href="#" class="back-link" id="backToProfileLink">← 프로필로 돌아가기</a>
             <div class="header-title">프로필 편집</div>
             <div style="width:70px;"></div>
         </div>
@@ -386,37 +353,13 @@
                             <label class="field-label">출생일</label>
 
                             <div style="display:flex; gap:6px; align-items:center;">
-                                <input
-                                        id="birthYear"
-                                        class="text-input"
-                                        type="text"
-                                        inputmode="numeric"
-                                        maxlength="4"
-                                        placeholder="YYYY"
-                                        style="max-width:90px;"
-                                >
+                                <input id="birthYear" class="text-input" type="text" inputmode="numeric" maxlength="4" placeholder="YYYY" style="max-width:90px;">
                                 <span>년</span>
 
-                                <input
-                                        id="birthMonth"
-                                        class="text-input"
-                                        type="text"
-                                        inputmode="numeric"
-                                        maxlength="2"
-                                        placeholder="MM"
-                                        style="max-width:70px;"
-                                >
+                                <input id="birthMonth" class="text-input" type="text" inputmode="numeric" maxlength="2" placeholder="MM" style="max-width:70px;">
                                 <span>월</span>
 
-                                <input
-                                        id="birthDay"
-                                        class="text-input"
-                                        type="text"
-                                        inputmode="numeric"
-                                        maxlength="2"
-                                        placeholder="DD"
-                                        style="max-width:70px;"
-                                >
+                                <input id="birthDay" class="text-input" type="text" inputmode="numeric" maxlength="2" placeholder="DD" style="max-width:70px;">
                                 <span>일</span>
                             </div>
 
@@ -428,17 +371,12 @@
 
                         <div class="field-group">
                             <label for="birthPlace" class="field-label">출생</label>
-                            <input
-                                    id="birthPlace"
-                                    class="text-input"
-                                    type="text"
-                                    placeholder="예) 서울, 부산, 인천"
-                            >
+                            <input id="birthPlace" class="text-input" type="text" placeholder="예) 서울, 부산, 인천">
                             <div class="field-hint">시 단위로 입력해주세요.</div>
                         </div>
                     </div>
 
-                    <!-- 👇👇 여기부터 새로 추가한 소개글 영역 -->
+                    <!-- 소개글 -->
                     <div class="field-group">
                         <label for="bioInput" class="field-label">소개글</label>
                         <div class="field-hint">
@@ -450,42 +388,26 @@
                                 rows="4"
                                 placeholder="예) 독립영화와 광고를 중심으로 활동 중인 배우입니다. 자연스러운 연기와 밝은 이미지를 강점으로 가지고 있습니다."></textarea>
                     </div>
-                    <!-- 👆👆 여기까지 -->
 
                     <!-- SNS 여러 개 -->
                     <div class="field-group">
                         <div class="field-label">SNS 링크</div>
-                        <div class="field-hint">
-                            인스타그램, 유튜브, 틱톡 등 여러 개를 등록할 수 있어요.
-                        </div>
+                        <div class="field-hint">인스타그램, 유튜브, 틱톡 등 여러 개를 등록할 수 있어요.</div>
 
-                        <div id="snsList" class="sns-list">
-                            <!-- JS로 기본 1개 행 추가 -->
-                        </div>
+                        <div id="snsList" class="sns-list"></div>
 
-                        <button type="button" id="addSnsBtn" class="sns-add-btn">
-                            + SNS 추가
-                        </button>
+                        <button type="button" id="addSnsBtn" class="sns-add-btn">+ SNS 추가</button>
                     </div>
 
                     <!-- PROFILE TAGS -->
                     <div class="field-group">
                         <div class="field-label">PROFILE TAGS</div>
-                        <div class="field-hint">
-                            배우의 이미지/강점을 나타내는 키워드를 입력해주세요. (예: 독립영화, 밝은이미지)
-                        </div>
+                        <div class="field-hint">배우의 이미지/강점을 나타내는 키워드를 입력해주세요. (예: 독립영화, 밝은이미지)</div>
 
-                        <div id="tagList" class="tag-list">
-                            <!-- 태그 chip들 -->
-                        </div>
+                        <div id="tagList" class="tag-list"></div>
 
                         <div class="tag-edit-row">
-                            <input
-                                    id="tagInput"
-                                    class="text-input tag-input"
-                                    type="text"
-                                    placeholder="자유롭게 입력해주세요."
-                            >
+                            <input id="tagInput" class="text-input tag-input" type="text" placeholder="자유롭게 입력해주세요.">
                             <button type="button" id="addTagBtn" class="tag-add-btn">추가</button>
                         </div>
                         <div class="field-hint">태그를 클릭하면 삭제됩니다.</div>
@@ -501,32 +423,116 @@
         </section>
     </main>
 
-    <footer>
-        © 2025 OnFilm · Indie Actor & Film Platform
-    </footer>
+    <footer>© 2025 OnFilm · Indie Actor & Film Platform</footer>
 </div>
 
-<!-- ✅ OnfilmAuth 먼저 로드 -->
+<!-- ✅ auth 먼저 -->
 <script src="/js/auth.js"></script>
 <script src="/js/app.js"></script>
 
 <script>
-    // ✅ auth 준비(restoreSession) 완료를 보장하는 전역 Promise
+    /* =========================================================
+       0) AUTH READY (토큰/ME 캐시 준비 보장)
+    ========================================================= */
     window.__ONFILM_AUTH_READY_PROMISE__ = (async () => {
         try {
-            if (!window.OnfilmAuth?.restoreSession) return { ok: false, me: null };
-            return await window.OnfilmAuth.restoreSession(); // accessToken + meCache 채움
+            if (!window.OnfilmAuth?.restoreSession) return { ok:false, me:null };
+            return await window.OnfilmAuth.restoreSession();
         } catch (e) {
             console.error("restoreSession failed:", e);
-            return { ok: false, me: null };
+            return { ok:false, me:null };
         }
     })();
 
-    /* ===== 프로필 사진 미리보기 + 드래그 앤 드롭 ===== */
+    /* =========================================================
+       1) API HELPER (username -> publicId -> person)
+       - 너가 바꾼 엔드포인트: /api/person/{username}
+    ========================================================= */
+    async function getUsernameSafe() {
+        let me = window.OnfilmAuth?.getMe?.() || null;
+        if (!me || !me.username) {
+            const r = await window.OnfilmAuth?.restoreSession?.().catch(() => null);
+            me = r?.me || me;
+        }
+        const uname = me?.username ? String(me.username).trim() : "";
+        return uname || null;
+    }
+
+    // ✅ /api/person/{username} -> { publicId: "..." }
+    async function fetchPublicIdByUsername(username) {
+        const res = await window.OnfilmAuth.apiFetchWithAutoRefresh(
+            `/api/person/${encodeURIComponent(username)}`,
+            { method:"GET", headers:{ "Accept":"application/json" } }
+        );
+        if (!res.ok) return null;
+        const data = await res.json().catch(() => null);
+        return data?.publicId != null ? String(data.publicId) : null;
+    }
+
+    // ✅ /api/people/{publicId} -> person
+    async function fetchPersonByPublicId(publicId) {
+        const res = await window.OnfilmAuth.apiFetchWithAutoRefresh(
+            `/api/people/${encodeURIComponent(publicId)}`,
+            { method:"GET", headers:{ "Accept":"application/json" } }
+        );
+        if (!res.ok) return null;
+        return await res.json().catch(() => null);
+    }
+
+    function personHasAnyContent(p) {
+        return !!(p?.name && String(p.name).trim())
+            || !!(p?.oneLineIntro && String(p.oneLineIntro).trim())
+            || !!(p?.birthDate && String(p.birthDate).trim())
+            || !!(p?.birthPlace && String(p.birthPlace).trim())
+            || !!(p?.profileImageUrl && String(p.profileImageUrl).trim())
+            || (Array.isArray(p?.snsList) && p.snsList.length > 0)
+            || (Array.isArray(p?.rawTags) && p.rawTags.length > 0);
+    }
+
+    /* =========================================================
+       2) ELEMENTS / COMMON UI
+    ========================================================= */
+    const form = document.getElementById("editProfileForm");
+    const saveBtn = form?.querySelector('button[type="submit"]');
+
     const profileFileInput = document.getElementById("profileFileInput");
     const profilePreview   = document.getElementById("profilePreview");
     const photoSection     = document.querySelector(".photo-section");
 
+    const snsList   = document.getElementById("snsList");
+    const addSnsBtn = document.getElementById("addSnsBtn");
+
+    const tagListEl = document.getElementById("tagList");
+    const tagInput  = document.getElementById("tagInput");
+    const addTagBtn = document.getElementById("addTagBtn");
+
+    const yearInput  = document.getElementById("birthYear");
+    const monthInput = document.getElementById("birthMonth");
+    const dayInput   = document.getElementById("birthDay");
+    const birthDateHidden = document.getElementById("birthDate");
+
+    const PLACEHOLDER_SRC = "videos/profile-placeholder.png";
+
+    function setSaving(isSaving) {
+        if (!saveBtn) return;
+        saveBtn.disabled = isSaving;
+        saveBtn.textContent = isSaving ? "저장 중..." : "저장";
+    }
+
+    function setupAutoMove(current, next) {
+        if (!current) return;
+        current.addEventListener("input", () => {
+            current.value = current.value.replace(/\D/g, "");
+            const max = current.getAttribute("maxlength");
+            if (max && current.value.length >= parseInt(max, 10) && next) next.focus();
+        });
+    }
+    setupAutoMove(yearInput, monthInput);
+    setupAutoMove(monthInput, dayInput);
+
+    /* =========================================================
+       3) PHOTO: preview + drag/drop
+    ========================================================= */
     function loadProfileImage(file) {
         if (!file) return;
 
@@ -542,11 +548,10 @@
         }
 
         const reader = new FileReader();
-        reader.onload = (ev) => {
-            profilePreview.src = ev.target.result;
-        };
+        reader.onload = (ev) => { profilePreview.src = ev.target.result; };
         reader.readAsDataURL(file);
 
+        // input.files 세팅(가능한 브라우저에서)
         try {
             const dt = new DataTransfer();
             dt.items.add(file);
@@ -556,7 +561,7 @@
         }
     }
 
-    profileFileInput.addEventListener("change", (e) => {
+    profileFileInput?.addEventListener("change", (e) => {
         const file = e.target.files[0];
         loadProfileImage(file);
     });
@@ -574,9 +579,7 @@
             photoSection.addEventListener(evtName, (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (evtName !== "drop") {
-                    profilePreview.classList.remove("drop-hover");
-                }
+                if (evtName !== "drop") profilePreview.classList.remove("drop-hover");
             });
         });
 
@@ -584,18 +587,15 @@
             e.preventDefault();
             e.stopPropagation();
             profilePreview.classList.remove("drop-hover");
-
             const files = e.dataTransfer.files;
             if (!files || files.length === 0) return;
-
             loadProfileImage(files[0]);
         });
     }
 
-    /* ===== SNS 행 추가/삭제 ===== */
-    const snsList   = document.getElementById("snsList");
-    const addSnsBtn = document.getElementById("addSnsBtn");
-
+    /* =========================================================
+       4) SNS: add/remove rows
+    ========================================================= */
     function createSnsRow(initial = {type:"instagram", url:""}) {
         const row = document.createElement("div");
         row.className = "sns-row";
@@ -603,11 +603,11 @@
         const select = document.createElement("select");
         select.className = "select-input";
         select.innerHTML = `
-      <option value="instagram">Instagram</option>
-      <option value="youtube">YouTube</option>
-      <option value="tiktok">TikTok</option>
-      <option value="etc">기타</option>
-    `;
+    <option value="instagram">Instagram</option>
+    <option value="youtube">YouTube</option>
+    <option value="tiktok">TikTok</option>
+    <option value="etc">기타</option>
+  `;
         select.value = initial.type || "instagram";
 
         const input = document.createElement("input");
@@ -632,20 +632,17 @@
     }
 
     function addSnsRow() { createSnsRow({}); }
-    addSnsBtn.addEventListener("click", addSnsRow);
-    addSnsRow();
+    addSnsBtn?.addEventListener("click", addSnsRow);
 
-    /* ===== TAGS ===== */
-    const tagListEl = document.getElementById("tagList");
-    const tagInput  = document.getElementById("tagInput");
-    const addTagBtn = document.getElementById("addTagBtn");
-
+    /* =========================================================
+       5) TAGS: add/remove + drag reorder
+    ========================================================= */
     let draggedChip = null;
     function handleTagDragStart(e) { draggedChip = e.target; draggedChip.classList.add("dragging"); }
     function handleTagDragEnd() { if (draggedChip) draggedChip.classList.remove("dragging"); draggedChip = null; }
 
     function addTag(text) {
-        const trimmed = text.trim();
+        const trimmed = String(text || "").trim();
         if (!trimmed) return;
 
         const label = trimmed.startsWith("#") ? trimmed : `#${trimmed}`;
@@ -665,13 +662,13 @@
         tagListEl.appendChild(chip);
     }
 
-    addTagBtn.addEventListener("click", () => {
+    addTagBtn?.addEventListener("click", () => {
         addTag(tagInput.value);
         tagInput.value = "";
         tagInput.focus();
     });
 
-    tagInput.addEventListener("keydown", (e) => {
+    tagInput?.addEventListener("keydown", (e) => {
         if (e.isComposing || e.keyCode === 229) return;
         if (e.key === "Enter") {
             e.preventDefault();
@@ -680,7 +677,7 @@
         }
     });
 
-    tagListEl.addEventListener("dragover", (e) => {
+    tagListEl?.addEventListener("dragover", (e) => {
         e.preventDefault();
         if (!draggedChip) return;
 
@@ -693,39 +690,30 @@
         else target.before(draggedChip);
     });
 
-    ["#아역", "#밝은 이미지", "#광고 친화적"].forEach(addTag);
-
-    /* ===== 출생일 hidden 값 채우기 ===== */
-    const yearInput  = document.getElementById("birthYear");
-    const monthInput = document.getElementById("birthMonth");
-    const dayInput   = document.getElementById("birthDay");
-    const birthDateHidden = document.getElementById("birthDate");
-
-    function setupAutoMove(current, next) {
-        if (!current) return;
-        current.addEventListener("input", () => {
-            current.value = current.value.replace(/\D/g, "");
-            const max = current.getAttribute("maxlength");
-            if (max && current.value.length >= parseInt(max, 10) && next) next.focus();
-        });
-    }
-    setupAutoMove(yearInput, monthInput);
-    setupAutoMove(monthInput, dayInput);
-
-    /* ===============================
-       ✅ 여기부터: 업로드 → URL → /persons
-    =============================== */
-
-    const form = document.getElementById("editProfileForm");
-    const saveBtn = form.querySelector('button[type="submit"]');
-    const PLACEHOLDER_SRC = "videos/profile-placeholder.png";
-
-    function setSaving(isSaving) {
-        if (!saveBtn) return;
-        saveBtn.disabled = isSaving;
-        saveBtn.textContent = isSaving ? "저장 중..." : "저장";
+    /* =========================================================
+       6) SERVER DATA MAPPING (prefill)
+    ========================================================= */
+    function mapServerSnsTypeToUi(typeUpper) {
+        const t = (typeUpper || "").toUpperCase();
+        if (t === "INSTAGRAM") return "instagram";
+        if (t === "YOUTUBE") return "youtube";
+        if (t === "TIKTOK") return "tiktok";
+        return "etc";
     }
 
+    function normalizeRawTags(rawTags) {
+        const arr = Array.isArray(rawTags) ? rawTags : [];
+        return arr
+            .map(t => (typeof t === "string" ? t : (t?.rawTag || "")))
+            .map(s => String(s || "").trim())
+            .filter(Boolean);
+    }
+
+    /* =========================================================
+       7) UPLOAD (image) + SAVE (POST/PUT)
+       - CREATE: POST /api/people
+       - UPDATE: PUT  /api/people/{publicId}
+    ========================================================= */
     async function uploadProfileImageIfAny() {
         const file = profileFileInput.files && profileFileInput.files[0];
         if (!file) return null;
@@ -743,47 +731,23 @@
             throw new Error(`이미지 업로드 실패: ${res.status} ${msg}`);
         }
 
-        const data = await res.json(); // { url: "/uploads/xxx.jpg" }
-        return data && data.url ? data.url : null;
+        const data = await res.json().catch(() => null); // { url: "..." }
+        return data?.url ? String(data.url) : null;
     }
 
-    form.addEventListener("submit", async (e) => {
-        // ✅ auth가 실제로 준비될 때까지 기다림 (토큰/ME 캐시 확실히 세팅)
-        const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
-        if (!authReady?.ok) {
-            const next = encodeURIComponent(location.pathname + location.search);
-            location.href = `/login.html?next=${next}`;
-            return;
-        }
-
-        e.preventDefault();
-        if (!window.OnfilmAuth) {
-            alert("auth.js 로드/실행이 안 됐어요. (window.OnfilmAuth 없음)");
-            return;
-        }
-        if (!window.OnfilmAuth.apiFetchWithAutoRefresh) {
-            alert("auth.js에 apiFetchWithAutoRefresh가 아직 없어요. auth.js 수정 필요");
-            return;
-        }
-
-        // 출생일 조합
+    function buildBirthDateOrThrow() {
         if (!yearInput.value || !monthInput.value || !dayInput.value) {
-            alert("출생일을 모두 입력해 주세요.");
-            return;
+            throw new Error("출생일을 모두 입력해 주세요.");
         }
         const y = yearInput.value.padStart(4, "0");
         const m = monthInput.value.padStart(2, "0");
         const d = dayInput.value.padStart(2, "0");
-        birthDateHidden.value = `${y}-${m}-${d}`;
+        const iso = `${y}-${m}-${d}`;
+        birthDateHidden.value = iso;
+        return iso;
+    }
 
-        // 필수값 검증
-        const name = document.getElementById("actorName").value.trim();
-        if (!name) {
-            alert("이름을 입력해 주세요.");
-            return;
-        }
-
-        // SNS 수집 (서버 enum에 맞게 대문자)
+    function collectSnsPayload() {
         const snsData = [];
         snsList.querySelectorAll(".sns-row").forEach(row => {
             const type = row.querySelector("select").value; // instagram/youtube/tiktok/etc
@@ -791,6 +755,8 @@
             if (!raw) return;
 
             let finalUrl = raw;
+
+            // scheme 없으면 보정
             if (!/^https?:\/\//i.test(raw)) {
                 if (type === "instagram") {
                     const handle = raw.replace(/^@/, "");
@@ -807,91 +773,86 @@
 
             snsData.push({ type: type.toUpperCase(), url: finalUrl });
         });
+        return snsData.length ? snsData : null;
+    }
 
-        // rawTags 수집 (서버는 List<String>)
+    function collectTagsPayload() {
         const rawTags = [];
         tagListEl.querySelectorAll(".tag-chip").forEach(chip => {
             rawTags.push(chip.textContent.replace(/^#/, "").trim());
         });
+        return rawTags.length ? rawTags : null;
+    }
 
-        setSaving(true);
+    form?.addEventListener("submit", async (e) => {
+        e.preventDefault(); // ✅ await보다 먼저!
+
+        const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
+        if (!authReady?.ok) {
+            const next = encodeURIComponent(location.pathname + location.search);
+            location.href = `/login.html?next=${next}`;
+            return;
+        }
+
+        if (!window.OnfilmAuth?.apiFetchWithAutoRefresh) {
+            alert("auth.js에 apiFetchWithAutoRefresh가 필요해요.");
+            return;
+        }
 
         try {
-            // ✅ 1) 이미지 업로드(선택) → URL 확보
-            // placeholder 상태거나 파일 없으면 null로 둔다
-            let profileImageUrl = null;
-            const hasNewFile = profileFileInput.files && profileFileInput.files.length > 0;
-            const isPlaceholder = (profilePreview.getAttribute("src") || "").includes(PLACEHOLDER_SRC);
+            const name = document.getElementById("actorName").value.trim();
+            if (!name) throw new Error("이름을 입력해 주세요.");
 
-            if (hasNewFile && !isPlaceholder) {
-                profileImageUrl = await uploadProfileImageIfAny(); // "/uploads/xxx.jpg"
-            } else if (hasNewFile) {
-                // placeholder지만 파일이 있으면 업로드는 한다 (드롭/선택 후 미리보기 실패 케이스 방어)
-                profileImageUrl = await uploadProfileImageIfAny();
-            }
+            const birthDate = buildBirthDateOrThrow();
 
-            // ✅ 새 파일 업로드가 없으면 기존 이미지 URL 유지
-            if (!profileImageUrl) {
-                const existing = (window.__EXISTING_PROFILE_IMAGE_URL__ || "").trim();
-                const currentSrc = (profilePreview.getAttribute("src") || "").trim();
-                const isPlaceholderNow = currentSrc.includes(PLACEHOLDER_SRC);
-
-                // 기존 이미지가 있었고, 지금도 placeholder가 아니면 기존값 유지
-                if (!hasNewFile && existing && !isPlaceholderNow) {
-                    profileImageUrl = existing;
-                }
-            }
-
-            // ✅ 2) CreatePersonRequest에 URL 넣고 /persons 호출
             const payload = {
                 name,
-                birthDate: birthDateHidden.value,
+                birthDate,
                 birthPlace: document.getElementById("birthPlace").value.trim(),
                 oneLineIntro: document.getElementById("bioInput").value.trim(),
-                profileImageUrl,                    // ✅ 업로드 결과 URL
-                snsList: snsData.length ? snsData : null,
-                rawTags: rawTags.length ? rawTags : null,
+                profileImageUrl: null, // 아래에서 결정
+                snsList: collectSnsPayload(),
+                rawTags: collectTagsPayload(),
             };
 
-            const editingPersonIdRaw = window.__EDITING_PERSON_ID__;
-            const editingPersonId = Number(editingPersonIdRaw);
-            const isEdit = Number.isFinite(editingPersonId) && editingPersonId > 0;
+            setSaving(true);
 
-            const url = isEdit ? `/persons/${editingPersonId}` : "/persons";
+            // 1) 이미지 업로드(선택)
+            let profileImageUrl = null;
+            const hasNewFile = profileFileInput.files && profileFileInput.files.length > 0;
+            if (hasNewFile) profileImageUrl = await uploadProfileImageIfAny();
+
+            // 새 파일 없으면 기존 유지
+            if (!profileImageUrl) {
+                profileImageUrl = (window.__EXISTING_PROFILE_IMAGE_URL__ || "").trim() || null;
+            }
+            payload.profileImageUrl = profileImageUrl;
+
+            // 2) 수정/생성 판단: publicId 기준
+            const editingPublicId = (window.__EDITING_PUBLIC_ID__ || "").toString().trim();
+            const isEdit = !!editingPublicId;
+
+            const url = isEdit
+                ? `/api/people/${encodeURIComponent(editingPublicId)}`
+                : `/api/people`;
             const method = isEdit ? "PUT" : "POST";
 
             const res = await window.OnfilmAuth.apiFetchWithAutoRefresh(url, {
                 method,
-                headers: { "Content-Type": "application/json" }, // auth wrapper가 넣어줘도 안전하게 명시 추천
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
 
             if (!res.ok) {
                 const msg = await res.text().catch(() => "");
-                alert(`저장 실패: ${res.status}\n${msg}`);
-                return;
+                throw new Error(`저장 실패: ${res.status}\n${msg}`);
             }
-
-            const savedIdText = await res.text().catch(() => "");
-            const savedPersonId = Number(savedIdText || "0"); // 필요하면 사용
 
             alert("저장 완료!");
 
-            // ✅ username이 캐시에 없을 수도 있으니 한번 더 복구 시도해서 확보
-            let me = window.OnfilmAuth.getMe && window.OnfilmAuth.getMe();
-            if (!me || !me.username) {
-                const r = await window.OnfilmAuth.restoreSession().catch(() => null);
-                me = (r && r.me) ? r.me : me;
-            }
-
-            const uname = me && me.username ? String(me.username).trim() : "";
-
-            // ✅ 목표: 공개 페이지(/onfilm/{username})로 이동. username 없으면 /onfilm(공개)로만 이동
-            if (uname) {
-                location.href = `/onfilm/${encodeURIComponent(uname)}`;
-            } else {
-                location.href = `/onfilm`;
-            }
+            const uname = await getUsernameSafe();
+            if (uname) location.href = `/onfilm/${encodeURIComponent(uname)}`;
+            else location.href = `/onfilm`;
 
         } catch (err) {
             console.error(err);
@@ -901,203 +862,131 @@
         }
     });
 
-    window.addEventListener("dragover", (e) => e.preventDefault());
-    window.addEventListener("drop", (e) => e.preventDefault());
-</script>
+    /* =========================================================
+       8) PREFILL (저장된 데이터 폼에 채우기)
+    ========================================================= */
+    async function preloadProfileToEditForm() {
+        const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
+        if (!authReady?.ok) return;
 
-<script>
+        const uname = await getUsernameSafe();
+        if (!uname) return;
+
+        // ✅ username -> publicId (변경된 경로 반영)
+        const publicId = await fetchPublicIdByUsername(uname);
+        if (!publicId) return;
+
+        const p = await fetchPersonByPublicId(publicId);
+        if (!p) return;
+
+        window.__EDITING_PUBLIC_ID__ = publicId;
+        window.__EXISTING_PROFILE_IMAGE_URL__ = (p?.profileImageUrl || "").trim();
+
+        // 기본 필드
+        document.getElementById("actorName").value = p?.name || "";
+        document.getElementById("birthPlace").value = p?.birthPlace || "";
+        document.getElementById("bioInput").value = p?.oneLineIntro || "";
+
+        // birth yyyy-mm-dd
+        const birth = (p?.birthDate || "").trim();
+        if (birth) {
+            const [yy, mm, dd] = birth.split("-");
+            if (yy) yearInput.value = yy;
+            if (mm) monthInput.value = mm;
+            if (dd) dayInput.value = dd;
+            birthDateHidden.value = birth;
+        }
+
+        // profile image
+        const placeholder = profilePreview.getAttribute("src");
+        const real = (p?.profileImageUrl || "").trim();
+        if (real) {
+            profilePreview.src = real;
+            profilePreview.onerror = () => { profilePreview.onerror = null; profilePreview.src = placeholder; };
+        } else {
+            profilePreview.src = placeholder;
+        }
+
+        // SNS: 초기화 후 채움
+        snsList.innerHTML = "";
+        const sList = Array.isArray(p?.snsList) ? p.snsList : [];
+        if (sList.length > 0) {
+            sList.forEach(s => createSnsRow({ type: mapServerSnsTypeToUi(s?.type), url: String(s?.url || "").trim() }));
+        } else {
+            addSnsRow();
+        }
+
+        // Tags: 초기화 후 저장값만
+        tagListEl.innerHTML = "";
+        normalizeRawTags(p?.rawTags).forEach(t => addTag(t));
+    }
+
+    /* =========================================================
+       9) BACK LINK (프로필로 돌아가기)
+       - 프로필 존재+내용 있으면 /onfilm/{username}
+       - 아니면 /index.html
+    ========================================================= */
+    async function handleBackToProfile(e) {
+        e.preventDefault();
+
+        try {
+            const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
+            if (!authReady?.ok) {
+                window.location.href = "/index.html";
+                return;
+            }
+
+            const uname = await getUsernameSafe();
+            if (!uname) {
+                window.location.href = "/index.html";
+                return;
+            }
+
+            const publicId = await fetchPublicIdByUsername(uname);
+            if (!publicId) {
+                window.location.href = "/index.html";
+                return;
+            }
+
+            const p = await fetchPersonByPublicId(publicId);
+            if (!p || !personHasAnyContent(p)) {
+                window.location.href = "/index.html";
+                return;
+            }
+
+            window.location.href = "/onfilm/" + encodeURIComponent(uname);
+        } catch (_) {
+            window.location.href = "/index.html";
+        }
+    }
+
+    /* =========================================================
+       10) INIT (DOMContentLoaded)
+    ========================================================= */
     document.addEventListener("DOMContentLoaded", async () => {
         const result = await window.__ONFILM_AUTH_READY_PROMISE__;
         if (!result?.ok) {
             const next = encodeURIComponent(location.pathname + location.search);
             location.href = `/login.html?next=${next}`;
+            return;
         }
-    });
-</script>
 
-<script>
-    // "프로필로 돌아가기":
-    // - 프로필이 존재하고(또는 내용이 있으면) /onfilm/{username}
-    // - 프로필이 없으면(404 또는 내용 없음) /index.html
-    document.addEventListener("DOMContentLoaded", () => {
+        // SNS 최소 1행 보장(프리필이 덮어씌우면 거기서 다시 세팅됨)
+        if (snsList.children.length === 0) addSnsRow();
+
+        // (샘플 태그는 프리필에서 덮어쓰니까, "로그인 전/빈 폼"일 때만 넣고 싶으면 아래 주석 해제)
+        // ["#아역", "#밝은 이미지", "#광고 친화적"].forEach(addTag);
+
+        await preloadProfileToEditForm();
+
+        // back link
         const link = document.getElementById("backToProfileLink");
-        if (!link) return;
-
-        link.addEventListener("click", async (e) => {
-            e.preventDefault();
-
-            try {
-                // 1) username 확보
-                let me = window.OnfilmAuth?.getMe?.() || null;
-                if (!me || !me.username) {
-                    const r = await window.OnfilmAuth?.restoreSession?.().catch(() => null);
-                    me = r?.me || me;
-                }
-                const uname = me?.username ? String(me.username).trim() : "";
-                if (!uname) {
-                    window.location.href = "/index.html";
-                    return;
-                }
-
-                // 2) 프로필 존재/내용 확인
-                //    (인증 필요할 수 있으니 apiFetchWithAutoRefresh 우선 사용)
-                const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
-                    ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
-                    : fetch;
-
-                const res = await fetcher(`/persons/${encodeURIComponent(uname)}`, {
-                    method: "GET",
-                    headers: { "Accept": "application/json" }
-                });
-
-                // 404(프로필 없음) 또는 기타 실패 => 랜딩
-                if (!res.ok) {
-                    window.location.href = "/index.html";
-                    return;
-                }
-
-                const p = await res.json().catch(() => null);
-
-                // "프로필이 없다" 기준: 아무 정보도 없는 경우
-                const hasAny =
-                    !!(p?.name && String(p.name).trim()) ||
-                    !!(p?.oneLineIntro && String(p.oneLineIntro).trim()) ||
-                    !!(p?.birthDate && String(p.birthDate).trim()) ||
-                    !!(p?.birthPlace && String(p.birthPlace).trim()) ||
-                    !!(p?.profileImageUrl && String(p.profileImageUrl).trim()) ||
-                    (Array.isArray(p?.snsList) && p.snsList.length > 0) ||
-                    (Array.isArray(p?.rawTags) && p.rawTags.length > 0);
-
-                if (!hasAny) {
-                    window.location.href = "/index.html";
-                    return;
-                }
-
-                // 3) 정상 프로필이면 공개 페이지로
-                window.location.href = "/onfilm/" + encodeURIComponent(uname);
-            } catch (_) {
-                window.location.href = "/index.html";
-            }
-        });
+        link?.addEventListener("click", handleBackToProfile);
     });
-</script>
 
-<script>
-    // ===============================
-    // ✅ 프로필 편집 페이지: 저장된 데이터 프리필
-    // ===============================
-
-    function mapServerSnsTypeToUi(typeUpper) {
-        const t = (typeUpper || "").toUpperCase();
-        if (t === "INSTAGRAM") return "instagram";
-        if (t === "YOUTUBE") return "youtube";
-        if (t === "TIKTOK") return "tiktok";
-        // NAVER/X/TWITTER/기타는 UI에 없으니 etc로
-        return "etc";
-    }
-
-    function normalizeRawTags(rawTags) {
-        const arr = Array.isArray(rawTags) ? rawTags : [];
-        return arr
-            .map(t => (typeof t === "string" ? t : (t?.rawTag || "")))
-            .map(s => String(s || "").trim())
-            .filter(Boolean);
-    }
-
-    async function preloadProfileToEditForm() {
-        // auth 준비 기다림
-        const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
-        if (!authReady?.ok) return;
-
-        // me에서 username 확보
-        let me = window.OnfilmAuth?.getMe?.() || authReady.me || null;
-        if (!me?.username) {
-            const r = await window.OnfilmAuth?.restoreSession?.().catch(() => null);
-            me = r?.me || me;
-        }
-        const uname = me?.username ? String(me.username).trim() : "";
-        if (!uname) return; // username 없으면 저장된 프로필 조회 불가(그냥 빈 폼)
-
-        // 프로필 조회 (공개 GET이면 fetch로도 되지만, 인증/갱신 안정성 위해 apiFetch 사용)
-        const res = await window.OnfilmAuth.apiFetchWithAutoRefresh(`/persons/${encodeURIComponent(uname)}`, {
-            method: "GET",
-            headers: { "Accept": "application/json" }
-        });
-        if (!res.ok) return;
-
-        const p = await res.json();
-
-        window.__EDITING_PERSON_ID__ = p?.id ?? null;
-
-        // ✅ (중요) 기존 이미지 URL 보관 (나중에 저장 시 null로 덮어쓰기 방지)
-        window.__EXISTING_PROFILE_IMAGE_URL__ = (p?.profileImageUrl || "").trim();
-
-        // ---- 기본 필드 ----
-        const nameEl = document.getElementById("actorName");
-        if (nameEl) nameEl.value = p?.name || "";
-
-        const birthPlaceEl = document.getElementById("birthPlace");
-        if (birthPlaceEl) birthPlaceEl.value = p?.birthPlace || "";
-
-        const bioEl = document.getElementById("bioInput");
-        if (bioEl) bioEl.value = p?.oneLineIntro || "";
-
-        // ---- 생년월일(YYYY-MM-DD) -> year/month/day + hidden ----
-        const birth = (p?.birthDate || "").trim();
-        if (birth) {
-            const [yy, mm, dd] = birth.split("-");
-            if (yy) document.getElementById("birthYear").value = yy;
-            if (mm) document.getElementById("birthMonth").value = mm;
-            if (dd) document.getElementById("birthDay").value = dd;
-
-            const hidden = document.getElementById("birthDate");
-            if (hidden) hidden.value = birth;
-        }
-
-        // ---- 프로필 이미지 ----
-        const preview = document.getElementById("profilePreview");
-        if (preview) {
-            const placeholder = preview.getAttribute("src");
-            const real = (p?.profileImageUrl || "").trim();
-            if (real) {
-                preview.src = real;
-                preview.onerror = () => { preview.onerror = null; preview.src = placeholder; };
-            } else {
-                preview.src = placeholder; // 없으면 placeholder 유지
-            }
-        }
-
-        // ---- SNS ----
-        // 기존에 기본 1행 + 사용자가 추가한 행 + 저장된 행이 섞이지 않게 초기화 후 채움
-        const snsWrap = document.getElementById("snsList");
-        if (snsWrap) {
-            snsWrap.innerHTML = "";
-
-            const list = Array.isArray(p?.snsList) ? p.snsList : [];
-            if (list.length > 0) {
-                list.forEach(s => {
-                    const uiType = mapServerSnsTypeToUi(s?.type);
-                    const url = (s?.url || "").toString().trim();
-                    // createSnsRow는 위 스크립트에 이미 존재하므로 그대로 재사용
-                    createSnsRow({ type: uiType, url });
-                });
-            } else {
-                // SNS가 없으면 최소 1행은 유지
-                addSnsRow();
-            }
-        }
-
-        // ---- TAGS ----
-        // 샘플 태그(#아역...)가 이미 들어가 있으므로 "초기화 후" 저장값만 넣기
-        const tagList = document.getElementById("tagList");
-        if (tagList) {
-            tagList.innerHTML = "";
-            const tags = normalizeRawTags(p?.rawTags);
-            tags.forEach(t => addTag(t));
-        }
-    }
-
-    document.addEventListener("DOMContentLoaded", preloadProfileToEditForm);
+    // 전체 드롭 기본 동작 방지(페이지 이동 방지)
+    window.addEventListener("dragover", (e) => e.preventDefault());
+    window.addEventListener("drop", (e) => e.preventDefault());
 </script>
 
 </body>

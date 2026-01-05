@@ -29,16 +29,16 @@ public class PersonService {
     private final PersonRepository personRepository;
     private final UserRepository userRepository;
 
-    @Transactional(readOnly = true)
-    public PersonResponse getProfileByUsername(String username) {
-        User user = userRepository.findByUsernameWithPerson(username)
-                .orElseThrow(() -> new UserNotFoundException(username));
-
-        Person person = user.getPerson();
-        if (person == null) throw new PersonNotFoundException(username);
-
-        return PersonResponse.from(person);
-    }
+//    @Transactional(readOnly = true)
+//    public PersonResponse getProfileByUsername(String username) {
+//        User user = userRepository.findByUsernameWithPerson(username)
+//                .orElseThrow(() -> new UserNotFoundException(username));
+//
+//        Person person = user.getPerson();
+//        if (person == null) throw new PersonNotFoundException(username);
+//
+//        return PersonResponse.from(person);
+//    }
 
     @Transactional
     public Long createPerson(CreatePersonRequest request) {

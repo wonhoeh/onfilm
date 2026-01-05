@@ -69,9 +69,9 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/videos/**"),
                                 new AntPathRequestMatcher("/favicon.ico"),
                                 new AntPathRequestMatcher("/onfilm/**"),
-                                new AntPathRequestMatcher("/person/**"),
+                                new AntPathRequestMatcher("/api/person/**"),
                                 // (만약 REST가 /persons/{id} 면 이것도)
-                                new AntPathRequestMatcher("/persons/**"),
+                                new AntPathRequestMatcher("/api/people/**"),
                                 new AntPathRequestMatcher("/auth/**")
                         ).permitAll()
 
