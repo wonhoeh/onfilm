@@ -23,4 +23,3 @@ public class MovieController {
         return ResponseEntity.status(HttpStatus.CREATED).body(movieId);
     }
 }
-

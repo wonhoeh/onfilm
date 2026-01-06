@@ -5,6 +5,7 @@ import com.onfilm.domain.common.config.JwtProvider;
 import com.onfilm.domain.movie.controller.PersonController;
 import com.onfilm.domain.movie.dto.*;
 import com.onfilm.domain.movie.entity.SnsType;
+import com.onfilm.domain.movie.service.PersonReadService;
 import com.onfilm.domain.movie.service.PersonService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -34,6 +36,9 @@ class PersonControllerTest {
 
     @MockBean
     private PersonService personService;
+
+    @MockBean
+    private PersonReadService personReadService;
 
     @MockBean
     private JwtProvider jwtProvider;
@@ -60,7 +65,7 @@ class PersonControllerTest {
 
         // when & then
         mockMvc.perform(
-                        post("/persons")
+                        post("/api/people")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request))
                 )
@@ -88,7 +93,7 @@ class PersonControllerTest {
 
         // when & then
         mockMvc.perform(
-                        post("/persons")
+                        post("/api/people")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request))
                 )
@@ -111,8 +116,9 @@ class PersonControllerTest {
                         .rawTag("헐리우드")
                         .build();
 
-        PersonResponse response = PersonResponse.builder()
-                .id(1L)
+        String publicId = UUID.randomUUID().toString();
+        ProfileResponse response = ProfileResponse.builder()
+                .publicId(publicId)
                 .name(name)
                 .birthDate(LocalDate.of(1974, 11, 11))
                 .birthPlace("Los Angeles")
@@ -122,10 +128,10 @@ class PersonControllerTest {
                 .rawTags(List.of(tag1))
                 .build();
 
-        when(personService.getProfileByUsername(name)).thenReturn(response);
+        when(personReadService.getProfileByPublicId(publicId)).thenReturn(response);
 
         // when & then
-        mockMvc.perform(get("/persons/{name}", name)
+        mockMvc.perform(get("/api/people/{publicId}", publicId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isAccepted())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))

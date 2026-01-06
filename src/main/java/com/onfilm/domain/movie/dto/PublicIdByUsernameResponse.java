@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProfileAndPublicIdResponse {
+public class PublicIdByUsernameResponse {
     private String username;
     private String publicId;
-    private PersonResponse personResponse;
 }

@@ -4,7 +4,6 @@ import com.onfilm.domain.common.error.exception.PersonNotFoundException;
 import com.onfilm.domain.common.error.exception.UserNotFoundException;
 import com.onfilm.domain.common.util.SecurityUtil;
 import com.onfilm.domain.movie.dto.CreatePersonRequest;
-import com.onfilm.domain.movie.dto.PersonResponse;
 import com.onfilm.domain.movie.dto.UpdatePersonRequest;
 import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.movie.entity.PersonSns;
@@ -19,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,17 +29,6 @@ public class PersonService {
     private final PersonRepository personRepository;
     private final UserRepository userRepository;
 
-//    @Transactional(readOnly = true)
-//    public PersonResponse getProfileByUsername(String username) {
-//        User user = userRepository.findByUsernameWithPerson(username)
-//                .orElseThrow(() -> new UserNotFoundException(username));
-//
-//        Person person = user.getPerson();
-//        if (person == null) throw new PersonNotFoundException(username);
-//
-//        return PersonResponse.from(person);
-//    }
-
     @Transactional
     public Long createPerson(CreatePersonRequest request) {
         Long userId = SecurityUtil.currentUserId();
@@ -49,7 +38,10 @@ public class PersonService {
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
         // rawSns -> PersonSns 변환
-        List<PersonSns> snsList = request.getSnsList().stream()
+        List<PersonSns> snsList = Optional.ofNullable(request.getSnsList())
+                .orElseGet(List::of)
+                .stream()
+                .filter(Objects::nonNull)
                 .map(s -> PersonSns.create(s.getType(), s.getUrl()))
                 .toList();
 
@@ -70,18 +62,18 @@ public class PersonService {
     }
 
     @Transactional
-    public void updatePerson(Long id, UpdatePersonRequest request) {
+    public void updatePerson(String publicId, UpdatePersonRequest request) {
         Long userId = SecurityUtil.currentUserId();
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
-        Person person = personRepository.findById(id)
-                .orElseThrow(() -> new PersonNotFoundException(id));
+        Person person = personRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new PersonNotFoundException(publicId));
 
-        // ✅ 권한 체크: 내 Person만 수정
-        if (user.getPerson() == null || !Objects.equals(user.getPerson().getId(), id)) {
-            // 401이 아니라 보통 403이 맞음 (예외 매핑도 같이 확인 추천)
+        // ✅ 권한 체크: 내 Person만 수정 (publicId 기준)
+        if (user.getPerson() == null || !Objects.equals(user.getPerson().getPublicId(), publicId)) {
+            // 보통 403 매핑 추천 (AccessDeniedException 쓰면 더 깔끔)
             throw new IllegalStateException("FORBIDDEN");
         }
 
@@ -94,9 +86,11 @@ public class PersonService {
                 request.getProfileImageUrl()
         );
 
-        // ✅ SNS 전체 교체
-        List<PersonSns> snsEntities = (request.getSnsList() == null) ? List.of()
-                : request.getSnsList().stream()
+        // ✅ SNS 전체 교체 (null-safe)
+        List<PersonSns> snsEntities = Optional.ofNullable(request.getSnsList())
+                .orElseGet(List::of)
+                .stream()
+                .filter(Objects::nonNull)
                 .map(r -> PersonSns.builder()
                         .type(r.getType())
                         .url(r.getUrl())
@@ -104,7 +98,9 @@ public class PersonService {
                 .toList();
         person.replaceSns(snsEntities);
 
-        // ✅ TAG 전체 교체 (핵심: replaceProfileTags에서 중복/flush순서 안전 처리)
-        person.replaceProfileTags(request.getRawTags());
+        // ✅ TAG 전체 교체 (null-safe로 넘기는 게 안전)
+        person.replaceProfileTags(
+                Optional.ofNullable(request.getRawTags()).orElseGet(List::of)
+        );
     }
 }

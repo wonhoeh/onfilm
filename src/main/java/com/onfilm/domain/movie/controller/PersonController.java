@@ -2,7 +2,7 @@ package com.onfilm.domain.movie.controller;
 
 import com.onfilm.domain.movie.dto.CreatePersonRequest;
 import com.onfilm.domain.movie.dto.MovieCardResponse;
-import com.onfilm.domain.movie.dto.PersonResponse;
+import com.onfilm.domain.movie.dto.ProfileResponse;
 import com.onfilm.domain.movie.dto.UpdatePersonRequest;
 import com.onfilm.domain.movie.service.MovieReadService;
 import com.onfilm.domain.movie.service.PersonReadService;
@@ -27,8 +27,8 @@ public class PersonController {
     // PROFILE
     // =============================
     @GetMapping("/{publicId}")
-    public ResponseEntity<PersonResponse> getProfile(@PathVariable String publicId) {
-        PersonResponse personResponse = personReadService.getProfileByPublicId(publicId);
+    public ResponseEntity<ProfileResponse> getProfile(@PathVariable String publicId) {
+        ProfileResponse personResponse = personReadService.getProfileByPublicId(publicId);
         return ResponseEntity.ok(personResponse);
     }
 
@@ -38,11 +38,11 @@ public class PersonController {
         return ResponseEntity.status(HttpStatus.CREATED).body(personId);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Long> updatePerson(@PathVariable Long id,
+    @PutMapping("/{publicId}")
+    public ResponseEntity<String> updatePerson(@PathVariable String publicId,
                                              @RequestBody UpdatePersonRequest request) {
-        personService.updatePerson(id, request);
-        return ResponseEntity.ok(id);
+        personService.updatePerson(publicId, request);
+        return ResponseEntity.ok(publicId);
     }
 
     // =============================

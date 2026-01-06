@@ -1,11 +1,12 @@
 package com.onfilm.domain.person.service;
 
 
-import com.onfilm.domain.movie.dto.PersonResponse;
+import com.onfilm.domain.movie.dto.ProfileResponse;
 import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.movie.entity.PersonSns;
 import com.onfilm.domain.movie.entity.SnsType;
 import com.onfilm.domain.movie.repository.PersonRepository;
+import com.onfilm.domain.movie.service.PersonReadService;
 import com.onfilm.domain.movie.service.PersonService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,9 @@ public class PersonServiceTest {
 
     @InjectMocks
     private PersonService personService; // 너의 실제 서비스 클래스명
+
+    @InjectMocks
+    private PersonReadService personReadService;
 
     @Test
     @DisplayName("getPerson(name): 존재하면 PersonResponse로 매핑해서 반환한다 (snsList, rawTags 포함)")
@@ -56,11 +60,11 @@ public class PersonServiceTest {
         when(personRepository.findByName(person.getName())).thenReturn(Optional.of(person));
 
         // when
-        PersonResponse res = personService.getProfileByUsername(person.getName());
+        //ProfileResponse res = personService.getProfileByUsername(person.getName());
+        ProfileResponse res = personReadService.getProfileByPublicId(person.getPublicId());
 
         // then
         assertThat(res).isNotNull();
-        assertThat(res.getId()).isEqualTo(person.getId());
         assertThat(res.getName()).isEqualTo(person.getName());
         assertThat(res.getBirthDate()).isEqualTo(LocalDate.of(1974, 11, 11));
         assertThat(res.getBirthPlace()).isEqualTo("Los Angeles");

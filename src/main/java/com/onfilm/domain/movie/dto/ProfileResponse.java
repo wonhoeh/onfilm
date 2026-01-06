@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PersonResponse {
+public class ProfileResponse {
     private String publicId;
     private String name;
     private LocalDate birthDate;
@@ -23,8 +23,8 @@ public class PersonResponse {
     private List<PersonSnsResponse> snsList;
     private List<ProfileTagResponse> rawTags;
 
-    public static PersonResponse from(Person person) {
-        return PersonResponse.builder()
+    public static ProfileResponse from(Person person) {
+        return ProfileResponse.builder()
                 .publicId(person.getPublicId())
                 .name(person.getName())
                 .birthDate(person.getBirthDate())

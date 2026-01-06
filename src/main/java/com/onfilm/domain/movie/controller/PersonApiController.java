@@ -1,6 +1,6 @@
 package com.onfilm.domain.movie.controller;
 
-import com.onfilm.domain.movie.dto.ProfileAndPublicIdResponse;
+import com.onfilm.domain.movie.dto.PublicIdByUsernameResponse;
 import com.onfilm.domain.movie.service.PersonQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +18,8 @@ public class PersonApiController {
 
     // username -> 프로필 + publicId(필모, 갤러리 조회 키)
     @GetMapping("/{username}")
-    public ResponseEntity<ProfileAndPublicIdResponse> getProfileByUsername(@PathVariable String username) {
-        ProfileAndPublicIdResponse profileByUsername = personQueryService.getProfileByUsername(username);
+    public ResponseEntity<PublicIdByUsernameResponse> getPublicIdByUsername(@PathVariable String username) {
+        PublicIdByUsernameResponse profileByUsername = personQueryService.getPublicIdByUsername(username);
         return ResponseEntity.ok(profileByUsername);
     }
 }

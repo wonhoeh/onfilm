@@ -1,7 +1,7 @@
 package com.onfilm.domain.movie.service;
 
 import com.onfilm.domain.common.error.exception.PersonNotFoundException;
-import com.onfilm.domain.movie.dto.PersonResponse;
+import com.onfilm.domain.movie.dto.ProfileResponse;
 import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.movie.repository.PersonRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,10 +15,10 @@ public class PersonReadService {
 
     private final PersonRepository personRepository;
 
-    public PersonResponse getProfileByPublicId(String publicId) {
+    public ProfileResponse getProfileByPublicId(String publicId) {
         Person person = personRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new PersonNotFoundException(publicId));
 
-        return PersonResponse.from(person);
+        return ProfileResponse.from(person);
     }
 }

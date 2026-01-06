@@ -64,9 +64,7 @@
       align-items:center;
       gap:4px;
     }
-    .back-link:hover{
-      color:var(--text);
-    }
+    .back-link:hover{ color:var(--text); }
 
     main{
       flex:1;
@@ -123,17 +121,9 @@
               rgba(17,19,30,1)
       );
     }
-    .upload-icon{
-      font-size:26px;
-    }
-    .upload-main-text{
-      font-size:13px;
-      font-weight:500;
-    }
-    .upload-sub-text{
-      font-size:11px;
-      color:var(--muted);
-    }
+    .upload-icon{ font-size:26px; }
+    .upload-main-text{ font-size:13px; font-weight:500; }
+    .upload-sub-text{ font-size:11px; color:var(--muted); }
 
     .upload-actions{
       display:flex;
@@ -156,21 +146,13 @@
       background:var(--accent);
       color:#fff;
     }
-    .btn.primary:hover{
-      background:#8a6dff;
-    }
-    .btn:hover{
-      border-color:var(--accent);
-    }
+    .btn.primary:hover{ background:#8a6dff; }
+    .btn:hover{ border-color:var(--accent); }
 
-    .hidden-input{
-      display:none;
-    }
+    .hidden-input{ display:none; }
 
-    /* 갤러리 그리드 */
-    .gallery-wrapper{
-      margin-top:10px;
-    }
+    /* 갤러리 */
+    .gallery-wrapper{ margin-top:10px; }
 
     .gallery-toolbar{
       display:flex;
@@ -201,12 +183,15 @@
       transform:scale(.98);
       box-shadow:0 14px 40px rgba(0,0,0,.7);
       border-color:var(--accent-2);
+      cursor:grabbing;
     }
     .photo-thumb{
       width:100%;
       height:150px;
       object-fit:cover;
       display:block;
+      user-select:none;
+      -webkit-user-drag:none;
     }
 
     .photo-bottom-bar{
@@ -228,12 +213,9 @@
       gap:3px;
       color:var(--muted);
       font-size:11px;
+      pointer-events:none; /* 핸들 영역 클릭/드래그는 카드가 먹게 */
     }
-
-    .dots-icon{
-      font-size:14px;
-      line-height:1;
-    }
+    .dots-icon{ font-size:14px; line-height:1; }
 
     .photo-delete-btn{
       border:0;
@@ -261,7 +243,6 @@
       padding:16px 0 4px;
     }
 
-    /* 하단 버튼 */
     .form-actions{
       margin-top:16px;
       display:flex;
@@ -277,13 +258,8 @@
       font-size:13px;
       cursor:pointer;
     }
-    .primary-btn{
-      background:var(--accent);
-      color:white;
-    }
-    .primary-btn:hover{
-      background:#8a6dff;
-    }
+    .primary-btn{ background:var(--accent); color:white; }
+    .primary-btn:hover{ background:#8a6dff; }
     .ghost-btn{
       background:transparent;
       color:var(--muted);
@@ -305,19 +281,16 @@
     }
 
     @media (max-width:800px){
-      .edit-card{
-        padding:18px 14px 20px;
-      }
+      .edit-card{ padding:18px 14px 20px; }
     }
   </style>
 </head>
+
 <body>
 <div class="page-shell">
   <header>
     <div class="header-inner">
-      <a href="#" class="back-link" id="backToProfileLink">
-        ← 프로필로 돌아가기
-      </a>
+      <a href="#" class="back-link" id="backToProfileLink">← 프로필로 돌아가기</a>
       <div class="header-title">사진 갤러리 편집</div>
       <div style="width:70px;"></div>
     </div>
@@ -325,7 +298,6 @@
 
   <main>
     <section class="edit-card">
-      <!-- 설명 영역 -->
       <div>
         <div class="section-title">사진 갤러리</div>
         <div class="section-hint">
@@ -334,7 +306,6 @@
         </div>
       </div>
 
-      <!-- 업로드 영역 -->
       <section>
         <div id="uploadArea" class="upload-area">
           <div class="upload-icon">📷</div>
@@ -346,41 +317,27 @@
           </div>
 
           <div class="upload-actions">
-            <button type="button" id="browseBtn" class="btn primary">
-              파일 선택
-            </button>
-            <button type="button" id="clearAllBtn" class="btn">
-              전체 비우기
-            </button>
+            <button type="button" id="browseBtn" class="btn primary">파일 선택</button>
+            <button type="button" id="clearAllBtn" class="btn">전체 비우기</button>
           </div>
 
-          <input
-                  id="fileInput"
-                  class="hidden-input"
-                  type="file"
-                  accept="image/*"
-                  multiple
-          />
+          <input id="fileInput" class="hidden-input" type="file" accept="image/*" multiple />
         </div>
       </section>
 
-      <!-- 갤러리 미리보기 -->
       <section class="gallery-wrapper">
         <div class="gallery-toolbar">
           <span id="photoCountText">사진 0장</span>
-          <span>썸네일을 드래그해서 순서를 재배치할 수 있어요.</span>
+          <span>썸네일/사진을 드래그해서 순서를 재배치할 수 있어요.</span>
         </div>
 
-        <div id="galleryGrid" class="gallery-grid">
-          <!-- JS로 카드 렌더링 -->
-        </div>
+        <div id="galleryGrid" class="gallery-grid"></div>
 
         <div id="emptyHint" class="empty-hint">
           아직 업로드된 사진이 없습니다.
         </div>
       </section>
 
-      <!-- 하단 버튼 -->
       <div class="form-actions">
         <button type="button" class="ghost-btn" onclick="history.back()">취소</button>
         <button type="button" id="saveBtn" class="primary-btn">저장</button>
@@ -388,12 +345,50 @@
     </section>
   </main>
 
-  <footer>
-    © 2025 OnFilm · Indie Actor & Film Platform
-  </footer>
+  <footer>© 2025 OnFilm · Indie Actor & Film Platform</footer>
 </div>
 
 <script src="/js/auth.js"></script>
+
+<script>
+  /* =========================================================
+     0) AUTH READY
+  ========================================================= */
+  window.__ONFILM_AUTH_READY_PROMISE__ = (async () => {
+    try {
+      if (!window.OnfilmAuth?.restoreSession) return { ok:false, me:null };
+      return await window.OnfilmAuth.restoreSession();
+    } catch (e) {
+      console.error("restoreSession failed:", e);
+      return { ok:false, me:null };
+    }
+  })();
+
+  /* =========================================================
+     1) username -> publicId helper (요청 반영)
+        - /api/person/{username} -> { publicId: "..." }
+  ========================================================= */
+  async function getUsernameSafe() {
+    let me = window.OnfilmAuth?.getMe?.() || null;
+    if (!me || !me.username) {
+      const r = await window.OnfilmAuth?.restoreSession?.().catch(() => null);
+      me = r?.me || me;
+    }
+    const uname = me?.username ? String(me.username).trim() : "";
+    return uname || null;
+  }
+
+  async function fetchPublicIdByUsername(username) {
+    const res = await window.OnfilmAuth.apiFetchWithAutoRefresh(
+            `/api/person/${encodeURIComponent(username)}`,
+            { method:"GET", headers:{ "Accept":"application/json" } }
+    );
+    if (!res.ok) return null;
+    const data = await res.json().catch(() => null);
+    return data?.publicId != null ? String(data.publicId) : null;
+  }
+</script>
+
 <script>
   // =========================
   // 상태: 메모리 상의 사진 리스트
@@ -406,48 +401,41 @@
   let photos = [];
   let idCounter = 0;
 
-  const uploadArea    = document.getElementById("uploadArea");
-  const fileInput     = document.getElementById("fileInput");
-  const browseBtn     = document.getElementById("browseBtn");
-  const clearAllBtn   = document.getElementById("clearAllBtn");
-  const galleryGrid   = document.getElementById("galleryGrid");
-  const emptyHint     = document.getElementById("emptyHint");
-  const photoCountText= document.getElementById("photoCountText");
-  const saveBtn       = document.getElementById("saveBtn");
+  const uploadArea     = document.getElementById("uploadArea");
+  const fileInput      = document.getElementById("fileInput");
+  const browseBtn      = document.getElementById("browseBtn");
+  const clearAllBtn    = document.getElementById("clearAllBtn");
+  const galleryGrid    = document.getElementById("galleryGrid");
+  const emptyHint      = document.getElementById("emptyHint");
+  const photoCountText = document.getElementById("photoCountText");
+  const saveBtn        = document.getElementById("saveBtn");
 
   // =========================
-  // 업로드 처리 (드래그 앤 드롭 + 파일 선택)
+  // 업로드 처리
   // =========================
-
   function handleFiles(files) {
     const arr = Array.from(files);
     arr.forEach(file => {
       if (!file.type.startsWith("image/")) return;
+
       const id = `local-${++idCounter}`;
       const previewUrl = URL.createObjectURL(file);
 
-      photos.push({
-        id,
-        file,
-        previewUrl,
-        s3Key: null // 나중에 S3 업로드 후 키를 여기에 저장
-      });
+      photos.push({ id, file, previewUrl, s3Key: null });
     });
 
     renderGallery();
   }
 
-  browseBtn.addEventListener("click", () => {
-    fileInput.click();
-  });
+  browseBtn.addEventListener("click", () => fileInput.click());
 
   fileInput.addEventListener("change", (e) => {
     if (!e.target.files || e.target.files.length === 0) return;
     handleFiles(e.target.files);
-    fileInput.value = ""; // 같은 파일 다시 선택할 때도 change 이벤트 뜨도록 초기화
+    fileInput.value = "";
   });
 
-  // 드래그 앤 드롭 이벤트
+  // 업로드 영역 드래그앤드롭
   ["dragenter","dragover"].forEach(eventName => {
     uploadArea.addEventListener(eventName, (e) => {
       e.preventDefault();
@@ -455,7 +443,6 @@
       uploadArea.classList.add("dragover");
     });
   });
-
   ["dragleave","drop"].forEach(eventName => {
     uploadArea.addEventListener(eventName, (e) => {
       e.preventDefault();
@@ -463,23 +450,18 @@
       uploadArea.classList.remove("dragover");
     });
   });
-
   uploadArea.addEventListener("drop", (e) => {
     const dt = e.dataTransfer;
     if (!dt) return;
     const files = dt.files;
-    if (files && files.length > 0) {
-      handleFiles(files);
-    }
+    if (files && files.length > 0) handleFiles(files);
   });
 
   clearAllBtn.addEventListener("click", () => {
     if (!photos.length) return;
     if (!confirm("업로드된 모든 사진을 제거할까요?")) return;
 
-    photos.forEach(p => {
-      if (p.previewUrl) URL.revokeObjectURL(p.previewUrl);
-    });
+    photos.forEach(p => p.previewUrl && URL.revokeObjectURL(p.previewUrl));
     photos = [];
     renderGallery();
   });
@@ -487,16 +469,10 @@
   // =========================
   // 갤러리 렌더링
   // =========================
-
   function renderGallery() {
     galleryGrid.innerHTML = "";
 
-    if (photos.length === 0) {
-      emptyHint.style.display = "block";
-    } else {
-      emptyHint.style.display = "none";
-    }
-
+    emptyHint.style.display = (photos.length === 0) ? "block" : "none";
     photoCountText.textContent = `사진 ${photos.length}장`;
 
     photos.forEach((photo, index) => {
@@ -509,6 +485,12 @@
       img.className = "photo-thumb";
       img.src = photo.previewUrl;
       img.alt = `사진 ${index + 1}`;
+
+      // ✅ 이미지 자체 기본 drag 동작(새 탭 열림/드래그 고스트 이미지 이상) 방지
+      img.addEventListener("dragstart", (e) => {
+        // card가 drag 이벤트를 담당하므로 이미지 기본 동작은 막음
+        e.preventDefault();
+      });
 
       const bottomBar = document.createElement("div");
       bottomBar.className = "photo-bottom-bar";
@@ -532,7 +514,6 @@
       card.appendChild(img);
       card.appendChild(bottomBar);
 
-      // 드래그 앤 드롭 정렬 이벤트
       addDragAndDropHandlers(card);
 
       galleryGrid.appendChild(card);
@@ -542,81 +523,102 @@
   function deletePhoto(id) {
     const idx = photos.findIndex(p => p.id === id);
     if (idx === -1) return;
-
     const [removed] = photos.splice(idx, 1);
-    if (removed && removed.previewUrl) {
-      URL.revokeObjectURL(removed.previewUrl);
-    }
+    if (removed?.previewUrl) URL.revokeObjectURL(removed.previewUrl);
     renderGallery();
   }
 
   // =========================
-  // 드래그 앤 드롭으로 순서 재배치
+  // 드래그 앤 드롭 정렬 (좌/우 이동 개선)
   // =========================
-
   let draggedCard = null;
+
+  function getDragAfterElement(container, x, y, excludeEl) {
+    const cards = [...container.querySelectorAll(".photo-card:not(.dragging)")];
+
+    let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+
+    for (const child of cards) {
+      if (child === excludeEl) continue;
+
+      const rect = child.getBoundingClientRect();
+
+      // 카드 중심점과 현재 포인터 사이 거리 기반(그리드 좌우 이동에 강함)
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top  + rect.height / 2;
+
+      // 가중치: x를 더 강하게 봄(좌우 드래그 개선)
+      const dx = Math.abs(x - cx);
+      const dy = Math.abs(y - cy);
+      const dist = dx * 1.2 + dy * 0.8;
+
+      // 가장 가까운 카드가 target
+      const score = -dist;
+      if (score > closest.offset) {
+        closest = { offset: score, element: child };
+      }
+    }
+    return closest.element;
+  }
+
+  function shouldInsertAfter(targetEl, x) {
+    const rect = targetEl.getBoundingClientRect();
+    return x > (rect.left + rect.width / 2);
+  }
 
   function addDragAndDropHandlers(card){
     card.addEventListener("dragstart", (e) => {
       draggedCard = card;
       card.classList.add("dragging");
       e.dataTransfer.effectAllowed = "move";
-      // 파이어폭스 대응용 더미 데이터
-      e.dataTransfer.setData("text/plain", card.dataset.id);
+      e.dataTransfer.setData("text/plain", card.dataset.id); // firefox
     });
 
     card.addEventListener("dragend", () => {
-      if (draggedCard) {
-        draggedCard.classList.remove("dragging");
-        draggedCard = null;
-        syncPhotosOrderWithDOM();
-      }
+      if (!draggedCard) return;
+      draggedCard.classList.remove("dragging");
+      draggedCard = null;
+      syncPhotosOrderWithDOM();
     });
 
+    // ✅ 핵심: 기존 y 기준/반쪽 기준을 버리고, "가장 가까운 카드" 기준으로 삽입
     card.addEventListener("dragover", (e) => {
       e.preventDefault();
-      if (!draggedCard || draggedCard === card) return;
+      if (!draggedCard) return;
 
-      const cards = Array.from(galleryGrid.children);
-      const draggedIndex = cards.indexOf(draggedCard);
-      const targetIndex  = cards.indexOf(card);
+      const target = getDragAfterElement(galleryGrid, e.clientX, e.clientY, draggedCard);
+      if (!target) return;
 
-      // 마우스가 대상 카드의 상단/하단 어디쯤에 있는지에 따라 위치 결정
-      const rect = card.getBoundingClientRect();
-      const offset = e.clientY - rect.top;
+      if (target === draggedCard) return;
 
-      if (draggedIndex < targetIndex && offset > rect.height / 2) {
-        // 아래로 이동
-        galleryGrid.insertBefore(draggedCard, card.nextSibling);
-      } else if (draggedIndex > targetIndex && offset < rect.height / 2) {
-        // 위로 이동
-        galleryGrid.insertBefore(draggedCard, card);
+      const after = shouldInsertAfter(target, e.clientX);
+      if (after) {
+        if (target.nextSibling !== draggedCard) {
+          galleryGrid.insertBefore(draggedCard, target.nextSibling);
+        }
+      } else {
+        if (target !== draggedCard) {
+          galleryGrid.insertBefore(draggedCard, target);
+        }
       }
     });
 
     card.addEventListener("drop", (e) => {
       e.preventDefault();
-      // 실제 재배치는 dragover에서 처리, 여기선 막기만
     });
   }
 
   function syncPhotosOrderWithDOM() {
-    const newOrder = [];
     const domCards = Array.from(galleryGrid.children);
+    const newOrder = domCards
+            .map(card => photos.find(p => p.id === card.dataset.id))
+            .filter(Boolean);
 
-    domCards.forEach(card => {
-      const id = card.dataset.id;
-      const photo = photos.find(p => p.id === id);
-      if (photo) newOrder.push(photo);
-    });
-
-    if (newOrder.length === photos.length) {
-      photos = newOrder;
-    }
+    if (newOrder.length === photos.length) photos = newOrder;
   }
 
   // =========================
-  // 저장 버튼 → S3 업로드 자리
+  // 저장 버튼 (현재는 payload 콘솔 출력)
   // =========================
   saveBtn.addEventListener("click", async () => {
     if (!photos.length) {
@@ -624,61 +626,45 @@
       return;
     }
 
-    // 1) S3 업로드가 아직 안 된 파일들만 추리기 (file이 있는 경우를 신규로 가정)
-    const newFiles = photos.filter(p => p.file && !p.s3Key);
+    // (요청 1 반영) 필요하면 여기서 publicId를 확보해 저장 API에 사용 가능
+    // const uname = await getUsernameSafe();
+    // const publicId = uname ? await fetchPublicIdByUsername(uname) : null;
 
-    // 여기에 백엔드 + S3 연동 로직을 넣으면 됨
-    // 예시 흐름 (실제 URL/파라미터는 백엔드 설계에 맞게 수정):
-    //
-    // for (const photo of newFiles) {
-    //   // (1) 백엔드에서 presigned URL을 요청
-    //   const presignRes = await fetch("/api/gallery/presign", {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify({ fileName: photo.file.name, contentType: photo.file.type })
-    //   });
-    //   const { uploadUrl, s3Key } = await presignRes.json();
-    //
-    //   // (2) presigned URL로 실제 S3에 업로드
-    //   await fetch(uploadUrl, {
-    //     method: "PUT",
-    //     headers: { "Content-Type": photo.file.type },
-    //     body: photo.file
-    //   });
-    //
-    //   // (3) 업로드 완료 후, photo.s3Key 저장
-    //   photo.s3Key = s3Key;
-    //   // (4) 서버 DB에 순서/메타데이터 저장할 때 s3Key를 사용
-    // }
-
-    // 지금은 S3 연결 전이니까, 순서 + 파일명 정도만 콘솔로 확인
     const payload = photos.map((p, index) => ({
       order: index + 1,
       fileName: p.file ? p.file.name : null,
       s3Key: p.s3Key
+      // publicId
     }));
 
     console.log("갤러리 저장 payload (예시):", payload);
     alert("지금은 프론트 미리보기 단계입니다.\n콘솔에서 저장될 순서와 파일 정보를 확인해보세요.");
   });
 
-</script>
-
-<script>
+  // =========================
+  // INIT
+  // =========================
   document.addEventListener("DOMContentLoaded", async () => {
-    const { ok } = await window.OnfilmAuth.restoreSession();
-    if (!ok) {
-      // 로그인 페이지로 보내고, 돌아올 주소를 붙여줌
+    const result = await window.__ONFILM_AUTH_READY_PROMISE__;
+    if (!result?.ok) {
       const next = encodeURIComponent(location.pathname + location.search);
       location.href = `/login.html?next=${next}`;
+      return;
     }
+
+    renderGallery();
+
+    // ✅ 전체 드롭 기본 동작 방지(페이지 이동/새 탭 열림 방지)
+    window.addEventListener("dragover", (e) => e.preventDefault());
+    window.addEventListener("drop", (e) => e.preventDefault());
   });
 </script>
 
 <script>
-  // "프로필로 돌아가기":
-  // - 프로필이 존재하고(또는 내용이 있으면) /onfilm/{username}
-  // - 프로필이 없으면(404 또는 내용 없음) /index.html
+  /* =========================================================
+     4) "프로필로 돌아가기" → 무조건 /onfilm/{username}
+        (요청대로 index.html로 보내지 않음)
+  ========================================================= */
   document.addEventListener("DOMContentLoaded", () => {
     const link = document.getElementById("backToProfileLink");
     if (!link) return;
@@ -686,58 +672,22 @@
     link.addEventListener("click", async (e) => {
       e.preventDefault();
 
-      try {
-        // 1) username 확보
-        let me = window.OnfilmAuth?.getMe?.() || null;
-        if (!me || !me.username) {
-          const r = await window.OnfilmAuth?.restoreSession?.().catch(() => null);
-          me = r?.me || me;
-        }
-        const uname = me?.username ? String(me.username).trim() : "";
-        if (!uname) {
-          window.location.href = "/index.html";
-          return;
-        }
-
-        // 2) 프로필 존재/내용 확인
-        //    (인증 필요할 수 있으니 apiFetchWithAutoRefresh 우선 사용)
-        const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
-                ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
-                : fetch;
-
-        const res = await fetcher(`/persons/${encodeURIComponent(uname)}`, {
-          method: "GET",
-          headers: { "Accept": "application/json" }
-        });
-
-        // 404(프로필 없음) 또는 기타 실패 => 랜딩
-        if (!res.ok) {
-          window.location.href = "/index.html";
-          return;
-        }
-
-        const p = await res.json().catch(() => null);
-
-        // "프로필이 없다" 기준: 아무 정보도 없는 경우
-        const hasAny =
-                !!(p?.name && String(p.name).trim()) ||
-                !!(p?.oneLineIntro && String(p.oneLineIntro).trim()) ||
-                !!(p?.birthDate && String(p.birthDate).trim()) ||
-                !!(p?.birthPlace && String(p.birthPlace).trim()) ||
-                !!(p?.profileImageUrl && String(p.profileImageUrl).trim()) ||
-                (Array.isArray(p?.snsList) && p.snsList.length > 0) ||
-                (Array.isArray(p?.rawTags) && p.rawTags.length > 0);
-
-        if (!hasAny) {
-          window.location.href = "/index.html";
-          return;
-        }
-
-        // 3) 정상 프로필이면 공개 페이지로
-        window.location.href = "/onfilm/" + encodeURIComponent(uname);
-      } catch (_) {
-        window.location.href = "/index.html";
+      const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
+      if (!authReady?.ok) {
+        const next = encodeURIComponent(location.pathname + location.search);
+        location.href = `/login.html?next=${next}`;
+        return;
       }
+
+      const uname = await getUsernameSafe();
+      if (!uname) {
+        // username이 없으면 프로필 경로를 만들 수 없으니 로그인/랜딩 대신
+        // 여기서는 안전하게 로그인으로 보냄(세션 ok인데 uname이 없으면 세팅이 덜된 상태)
+        alert("username이 설정되어 있지 않습니다. 프로필에서 username을 설정해 주세요.");
+        return;
+      }
+
+      location.href = "/onfilm/" + encodeURIComponent(uname);
     });
   });
 </script>
