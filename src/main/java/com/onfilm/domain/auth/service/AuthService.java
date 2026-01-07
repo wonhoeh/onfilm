@@ -1,6 +1,7 @@
 package com.onfilm.domain.auth.service;
 
 import com.onfilm.domain.auth.config.AuthProperties;
+import com.onfilm.domain.auth.dto.AuthTokens;
 import com.onfilm.domain.auth.dto.LoginRequest;
 import com.onfilm.domain.auth.dto.SignupRequest;
 import com.onfilm.domain.common.config.JwtProvider;
@@ -70,6 +71,26 @@ public class AuthService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
 
-    public record AuthTokens(String accessToken, String refreshToken) {
+    @Transactional(readOnly = true)
+    public boolean isUsernameAvailable(String username) {
+        if (username == null) return false;
+
+        String v = username.trim();
+        // 프론트 정규식과 동일하게 맞추면 더 깔끔함
+        if (!v.matches("^[a-zA-Z0-9_-]{3,20}$")) return false;
+
+        return !userRepository.existsByUsername(v);
     }
+
+    @Transactional(readOnly = true)
+    public boolean isEmailAvailable(String email) {
+        if (email == null) return false;
+
+        String v = email.trim();
+        // 아주 기본적인 이메일 형식 체크 (프론트와 같은 역할)
+        if (!v.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) return false;
+
+        return !userRepository.existsByEmail(v);
+    }
+
 }

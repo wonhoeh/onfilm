@@ -1,10 +1,7 @@
 package com.onfilm.domain.auth.controller;
 
 import com.onfilm.domain.auth.config.AuthProperties;
-import com.onfilm.domain.auth.dto.AuthResponse;
-import com.onfilm.domain.auth.dto.LoginRequest;
-import com.onfilm.domain.auth.dto.MeResponse;
-import com.onfilm.domain.auth.dto.SignupRequest;
+import com.onfilm.domain.auth.dto.*;
 import com.onfilm.domain.auth.service.AuthService;
 import com.onfilm.domain.user.entity.User;
 import jakarta.validation.Valid;
@@ -14,12 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
@@ -38,7 +30,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        AuthService.AuthTokens tokens = authService.login(request);
+        AuthTokens tokens = authService.login(request);
         ResponseCookie cookie = buildRefreshCookie(tokens.refreshToken(), authProperties.refreshTokenTtl().toSeconds());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -50,7 +42,7 @@ public class AuthController {
         if (refreshToken == null || refreshToken.isBlank()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing refresh token");
         }
-        AuthService.AuthTokens tokens = authService.refresh(refreshToken);
+        AuthTokens tokens = authService.refresh(refreshToken);
         ResponseCookie cookie = buildRefreshCookie(tokens.refreshToken(), authProperties.refreshTokenTtl().toSeconds());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -79,6 +71,18 @@ public class AuthController {
                 user.getUsername(),
                 user.getAvatarUrl()
         ));
+    }
+
+    @GetMapping("/check-username")
+    public ResponseEntity<UsernameCheckResponse> checkUsername(@RequestParam String username) {
+        boolean available = authService.isUsernameAvailable(username);
+        return ResponseEntity.ok(new UsernameCheckResponse(available));
+    }
+
+    @GetMapping("/check-email")
+    public ResponseEntity<EmailCheckResponse> checkEmail(@RequestParam String email) {
+        boolean available = authService.isEmailAvailable(email);
+        return ResponseEntity.ok(new EmailCheckResponse(available));
     }
 
     private ResponseCookie buildRefreshCookie(String value, long maxAgeSeconds) {

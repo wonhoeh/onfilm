@@ -1,2 +1,12 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+
 auth:
   refresh-cookie-secure: false
+
+file:
+  storage:
+    type: local
+    root: ./local-storage

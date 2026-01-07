@@ -63,6 +63,19 @@ public class Person {
     private User user;
 
     // ======================================================================
+    // ======= 연관관계: Gallery =======
+    // ======================================================================
+
+    @ElementCollection
+    @CollectionTable(
+            name = "person_gallery",
+            joinColumns = @JoinColumn(name = "person_id")
+    )
+    @OrderColumn(name = "sort_order") // ✅ 순서 보존(드래그 정렬 가능)
+    @Column(name = "image_key", length = 512)
+    private List<String> galleryImageKeys = new ArrayList<>();
+
+    // ======================================================================
     // ======= 생성자 / 정적 팩토리 =======
     // ======================================================================
     @PrePersist
@@ -250,4 +263,30 @@ public class Person {
     public void detachUser() {
         this.user = null;
     }
+
+    // ======================================================================
+    // ======= 편의 메서드: Gallery =======
+    // ======================================================================
+
+    public void addGalleryImageKey(String key) {
+        if (key == null || key.isBlank()) return;
+        galleryImageKeys.add(key);
+    }
+
+    public void removeGalleryImageKey(String key) {
+        if (key == null) return;
+        galleryImageKeys.removeIf(k -> k.equals(key));
+    }
+
+    public void reorderGallery(List<String> orderedKeys) {
+        if (orderedKeys == null) return;
+        // 요청 받은 순서대로 교체(유효성은 서비스에서 체크 추천)
+        this.galleryImageKeys.clear();
+        this.galleryImageKeys.addAll(orderedKeys);
+    }
+
+    // ======================================================================
+    // ======= 편의 메서드: ImageUrl =======
+    // ======================================================================
+    public void changeProfileImageUrl(String key) { this.profileImageUrl = key; }
 }

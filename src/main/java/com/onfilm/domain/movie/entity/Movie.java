@@ -151,6 +151,14 @@ public class Movie {
         trailers.add(trailer);
     }
 
+    // ======================================================================
+    // ======= URL 변경 메서드: MovieUrl, ThumbnailUrl =======
+    // ======================================================================
+
+
+    public void changeThumbnailUrl(String key) { this.thumbnailUrl = key; }
+    public void changeMovieUrl(String key) { this.movieUrl = key; }
+
 
 
 

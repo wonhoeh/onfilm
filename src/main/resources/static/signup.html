@@ -32,10 +32,7 @@
                     var(--bg);
         }
 
-        .container{
-            width:min(1100px,92vw);
-            margin:0 auto;
-        }
+        .container{ width:min(1100px,92vw); margin:0 auto; }
 
         header{
             position:sticky; top:0; z-index:10;
@@ -114,9 +111,7 @@
             outline:none;
             transition:border-color .15s ease, background .15s ease;
         }
-        .signup-input::placeholder{
-            color:rgba(154,160,173,.7);
-        }
+        .signup-input::placeholder{ color:rgba(154,160,173,.7); }
         .signup-input:focus{
             border-color:var(--accent);
             background:rgba(15,16,25,.95);
@@ -159,7 +154,6 @@
             display:none;
         }
 
-        /* ✅ username 도움말/상태 */
         .signup-hint{
             font-size:11px;
             color:var(--muted);
@@ -263,10 +257,7 @@
 <header>
     <div class="container header-row">
         <a href="index.html" class="logo">OnFilm</a>
-        <button
-                type="button"
-                class="login-btn"
-                onclick="location.href='/login.html'">
+        <button type="button" class="login-btn" onclick="location.href='/login.html'">
             로그인
         </button>
     </div>
@@ -276,44 +267,18 @@
     <div class="signup-card">
         <h1 class="signup-title">회원가입</h1>
 
-        <!-- ✅ username (추가) -->
-<!--        <label class="signup-label" for="signupUsername">아이디</label>-->
-<!--        <input-->
-<!--                id="signupUsername"-->
-<!--                class="signup-input"-->
-<!--                type="text"-->
-<!--                placeholder="onfilm/**"-->
-<!--                autocomplete="off"-->
-<!--        />-->
-<!--        <p class="signup-hint">-->
-<!--            3~20자, 영문/숫자/언더바(_)/하이픈(-)만 가능해요. (예: onfilm_wonhoeh)-->
-<!--        </p>-->
-<!--        <p id="usernameOk" class="signup-ok">사용 가능한 username이에요.</p>-->
-<!--        <p id="usernameError" class="signup-error">username 형식이 올바르지 않거나 이미 사용 중이에요.</p>-->
-
         <!-- 이메일 -->
         <label class="signup-label" for="signupEmail">이메일</label>
-        <input
-                id="signupEmail"
-                class="signup-input"
-                type="email"
-                placeholder="name@example.com"
-        />
+        <input id="signupEmail" class="signup-input" type="email" placeholder="name@example.com"/>
+        <!-- ✅ 이메일 상태 메시지 추가 -->
+        <p id="emailOk" class="signup-ok">사용 가능한 이메일이에요.</p>
+        <p id="emailError" class="signup-error">이메일 형식이 올바르지 않거나 이미 사용 중이에요.</p>
 
         <!-- 비밀번호 -->
         <label class="signup-label" for="signupPassword">비밀번호</label>
         <div class="password-field">
-            <input
-                    id="signupPassword"
-                    class="signup-input"
-                    type="password"
-                    placeholder="영문/숫자 조합 8자 이상"
-            />
-            <button
-                    type="button"
-                    class="toggle-visibility-btn"
-                    data-target="signupPassword"
-            >
+            <input id="signupPassword" class="signup-input" type="password" placeholder="영문/숫자 조합 8자 이상"/>
+            <button type="button" class="toggle-visibility-btn" data-target="signupPassword">
                 <svg class="icon-visible" xmlns="http://www.w3.org/2000/svg"
                      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -335,17 +300,8 @@
         <!-- 비밀번호 확인 -->
         <label class="signup-label" for="signupPasswordConfirm">비밀번호 확인</label>
         <div class="password-field">
-            <input
-                    id="signupPasswordConfirm"
-                    class="signup-input"
-                    type="password"
-                    placeholder="비밀번호를 다시 입력하세요"
-            />
-            <button
-                    type="button"
-                    class="toggle-visibility-btn"
-                    data-target="signupPasswordConfirm"
-            >
+            <input id="signupPasswordConfirm" class="signup-input" type="password" placeholder="비밀번호를 다시 입력하세요"/>
+            <button type="button" class="toggle-visibility-btn" data-target="signupPasswordConfirm">
                 <svg class="icon-visible" xmlns="http://www.w3.org/2000/svg"
                      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -364,19 +320,12 @@
             </button>
         </div>
 
-        <p id="passwordError" class="signup-error">
-            비밀번호가 서로 일치하지 않습니다.
-        </p>
+        <p id="passwordError" class="signup-error">비밀번호가 서로 일치하지 않습니다.</p>
 
-        <!-- ✅ username (추가) -->
+        <!-- username -->
         <label class="signup-label" for="signupUsername">사용자 이름</label>
-        <input
-                id="signupUsername"
-                class="signup-input"
-                type="text"
-                placeholder="주소에 사용될 이름입니다: onfilm/**"
-                autocomplete="off"
-        />
+        <input id="signupUsername" class="signup-input" type="text"
+               placeholder="주소에 사용될 이름입니다: onfilm/**" autocomplete="off"/>
         <p class="signup-hint">
             3~20자, 영문/숫자/언더바(_)/하이픈(-)만 가능해요. (예: onfilm_wonhoeh)
         </p>
@@ -411,9 +360,7 @@
             <p class="terms-hint">필수 항목에 동의하셔야 회원가입이 완료됩니다.</p>
         </div>
 
-        <button class="signup-submit-btn" type="button" id="signupSubmitBtn" disabled>
-            회원가입
-        </button>
+        <button class="signup-submit-btn" type="button" id="signupSubmitBtn" disabled>회원가입</button>
 
         <div class="signup-footer-links">
             이미 계정이 있으신가요?
@@ -428,6 +375,9 @@
     const usernameError     = document.getElementById("usernameError");
 
     const emailInput        = document.getElementById("signupEmail");
+    const emailOk           = document.getElementById("emailOk");
+    const emailError        = document.getElementById("emailError");
+
     const passwordInput     = document.getElementById("signupPassword");
     const passwordConfirm   = document.getElementById("signupPasswordConfirm");
     const passwordError     = document.getElementById("passwordError");
@@ -435,13 +385,16 @@
     const termsItems        = document.querySelectorAll(".terms-item");
     const submitBtn         = document.getElementById("signupSubmitBtn");
 
-    // ✅ username 규칙
     const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,20}$/;
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    // ✅ 중복 체크 결과(선택 기능)
     let usernameAvailable = false;
     let checkingUsername = false;
     let usernameTimer = null;
+
+    let emailAvailable = false;
+    let checkingEmail = false;
+    let emailTimer = null;
 
     // 비밀번호 보기/가리기
     document.querySelectorAll(".toggle-visibility-btn").forEach(btn => {
@@ -486,33 +439,52 @@
         usernameError.style.display = error ? "block" : "none";
     }
 
-    function basicUsernameValid() {
-        const v = usernameInput.value.trim();
-        return USERNAME_REGEX.test(v);
+    function setEmailState({ ok, error }) {
+        emailOk.style.display = ok ? "block" : "none";
+        emailError.style.display = error ? "block" : "none";
     }
 
-    // ✅ (선택) 서버 중복 체크 함수
-    // 백엔드에 아래 API가 있으면 바로 동작:
-    // GET /auth/check-username?username=wonhoeh  -> { "available": true }
+    function basicUsernameValid() {
+        return USERNAME_REGEX.test(usernameInput.value.trim());
+    }
+
+    function basicEmailValid() {
+        return EMAIL_REGEX.test(emailInput.value.trim());
+    }
+
+    // ✅ username 중복 체크
     async function checkUsernameAvailability(username) {
-        // API 없으면 여기 return true로 두고 넘어가도 됨.
         try {
             const res = await fetch(`/auth/check-username?username=${encodeURIComponent(username)}`, {
                 method: "GET",
                 credentials: "include"
             });
-            if (!res.ok) return null; // API 없거나 오류면 null
+            if (!res.ok) return false;
             const data = await res.json();
             return !!data.available;
         } catch {
-            return null;
+            return false;
+        }
+    }
+
+    // ✅ email 중복 체크
+    async function checkEmailAvailability(email) {
+        try {
+            const res = await fetch(`/auth/check-email?email=${encodeURIComponent(email)}`, {
+                method: "GET",
+                credentials: "include"
+            });
+            if (!res.ok) return false;
+            const data = await res.json();
+            return !!data.available;
+        } catch {
+            return false;
         }
     }
 
     async function validateUsername() {
         const v = usernameInput.value.trim();
 
-        // 1) 형식 체크
         if (v.length === 0) {
             usernameAvailable = false;
             setUsernameState({ ok:false, error:false });
@@ -525,25 +497,39 @@
             return;
         }
 
-        // 2) (선택) 서버 중복 체크 - API 없으면 통과 처리
         checkingUsername = true;
         const available = await checkUsernameAvailability(v);
         checkingUsername = false;
-
-        if (available === null) {
-            // ✅ 서버 체크 API가 아직 없으면 "형식만 OK"로 일단 진행 가능하게
-            usernameAvailable = true;
-            setUsernameState({ ok:true, error:false });
-            return;
-        }
 
         usernameAvailable = available;
         setUsernameState({ ok:available, error:!available });
     }
 
+    async function validateEmail() {
+        const v = emailInput.value.trim();
+
+        if (v.length === 0) {
+            emailAvailable = false;
+            setEmailState({ ok:false, error:false });
+            return;
+        }
+
+        if (!EMAIL_REGEX.test(v)) {
+            emailAvailable = false;
+            setEmailState({ ok:false, error:true });
+            return;
+        }
+
+        checkingEmail = true;
+        const available = await checkEmailAvailability(v);
+        checkingEmail = false;
+
+        emailAvailable = available;
+        setEmailState({ ok:available, error:!available });
+    }
+
     function validateForm() {
-        const emailVal = emailInput.value.trim();
-        const pwdVal   = passwordInput.value.trim();
+        const pwdVal = passwordInput.value.trim();
 
         const requiredChecked = Array.from(termsItems)
             .filter(i => i.dataset.required === "true")
@@ -551,12 +537,12 @@
 
         const pwdMatch = validatePasswordMatch();
 
-        // ✅ username: 형식 OK + (선택) 중복 체크 OK
         const usernameOkNow = basicUsernameValid() && usernameAvailable && !checkingUsername;
+        const emailOkNow = basicEmailValid() && emailAvailable && !checkingEmail;
 
         const isValid =
             usernameOkNow &&
-            emailVal.length > 0 &&
+            emailOkNow &&
             pwdVal.length >= 8 &&
             pwdMatch &&
             requiredChecked;
@@ -564,11 +550,8 @@
         submitBtn.disabled = !isValid;
     }
 
-    // username 입력시 디바운스 검사
+    // ✅ username 입력 디바운스 검사
     usernameInput.addEventListener("input", () => {
-        // 소문자 통일하고 싶으면 여기서 강제할 수도 있음:
-        // usernameInput.value = usernameInput.value.toLowerCase();
-
         usernameAvailable = false;
         setUsernameState({ ok:false, error:false });
         validateForm();
@@ -576,6 +559,19 @@
         if (usernameTimer) clearTimeout(usernameTimer);
         usernameTimer = setTimeout(async () => {
             await validateUsername();
+            validateForm();
+        }, 350);
+    });
+
+    // ✅ email 입력 디바운스 검사
+    emailInput.addEventListener("input", () => {
+        emailAvailable = false;
+        setEmailState({ ok:false, error:false });
+        validateForm();
+
+        if (emailTimer) clearTimeout(emailTimer);
+        emailTimer = setTimeout(async () => {
+            await validateEmail();
             validateForm();
         }, 350);
     });
@@ -590,19 +586,15 @@
     // 개별 동의
     termsItems.forEach(item => {
         item.addEventListener("change", () => {
-            const allChecked = Array.from(termsItems).every(i => i.checked);
-            termsAll.checked = allChecked;
+            termsAll.checked = Array.from(termsItems).every(i => i.checked);
             validateForm();
         });
     });
 
-    emailInput.addEventListener("input", validateForm);
     passwordInput.addEventListener("input", validateForm);
     passwordConfirm.addEventListener("input", validateForm);
 
-    function showError(msg) {
-        alert(msg);
-    }
+    function showError(msg) { alert(msg); }
 
     submitBtn.addEventListener("click", async () => {
         const username = usernameInput.value.trim();
@@ -611,7 +603,15 @@
         const password2 = passwordConfirm.value.trim();
 
         if (!USERNAME_REGEX.test(username)) {
+            usernameAvailable = false;
             setUsernameState({ ok:false, error:true });
+            validateForm();
+            return;
+        }
+
+        if (!EMAIL_REGEX.test(email)) {
+            emailAvailable = false;
+            setEmailState({ ok:false, error:true });
             validateForm();
             return;
         }
@@ -621,7 +621,37 @@
             return;
         }
 
+        // ✅ 가입 직전에 최종 중복 체크 (레이스 컨디션 방지)
         submitBtn.disabled = true;
+        submitBtn.textContent = "확인 중...";
+
+        const [emailOkFinal, usernameOkFinal] = await Promise.all([
+            checkEmailAvailability(email),
+            checkUsernameAvailability(username)
+        ]);
+
+        if (!emailOkFinal) {
+            emailAvailable = false;
+            setEmailState({ ok:false, error:true });
+        } else {
+            emailAvailable = true;
+            setEmailState({ ok:true, error:false });
+        }
+
+        if (!usernameOkFinal) {
+            usernameAvailable = false;
+            setUsernameState({ ok:false, error:true });
+        } else {
+            usernameAvailable = true;
+            setUsernameState({ ok:true, error:false });
+        }
+
+        if (!emailOkFinal || !usernameOkFinal) {
+            submitBtn.textContent = "회원가입";
+            validateForm();
+            return;
+        }
+
         submitBtn.textContent = "가입 중...";
 
         try {
@@ -645,14 +675,13 @@
                 return;
             }
 
-            // alert("회원가입 완료! 로그인해 주세요.");
             window.location.href = "/index.html";
         } catch (e) {
             console.error(e);
             showError("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
         } finally {
-            submitBtn.disabled = false;
             submitBtn.textContent = "회원가입";
+            validateForm();
         }
     });
 </script>
