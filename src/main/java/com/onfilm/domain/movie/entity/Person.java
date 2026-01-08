@@ -36,7 +36,7 @@ public class Person {
     private String oneLineIntro;
 
     @Column(length = 512)
-    private String profileImageUrl;
+    private String profileImageUrl; // profileImageUrl -> key ("profile/" + personId + "/avatar/" + UUID.randomUUID() + ext) 형식으로 변환
 
     @Column(nullable = false, unique = true, updatable = false, length = 36)
     private String publicId;  // UUID

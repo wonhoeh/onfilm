@@ -6,11 +6,9 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record SignupRequest(
-        @Email
-        @NotBlank
+        @Email @NotBlank
         String email,
-        @NotBlank
-        @Size(min = 8, max = 72)
+        @NotBlank @Size(min = 8, max = 72)
         String password,
 
         // ✅ 3~20, 영문/숫자/_/-

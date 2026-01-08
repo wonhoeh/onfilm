@@ -56,7 +56,10 @@ public class SecurityConfig {
                         // ✅ 정적 리소스 (가장 안전)
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
 
-                        // ✅ 직접 접근할 html/js/css/assets 허용 (정적 서빙 방식에 따라 필요)
+                        // ✅ 로컬 파일 서빙(/files/**) - img/video 접근 위해 permitAll 권장
+                        .requestMatchers("/files/**").permitAll()
+
+                        // ✅ 직접 접근할 html/js/css/assets 허용
                         .requestMatchers(
                                 new AntPathRequestMatcher("/"),
                                 new AntPathRequestMatcher("/index.html"),
@@ -70,7 +73,6 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/favicon.ico"),
                                 new AntPathRequestMatcher("/onfilm/**"),
                                 new AntPathRequestMatcher("/api/person/**"),
-                                // (만약 REST가 /persons/{id} 면 이것도)
                                 new AntPathRequestMatcher("/api/people/**"),
                                 new AntPathRequestMatcher("/auth/**")
                         ).permitAll()

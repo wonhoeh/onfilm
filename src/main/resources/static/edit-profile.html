@@ -709,31 +709,103 @@
             .filter(Boolean);
     }
 
+    function getServerProfileImageField(personObj) {
+        // 서버가 key 기반 DTO를 내려주면 그걸 우선 사용
+        // (없으면 기존 url 기반으로 동작)
+        if (personObj && Object.prototype.hasOwnProperty.call(personObj, "profileImageKey")) return "profileImageKey";
+        return "profileImageUrl";
+    }
+
     /* =========================================================
-       7) UPLOAD (image) + SAVE (POST/PUT)
-       - CREATE: POST /api/people
-       - UPDATE: PUT  /api/people/{publicId}
+       7) UPLOAD (profile image) + SAVE (POST/PUT)
+       - 프로필 이미지 업로드 API 적용:
+         POST /{personId}/profile  (보통 @RequestMapping("/files") 아래라서 /files/{personId}/profile)
+         응답: { key, url }
     ========================================================= */
+
+    async function ensureEditingPersonId() {
+        let pid = window.__EDITING_PERSON_ID__;
+        if (pid != null) return pid;
+
+        // publicId로 한번 더 조회해서 id 확보
+        const pub = (window.__EDITING_PUBLIC_ID__ || "").toString().trim();
+        if (pub) {
+            const p = await fetchPersonByPublicId(pub);
+            pid = p?.id ?? p?.personId ?? null;
+            if (pid != null) {
+                window.__EDITING_PERSON_ID__ = pid;
+                return pid;
+            }
+        }
+
+        // 마지막 fallback: username -> publicId -> person
+        const uname = await getUsernameSafe();
+        if (uname) {
+            const publicId = pub || await fetchPublicIdByUsername(uname);
+            if (publicId) {
+                window.__EDITING_PUBLIC_ID__ = publicId;
+                const p2 = await fetchPersonByPublicId(publicId);
+                pid = p2?.id ?? p2?.personId ?? null;
+                if (pid != null) {
+                    window.__EDITING_PERSON_ID__ = pid;
+                    return pid;
+                }
+            }
+        }
+        return null;
+    }
+
     async function uploadProfileImageIfAny() {
         const file = profileFileInput.files && profileFileInput.files[0];
         if (!file) return null;
 
-        const fd = new FormData();
-        fd.append("file", file);
+        const buildFormData = () => {
+            const fd = new FormData();
+            fd.append("file", file);
+            return fd;
+        };
 
-        const res = await window.OnfilmAuth.apiFetchWithAutoRefresh("/files", {
-            method: "POST",
-            body: fd,
-        });
+        // ✅ /me 기반 업로드 (personId 필요 없음)
+        const candidates = [
+            `/api/files/person/me/profile`,
+            // 혹시 서버에 /files로 붙어있던 레거시가 있으면 백업:
+            `/files/person/me/profile`,
+        ];
 
-        if (!res.ok) {
-            const msg = await res.text().catch(() => "");
-            throw new Error(`이미지 업로드 실패: ${res.status} ${msg}`);
+        let res = null;
+        for (const u of candidates) {
+            res = await window.OnfilmAuth.apiFetchWithAutoRefresh(u, {
+                method: "POST",
+                body: buildFormData(),
+            });
+            if (res.status !== 404) break;
         }
 
-        const data = await res.json().catch(() => null); // { url: "..." }
-        return data?.url ? String(data.url) : null;
+        if (!res || !res.ok) {
+            const msg = res ? await res.text().catch(() => "") : "";
+            throw new Error(`이미지 업로드 실패: ${res?.status || "ERR"} ${msg}`);
+        }
+
+        const data = await res.json().catch(() => null); // { key, url }
+        const key = data?.key != null ? String(data.key) : null;
+        const url = data?.url != null ? String(data.url) : null;
+
+        // 전역 캐시 업데이트(미리보기/유지용)
+        if (key) window.__EXISTING_PROFILE_IMAGE_KEY__ = key;
+        if (url) window.__EXISTING_PROFILE_IMAGE_URL__ = url;
+
+        // 업로드 결과 URL로 미리보기 갱신
+        if (url) {
+            profilePreview.src = url;
+            profilePreview.onerror = () => {
+                profilePreview.onerror = null;
+                profilePreview.src = PLACEHOLDER_SRC;
+            };
+        }
+
+        return { key, url };
     }
+
 
     function buildBirthDateOrThrow() {
         if (!yearInput.value || !monthInput.value || !dayInput.value) {
@@ -805,31 +877,34 @@
 
             const birthDate = buildBirthDateOrThrow();
 
+            // ✅ 서버가 key 기반인지 url 기반인지에 따라 보존 필드 결정
+            const imgField = (window.__SERVER_PROFILE_IMAGE_FIELD__ || "profileImageUrl").toString();
+            const existingKey = (window.__EXISTING_PROFILE_IMAGE_KEY__ || "").toString().trim() || null;
+            const existingUrl = (window.__EXISTING_PROFILE_IMAGE_URL__ || "").toString().trim() || null;
+
             const payload = {
                 name,
                 birthDate,
                 birthPlace: document.getElementById("birthPlace").value.trim(),
                 oneLineIntro: document.getElementById("bioInput").value.trim(),
-                profileImageUrl: null, // 아래에서 결정
                 snsList: collectSnsPayload(),
                 rawTags: collectTagsPayload(),
             };
 
+            // ✅ 기존 이미지 값 유지(새 업로드가 없을 때 지워지는 사고 방지)
+            // - 서버가 key 기반이면 key를, 아니면 url을 보존값으로 포함
+            if (imgField === "profileImageKey") {
+                if (existingKey) payload.profileImageKey = existingKey;
+            } else {
+                if (existingUrl) payload.profileImageUrl = existingUrl;
+            }
+
             setSaving(true);
 
-            // 1) 이미지 업로드(선택)
-            let profileImageUrl = null;
             const hasNewFile = profileFileInput.files && profileFileInput.files.length > 0;
-            if (hasNewFile) profileImageUrl = await uploadProfileImageIfAny();
 
-            // 새 파일 없으면 기존 유지
-            if (!profileImageUrl) {
-                profileImageUrl = (window.__EXISTING_PROFILE_IMAGE_URL__ || "").trim() || null;
-            }
-            payload.profileImageUrl = profileImageUrl;
-
-            // 2) 수정/생성 판단: publicId 기준
-            const editingPublicId = (window.__EDITING_PUBLIC_ID__ || "").toString().trim();
+            // 1) 수정/생성 판단: publicId 기준
+            let editingPublicId = (window.__EDITING_PUBLIC_ID__ || "").toString().trim();
             const isEdit = !!editingPublicId;
 
             const url = isEdit
@@ -846,6 +921,30 @@
             if (!res.ok) {
                 const msg = await res.text().catch(() => "");
                 throw new Error(`저장 실패: ${res.status}\n${msg}`);
+            }
+
+            // 2) 생성(POST)인 경우, 응답에서 publicId / id를 최대한 회수해서 이후 업로드에 사용
+            const saved = await res.json().catch(() => null);
+            if (!isEdit && saved) {
+                if (saved.publicId != null) {
+                    window.__EDITING_PUBLIC_ID__ = String(saved.publicId);
+                    editingPublicId = window.__EDITING_PUBLIC_ID__;
+                }
+                const pid = saved.id ?? saved.personId ?? null;
+                if (pid != null) window.__EDITING_PERSON_ID__ = pid;
+                // 서버가 key 기반 DTO를 준다면 플래그 업데이트
+                if (Object.prototype.hasOwnProperty.call(saved, "profileImageKey")) {
+                    window.__SERVER_PROFILE_IMAGE_FIELD__ = "profileImageKey";
+                }
+            }
+
+            // 3) ✅ 프로필 이미지 업로드(선택) — 새 POST API 적용
+            //    POST /files/{personId}/profile  -> { key, url }
+            if (hasNewFile) {
+                const uploaded = await uploadProfileImageIfAny(); // 내부에서 personId 확보 후 업로드
+                // 서버가 key 기반이라면, 업로드 결과 key를 보관
+                if (uploaded?.key) window.__EXISTING_PROFILE_IMAGE_KEY__ = uploaded.key;
+                if (uploaded?.url) window.__EXISTING_PROFILE_IMAGE_URL__ = uploaded.url;
             }
 
             alert("저장 완료!");
@@ -880,7 +979,16 @@
         if (!p) return;
 
         window.__EDITING_PUBLIC_ID__ = publicId;
-        window.__EXISTING_PROFILE_IMAGE_URL__ = (p?.profileImageUrl || "").trim();
+
+        // ✅ personId (Long) 확보 (업로드 API에 필요)
+        window.__EDITING_PERSON_ID__ = p?.id ?? p?.personId ?? null;
+
+        // ✅ 서버가 key 기반인지 url 기반인지 기억
+        window.__SERVER_PROFILE_IMAGE_FIELD__ = getServerProfileImageField(p);
+
+        // ✅ 기존 이미지 값 캐시(유지/보존용)
+        window.__EXISTING_PROFILE_IMAGE_URL__ = (p?.profileImageUrl || "").toString().trim() || null;
+        window.__EXISTING_PROFILE_IMAGE_KEY__ = (p?.profileImageKey || "").toString().trim() || null;
 
         // 기본 필드
         document.getElementById("actorName").value = p?.name || "";
@@ -973,9 +1081,6 @@
 
         // SNS 최소 1행 보장(프리필이 덮어씌우면 거기서 다시 세팅됨)
         if (snsList.children.length === 0) addSnsRow();
-
-        // (샘플 태그는 프리필에서 덮어쓰니까, "로그인 전/빈 폼"일 때만 넣고 싶으면 아래 주석 해제)
-        // ["#아역", "#밝은 이미지", "#광고 친화적"].forEach(addTag);
 
         await preloadProfileToEditForm();
 

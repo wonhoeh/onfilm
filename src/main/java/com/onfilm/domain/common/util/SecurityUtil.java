@@ -1,10 +1,12 @@
 package com.onfilm.domain.common.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
+@Slf4j
 public final class SecurityUtil {
 
     private SecurityUtil() {}
@@ -15,6 +17,11 @@ public final class SecurityUtil {
             throw new IllegalStateException("UNAUTHENTICATED");
         }
         return auth;
+    }
+
+    public static String currentPrincipal() {
+        log.info("auth.getName() = {}", currentAuth().getName());
+        return currentAuth().getName(); // email/username/publicId 중 무엇이든 여기로 나옴
     }
 
     public static Long currentUserId() {

@@ -5,6 +5,7 @@ import com.onfilm.domain.auth.dto.AuthTokens;
 import com.onfilm.domain.auth.dto.LoginRequest;
 import com.onfilm.domain.auth.dto.SignupRequest;
 import com.onfilm.domain.common.config.JwtProvider;
+import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.token.service.RefreshTokenService;
 import com.onfilm.domain.user.entity.User;
 import com.onfilm.domain.user.repository.UserRepository;
@@ -36,7 +37,17 @@ public class AuthService {
         }
 
         String hashed = passwordEncoder.encode(request.password());
-        userRepository.save(User.create(request.email(), hashed, request.username()));
+
+        User user = User.create(request.email(), hashed, request.username());
+
+        Person person = Person.create(
+                request.username(),
+                null, null, null,
+                null, null, null
+        );
+        user.attachPerson(person);
+
+        userRepository.save(user);
     }
 
     @Transactional
