@@ -60,6 +60,14 @@ public class LocalStorageService implements StorageService {
 
     @Override
     public String toPublicUrl(String key) {
-        return publicBaseUrl + "/" + key.replace("\\", "/");
+        if (key == null || key.isBlank()) return null;
+
+        String normalized = key.replace("\\", "/");
+        while (normalized.startsWith("/")) normalized = normalized.substring(1);
+
+        String base = publicBaseUrl;
+        while (base.endsWith("/")) base = base.substring(0, base.length() - 1);
+
+        return base + "/" + normalized;
     }
 }

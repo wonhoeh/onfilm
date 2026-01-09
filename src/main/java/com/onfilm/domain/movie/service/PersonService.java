@@ -32,7 +32,6 @@ public class PersonService {
     @Transactional
     public Long createPerson(CreatePersonRequest request) {
         Long userId = SecurityUtil.currentUserId();
-        log.info("userId = {}", userId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));

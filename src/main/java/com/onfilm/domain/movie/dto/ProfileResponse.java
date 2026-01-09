@@ -23,14 +23,14 @@ public class ProfileResponse {
     private List<PersonSnsResponse> snsList;
     private List<ProfileTagResponse> rawTags;
 
-    public static ProfileResponse from(Person person) {
+    public static ProfileResponse from(Person person, String publicUrl) {
         return ProfileResponse.builder()
                 .publicId(person.getPublicId())
                 .name(person.getName())
                 .birthDate(person.getBirthDate())
                 .birthPlace(person.getBirthPlace())
                 .oneLineIntro(person.getOneLineIntro())
-                .profileImageUrl(person.getProfileImageUrl())
+                .profileImageUrl(publicUrl)
                 .snsList(person.getSnsList().stream().map(PersonSnsResponse::from).toList())
                 .rawTags(person.getProfileTags().stream().map(ProfileTagResponse::from).toList())
                 .build();
