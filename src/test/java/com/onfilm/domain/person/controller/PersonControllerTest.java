@@ -2,9 +2,13 @@ package com.onfilm.domain.person.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onfilm.domain.common.config.JwtProvider;
+import com.onfilm.domain.file.service.StorageKeyFactory;
+import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.movie.controller.PersonController;
 import com.onfilm.domain.movie.dto.*;
 import com.onfilm.domain.movie.entity.SnsType;
+import com.onfilm.domain.movie.service.MovieReadService;
+import com.onfilm.domain.movie.service.MovieService;
 import com.onfilm.domain.movie.service.PersonReadService;
 import com.onfilm.domain.movie.service.PersonService;
 import org.junit.jupiter.api.DisplayName;
@@ -42,6 +46,18 @@ class PersonControllerTest {
 
     @MockBean
     private JwtProvider jwtProvider;
+
+    @MockBean
+    private MovieReadService movieReadService;
+
+    @MockBean
+    private StorageService storageService;
+
+    @MockBean
+    private StorageKeyFactory storageKeyFactory;
+
+    @MockBean
+    private MovieService movieService;
 
     @Test
     @DisplayName("POST /persons - 생성 성공 시 201과 personId를 반환한다")
@@ -128,7 +144,7 @@ class PersonControllerTest {
                 .rawTags(List.of(tag1))
                 .build();
 
-        when(personReadService.getProfileByPublicId(publicId)).thenReturn(response);
+        when(personReadService.findProfileByPublicId(publicId)).thenReturn(response);
 
         // when & then
         mockMvc.perform(get("/api/people/{publicId}", publicId)

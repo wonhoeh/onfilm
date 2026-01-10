@@ -1,4 +1,4 @@
-package com.onfilm.domain.common;
+package com.onfilm.domain.common.util;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

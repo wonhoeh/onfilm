@@ -13,6 +13,9 @@ public class StorageKeyFactory {
     public String gallery(Long personId, String ext) {
         return "gallery/" + personId + "/" + UUID.randomUUID() + ext;
     }
+    public String filmography(Long personId, String ext) {
+        return "filmography/" + personId + "/" + UUID.randomUUID() + ext;
+    }
     public String movieThumbnail(Long movieId, String ext) {
         return "movie/" + movieId + "/thumbnail/" + UUID.randomUUID() + ext;
     }

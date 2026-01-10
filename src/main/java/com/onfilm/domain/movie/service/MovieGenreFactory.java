@@ -1,6 +1,6 @@
 package com.onfilm.domain.movie.service;
 
-import com.onfilm.domain.common.TextNormalizer;
+import com.onfilm.domain.common.util.TextNormalizer;
 import com.onfilm.domain.genre.entity.Genre;
 import com.onfilm.domain.genre.repository.GenreRepository;
 import com.onfilm.domain.movie.entity.Movie;

@@ -1,6 +1,6 @@
 package com.onfilm.domain.movie.entity;
 
-import com.onfilm.domain.common.TextNormalizer;
+import com.onfilm.domain.common.util.TextNormalizer;
 import com.onfilm.domain.common.error.exception.InvalidProfileTagException;
 import com.onfilm.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -37,6 +37,9 @@ public class Person {
 
     @Column(length = 512)
     private String profileImageUrl; // profileImageUrl -> key ("profile/" + personId + "/avatar/" + UUID.randomUUID() + ext) 형식으로 변환
+
+    @Column(length = 512)
+    private String filmographyFileKey;
 
     @Column(nullable = false, unique = true, updatable = false, length = 36)
     private String publicId;  // UUID
@@ -289,4 +292,6 @@ public class Person {
     // ======= 편의 메서드: ImageUrl =======
     // ======================================================================
     public void changeProfileImageUrl(String key) { this.profileImageUrl = key; }
+
+    public void changeFilmographyFileKey(String key) { this.filmographyFileKey = key; }
 }

@@ -159,6 +159,30 @@ public class Movie {
     public void changeThumbnailUrl(String key) { this.thumbnailUrl = key; }
     public void changeMovieUrl(String key) { this.movieUrl = key; }
 
+    public void updateBasic(
+            String title,
+            int runtime,
+            Integer releaseYear,
+            AgeRating ageRating
+    ) {
+        if (title == null || title.isBlank()) {
+            throw new IllegalArgumentException("invalid title");
+        }
+        if (releaseYear != null && (releaseYear < 1900 || releaseYear > LocalDate.now().getYear() + 1)) {
+            throw new IllegalArgumentException("invalid releaseYear");
+        }
+        if (ageRating == null) {
+            throw new IllegalArgumentException("invalid ageRating");
+        }
+        this.title = title;
+        this.runtime = runtime;
+        this.releaseYear = releaseYear;
+        this.ageRating = ageRating;
+    }
+
+    public void clearGenres() {
+        this.genres.clear();
+    }
 
 
 

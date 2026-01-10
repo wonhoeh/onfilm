@@ -387,6 +387,34 @@
     const data = await res.json().catch(() => null);
     return data?.publicId != null ? String(data.publicId) : null;
   }
+
+  async function fetchGalleryByPublicId(publicId) {
+    const res = await window.OnfilmAuth.apiFetchWithAutoRefresh(
+            `/api/people/${encodeURIComponent(publicId)}/gallery`,
+            { method:"GET", headers:{ "Accept":"application/json" } }
+    );
+    if (!res.ok) return [];
+    const data = await res.json().catch(() => []);
+    return Array.isArray(data) ? data : [];
+  }
+
+  function toStorageKey(value) {
+    if (!value) return null;
+    let s = String(value).trim();
+    if (!s) return null;
+
+    if (s.startsWith("http://") || s.startsWith("https://")) {
+      try {
+        s = new URL(s).pathname;
+      } catch {
+        return null;
+      }
+    }
+
+    if (s.startsWith("/files/")) s = s.substring("/files/".length);
+    if (s.startsWith("/")) s = s.substring(1);
+    return s;
+  }
 </script>
 
 <script>
@@ -400,6 +428,7 @@
    */
   let photos = [];
   let idCounter = 0;
+  let currentPublicId = null;
 
   const uploadArea     = document.getElementById("uploadArea");
   const fileInput      = document.getElementById("fileInput");
@@ -457,9 +486,17 @@
     if (files && files.length > 0) handleFiles(files);
   });
 
-  clearAllBtn.addEventListener("click", () => {
+  clearAllBtn.addEventListener("click", async () => {
     if (!photos.length) return;
     if (!confirm("업로드된 모든 사진을 제거할까요?")) return;
+
+    if (currentPublicId) {
+      for (const p of photos) {
+        if (p.s3Key) {
+          await deleteGalleryImage(currentPublicId, p.s3Key).catch(() => null);
+        }
+      }
+    }
 
     photos.forEach(p => p.previewUrl && URL.revokeObjectURL(p.previewUrl));
     photos = [];
@@ -520,10 +557,13 @@
     });
   }
 
-  function deletePhoto(id) {
+  async function deletePhoto(id) {
     const idx = photos.findIndex(p => p.id === id);
     if (idx === -1) return;
     const [removed] = photos.splice(idx, 1);
+    if (removed?.s3Key && currentPublicId) {
+      await deleteGalleryImage(currentPublicId, removed.s3Key).catch(() => null);
+    }
     if (removed?.previewUrl) URL.revokeObjectURL(removed.previewUrl);
     renderGallery();
   }
@@ -626,19 +666,15 @@
       return;
     }
 
-    // (요청 1 반영) 필요하면 여기서 publicId를 확보해 저장 API에 사용 가능
-    // const uname = await getUsernameSafe();
-    // const publicId = uname ? await fetchPublicIdByUsername(uname) : null;
+    if (!currentPublicId) {
+      alert("publicId를 찾을 수 없습니다. 다시 로그인해 주세요.");
+      return;
+    }
 
-    const payload = photos.map((p, index) => ({
-      order: index + 1,
-      fileName: p.file ? p.file.name : null,
-      s3Key: p.s3Key
-      // publicId
-    }));
+    await uploadPendingPhotos();
+    await reorderGallery(currentPublicId);
 
-    console.log("갤러리 저장 payload (예시):", payload);
-    alert("지금은 프론트 미리보기 단계입니다.\n콘솔에서 저장될 순서와 파일 정보를 확인해보세요.");
+    alert("갤러리 저장이 완료되었습니다.");
   });
 
   // =========================
@@ -652,12 +688,94 @@
       return;
     }
 
+    const uname = await getUsernameSafe();
+    currentPublicId = uname ? await fetchPublicIdByUsername(uname) : null;
+    if (currentPublicId) {
+      const urls = await fetchGalleryByPublicId(currentPublicId);
+      photos = urls.map((url) => ({
+        id: `remote-${++idCounter}`,
+        file: null,
+        previewUrl: url,
+        s3Key: toStorageKey(url),
+      }));
+    }
+
     renderGallery();
 
     // ✅ 전체 드롭 기본 동작 방지(페이지 이동/새 탭 열림 방지)
     window.addEventListener("dragover", (e) => e.preventDefault());
     window.addEventListener("drop", (e) => e.preventDefault());
   });
+</script>
+
+<script>
+  async function uploadPendingPhotos() {
+    const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
+            ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
+            : fetch;
+
+    for (const p of photos) {
+      if (!p.file || p.s3Key) continue;
+
+      const fd = new FormData();
+      fd.append("file", p.file);
+
+      const res = await fetcher("/api/files/person/me/gallery", {
+        method: "POST",
+        body: fd,
+      });
+
+      if (!res.ok) {
+        const msg = await res.text().catch(() => "");
+        throw new Error(`사진 업로드 실패: ${res.status} ${msg}`);
+      }
+
+      const data = await res.json().catch(() => null);
+      const key = data?.key ? String(data.key) : null;
+      const url = data?.url ? String(data.url) : null;
+      if (key) p.s3Key = key;
+      if (url) {
+        if (p.previewUrl?.startsWith("blob:")) URL.revokeObjectURL(p.previewUrl);
+        p.previewUrl = url;
+      }
+      p.file = null;
+    }
+
+    renderGallery();
+  }
+
+  async function reorderGallery(publicId) {
+    const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
+            ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
+            : fetch;
+
+    const keys = photos.map(p => p.s3Key).filter(Boolean);
+    const res = await fetcher(`/api/people/${encodeURIComponent(publicId)}/gallery`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ keys }),
+    });
+
+    if (!res.ok) {
+      const msg = await res.text().catch(() => "");
+      throw new Error(`순서 저장 실패: ${res.status} ${msg}`);
+    }
+  }
+
+  async function deleteGalleryImage(publicId, key) {
+    const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
+            ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
+            : fetch;
+
+    const res = await fetcher(`/api/people/${encodeURIComponent(publicId)}/gallery?key=${encodeURIComponent(key)}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      const msg = await res.text().catch(() => "");
+      throw new Error(`삭제 실패: ${res.status} ${msg}`);
+    }
+  }
 </script>
 
 <script>

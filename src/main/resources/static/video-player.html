@@ -514,6 +514,43 @@
   const centerIndicator = document.getElementById("centerIndicator");
   const skipLeft = document.getElementById("skipLeft");
   const skipRight = document.getElementById("skipRight");
+  const titleEl = document.querySelector(".video-title");
+
+  function toPublicMediaUrl(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+    if (raw.toLowerCase() === "pending") return "";
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (raw.startsWith("/files/")) return raw;
+    if (raw.startsWith("files/")) return "/" + raw;
+    return "/files/" + raw.replace(/^\/+/, "");
+  }
+
+  function initPlayerData() {
+    let data = null;
+    const raw = sessionStorage.getItem("onfilm.player");
+    if (raw) {
+      try { data = JSON.parse(raw); } catch (_) { data = null; }
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const qsTitle = params.get("title");
+    const qsSrc = params.get("src");
+
+    const title = (data?.title || qsTitle || "").toString().trim();
+    const src = (data?.movieUrl || qsSrc || "").toString().trim();
+
+    if (title) {
+      titleEl.textContent = title;
+      document.title = title;
+    }
+
+    if (src) {
+      video.src = toPublicMediaUrl(src);
+    }
+  }
+
+  initPlayerData();
 
   /* 뒤로가기 */
   backBtn.onclick = () => history.back();

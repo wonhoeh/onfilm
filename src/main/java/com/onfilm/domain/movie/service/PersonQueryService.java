@@ -15,7 +15,7 @@ public class PersonQueryService {
 
     private final UserRepository userRepository;
 
-    public PublicIdByUsernameResponse getPublicIdByUsername(String username) {
+    public PublicIdByUsernameResponse findPublicIdByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException(username));
 

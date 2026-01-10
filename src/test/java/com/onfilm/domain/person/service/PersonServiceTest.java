@@ -1,13 +1,16 @@
 package com.onfilm.domain.person.service;
 
 
+import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.movie.dto.ProfileResponse;
 import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.movie.entity.PersonSns;
 import com.onfilm.domain.movie.entity.SnsType;
+import com.onfilm.domain.movie.repository.MovieRepository;
 import com.onfilm.domain.movie.repository.PersonRepository;
 import com.onfilm.domain.movie.service.PersonReadService;
 import com.onfilm.domain.movie.service.PersonService;
+import com.onfilm.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,11 +24,21 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+
 @ExtendWith(MockitoExtension.class)
 public class PersonServiceTest {
 
     @Mock
     private PersonRepository personRepository;
+
+    @Mock
+    private MovieRepository movieRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private StorageService storageService;
 
     @InjectMocks
     private PersonService personService; // 너의 실제 서비스 클래스명
@@ -57,11 +70,11 @@ public class PersonServiceTest {
                 List.of("인셉션", "셔터아일랜드")
         );
 
-        when(personRepository.findByName(person.getName())).thenReturn(Optional.of(person));
+        when(personRepository.findByPublicId(person.getPublicId())).thenReturn(Optional.of(person));
+        when(storageService.toPublicUrl(person.getProfileImageUrl())).thenReturn(person.getProfileImageUrl());
 
         // when
-        //ProfileResponse res = personService.getProfileByUsername(person.getName());
-        ProfileResponse res = personReadService.getProfileByPublicId(person.getPublicId());
+        ProfileResponse res = personReadService.findProfileByPublicId(person.getPublicId());
 
         // then
         assertThat(res).isNotNull();
@@ -85,6 +98,7 @@ public class PersonServiceTest {
                 .extracting("rawTag")
                 .containsExactlyInAnyOrder("인셉션", "셔터아일랜드");
 
-        verify(personRepository, times(1)).findByName(person.getName());
+        verify(personRepository, times(1)).findByPublicId(person.getPublicId());
+        verify(storageService, times(1)).toPublicUrl(person.getProfileImageUrl());
     }
 }

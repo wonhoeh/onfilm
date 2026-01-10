@@ -439,13 +439,6 @@
     function normalizeGenre(text){
       return String(text || "").trim().replace(/\s+/g, " ");
     }
-    function fakeHttpUrl(kind, fileName) {
-      const safeName = encodeURIComponent(fileName || "file");
-      const uid =
-              (crypto && crypto.randomUUID) ? crypto.randomUUID()
-                      : (Date.now().toString(36) + Math.random().toString(36).slice(2));
-      return `http://localhost/mock-upload/${kind}/${uid}/${safeName}`;
-    }
     function bindDropzone(dropzone, onFiles) {
       ["dragenter","dragover"].forEach(evtName => {
         dropzone.addEventListener(evtName, (e) => {
@@ -469,7 +462,7 @@
         if (dt && dt.files && dt.files.length) onFiles(dt.files);
       });
     }
-    return { escapeHtml, normalizeGenre, fakeHttpUrl, bindDropzone };
+    return { escapeHtml, normalizeGenre, bindDropzone };
   })();
 
   /* ============================
@@ -509,6 +502,21 @@
 
     const text = await res.text().catch(() => "");
     return text.trim() || null;
+  }
+
+  async function fetchFilmographyByPublicId(publicId) {
+    const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
+            ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
+            : fetch;
+
+    const res = await fetcher(`/api/people/${encodeURIComponent(publicId)}/movies`, {
+      method: "GET",
+      headers: { "Accept": "application/json" }
+    });
+
+    if (!res.ok) return [];
+    const data = await res.json().catch(() => []);
+    return Array.isArray(data) ? data : [];
   }
 
   /* ============================
@@ -750,11 +758,11 @@
         if (!file.type.startsWith("image/")) { alert("이미지 파일만 업로드할 수 있습니다."); return; }
 
         card._thumbnailFile = file;
-        card._thumbnailUrl = Util.fakeHttpUrl("thumbnail", file.name);
+        card._thumbnailUrl = null;
 
         fileInfo.textContent =
                 `선택됨: ${file.name} (${Math.round(file.size/1024)}KB)\n` +
-                `가짜 URL: ${card._thumbnailUrl}`;
+                `업로드 대기`;
       }
 
       browseBtn.addEventListener("click", () => fileInput.click());
@@ -774,11 +782,11 @@
         if (!file.type.startsWith("video/")) { alert("영상 파일만 업로드할 수 있습니다."); return; }
 
         card._trailerFile = file;
-        card._trailerUrls = [Util.fakeHttpUrl("trailer", file.name)];
+        card._trailerUrls = [];
 
         fileInfo.textContent =
                 `선택됨: ${file.name} (${Math.round(file.size/1024/1024)}MB)\n` +
-                `가짜 URL: ${card._trailerUrls[0]}`;
+                `업로드 대기`;
       }
 
       browseBtn.addEventListener("click", () => fileInput.click());
@@ -798,11 +806,11 @@
         if (!file.type.startsWith("video/")) { alert("영상 파일만 업로드할 수 있습니다."); return; }
 
         card._videoFile = file;
-        card._movieUrl = Util.fakeHttpUrl("movie", file.name);
+        card._movieUrl = null;
 
         fileInfo.textContent =
                 `선택됨: ${file.name} (${Math.round(file.size/1024/1024)}MB)\n` +
-                `가짜 URL: ${card._movieUrl}`;
+                `업로드 대기`;
       }
 
       browseBtn.addEventListener("click", () => fileInput.click());
@@ -921,6 +929,60 @@
     return Number.isFinite(num) ? num : t;
   }
 
+  async function putJson(url, body) {
+    const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
+    if (!authReady?.ok) throw new Error("로그인이 필요합니다.");
+
+    const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
+            ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
+            : fetch;
+
+    const token = await Promise.resolve(window.OnfilmAuth?.getAccessToken?.()).catch(() => null);
+    const res = await fetcher(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      credentials: "include",
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`요청 실패 (${res.status}) ${text}`);
+    }
+
+    const ct = res.headers.get("content-type") || "";
+    if (ct.includes("application/json")) return await res.json();
+
+    const t = await res.text();
+    return t;
+  }
+
+  async function uploadMovieAsset(movieId, kind, file) {
+    if (!file) return null;
+
+    const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
+            ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
+            : fetch;
+
+    const fd = new FormData();
+    fd.append("file", file);
+
+    const res = await fetcher(`/api/files/movie/${movieId}/${kind}`, {
+      method: "POST",
+      body: fd,
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`업로드 실패(${kind}): ${res.status} ${text}`);
+    }
+
+    return await res.json().catch(() => null);
+  }
+
   /* ============================
    * 7) "프로필로 돌아가기" (publicId 기반)
    * ============================ */
@@ -1000,13 +1062,11 @@
     const form = document.getElementById("filmographyForm");
 
     DragSortModule.attach(filmListEl);
-    FilmCardModule.create(filmListEl, {});
+    initExistingFilmography(filmListEl);
     addFilmBtn.addEventListener("click", () => FilmCardModule.create(filmListEl, {}));
     setupBackToProfileLink();
 
     // ✅ 백엔드 MovieController 기준: POST /api/movie
-    const CREATE_MOVIE_ENDPOINT = "/api/movie";
-
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -1037,8 +1097,8 @@
         if (!publicId) {
           throw new Error("publicId를 찾을 수 없습니다. (/api/person/{username} 응답 확인 필요)");
         }
-
         const cards = [...filmListEl.querySelectorAll(".film-card")];
+        const items = [];
 
         for (let i = 0; i < cards.length; i++) {
           const card = cards[i];
@@ -1049,24 +1109,61 @@
           if (!runtime || runtime <= 0) throw new Error(`(${i+1}번째 작품) 런타임은 1분 이상이어야 합니다.`);
           const releaseYear = data.yearStr ? Number(data.yearStr) : null;
           if (!data.ageRate) throw new Error(`(${i+1}번째 작품) 관람연령을 선택해주세요.`);
-          if (!data.movieUrl) throw new Error(`(${i+1}번째 작품) 영상 파일을 선택해서 가짜 URL을 생성해야 합니다.`);
+          if (!card._videoFile && !data.movieUrl) {
+            throw new Error(`(${i+1}번째 작품) 영상 파일을 선택해 주세요.`);
+          }
 
-          const body = {
+          const key = String(card.dataset.filmId || `temp-${i}`);
+          const numericId = /^[0-9]+$/.test(key) ? Number(key) : null;
+
+          items.push({
+            clientKey: key,
+            movieId: numericId,
             title: data.title,
             runtime,
             releaseYear,
-            movieUrl: data.movieUrl,
-            thumbnailUrl: data.thumbnailUrl,
-            trailerUrls: data.trailerUrls,
-            rawGenreTexts: data.rawGenreTexts,
             ageRating: data.ageRate,
+            rawGenreTexts: data.rawGenreTexts,
             role: data.role,
             castType: data.castType,
             characterName: data.characterName
-          };
+          });
+        }
 
-          const movieId = await postJson(CREATE_MOVIE_ENDPOINT, body);
-          console.log("created movieId:", movieId);
+        const upsertRes = await putJson(`/api/people/${encodeURIComponent(publicId)}/filmography`, { items });
+        const map = new Map();
+        (upsertRes?.items || []).forEach((it) => {
+          if (it?.clientKey && it?.movieId != null) map.set(String(it.clientKey), it.movieId);
+        });
+
+        for (let i = 0; i < cards.length; i++) {
+          const card = cards[i];
+          const key = String(card.dataset.filmId || `temp-${i}`);
+          const movieId = map.get(key) || (/^[0-9]+$/.test(key) ? Number(key) : null);
+          if (!movieId) continue;
+          card.dataset.filmId = String(movieId);
+
+          const thumbInfo = card.querySelector(".thumb-file-info");
+          const trailerInfo = card.querySelector(".trailer-file-info");
+          const videoInfo = card.querySelector(".video-file-info");
+
+          const thumbRes = await uploadMovieAsset(movieId, "thumbnail", card._thumbnailFile);
+          if (thumbRes?.url) {
+            card._thumbnailUrl = thumbRes.url;
+            if (thumbInfo) thumbInfo.textContent = `업로드 완료: ${thumbRes.url}`;
+          }
+
+          const trailerRes = await uploadMovieAsset(movieId, "trailer", card._trailerFile);
+          if (trailerRes?.url) {
+            card._trailerUrls = [trailerRes.url];
+            if (trailerInfo) trailerInfo.textContent = `업로드 완료: ${trailerRes.url}`;
+          }
+
+          const movieRes = await uploadMovieAsset(movieId, "file", card._videoFile);
+          if (movieRes?.url) {
+            card._movieUrl = movieRes.url;
+            if (videoInfo) videoInfo.textContent = `업로드 완료: ${movieRes.url}`;
+          }
         }
 
         location.href = "/onfilm/" + encodeURIComponent(username);
@@ -1078,6 +1175,63 @@
         if (submitBtn) submitBtn.disabled = false;
       }
     });
+  }
+
+  async function initExistingFilmography(filmListEl) {
+    try {
+      const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
+      if (!authReady?.ok) {
+        FilmCardModule.create(filmListEl, {});
+        return;
+      }
+
+      const me =
+              (await Promise.resolve(window.OnfilmAuth.getMe?.()).catch(() => null))
+              || authReady.me;
+      const username = (me && me.username) ? String(me.username).trim() : "";
+      if (!username) {
+        FilmCardModule.create(filmListEl, {});
+        return;
+      }
+
+      const publicId = await resolvePublicIdByUsername(username);
+      if (!publicId) {
+        FilmCardModule.create(filmListEl, {});
+        return;
+      }
+
+      const films = await fetchFilmographyByPublicId(publicId);
+      if (!films.length) {
+        FilmCardModule.create(filmListEl, {});
+        return;
+      }
+
+      filmListEl.innerHTML = "";
+      films.forEach((item) => {
+        const genres = (item?.genre || "")
+                .split("/")
+                .map(s => s.trim())
+                .filter(Boolean);
+
+        FilmCardModule.create(filmListEl, {
+          id: item?.movieId ?? null,
+          title: item?.title || "",
+          year: item?.releaseYear != null ? String(item.releaseYear) : "",
+          runtime: item?.runtime != null ? String(item.runtime) : "",
+          ageRating: item?.ageRating || "",
+          thumbnailUrl: item?.thumbnailUrl || "",
+          trailerUrls: item?.trailerUrl ? [item.trailerUrl] : [],
+          movieUrl: item?.movieUrl || "",
+          genres,
+          personRole: item?.personRole || "",
+          castType: item?.castType || "",
+          characterName: item?.characterName || "",
+        });
+      });
+    } catch (e) {
+      console.error("initExistingFilmography error:", e);
+      FilmCardModule.create(filmListEl, {});
+    }
   }
 
   document.addEventListener("DOMContentLoaded", main);

@@ -3,7 +3,7 @@ package com.onfilm.domain.movie.controller;
 import com.onfilm.domain.file.service.StorageKeyFactory;
 import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.movie.dto.UploadResultResponse;
-import com.onfilm.domain.movie.service.FileCommandService;
+import com.onfilm.domain.movie.service.PersonReadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,14 +15,14 @@ public class MovieFileController {
 
     private final StorageService storage;
     private final StorageKeyFactory keyFactory;
-    private final FileCommandService commandService;
+    private final PersonReadService personReadService;
 
     @PostMapping("/{movieId}/thumbnail")
     public UploadResultResponse uploadThumbnail(@PathVariable Long movieId,
                                                 @RequestParam("file") MultipartFile file) {
         String key = keyFactory.movieThumbnail(movieId, extOf(file));
         storage.save(key, file);
-        commandService.updateMovieThumbnail(movieId, key);
+        personReadService.updateMovieThumbnail(movieId, key);
         return new UploadResultResponse(key, storage.toPublicUrl(key));
     }
 
@@ -31,7 +31,7 @@ public class MovieFileController {
                                               @RequestParam("file") MultipartFile file) {
         String key = keyFactory.movieTrailer(movieId, extOf(file));
         storage.save(key, file);
-        commandService.addMovieTrailer(movieId, key);
+        personReadService.addMovieTrailer(movieId, key);
         return new UploadResultResponse(key, storage.toPublicUrl(key));
     }
 
@@ -40,7 +40,7 @@ public class MovieFileController {
                                                 @RequestParam("file") MultipartFile file) {
         String key = keyFactory.movieFile(movieId, extOf(file));
         storage.save(key, file);
-        commandService.updateMovieFile(movieId, key);
+        personReadService.updateMovieFile(movieId, key);
         return new UploadResultResponse(key, storage.toPublicUrl(key));
     }
 

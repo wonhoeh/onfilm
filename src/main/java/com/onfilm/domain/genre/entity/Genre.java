@@ -1,6 +1,6 @@
 package com.onfilm.domain.genre.entity;
 
-import com.onfilm.domain.common.TextNormalizer;
+import com.onfilm.domain.common.util.TextNormalizer;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

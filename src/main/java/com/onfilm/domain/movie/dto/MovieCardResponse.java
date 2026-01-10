@@ -5,6 +5,7 @@ import com.onfilm.domain.movie.entity.*;
 import java.util.stream.Collectors;
 
 public record MovieCardResponse(
+        Long movieId,
         String title,
         String genre,
         int runtime,
@@ -38,6 +39,7 @@ public record MovieCardResponse(
                 .orElse(null);
 
         return new MovieCardResponse(
+                m.getId(),
                 m.getTitle(),
                 genreText,
                 m.getRuntime(),

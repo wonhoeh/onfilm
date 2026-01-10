@@ -13,4 +13,7 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
 
     @Query("select p.profileImageUrl from Person p where p.id = :personId")
     Optional<String> findProfileImageKeyById(@Param("personId") Long personId);
+
+    @Query("select p.filmographyFileKey from Person p where p.id = :personId")
+    Optional<String> findFilmographyKeyById(@Param("personId") Long personId);
 }

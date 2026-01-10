@@ -76,6 +76,7 @@ public class MovieReadService {
                     Long mid = m.getId();
 
                     return new MovieCardResponse(
+                            m.getId(),
                             m.getTitle(),
                             genreTextByMovieId.getOrDefault(mid, ""),
                             m.getRuntime(),

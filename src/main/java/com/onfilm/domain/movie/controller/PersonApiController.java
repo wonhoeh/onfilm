@@ -19,7 +19,7 @@ public class PersonApiController {
     // username -> 프로필 + publicId(필모, 갤러리 조회 키)
     @GetMapping("/{username}")
     public ResponseEntity<PublicIdByUsernameResponse> getPublicIdByUsername(@PathVariable String username) {
-        PublicIdByUsernameResponse profileByUsername = personQueryService.getPublicIdByUsername(username);
+        PublicIdByUsernameResponse profileByUsername = personQueryService.findPublicIdByUsername(username);
         return ResponseEntity.ok(profileByUsername);
     }
 }

@@ -39,6 +39,9 @@ public class MoviePerson {
     @Column(name = "characterName", nullable = true)
     private String characterName;
 
+    @Column(name = "sort_order")
+    private Integer sortOrder;
+
     @Builder(access = AccessLevel.PRIVATE)
     private MoviePerson(
             Person person,
@@ -88,5 +91,25 @@ public class MoviePerson {
 
     void attachMovie(Movie movie) {
         this.movie = movie;
+    }
+
+    public void updateRole(
+            PersonRole role,
+            CastType castType,
+            String characterName
+    ) {
+        if (role == null || castType == null) {
+            throw new IllegalArgumentException("role and castType are required");
+        }
+        String cn = (characterName == null) ? null : characterName.trim();
+        if (cn != null && cn.isBlank()) cn = null;
+
+        this.role = role;
+        this.castType = castType;
+        this.characterName = cn;
+    }
+
+    public void updateSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder;
     }
 }

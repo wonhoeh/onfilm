@@ -1202,6 +1202,16 @@
         catch { return ""; }
     }
 
+    function toPublicMediaUrl(value) {
+        const raw = String(value || "").trim();
+        if (!raw) return "";
+        if (raw.toLowerCase() === "pending") return "";
+        if (/^https?:\/\//i.test(raw)) return raw;
+        if (raw.startsWith("/files/")) return raw;
+        if (raw.startsWith("files/")) return "/" + raw;
+        return "/files/" + raw.replace(/^\/+/, "");
+    }
+
     function lockBodyScroll(lock) {
         document.body.style.overflow = lock ? "hidden" : "";
     }
@@ -1478,8 +1488,9 @@
         const genre = item?.genre ?? "";
         const runtime = (item?.runtime != null) ? `${item.runtime}분` : "";
         const age = ageToBadge(item?.ageRating);
-        const video = item?.trailerUrl || "";
-        const thumb = item?.thumbnailUrl || "";
+        const video = toPublicMediaUrl(item?.trailerUrl || "");
+        const thumb = toPublicMediaUrl(item?.thumbnailUrl || "");
+        const movie = toPublicMediaUrl(item?.movieUrl || "");
 
         const releaseYear = (item?.releaseYear != null) ? String(item.releaseYear) : "";
         const castLabel = castTypeToKorean(item?.castType);
@@ -1495,6 +1506,7 @@
         article.dataset.age = age;
         article.dataset.video = video;
         article.dataset.thumb = thumb;
+        article.dataset.movie = movie;
 
         article.innerHTML = `
       <img class="film-poster" src="${thumb || "/videos/thumbnail.png"}" alt="">
@@ -1508,6 +1520,20 @@
         if (img) img.onerror = () => { img.onerror = null; img.src = "/videos/thumbnail.png"; };
 
         return article;
+    }
+
+    function openVideoPlayerFromCard(card, opts = {}) {
+        if (!card) return;
+        if (opts.playWithSound) sessionStorage.setItem("allowSoundPlay", "true");
+        else sessionStorage.removeItem("allowSoundPlay");
+        const payload = {
+            title: card.dataset.title || "",
+            movieUrl: card.dataset.movie || "",
+            trailerUrl: card.dataset.video || "",
+            thumbnailUrl: card.dataset.thumb || "",
+        };
+        sessionStorage.setItem("onfilm.player", JSON.stringify(payload));
+        window.location.href = "/video-player.html";
     }
 
     async function renderFilmography(publicId) {
@@ -1582,21 +1608,35 @@
         popup.addEventListener("mouseenter", () => { if (hideTimer) clearTimeout(hideTimer); });
         popup.addEventListener("mouseleave", hidePopup);
 
-        popup.querySelector(".popup-mute-btn").onclick = (e) => {
+        const videoBox = popup.querySelector(".popup-video-box");
+        if (videoBox) {
+            videoBox.addEventListener("click", (e) => {
+                if (e.target.closest(".popup-mute-btn")) return;
+                e.stopPropagation();
+                openVideoPlayerFromCard(activeCard, { playWithSound: true });
+            });
+        }
+
+        const muteBtn = popup.querySelector(".popup-mute-btn");
+        muteBtn?.addEventListener("click", (e) => {
             e.stopPropagation();
             const v = popup.querySelector("video");
             const soundOn = popup.querySelector(".popup-sound-on");
             const soundOff = popup.querySelector(".popup-sound-off");
 
-            v.muted = !v.muted;
-            soundOn.style.display = v.muted ? "none" : "block";
-            soundOff.style.display = v.muted ? "block" : "none";
-        };
+            const nextMuted = !v.muted;
+            v.muted = nextMuted;
+            if (!nextMuted) {
+                if (v.volume === 0) v.volume = 1.0;
+                v.play().catch(() => {});
+            }
+            soundOn.style.display = nextMuted ? "none" : "block";
+            soundOff.style.display = nextMuted ? "block" : "none";
+        });
 
         popup.querySelector(".popup-play-btn-circle").onclick = (e) => {
             e.stopPropagation();
-            sessionStorage.setItem("allowSoundPlay", "true");
-            window.location.href = "/video-player-temp.html";
+            openVideoPlayerFromCard(activeCard, { playWithSound: true });
         };
 
         const likeBtn = popup.querySelector(".popup-like-btn");
@@ -1609,7 +1649,7 @@
             }
         };
 
-        popup.addEventListener("click", () => { window.location.href = "/movie-detail.html"; });
+        popup.addEventListener("click", () => { openVideoPlayerFromCard(activeCard); });
     }
     createPopup();
 
@@ -1623,6 +1663,8 @@
         const rect    = card.getBoundingClientRect();
         const videoEl = popup.querySelector("video");
         const thumbEl = popup.querySelector(".popup-thumb");
+        const soundOn = popup.querySelector(".popup-sound-on");
+        const soundOff = popup.querySelector(".popup-sound-off");
 
         popup.querySelector(".popup-title").textContent = card.dataset.title ?? "";
         popup.querySelector(".popup-meta").innerHTML = `
@@ -1642,6 +1684,11 @@
         videoEl.pause();
         videoEl.src = card.dataset.video || "";
         videoEl.currentTime = 0;
+        videoEl.muted = true;
+        if (soundOn && soundOff) {
+            soundOn.style.display = "none";
+            soundOff.style.display = "block";
+        }
 
         const onTimeUpdate = () => {
             if (videoEl.currentTime >= 0.15) {
