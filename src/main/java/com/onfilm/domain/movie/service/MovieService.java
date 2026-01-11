@@ -108,6 +108,7 @@ public class MovieService {
 
                 mp.updateRole(item.role(), item.castType(), item.characterName());
                 mp.updateSortOrder(i);
+                mp.updatePrivate(item.isPrivate());
 
                 keepMovieIds.add(movieId);
                 results.add(new FilmographyUpsertResponse.Item(item.clientKey(), movieId));
@@ -134,6 +135,7 @@ public class MovieService {
 
             MoviePerson createdMp = movie.getMoviePeople().get(movie.getMoviePeople().size() - 1);
             createdMp.updateSortOrder(i);
+            createdMp.updatePrivate(item.isPrivate());
 
             movieGenreFactory.attachGenre(movie, item.rawGenreTexts());
 
@@ -151,5 +153,16 @@ public class MovieService {
         }
 
         return new FilmographyUpsertResponse(results);
+    }
+
+    @Transactional
+    public void updateFilmographyItemPrivacy(String publicId, Long movieId, boolean isPrivate) {
+        Person person = personRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new PersonNotFoundException(publicId));
+        if (movieId == null) throw new IllegalArgumentException("movieId is required");
+
+        MoviePerson mp = moviePersonRepository.findByPersonIdAndMovieId(person.getId(), movieId);
+        if (mp == null) throw new IllegalArgumentException("filmography item not found");
+        mp.updatePrivate(isPrivate);
     }
 }

@@ -7,6 +7,7 @@ import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.movie.dto.ProfileResponse;
 import com.onfilm.domain.movie.entity.Movie;
 import com.onfilm.domain.movie.entity.Person;
+import com.onfilm.domain.movie.entity.Trailer;
 import com.onfilm.domain.movie.repository.MovieRepository;
 import com.onfilm.domain.movie.repository.PersonRepository;
 import com.onfilm.domain.user.entity.User;
@@ -80,10 +81,22 @@ public class PersonReadService {
         return (key == null || key.isBlank()) ? null : storageService.toPublicUrl(key);
     }
 
-    public java.util.List<String> findGalleryKeysByPublicId(String publicId) {
+    public boolean isFilmographyPrivate(String publicId) {
         Person person = personRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new PersonNotFoundException(publicId));
-        return new java.util.ArrayList<>(person.getGalleryImageKeys());
+        return person.isFilmographyPrivate();
+    }
+
+    public boolean isGalleryPrivate(String publicId) {
+        Person person = personRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new PersonNotFoundException(publicId));
+        return person.isGalleryPrivate();
+    }
+
+    public java.util.List<Person.GalleryItem> findGalleryItemsByPublicId(String publicId) {
+        Person person = personRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new PersonNotFoundException(publicId));
+        return new java.util.ArrayList<>(person.getGalleryItems());
     }
 
     @Transactional
@@ -129,6 +142,69 @@ public class PersonReadService {
     }
 
     @Transactional
+    public void clearProfileImage(Long personId) {
+        Person person = personRepository.findById(personId)
+                .orElseThrow(() -> new PersonNotFoundException(personId));
+        person.changeProfileImageUrl(null);
+    }
+
+    @Transactional
+    public void deleteMovieFiles(Long movieId) {
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new MovieNotFoundException(movieId));
+
+        String thumbnailKey = movie.getThumbnailUrl();
+        String movieKey = movie.getMovieUrl();
+
+        java.util.List<String> trailerKeys = movie.getTrailers().stream()
+                .map(Trailer::getUrl)
+                .filter(k -> k != null && !k.isBlank())
+                .toList();
+
+        movie.clearThumbnailUrl();
+        movie.clearMovieUrl();
+        movie.clearTrailers();
+
+        if (thumbnailKey != null && !thumbnailKey.isBlank()) storageService.delete(thumbnailKey);
+        if (movieKey != null && !movieKey.isBlank()) storageService.delete(movieKey);
+        for (String key : trailerKeys) {
+            storageService.delete(key);
+        }
+    }
+
+    @Transactional
+    public void deleteMovieThumbnail(Long movieId) {
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new MovieNotFoundException(movieId));
+        String key = movie.getThumbnailUrl();
+        movie.clearThumbnailUrl();
+        if (key != null && !key.isBlank()) storageService.delete(key);
+    }
+
+    @Transactional
+    public void deleteMovieFile(Long movieId) {
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new MovieNotFoundException(movieId));
+        String key = movie.getMovieUrl();
+        movie.clearMovieUrl();
+        if (key != null && !key.isBlank()) storageService.delete(key);
+    }
+
+    @Transactional
+    public void deleteMovieTrailers(Long movieId) {
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new MovieNotFoundException(movieId));
+        java.util.List<String> keys = movie.getTrailers().stream()
+                .map(Trailer::getUrl)
+                .filter(k -> k != null && !k.isBlank())
+                .toList();
+        movie.clearTrailers();
+        for (String key : keys) {
+            storageService.delete(key);
+        }
+    }
+
+    @Transactional
     public void removeGalleryImage(Long personId, String key) {
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
@@ -140,5 +216,26 @@ public class PersonReadService {
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         person.reorderGallery(orderedKeys);
+    }
+
+    @Transactional
+    public void updateFilmographyPrivate(Long personId, boolean isPrivate) {
+        Person person = personRepository.findById(personId)
+                .orElseThrow(() -> new PersonNotFoundException(personId));
+        person.changeFilmographyPrivate(isPrivate);
+    }
+
+    @Transactional
+    public void updateGalleryPrivate(Long personId, boolean isPrivate) {
+        Person person = personRepository.findById(personId)
+                .orElseThrow(() -> new PersonNotFoundException(personId));
+        person.changeGalleryPrivate(isPrivate);
+    }
+
+    @Transactional
+    public void updateGalleryItemPrivacy(Long personId, String key, boolean isPrivate) {
+        Person person = personRepository.findById(personId)
+                .orElseThrow(() -> new PersonNotFoundException(personId));
+        person.updateGalleryItemPrivacy(key, isPrivate);
     }
 }

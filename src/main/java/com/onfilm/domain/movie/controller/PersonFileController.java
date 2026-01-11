@@ -6,6 +6,7 @@ import com.onfilm.domain.movie.dto.UploadResultResponse;
 import com.onfilm.domain.movie.service.PersonReadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -49,6 +50,21 @@ public class PersonFileController {
             try { storage.delete(newKey); } catch (Exception ignore) {}
             throw e;
         }
+    }
+
+    @DeleteMapping("/me/profile")
+    public ResponseEntity<Void> deleteMyProfile() {
+        Long personId = personReadService.findCurrentPersonId();
+        String oldKey = personReadService.findProfileImageKey(personId);
+        String oldDeleteKey = toStorageKey(oldKey);
+
+        personReadService.clearProfileImage(personId);
+
+        if (oldDeleteKey != null && !oldDeleteKey.isBlank()) {
+            storage.delete(oldDeleteKey);
+        }
+
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/me/gallery")

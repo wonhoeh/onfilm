@@ -42,6 +42,8 @@ public class MoviePerson {
     @Column(name = "sort_order")
     private Integer sortOrder;
 
+    @Column(name = "is_private", nullable = false)
+    private boolean isPrivate = false;
     @Builder(access = AccessLevel.PRIVATE)
     private MoviePerson(
             Person person,
@@ -111,5 +113,9 @@ public class MoviePerson {
 
     public void updateSortOrder(Integer sortOrder) {
         this.sortOrder = sortOrder;
+    }
+
+    public void updatePrivate(boolean isPrivate) {
+        this.isPrivate = isPrivate;
     }
 }

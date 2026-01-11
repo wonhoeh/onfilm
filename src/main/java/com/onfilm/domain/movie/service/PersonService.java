@@ -77,12 +77,17 @@ public class PersonService {
         }
 
         // ✅ 기본 필드 업데이트
+        String imageValue = request.getProfileImageKey();
+        if (imageValue == null || imageValue.isBlank()) {
+            imageValue = request.getProfileImageUrl();
+        }
+
         person.updateBasic(
                 request.getName(),
                 request.getBirthDate(),
                 request.getBirthPlace(),
                 request.getOneLineIntro(),
-                request.getProfileImageUrl()
+                imageValue
         );
 
         // ✅ SNS 전체 교체 (null-safe)

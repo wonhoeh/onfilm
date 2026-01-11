@@ -19,6 +19,7 @@ public record FilmographyUpsertRequest(
             List<String> rawGenreTexts,
             PersonRole role,
             CastType castType,
-            String characterName
+            String characterName,
+            boolean isPrivate
     ) {}
 }

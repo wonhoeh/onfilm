@@ -44,6 +44,12 @@ public class Person {
     @Column(nullable = false, unique = true, updatable = false, length = 36)
     private String publicId;  // UUID
 
+    @Column(nullable = false)
+    private boolean filmographyPrivate = false;
+
+    @Column(nullable = false)
+    private boolean galleryPrivate = false;
+
     // ======================================================================
     // ======= 연관관계: SNS =======
     // ======================================================================
@@ -75,8 +81,7 @@ public class Person {
             joinColumns = @JoinColumn(name = "person_id")
     )
     @OrderColumn(name = "sort_order") // ✅ 순서 보존(드래그 정렬 가능)
-    @Column(name = "image_key", length = 512)
-    private List<String> galleryImageKeys = new ArrayList<>();
+    private List<GalleryItem> galleryItems = new ArrayList<>();
 
     // ======================================================================
     // ======= 생성자 / 정적 팩토리 =======
@@ -273,19 +278,41 @@ public class Person {
 
     public void addGalleryImageKey(String key) {
         if (key == null || key.isBlank()) return;
-        galleryImageKeys.add(key);
+        galleryItems.add(new GalleryItem(key, false));
     }
 
     public void removeGalleryImageKey(String key) {
         if (key == null) return;
-        galleryImageKeys.removeIf(k -> k.equals(key));
+        galleryItems.removeIf(item -> item.getKey().equals(key));
     }
 
     public void reorderGallery(List<String> orderedKeys) {
         if (orderedKeys == null) return;
         // 요청 받은 순서대로 교체(유효성은 서비스에서 체크 추천)
-        this.galleryImageKeys.clear();
-        this.galleryImageKeys.addAll(orderedKeys);
+        Map<String, GalleryItem> byKey = new LinkedHashMap<>();
+        for (GalleryItem item : galleryItems) {
+            byKey.putIfAbsent(item.getKey(), item);
+        }
+
+        List<GalleryItem> reordered = new ArrayList<>();
+        for (String key : orderedKeys) {
+            GalleryItem item = byKey.remove(key);
+            if (item != null) reordered.add(item);
+        }
+        reordered.addAll(byKey.values());
+
+        this.galleryItems.clear();
+        this.galleryItems.addAll(reordered);
+    }
+
+    public void updateGalleryItemPrivacy(String key, boolean isPrivate) {
+        if (key == null) return;
+        for (GalleryItem item : galleryItems) {
+            if (item.getKey().equals(key)) {
+                item.setPrivate(isPrivate);
+                return;
+            }
+        }
     }
 
     // ======================================================================
@@ -294,4 +321,27 @@ public class Person {
     public void changeProfileImageUrl(String key) { this.profileImageUrl = key; }
 
     public void changeFilmographyFileKey(String key) { this.filmographyFileKey = key; }
+
+    public void changeFilmographyPrivate(boolean value) { this.filmographyPrivate = value; }
+    public void changeGalleryPrivate(boolean value) { this.galleryPrivate = value; }
+
+    @Embeddable
+    public static class GalleryItem {
+        @Column(name = "image_key", length = 512)
+        private String key;
+
+        @Column(name = "is_private", nullable = false)
+        private boolean isPrivate;
+
+        protected GalleryItem() {}
+
+        public GalleryItem(String key, boolean isPrivate) {
+            this.key = key;
+            this.isPrivate = isPrivate;
+        }
+
+        public String getKey() { return key; }
+        public boolean isPrivate() { return isPrivate; }
+        public void setPrivate(boolean isPrivate) { this.isPrivate = isPrivate; }
+    }
 }

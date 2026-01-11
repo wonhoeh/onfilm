@@ -29,13 +29,28 @@
             margin:0;
             font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;
             color:var(--text);
+
+            /* ✅ 그라데이션은 ::before로 이동, body는 단색만 */
+            background: var(--bg);
+
+            /* ✅ fixed 배경 레이어를 깔기 위한 기준 */
+            position: relative;
+
+            min-height:100vh;
+            display:flex;
+            flex-direction:column;
+        }
+        /* ✅ 스크롤 길어져도 항상 이어지는 배경 레이어 */
+        body::before{
+            content:"";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+
             background:
                     radial-gradient(900px 400px at 80% 0%, rgba(124,92,255,.2), transparent 60%),
                     radial-gradient(700px 350px at 10% 10%, rgba(36,211,154,.15), transparent 60%),
                     var(--bg);
-            min-height:100vh;
-            display:flex;
-            flex-direction:column;
         }
         .container{
             width:min(1100px,92vw);
@@ -299,10 +314,26 @@
             overflow:hidden;
             cursor:pointer;
             transition:.15s;
+            position:relative;
         }
         .film-card:hover{
             transform:scale(1.015);
             border-color:var(--accent);
+        }
+        .film-card-lock{
+            position:absolute;
+            right:10px;
+            top:10px;
+            width:26px;
+            height:26px;
+            border-radius:999px;
+            background:rgba(0,0,0,.65);
+            color:#e7e8ee;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:14px;
+            pointer-events:none;
         }
 
         .film-poster{
@@ -507,6 +538,28 @@
             transition: filter .18s ease, box-shadow .18s ease;
             outline: none;
         }
+        .gallery-item-wrap{
+            position:relative;
+            width:100%;
+            aspect-ratio:4/5;
+            border-radius:var(--radius-lg);
+            overflow:hidden;
+        }
+        .gallery-item-lock{
+            position:absolute;
+            right:8px;
+            top:8px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            width:26px;
+            height:26px;
+            border-radius:999px;
+            background:rgba(0,0,0,.65);
+            color:#e7e8ee;
+            font-size:14px;
+            pointer-events:none;
+        }
 
         .gallery-item:hover{
             filter: brightness(0.6);
@@ -604,7 +657,7 @@
         }
 
         .sns-row.is-empty::before {
-            content:"SNS를 추가하면 캐스팅 담당자가 더 쉽게 확인할 수 있어요.";
+            content:"SNS를 추가해주세요.";
             color:var(--muted);
             font-size:13px;
         }
@@ -674,7 +727,7 @@
             min-height:28px;
         }
         .profile-tag-list.is-empty::before{
-            content:"태그를 추가해 강점을 보여주세요. (예: #주연 #드라마)";
+            content:"태그를 추가해주세요. #주연 #드라마";
             color:var(--muted);
             font-size:13px;
         }
@@ -1023,7 +1076,7 @@
 
         <!-- FILMOGRAPHY -->
         <section class="filmography-section" id="filmographySection">
-            <h2>필모그래피</h2>
+            <h2>FILMOGRAPHY</h2>
 
             <div class="film-slider-container" id="filmSliderContainer">
 
@@ -1073,7 +1126,7 @@
 
         <!-- GALLERY -->
         <section class="gallery-section" id="gallerySection">
-            <h2>사진 갤러리</h2>
+            <h2>PHOTO</h2>
             <div class="gallery-grid" id="galleryGrid">
 
                 <!-- ✅ owner-only -->
@@ -1148,11 +1201,11 @@
         <button class="login-submit-btn" id="loginSubmitBtn" type="button">로그인</button>
 
         <div class="login-links">
-            <a href="signup.html">회원가입</a>
+            <a href="/signup.html">회원가입</a>
             <span>│</span>
-            <a href="find-id.html">아이디 찾기</a>
+            <a href="/find-id.html">아이디 찾기</a>
             <span>│</span>
-            <a href="find-password.html">비밀번호 찾기</a>
+            <a href="/find-password.html">비밀번호 찾기</a>
         </div>
 
         <div class="login-divider">
@@ -1181,6 +1234,7 @@
     ========================================================= */
 
     let popup = null;
+    let currentPublicId = null;
 
     /* ---------------------------
        0) Utils
@@ -1391,6 +1445,7 @@
         }
 
         updateEmptyUI();
+        window.__filmographyPrivate = !!p?.filmographyPrivate;
     }
 
     /* ---------------------------
@@ -1516,6 +1571,13 @@
       </div>
     `;
 
+        if (window.__filmographyPrivate || item?.isPrivate) {
+            const lock = document.createElement("div");
+            lock.className = "film-card-lock";
+            lock.textContent = "🔒";
+            article.appendChild(lock);
+        }
+
         const img = article.querySelector("img.film-poster");
         if (img) img.onerror = () => { img.onerror = null; img.src = "/videos/thumbnail.png"; };
 
@@ -1569,7 +1631,7 @@
         <img class="popup-thumb" />
         <video muted loop playsinline></video>
 
-        <div class="popup-mute-btn">
+        <button type="button" class="popup-mute-btn" aria-label="음소거 토글">
           <svg class="popup-sound-on" xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
             width="26" height="26" style="display:none;">
@@ -1589,7 +1651,7 @@
               c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396
               C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z"/>
           </svg>
-        </div>
+        </button>
       </div>
 
       <div class="popup-info">
@@ -1618,21 +1680,40 @@
         }
 
         const muteBtn = popup.querySelector(".popup-mute-btn");
-        muteBtn?.addEventListener("click", (e) => {
-            e.stopPropagation();
-            const v = popup.querySelector("video");
-            const soundOn = popup.querySelector(".popup-sound-on");
-            const soundOff = popup.querySelector(".popup-sound-off");
 
-            const nextMuted = !v.muted;
-            v.muted = nextMuted;
-            if (!nextMuted) {
+        // (선택) SVG를 눌러도 타겟이 버튼으로 잡히게 해서 안정화
+        muteBtn?.querySelectorAll("svg, path").forEach(el => el.style.pointerEvents = "none");
+
+        // 포인터 다운 단계에서부터 상위 클릭 전파 차단 (드래그/터치 포함)
+        const stopOnly = (e) => { e.preventDefault(); e.stopPropagation(); };
+        ["pointerdown","mousedown","touchstart"].forEach(evt => {
+            muteBtn?.addEventListener(evt, stopOnly, { capture:true, passive:false });
+        });
+
+        // 실제 토글은 click에서만
+        muteBtn?.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const v = popup.querySelector("video");
+            const soundOn  = popup.querySelector(".popup-sound-on");
+            const soundOff = popup.querySelector(".popup-sound-off");
+            if (!v) return;
+
+            v.muted = !v.muted;
+
+            // 소리 켰을 때 재생 보장(유저 제스처 기반이라 대부분 허용)
+            if (!v.muted) {
                 if (v.volume === 0) v.volume = 1.0;
                 v.play().catch(() => {});
             }
-            soundOn.style.display = nextMuted ? "none" : "block";
-            soundOff.style.display = nextMuted ? "block" : "none";
-        });
+
+            if (soundOn && soundOff) {
+                soundOn.style.display  = v.muted ? "none" : "block";
+                soundOff.style.display = v.muted ? "block" : "none";
+            }
+        }, { capture:true });
+
 
         popup.querySelector(".popup-play-btn-circle").onclick = (e) => {
             e.stopPropagation();
@@ -1649,7 +1730,12 @@
             }
         };
 
-        popup.addEventListener("click", () => { openVideoPlayerFromCard(activeCard); });
+        popup.addEventListener("click", (e) => {
+            if (e.target.closest?.(".popup-mute-btn")) return;
+            if (e.target.closest?.(".popup-action-row")) return; // 재생/좋아요 버튼 영역도 제외
+            openVideoPlayerFromCard(activeCard);
+        });
+
     }
     createPopup();
 
@@ -1778,17 +1864,28 @@
     let currentIndex    = 0;
 
     function getGalleryItems() {
-        return galleryGrid ? Array.from(galleryGrid.querySelectorAll(".gallery-item")) : [];
+        return galleryGrid ? Array.from(galleryGrid.querySelectorAll(".gallery-item-wrap")) : [];
     }
 
-    function createGalleryItem(src) {
+    function createGalleryItem(src, isPrivate) {
+        const wrap = document.createElement("div");
+        wrap.className = "gallery-item-wrap";
+
         const img = document.createElement("img");
         img.className = "gallery-item";
         img.src = src || "/videos/gallery-placeholder.png";
         img.alt = "gallery";
         img.loading = "lazy";
         img.onerror = () => { img.onerror = null; img.src = "/videos/gallery-placeholder.png"; };
-        return img;
+
+        wrap.appendChild(img);
+        if (isPrivate) {
+            const lock = document.createElement("div");
+            lock.className = "gallery-item-lock";
+            lock.textContent = "🔒";
+            wrap.appendChild(lock);
+        }
+        return wrap;
     }
 
     async function renderGallery(publicId) {
@@ -1801,12 +1898,18 @@
         const photos = Array.isArray(list) ? list : [];
 
         // 서버가 [{url}] 또는 ["url"] 둘 다 대응
-        const urls = photos
-            .map(x => (typeof x === "string" ? x : (x?.url || x?.imageUrl || x?.photoUrl || "")))
-            .map(s => String(s || "").trim())
-            .filter(Boolean);
+        const items = photos
+            .map(x => {
+                if (typeof x === "string") return { url: x, isPrivate: false };
+                return {
+                    url: x?.url || x?.imageUrl || x?.photoUrl || "",
+                    isPrivate: !!x?.isPrivate
+                };
+            })
+            .map(x => ({ url: String(x.url || "").trim(), isPrivate: x.isPrivate }))
+            .filter(x => !!x.url);
 
-        urls.forEach(u => galleryGrid.appendChild(createGalleryItem(u)));
+        items.forEach(i => galleryGrid.appendChild(createGalleryItem(i.url, i.isPrivate)));
 
         initGalleryIfAny();
         updateEmptyUI();
@@ -1909,7 +2012,8 @@
         if (!lightboxOverlay) createLightbox();
         currentIndex = index;
 
-        lightboxImg.src = items[currentIndex].src;
+        const img = items[currentIndex].querySelector(".gallery-item");
+        if (img) lightboxImg.src = img.src;
         lightboxOverlay.classList.add("show");
         updateLightboxArrows();
     }
@@ -1923,7 +2027,8 @@
         const items = getGalleryItems();
         if (currentIndex <= 0) return;
         currentIndex--;
-        lightboxImg.src = items[currentIndex].src;
+        const img = items[currentIndex].querySelector(".gallery-item");
+        if (img) lightboxImg.src = img.src;
         updateLightboxArrows();
     }
 
@@ -1931,15 +2036,18 @@
         const items = getGalleryItems();
         if (currentIndex >= items.length - 1) return;
         currentIndex++;
-        lightboxImg.src = items[currentIndex].src;
+        const img = items[currentIndex].querySelector(".gallery-item");
+        if (img) lightboxImg.src = img.src;
         updateLightboxArrows();
     }
 
     galleryGrid?.addEventListener("click", (e) => {
-        const img = e.target.closest(".gallery-item");
+        const wrap = e.target.closest(".gallery-item-wrap");
+        if (!wrap) return;
+        const img = wrap.querySelector(".gallery-item");
         if (!img) return;
         const items = getGalleryItems();
-        const idx = items.indexOf(img);
+        const idx = items.indexOf(wrap);
         if (idx >= 0) openLightbox(idx);
     });
 
@@ -2208,6 +2316,10 @@
                     await window.OnfilmAuth.logout();
                     renderLoggedOut(container);
                     applyOwnerUI(false);
+                    if (currentPublicId) {
+                        await renderFilmography(currentPublicId);
+                        await renderGallery(currentPublicId);
+                    }
                     updateEmptyUI();
                     return;
                 }
@@ -2246,7 +2358,11 @@
         try {
             const onfilm = await fetchPublicIdByUsername(username);
             const publicId = onfilm?.publicId;
-            if (!publicId) throw new Error("PUBLIC_ID_MISSING");
+            if (!publicId) {
+                window.location.href = `/profile-not-found.html?u=${encodeURIComponent(username)}`;
+                return;
+            }
+            currentPublicId = publicId;
 
             // 1) person 먼저
             const person = await fetchPersonByPublicId(publicId);
@@ -2272,9 +2388,7 @@
             }
         } catch (e) {
             console.error(e);
-            $("#profileName") && ($("#profileName").textContent = "존재하지 않는 프로필");
-            applyOwnerUI(false);
-            updateEmptyUI();
+            window.location.href = `/profile-not-found.html?u=${encodeURIComponent(username)}`;
         }
     }
 

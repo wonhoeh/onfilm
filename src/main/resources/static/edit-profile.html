@@ -324,13 +324,15 @@
                 <img
                         id="profilePreview"
                         class="photo-preview"
-                        src="videos/profile-placeholder.png"
+                        src="/videos/profile-placeholder.png"
                         alt="프로필 사진 미리보기" />
 
                 <label class="pill-btn">
                     사진 선택
                     <input type="file" id="profileFileInput" accept="image/*">
                 </label>
+
+                <button type="button" class="pill-btn" id="deleteProfileBtn">사진 삭제</button>
 
                 <p class="photo-hint">
                     4:5 비율의 선명한 정면 사진을 권장해요.<br/>
@@ -498,6 +500,7 @@
     const profileFileInput = document.getElementById("profileFileInput");
     const profilePreview   = document.getElementById("profilePreview");
     const photoSection     = document.querySelector(".photo-section");
+    const deleteProfileBtn = document.getElementById("deleteProfileBtn");
 
     const snsList   = document.getElementById("snsList");
     const addSnsBtn = document.getElementById("addSnsBtn");
@@ -511,7 +514,7 @@
     const dayInput   = document.getElementById("birthDay");
     const birthDateHidden = document.getElementById("birthDate");
 
-    const PLACEHOLDER_SRC = "videos/profile-placeholder.png";
+    const PLACEHOLDER_SRC = "/videos/profile-placeholder.png";
 
     function setSaving(isSaving) {
         if (!saveBtn) return;
@@ -564,6 +567,34 @@
     profileFileInput?.addEventListener("change", (e) => {
         const file = e.target.files[0];
         loadProfileImage(file);
+    });
+
+    deleteProfileBtn?.addEventListener("click", async () => {
+        if (!confirm("프로필 사진을 삭제할까요?")) return;
+
+        const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
+        if (!authReady?.ok) {
+            const next = encodeURIComponent(location.pathname + location.search);
+            location.href = `/login.html?next=${next}`;
+            return;
+        }
+
+        const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
+                ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
+                : fetch;
+
+        const res = await fetcher("/api/files/person/me/profile", { method: "DELETE" });
+        if (!res.ok && res.status !== 404) {
+            const msg = await res.text().catch(() => "");
+            alert(`삭제 실패: ${res.status} ${msg}`);
+            return;
+        }
+
+        profilePreview.src = PLACEHOLDER_SRC;
+        profilePreview.onerror = null;
+        profileFileInput.value = "";
+        window.__EXISTING_PROFILE_IMAGE_URL__ = null;
+        window.__EXISTING_PROFILE_IMAGE_KEY__ = null;
     });
 
     if (photoSection) {

@@ -87,7 +87,8 @@ public class MovieReadService {
                             trailerUrlByMovieId.getOrDefault(mid, ""),
                             mp.getRole(),
                             mp.getCastType(),
-                            mp.getCharacterName()
+                            mp.getCharacterName(),
+                            mp.isPrivate()
                     );
                 })
                 .toList();

@@ -159,6 +159,10 @@ public class Movie {
     public void changeThumbnailUrl(String key) { this.thumbnailUrl = key; }
     public void changeMovieUrl(String key) { this.movieUrl = key; }
 
+    public void clearThumbnailUrl() { this.thumbnailUrl = null; }
+    public void clearMovieUrl() { this.movieUrl = null; }
+    public void clearTrailers() { this.trailers.clear(); }
+
     public void updateBasic(
             String title,
             int runtime,

@@ -5,6 +5,7 @@ import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.movie.dto.UploadResultResponse;
 import com.onfilm.domain.movie.service.PersonReadService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,6 +27,12 @@ public class MovieFileController {
         return new UploadResultResponse(key, storage.toPublicUrl(key));
     }
 
+    @DeleteMapping("/{movieId}/thumbnail")
+    public ResponseEntity<Void> deleteThumbnail(@PathVariable Long movieId) {
+        personReadService.deleteMovieThumbnail(movieId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{movieId}/trailer")
     public UploadResultResponse uploadTrailer(@PathVariable Long movieId,
                                               @RequestParam("file") MultipartFile file) {
@@ -35,6 +42,12 @@ public class MovieFileController {
         return new UploadResultResponse(key, storage.toPublicUrl(key));
     }
 
+    @DeleteMapping("/{movieId}/trailer")
+    public ResponseEntity<Void> deleteTrailer(@PathVariable Long movieId) {
+        personReadService.deleteMovieTrailers(movieId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{movieId}/file")
     public UploadResultResponse uploadMovieFile(@PathVariable Long movieId,
                                                 @RequestParam("file") MultipartFile file) {
@@ -42,6 +55,18 @@ public class MovieFileController {
         storage.save(key, file);
         personReadService.updateMovieFile(movieId, key);
         return new UploadResultResponse(key, storage.toPublicUrl(key));
+    }
+
+    @DeleteMapping("/{movieId}/file")
+    public ResponseEntity<Void> deleteMovieFile(@PathVariable Long movieId) {
+        personReadService.deleteMovieFile(movieId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{movieId}")
+    public ResponseEntity<Void> deleteMovieFiles(@PathVariable Long movieId) {
+        personReadService.deleteMovieFiles(movieId);
+        return ResponseEntity.noContent().build();
     }
 
     private String extOf(MultipartFile f) {

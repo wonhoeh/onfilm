@@ -902,20 +902,43 @@
           }
 
           // 3) "내 프로필이 아직 세팅 안 됨"이면 edit로
-          //    기준: name/oneLineIntro/birthDate/birthPlace/profileImageUrl/sns/tags 등 아무것도 없으면 미완성
-          //    (너 백엔드 응답 PersonResponse 기준)
+          //    기준: 이름 외 다른 필드가 비어있으면 미완성
           try {
-            const res = await fetch(`/persons/${encodeURIComponent(uname)}`, { headers: { "Accept": "application/json" }});
-            if (!res.ok) {
-              // GET 자체가 실패하면(404 등) edit로 보내는 게 UX상 맞음
+            const publicIdRes = await fetch(`/api/person/${encodeURIComponent(uname)}`, {
+              headers: { "Accept": "application/json" }
+            });
+            if (!publicIdRes.ok) {
               window.location.href = "/edit-profile.html";
               return;
             }
 
-            const p = await res.json();
+            const ct = publicIdRes.headers.get("content-type") || "";
+            let publicId = null;
+            if (ct.includes("application/json")) {
+              const data = await publicIdRes.json().catch(() => null);
+              publicId = (typeof data === "string")
+                      ? data.trim()
+                      : (data?.publicId || data?.id || data?.personPublicId || data?.personId || "");
+            } else {
+              publicId = (await publicIdRes.text().catch(() => "")).trim();
+            }
 
-            const hasAny =
-                    !!(p?.name && String(p.name).trim()) ||
+            if (!publicId) {
+              window.location.href = "/edit-profile.html";
+              return;
+            }
+
+            const profileRes = await fetch(`/api/people/${encodeURIComponent(publicId)}`, {
+              headers: { "Accept": "application/json" }
+            });
+            if (!profileRes.ok) {
+              window.location.href = "/edit-profile.html";
+              return;
+            }
+
+            const p = await profileRes.json().catch(() => null);
+
+            const hasOther =
                     !!(p?.oneLineIntro && String(p.oneLineIntro).trim()) ||
                     !!(p?.birthDate && String(p.birthDate).trim()) ||
                     !!(p?.birthPlace && String(p.birthPlace).trim()) ||
@@ -923,7 +946,7 @@
                     (Array.isArray(p?.snsList) && p.snsList.length > 0) ||
                     (Array.isArray(p?.rawTags) && p.rawTags.length > 0);
 
-            if (!hasAny) {
+            if (!hasOther) {
               window.location.href = "/edit-profile.html";
               return;
             }

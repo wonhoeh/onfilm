@@ -6,10 +6,15 @@ import com.onfilm.domain.movie.dto.CreatePersonRequest;
 import com.onfilm.domain.movie.dto.MovieCardResponse;
 import com.onfilm.domain.movie.dto.ProfileResponse;
 import com.onfilm.domain.movie.dto.UpdatePersonRequest;
+import com.onfilm.domain.movie.dto.FilmographyItemPrivacyRequest;
 import com.onfilm.domain.movie.dto.FilmographyUpsertRequest;
 import com.onfilm.domain.movie.dto.FilmographyUpsertResponse;
+import com.onfilm.domain.movie.dto.GalleryItemPrivacyRequest;
+import com.onfilm.domain.movie.dto.GalleryItemResponse;
 import com.onfilm.domain.movie.dto.GalleryReorderRequest;
+import com.onfilm.domain.movie.dto.PrivacyUpdateRequest;
 import com.onfilm.domain.movie.dto.UploadResultResponse;
+import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.movie.service.MovieReadService;
 import com.onfilm.domain.movie.service.MovieService;
 import com.onfilm.domain.movie.service.PersonReadService;
@@ -63,17 +68,39 @@ public class PersonController {
     // =============================
     @GetMapping("/{publicId}/movies")
     public ResponseEntity<List<MovieCardResponse>> getFilmographyByPublicId(@PathVariable String publicId) {
+        Long personId = personReadService.findPersonIdByPublicId(publicId);
+        boolean isOwner = isOwner(personId);
+        if (personReadService.isFilmographyPrivate(publicId) && !isOwner) {
+            return ResponseEntity.ok(List.of());
+        }
+
         List<MovieCardResponse> personFilmography = movieReadService.getFilmographyByPublicId(publicId);
+        if (!isOwner) {
+            personFilmography = personFilmography.stream()
+                    .filter(item -> !item.isPrivate())
+                    .toList();
+        }
         return ResponseEntity.ok(personFilmography);
     }
 
     @GetMapping("/{publicId}/gallery")
-    public ResponseEntity<List<String>> getGalleryByPublicId(@PathVariable String publicId) {
-        List<String> keys = personReadService.findGalleryKeysByPublicId(publicId);
-        List<String> urls = keys.stream()
-                .map(storageService::toPublicUrl)
+    public ResponseEntity<List<GalleryItemResponse>> getGalleryByPublicId(@PathVariable String publicId) {
+        Long personId = personReadService.findPersonIdByPublicId(publicId);
+        boolean isOwner = isOwner(personId);
+        if (personReadService.isGalleryPrivate(publicId) && !isOwner) {
+            return ResponseEntity.ok(List.of());
+        }
+
+        List<Person.GalleryItem> items = personReadService.findGalleryItemsByPublicId(publicId);
+        List<GalleryItemResponse> responses = items.stream()
+                .filter(item -> isOwner || !item.isPrivate())
+                .map(item -> new GalleryItemResponse(
+                        item.getKey(),
+                        storageService.toPublicUrl(item.getKey()),
+                        item.isPrivate()
+                ))
                 .toList();
-        return ResponseEntity.ok(urls);
+        return ResponseEntity.ok(responses);
     }
 
     @PutMapping("/{publicId}/gallery")
@@ -122,6 +149,79 @@ public class PersonController {
     ) {
         FilmographyUpsertResponse response = movieService.upsertFilmography(publicId, request);
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{publicId}/filmography/item/privacy")
+    public ResponseEntity<Void> updateFilmographyItemPrivacy(
+            @PathVariable String publicId,
+            @RequestBody FilmographyItemPrivacyRequest request
+    ) {
+        Long currentPersonId = personReadService.findCurrentPersonId();
+        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
+        if (!currentPersonId.equals(targetPersonId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        movieService.updateFilmographyItemPrivacy(publicId, request.movieId(), request.isPrivate());
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{publicId}/filmography/privacy")
+    public ResponseEntity<Void> updateFilmographyPrivacy(
+            @PathVariable String publicId,
+            @RequestBody PrivacyUpdateRequest request
+    ) {
+        Long currentPersonId = personReadService.findCurrentPersonId();
+        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
+        if (!currentPersonId.equals(targetPersonId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        personReadService.updateFilmographyPrivate(currentPersonId, request.isPrivate());
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{publicId}/gallery/privacy")
+    public ResponseEntity<Void> updateGalleryPrivacy(
+            @PathVariable String publicId,
+            @RequestBody PrivacyUpdateRequest request
+    ) {
+        Long currentPersonId = personReadService.findCurrentPersonId();
+        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
+        if (!currentPersonId.equals(targetPersonId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        personReadService.updateGalleryPrivate(currentPersonId, request.isPrivate());
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{publicId}/gallery/item/privacy")
+    public ResponseEntity<Void> updateGalleryItemPrivacy(
+            @PathVariable String publicId,
+            @RequestBody GalleryItemPrivacyRequest request
+    ) {
+        Long currentPersonId = personReadService.findCurrentPersonId();
+        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
+        if (!currentPersonId.equals(targetPersonId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        String storageKey = toStorageKey(request.key());
+        if (storageKey == null || storageKey.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        personReadService.updateGalleryItemPrivacy(currentPersonId, storageKey, request.isPrivate());
+        return ResponseEntity.ok().build();
+    }
+
+    private boolean isOwner(Long personId) {
+        try {
+            Long currentPersonId = personReadService.findCurrentPersonId();
+            return currentPersonId != null && currentPersonId.equals(personId);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     // =============================

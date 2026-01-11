@@ -27,6 +27,9 @@
               radial-gradient(900px 400px at 80% 0%, rgba(124,92,255,.2), transparent 60%),
               radial-gradient(700px 350px at 10% 10%, rgba(36,211,154,.15), transparent 60%),
               var(--bg);
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      background-size: cover;
       color:var(--text);
     }
 
@@ -162,6 +165,23 @@
       color:var(--muted);
       margin-bottom:6px;
     }
+    .privacy-toggle{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      color:var(--muted);
+      font-size:12px;
+      cursor:pointer;
+    }
+    .privacy-toggle.is-on{
+      color:#24d39a;
+      border-color:rgba(36,211,154,.5);
+      background:rgba(36,211,154,.12);
+    }
 
     .gallery-grid{
       display:grid;
@@ -234,6 +254,23 @@
     .photo-delete-btn:hover{
       background:rgba(255,80,80,.9);
       color:#fff;
+    }
+    .photo-privacy-btn{
+      border:0;
+      padding:0 8px;
+      height:22px;
+      border-radius:999px;
+      background:rgba(0,0,0,.6);
+      color:var(--muted);
+      font-size:11px;
+      display:flex;
+      align-items:center;
+      gap:4px;
+      cursor:pointer;
+    }
+    .photo-privacy-btn.is-on{
+      color:#24d39a;
+      background:rgba(36,211,154,.2);
     }
 
     .empty-hint{
@@ -328,7 +365,10 @@
       <section class="gallery-wrapper">
         <div class="gallery-toolbar">
           <span id="photoCountText">사진 0장</span>
-          <span>썸네일/사진을 드래그해서 순서를 재배치할 수 있어요.</span>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <span>썸네일/사진을 드래그해서 순서를 재배치할 수 있어요.</span>
+            <button type="button" id="galleryPrivacyBtn" class="privacy-toggle">비공개</button>
+          </div>
         </div>
 
         <div id="galleryGrid" class="gallery-grid"></div>
@@ -398,6 +438,30 @@
     return Array.isArray(data) ? data : [];
   }
 
+  async function fetchProfileByPublicId(publicId) {
+    const res = await window.OnfilmAuth.apiFetchWithAutoRefresh(
+            `/api/people/${encodeURIComponent(publicId)}`,
+            { method:"GET", headers:{ "Accept":"application/json" } }
+    );
+    if (!res.ok) return null;
+    return await res.json().catch(() => null);
+  }
+
+  async function updateGalleryItemPrivacy(publicId, key, isPrivate) {
+    const res = await window.OnfilmAuth.apiFetchWithAutoRefresh(
+            `/api/people/${encodeURIComponent(publicId)}/gallery/item/privacy`,
+            {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ key, isPrivate })
+            }
+    );
+    if (!res.ok) {
+      const msg = await res.text().catch(() => "");
+      throw new Error(`비공개 설정 실패: ${res.status} ${msg}`);
+    }
+  }
+
   function toStorageKey(value) {
     if (!value) return null;
     let s = String(value).trim();
@@ -438,6 +502,7 @@
   const emptyHint      = document.getElementById("emptyHint");
   const photoCountText = document.getElementById("photoCountText");
   const saveBtn        = document.getElementById("saveBtn");
+  const privacyBtn     = document.getElementById("galleryPrivacyBtn");
 
   // =========================
   // 업로드 처리
@@ -450,7 +515,7 @@
       const id = `local-${++idCounter}`;
       const previewUrl = URL.createObjectURL(file);
 
-      photos.push({ id, file, previewUrl, s3Key: null });
+      photos.push({ id, file, previewUrl, s3Key: null, isPrivate: false });
     });
 
     renderGallery();
@@ -496,6 +561,7 @@
           await deleteGalleryImage(currentPublicId, p.s3Key).catch(() => null);
         }
       }
+      await reorderGallery(currentPublicId).catch(() => null);
     }
 
     photos.forEach(p => p.previewUrl && URL.revokeObjectURL(p.previewUrl));
@@ -536,6 +602,24 @@
       handle.className = "photo-handle";
       handle.innerHTML = `<span class="dots-icon">⋮⋮</span><span>드래그</span>`;
 
+      const privacyBtn = document.createElement("button");
+      privacyBtn.type = "button";
+      privacyBtn.className = "photo-privacy-btn" + (photo.isPrivate ? " is-on" : "");
+      privacyBtn.innerHTML = photo.isPrivate ? "🔒 비공개" : "🔓 공개";
+      privacyBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        if (!currentPublicId || !photo.s3Key) return;
+        const next = !photo.isPrivate;
+        try {
+          await updateGalleryItemPrivacy(currentPublicId, photo.s3Key, next);
+          photo.isPrivate = next;
+          privacyBtn.classList.toggle("is-on", next);
+          privacyBtn.innerHTML = next ? "🔒 비공개" : "🔓 공개";
+        } catch (err) {
+          alert(err?.message || "비공개 설정 실패");
+        }
+      });
+
       const delBtn = document.createElement("button");
       delBtn.type = "button";
       delBtn.className = "photo-delete-btn";
@@ -546,6 +630,7 @@
       });
 
       bottomBar.appendChild(handle);
+      bottomBar.appendChild(privacyBtn);
       bottomBar.appendChild(delBtn);
 
       card.appendChild(img);
@@ -661,11 +746,6 @@
   // 저장 버튼 (현재는 payload 콘솔 출력)
   // =========================
   saveBtn.addEventListener("click", async () => {
-    if (!photos.length) {
-      alert("최소 1장 이상의 사진을 업로드해주세요.");
-      return;
-    }
-
     if (!currentPublicId) {
       alert("publicId를 찾을 수 없습니다. 다시 로그인해 주세요.");
       return;
@@ -673,6 +753,12 @@
 
     await uploadPendingPhotos();
     await reorderGallery(currentPublicId);
+
+    const uname = await getUsernameSafe();
+    if (uname) {
+      location.href = "/onfilm/" + encodeURIComponent(uname);
+      return;
+    }
 
     alert("갤러리 저장이 완료되었습니다.");
   });
@@ -691,13 +777,43 @@
     const uname = await getUsernameSafe();
     currentPublicId = uname ? await fetchPublicIdByUsername(uname) : null;
     if (currentPublicId) {
+      const profile = await fetchProfileByPublicId(currentPublicId);
+      const isPrivate = !!profile?.galleryPrivate;
+      if (privacyBtn) {
+        privacyBtn.classList.toggle("is-on", isPrivate);
+        privacyBtn.textContent = isPrivate ? "비공개" : "공개";
+        privacyBtn.addEventListener("click", async () => {
+          const next = !privacyBtn.classList.contains("is-on");
+          const res = await window.OnfilmAuth.apiFetchWithAutoRefresh(
+                  `/api/people/${encodeURIComponent(currentPublicId)}/gallery/privacy`,
+                  {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ isPrivate: next })
+                  }
+          );
+          if (!res.ok) {
+            const msg = await res.text().catch(() => "");
+            alert(`비공개 설정 실패: ${res.status} ${msg}`);
+            return;
+          }
+          privacyBtn.classList.toggle("is-on", next);
+          privacyBtn.textContent = next ? "비공개" : "공개";
+        });
+      }
+
       const urls = await fetchGalleryByPublicId(currentPublicId);
-      photos = urls.map((url) => ({
-        id: `remote-${++idCounter}`,
-        file: null,
-        previewUrl: url,
-        s3Key: toStorageKey(url),
-      }));
+      photos = urls.map((item) => {
+        const url = (typeof item === "string") ? item : (item?.url || "");
+        const key = (typeof item === "string") ? toStorageKey(item) : (item?.key || toStorageKey(item?.url || ""));
+        return {
+          id: `remote-${++idCounter}`,
+          file: null,
+          previewUrl: url,
+          s3Key: key,
+          isPrivate: !!(item?.isPrivate),
+        };
+      });
     }
 
     renderGallery();

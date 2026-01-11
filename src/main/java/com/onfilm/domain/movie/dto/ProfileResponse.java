@@ -19,7 +19,10 @@ public class ProfileResponse {
     private LocalDate birthDate;
     private String birthPlace;
     private String oneLineIntro;
+    private String profileImageKey;
     private String profileImageUrl;
+    private boolean filmographyPrivate;
+    private boolean galleryPrivate;
     private List<PersonSnsResponse> snsList;
     private List<ProfileTagResponse> rawTags;
 
@@ -30,7 +33,10 @@ public class ProfileResponse {
                 .birthDate(person.getBirthDate())
                 .birthPlace(person.getBirthPlace())
                 .oneLineIntro(person.getOneLineIntro())
+                .profileImageKey(person.getProfileImageUrl())
                 .profileImageUrl(publicUrl)
+                .filmographyPrivate(person.isFilmographyPrivate())
+                .galleryPrivate(person.isGalleryPrivate())
                 .snsList(person.getSnsList().stream().map(PersonSnsResponse::from).toList())
                 .rawTags(person.getProfileTags().stream().map(ProfileTagResponse::from).toList())
                 .build();

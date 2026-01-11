@@ -17,7 +17,8 @@ public record MovieCardResponse(
 
         PersonRole personRole,
         CastType castType,
-        String characterName) {
+        String characterName,
+        boolean isPrivate) {
 
     public static MovieCardResponse from(MoviePerson mp) {
         Movie m = mp.getMovie();
@@ -51,7 +52,8 @@ public record MovieCardResponse(
 
                 mp.getRole(),
                 mp.getCastType(),
-                mp.getCharacterName()
+                mp.getCharacterName(),
+                mp.isPrivate()
         );
     }
 }

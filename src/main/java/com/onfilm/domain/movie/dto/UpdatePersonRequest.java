@@ -16,6 +16,7 @@ public class UpdatePersonRequest {
     private LocalDate birthDate;
     private String birthPlace;
     private String oneLineIntro;
+    private String profileImageKey;
     private String profileImageUrl;
     private List<CreatePersonSnsRequest> snsList;
     private List<String> rawTags;
