@@ -2262,6 +2262,13 @@
           </button>
 
           <div class="profile-divider"></div>
+          <div class="profile-group-title">작업</div>
+
+          <button type="button" class="profile-item" data-action="storyboard">
+            스토리보드 <span>대본/컷 관리</span>
+          </button>
+
+          <div class="profile-divider"></div>
 
           <button type="button" class="profile-item" data-action="account-settings">
             계정 설정 <span>비밀번호/연동</span>
@@ -2310,6 +2317,7 @@
                 if (action === "edit-profile")     { window.location.href = "/edit-profile.html"; return; }
                 if (action === "edit-filmography") { window.location.href = "/edit-filmography.html"; return; }
                 if (action === "edit-gallery")     { window.location.href = "/edit-gallery.html"; return; }
+                if (action === "storyboard")       { window.location.href = "/storyboard.html"; return; }
                 if (action === "account-settings") { window.location.href = "/account-settings.html"; return; }
 
                 if (action === "logout") {

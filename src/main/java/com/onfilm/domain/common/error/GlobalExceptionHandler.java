@@ -3,6 +3,7 @@ package com.onfilm.domain.common.error;
 import com.onfilm.domain.common.error.exception.InvalidProfileTagException;
 import com.onfilm.domain.common.error.exception.MovieNotFoundException;
 import com.onfilm.domain.common.error.exception.PersonNotFoundException;
+import com.onfilm.domain.common.error.exception.StoryboardSceneNotFoundException;
 import com.onfilm.domain.common.error.exception.UserNotFoundException;
 import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
@@ -51,6 +52,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMovieNotFound(MovieNotFoundException e) {
         return ResponseEntity.status(NOT_FOUND)
                 .body(ErrorResponse.of("MOVIE_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(StoryboardSceneNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleStoryboardSceneNotFound(StoryboardSceneNotFoundException e) {
+        return ResponseEntity.status(NOT_FOUND)
+                .body(ErrorResponse.of("STORYBOARD_SCENE_NOT_FOUND", e.getMessage()));
     }
 
     @ExceptionHandler(InvalidProfileTagException.class)

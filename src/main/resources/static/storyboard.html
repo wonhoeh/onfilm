@@ -31,28 +31,76 @@
                     var(--bg);
             min-height:100vh;
         }
+        .page-shell{
+            min-height:100vh;
+            display:flex;
+            flex-direction:column;
+        }
+        header.top-header{
+            width:100%;
+            border-bottom:1px solid var(--line);
+            padding:16px 0;
+        }
+        .header-inner{
+            width:min(1180px, 92vw);
+            margin:0 auto;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:16px;
+        }
+        .back-link{
+            color:var(--muted);
+            text-decoration:none;
+            font-size:13px;
+        }
+        .back-link:hover{ color:var(--text); }
+        .header-title{
+            font-size:15px;
+            font-weight:600;
+            letter-spacing:-.2px;
+        }
+        /* scrollbar */
+        *{
+            scrollbar-width: thin;
+            scrollbar-color: rgba(124,92,255,.55) rgba(255,255,255,.04);
+        }
+        *::-webkit-scrollbar{ width:10px; height:10px; }
+        *::-webkit-scrollbar-track{ background: rgba(255,255,255,.04); border-radius:999px; }
+        *::-webkit-scrollbar-thumb{
+            background: linear-gradient(180deg, rgba(124,92,255,.7), rgba(36,211,154,.6));
+            border-radius:999px;
+            border:2px solid rgba(0,0,0,.2);
+        }
+        *::-webkit-scrollbar-thumb:hover{
+            background: linear-gradient(180deg, rgba(124,92,255,.9), rgba(36,211,154,.8));
+        }
 
         .wrap{
             width:min(1180px, 92vw);
             margin: 28px auto 60px;
         }
 
-        header{
+        .story-header{
             display:flex;
             align-items:flex-end;
             justify-content:space-between;
             gap:16px;
             margin-bottom:18px;
         }
-        .title h1{
-            font-size:22px;
-            letter-spacing:-.2px;
-            margin-bottom:6px;
+        .title input{
+            width:min(520px, 80vw);
+            border-radius:12px;
+            border:1px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.04);
+            color:var(--text);
+            padding:10px 12px;
+            font-size:16px;
+            outline:none;
         }
-        .title p{
-            color:var(--muted);
-            font-size:13px;
-            line-height:1.45;
+        .title input:focus{
+            border-color: rgba(124,92,255,.55);
+            box-shadow:0 0 0 3px rgba(124,92,255,.15);
         }
 
         .top-actions{
@@ -176,12 +224,14 @@
         border-radius: var(--radius-xl);
         padding:16px;
         box-shadow: var(--shadow);
+        max-height: calc(100vh - 240px);
+        overflow:auto;
     }
     .board-layout{
         display:grid;
         grid-template-columns: minmax(460px, 1fr) 460px;
         gap:16px;
-        align-items:start;
+        align-items:stretch;
     }
 
         /* 한 줄 = 스토리보드 카드 */
@@ -278,10 +328,6 @@
             gap:2px;
             min-width:0;
         }
-        .meta .labels .k{
-            font-size:12px;
-            color:var(--muted);
-        }
         .meta .labels .v{
             font-size:13px;
             white-space:nowrap;
@@ -377,6 +423,7 @@
             border-radius: 12px;
             border:1px solid rgba(255,255,255,.12);
             background: rgba(0,0,0,.40);
+            color:#E7E8EE;
             display:grid;
             place-items:center;
             cursor:pointer;
@@ -392,6 +439,7 @@
             border-color: rgba(255,120,120,.25);
         }
         .icon-btn svg{ width:18px; height:18px; opacity:.92; }
+        .icon-btn svg path{ stroke: currentColor; }
 
         .card-foot{
             margin-top:10px;
@@ -435,6 +483,7 @@
         min-height: 320px;
         position:sticky;
         top:16px;
+        max-height: calc(100vh - 240px);
     }
         .script-head{
             padding:12px 12px 10px;
@@ -454,13 +503,14 @@
         .script-head .left .k{ font-size:12px; color:var(--muted); }
         .script-head .left .v{ font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-        .script-body{
-            padding:12px;
-            flex:1;
-            display:flex;
-            flex-direction:column;
-            gap:10px;
-        }
+    .script-body{
+        padding:12px;
+        flex:1;
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+        min-height:0;
+    }
 
         .toolbar{
             display:flex;
@@ -471,6 +521,10 @@
             border-radius:12px;
             border:1px solid rgba(255,255,255,.08);
             background: rgba(255,255,255,.03);
+            position:sticky;
+            top:0;
+            z-index:2;
+            backdrop-filter: blur(8px);
         }
         .toolbar select,
         .toolbar button{
@@ -485,19 +539,20 @@
         .toolbar button:hover{
             border-color: rgba(255,255,255,.22);
         }
-        .editor{
-            width:100%;
-            min-height: 1000px;
-            border-radius: 14px;
-            border:1px solid rgba(255,255,255,.10);
-            background: rgba(0,0,0,.20);
-            color: var(--text);
-            padding:12px 12px;
-            line-height:1.55;
-            font-size:13px;
-            outline:none;
-            overflow:auto;
-        }
+    .editor{
+        width:100%;
+        min-height: 0;
+        border-radius: 14px;
+        border:1px solid rgba(255,255,255,.10);
+        background: rgba(0,0,0,.20);
+        color: var(--text);
+        padding:12px 12px;
+        line-height:1.55;
+        font-size:13px;
+        outline:none;
+        overflow:auto;
+        flex:1;
+    }
         .editor:empty:before{
             content: attr(data-placeholder);
             color: var(--muted);
@@ -526,6 +581,43 @@
             font-size:12px;
             user-select:none;
         }
+        .ghost-btn,
+        .primary-btn{
+            min-width:90px;
+            padding:7px 13px;
+            border-radius:999px;
+            border:0;
+            font-size:13px;
+            cursor:pointer;
+        }
+        .ghost-btn{
+            background:transparent;
+            color:var(--muted);
+            border:1px solid var(--line);
+        }
+        .ghost-btn:hover{
+            border-color:var(--accent);
+            color:var(--text);
+        }
+        .primary-btn{
+            background:var(--accent);
+            color:white;
+        }
+        .primary-btn:hover{
+            background:#8a6dff;
+        }
+        .primary-btn:disabled{
+            opacity:.55;
+            cursor:not-allowed;
+        }
+        .floating-actions{
+            position:fixed;
+            right:24px;
+            bottom:24px;
+            display:flex;
+            gap:8px;
+            z-index:30;
+        }
 
     /* responsive */
     @media (max-width: 980px){
@@ -534,85 +626,126 @@
         .card{ order:1; }
         .script{ position:static; }
     }
+
+    @media print{
+        body{ background:#fff; color:#000; }
+        .top-actions,
+        .scene-bar,
+        .scene-title-display,
+        .board,
+        .script-help,
+        .toolbar,
+        .floating-actions{
+            display:none !important;
+        }
+        .wrap{ width:100%; margin:0; }
+        .board-layout{ grid-template-columns: 1fr; }
+        .script{
+            position:static;
+            max-height:none;
+            box-shadow:none;
+            border:0;
+        }
+        .editor{
+            border:0;
+            background:transparent;
+            color:#000;
+            min-height:auto;
+            overflow:visible;
+        }
+    }
     </style>
 </head>
 
 <body>
-<div class="wrap">
-    <header>
-        <div class="title">
-            <h1>스토리보드 & 대본 관리</h1>
-            <p>
-                스토리보드 카드를 추가하고 이미지를 업로드한 뒤, 아래의 대본 영역에서 전체 대본을 이어서 작성하세요.
-                카드 추가/삭제와 이미지 삭제가 가능합니다.
-            </p>
+<div class="page-shell">
+    <header class="top-header">
+        <div class="header-inner">
+            <a href="#" class="back-link" id="backToProfileLink">← 프로필로 돌아가기</a>
+            <div class="header-title">스토리보드 편집</div>
+            <div style="width:70px;"></div>
         </div>
-
-        <div class="top-actions"></div>
     </header>
 
-    <div class="scene-bar">
-        <div class="scene-tabs" id="sceneTabs"></div>
-        <button class="delete-scene" id="deleteSceneBtn" type="button" aria-label="씬 삭제" title="씬 삭제">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="16" height="16">
-                <path d="M6 7h12M10 7V5h4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                <path d="M9 10v8M15 10v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                <path d="M8 7l1 14h6l1-14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        </button>
-    </div>
+    <main>
+        <div class="wrap">
+            <div class="story-header">
+                <div class="title">
+                    <input id="movieTitleInput" type="text" placeholder="작품 제목을 입력하세요" />
+                </div>
 
-    <div class="scene-title-display">
-        <span id="sceneTitleDisplay" contenteditable="true" spellcheck="false"></span>
-    </div>
-
-    <div class="board-layout">
-        <section class="board" id="board">
-            <!-- pairs injected -->
-        </section>
-
-        <section class="script" id="scriptPanel">
-            <div class="script-head">
-                <div class="left">
-                    <div class="k">대본</div>
-                    <div class="v">전체 대본</div>
+                <div class="top-actions">
+                    <button class="btn primary" id="pdfSaveBtn" type="button">PDF 저장</button>
                 </div>
             </div>
-            <div class="script-body">
-                <div class="toolbar">
-                    <select id="fontSelect" aria-label="폰트 선택">
-                        <option value="Noto Sans KR">Noto Sans KR</option>
-                        <option value="Nanum Gothic">Nanum Gothic</option>
-                        <option value="Nanum Myeongjo">Nanum Myeongjo</option>
-                        <option value="Malgun Gothic">Malgun Gothic</option>
-                        <option value="sans-serif">Sans Serif</option>
-                    </select>
-                    <select id="fontSizeSelect" aria-label="글자 크기">
-                        <option value="2">12px</option>
-                        <option value="3" selected>14px</option>
-                        <option value="4">16px</option>
-                        <option value="5">18px</option>
-                    </select>
-                    <select id="lineHeightSelect" aria-label="줄간격">
-                        <option value="1.4">1.4</option>
-                        <option value="1.6" selected>1.6</option>
-                        <option value="1.8">1.8</option>
-                        <option value="2">2.0</option>
-                    </select>
-                    <button type="button" data-cmd="bold">굵게</button>
-                    <button type="button" data-cmd="italic">기울기</button>
-                    <button type="button" data-cmd="justifyLeft">왼쪽 정렬</button>
-                    <button type="button" data-cmd="justifyCenter">가운데 정렬</button>
-                    <button type="button" data-cmd="justifyRight">오른쪽 정렬</button>
-                </div>
-                <div id="scriptEditor" class="editor" contenteditable="true" aria-label="대본 입력 영역" data-placeholder="전체 대본을 입력하세요. 스크롤하며 읽을 수 있습니다."></div>
-                <div class="script-help">
-                    <span class="chip">자동 저장: 꺼짐</span>
-                    <span class="chip">TIP: “VO / OS / SFX” 같은 표기를 섞어도 좋아요</span>
-                </div>
+
+            <div class="scene-bar">
+                <div class="scene-tabs" id="sceneTabs"></div>
+                <button class="delete-scene" id="deleteSceneBtn" type="button" aria-label="씬 삭제" title="씬 삭제">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="16" height="16">
+                        <path d="M6 7h12M10 7V5h4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M9 10v8M15 10v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M8 7l1 14h6l1-14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
             </div>
-        </section>
-    </div>
+
+            <div class="scene-title-display">
+                <span id="sceneTitleDisplay" contenteditable="true" spellcheck="false"></span>
+            </div>
+
+            <div class="board-layout">
+                <section class="board" id="board">
+                    <!-- pairs injected -->
+                </section>
+
+                <section class="script" id="scriptPanel">
+                    <div class="script-head">
+                        <div class="left">
+                            <div class="v" id="scriptSceneLabel">#1 새 씬</div>
+                        </div>
+                    </div>
+                    <div class="script-body">
+                        <div class="toolbar">
+                            <select id="fontSelect" aria-label="폰트 선택">
+                                <option value="Noto Sans KR">Noto Sans KR</option>
+                                <option value="Nanum Gothic">Nanum Gothic</option>
+                                <option value="Nanum Myeongjo">Nanum Myeongjo</option>
+                                <option value="Malgun Gothic">Malgun Gothic</option>
+                                <option value="sans-serif">Sans Serif</option>
+                            </select>
+                            <select id="fontSizeSelect" aria-label="글자 크기">
+                                <option value="2">12px</option>
+                                <option value="3" selected>14px</option>
+                                <option value="4">16px</option>
+                                <option value="5">18px</option>
+                            </select>
+                            <select id="lineHeightSelect" aria-label="줄간격">
+                                <option value="1.4">1.4</option>
+                                <option value="1.6" selected>1.6</option>
+                                <option value="1.8">1.8</option>
+                                <option value="2">2.0</option>
+                            </select>
+                            <button type="button" data-cmd="bold">굵게</button>
+                            <button type="button" data-cmd="italic">기울기</button>
+                            <button type="button" data-cmd="justifyLeft">왼쪽 정렬</button>
+                            <button type="button" data-cmd="justifyCenter">가운데 정렬</button>
+                            <button type="button" data-cmd="justifyRight">오른쪽 정렬</button>
+                        </div>
+                        <div id="scriptEditor" class="editor" contenteditable="true" aria-label="대본 입력 영역" data-placeholder="전체 대본을 입력하세요. 스크롤하며 읽을 수 있습니다."></div>
+                        <div class="script-help">
+                            <span class="chip">TIP: “VO / OS / SFX” 같은 표기를 섞어도 좋아요</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div class="form-footer floating-actions">
+    <button type="button" class="ghost-btn" id="cancelStoryboardBtn">취소</button>
+    <button type="button" class="primary-btn" id="saveStoryboardBtn">저장</button>
 </div>
 
 <template id="addCardTpl">
@@ -632,14 +765,11 @@
                 <div class="meta">
                     <div class="badge" data-badge>#</div>
                     <div class="labels">
-                        <div class="k">스토리보드 카드</div>
                         <div class="v" data-title>컷</div>
                     </div>
                 </div>
 
                 <div class="order">
-                    <label for="">순서</label>
-                    <input type="number" min="1" step="1" inputmode="numeric" data-order />
                     <button class="icon-btn danger" type="button" data-remove-card title="카드 삭제" aria-label="카드 삭제">
                         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <path d="M6 7h12M10 7V5h4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -690,6 +820,8 @@
     </div>
 </template>
 
+<script src="/js/auth.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
 <script>
     // ─────────────────────────────────────────────
     // Storyboard + Script Manager (single-file)
@@ -704,12 +836,30 @@
     const fontSelect = document.getElementById("fontSelect");
     const fontSizeSelect = document.getElementById("fontSizeSelect");
     const lineHeightSelect = document.getElementById("lineHeightSelect");
+    const movieTitleInput = document.getElementById("movieTitleInput");
+    const pdfSaveBtn = document.getElementById("pdfSaveBtn");
+    const cancelStoryboardBtn = document.getElementById("cancelStoryboardBtn");
+    const saveStoryboardBtn = document.getElementById("saveStoryboardBtn");
+    const backToProfileLink = document.getElementById("backToProfileLink");
+    const scriptSceneLabel = document.getElementById("scriptSceneLabel");
+
+    let notoFontBase64 = null;
 
     const state = {
-        scenes: [], // {id, title, script, items, seq}
+        scenes: [], // {clientId, sceneId, title, script, items, seq}
         sceneSeq: 0,
-        activeSceneId: null
+        activeSceneId: null,
+        movieTitle: "",
+        publicId: null,
+        initialized: false
     };
+
+    function authFetch(url, options = {}) {
+        if (window.OnfilmAuth?.apiFetchWithAutoRefresh) {
+            return window.OnfilmAuth.apiFetchWithAutoRefresh(url, options);
+        }
+        return fetch(url, options);
+    }
 
     function nextSceneId(){
         state.sceneSeq += 1;
@@ -722,7 +872,7 @@
     }
 
     function getActiveScene(){
-        return state.scenes.find(s => s.id === state.activeSceneId) || null;
+        return state.scenes.find(s => s.clientId === state.activeSceneId) || null;
     }
 
     function getNextOrder(){
@@ -750,8 +900,11 @@
         const scene = getActiveScene();
         if (!scene) return;
         const item = {
-            id: nextItemId(scene),
+            clientId: nextItemId(scene),
+            cardId: null,
             order: getNextOrder(),
+            imageKey: null,
+            imageUrl: null,
             image: null
         };
         scene.items.push(item);
@@ -761,7 +914,7 @@
     function removeItem(id){
         const scene = getActiveScene();
         if (!scene) return;
-        scene.items = scene.items.filter(it => it.id !== id);
+        scene.items = scene.items.filter(it => it.clientId !== id);
         renderBoard();
         ensureAtLeastOne();
     }
@@ -769,33 +922,60 @@
     function setOrder(id, value){
         const scene = getActiveScene();
         if (!scene) return;
-        const it = scene.items.find(x => x.id === id);
+        const it = scene.items.find(x => x.clientId === id);
         if (!it) return;
         it.order = value;
         // 표시 갱신만
         syncTitles();
     }
 
-    function setImage(id, file, dataUrl){
-        const scene = getActiveScene();
-        if (!scene) return;
-        const it = scene.items.find(x => x.id === id);
-        if (!it) return;
-        it.image = {
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            dataUrl
-        };
-        renderBoard();
+    async function setImage(id, file){
+        try{
+            const scene = getActiveScene();
+            if (!scene) return;
+            const it = scene.items.find(x => x.clientId === id);
+            if (!it) return;
+            if (it.imageUrl && it.imageUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(it.imageUrl);
+            }
+            let previewUrl = null;
+            try{
+                previewUrl = await readFileAsDataURL(file);
+            }catch{
+                previewUrl = URL.createObjectURL(file);
+            }
+            it.imageUrl = previewUrl;
+            it.image = {
+                name: file.name,
+                size: file.size,
+                type: file.type
+            };
+            renderBoard();
+
+            const upload = await uploadStoryboardImage(file);
+            if (it.imageUrl && it.imageUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(it.imageUrl);
+            }
+            it.imageKey = upload?.key || null;
+            it.imageUrl = upload?.url || previewUrl;
+            renderBoard();
+        }catch(e){
+            console.error(e);
+            alert(`이미지를 처리하는 중 문제가 발생했어요. ${e?.message || ""}`);
+        }
     }
 
     function removeImage(id){
         const scene = getActiveScene();
         if (!scene) return;
-        const it = scene.items.find(x => x.id === id);
+        const it = scene.items.find(x => x.clientId === id);
         if (!it) return;
+        if (it.imageUrl && it.imageUrl.startsWith("blob:")) {
+            URL.revokeObjectURL(it.imageUrl);
+        }
         it.image = null;
+        it.imageKey = null;
+        it.imageUrl = null;
         renderBoard();
     }
 
@@ -822,14 +1002,15 @@
         // DOM 상에서 order 변경 반영
         board.querySelectorAll(".pair").forEach((el, idx) => {
             const id = el.dataset.id;
-            const it = scene.items.find(x => x.id === id);
+            const it = scene.items.find(x => x.clientId === id);
             if (!it) return;
 
             const badge = el.querySelector("[data-badge]");
             const title = el.querySelector("[data-title]");
             // badge는 "카드 번호(고정 인덱스)" 느낌, order는 "씬 순서"
+            it.order = idx + 1;
             badge.textContent = String(idx + 1);
-            title.textContent = `컷 ${idx + 1} (순서 ${it.order})`;
+            title.textContent = "";
         });
     }
 
@@ -841,14 +1022,7 @@
         const pickBtn = rowEl.querySelector("[data-pick-file]");
         const removeImgBtn = rowEl.querySelector("[data-remove-image]");
         const removeCardBtn = rowEl.querySelector("[data-remove-card]");
-        const orderInput = rowEl.querySelector("[data-order]");
-
-        // order
-        orderInput.addEventListener("input", (e) => {
-            const v = Math.max(1, Number(e.target.value || 1));
-            e.target.value = String(v);
-            setOrder(id, v);
-        });
+        // order input removed
 
 
         // file picker
@@ -859,12 +1033,7 @@
             const err = validateImageFile(file);
             if (err) return alert(err);
 
-            try{
-                const dataUrl = await readFileAsDataURL(file);
-                setImage(id, file, dataUrl);
-            }catch{
-                alert("파일을 읽는 중 문제가 발생했어요.");
-            }
+            await setImage(id, file);
         });
 
         // click on dropzone = open picker
@@ -898,18 +1067,19 @@
             const err = validateImageFile(file);
             if (err) return alert(err);
 
-            try{
-                const dataUrl = await readFileAsDataURL(file);
-                setImage(id, file, dataUrl);
-            }catch{
-                alert("파일을 읽는 중 문제가 발생했어요.");
-            }
+            await setImage(id, file);
         });
 
         // remove image
         removeImgBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             removeImage(id);
+        });
+
+        // remove card
+        removeCardBtn?.addEventListener("click", (e) => {
+            e.stopPropagation();
+            removeItem(id);
         });
 
     }
@@ -920,35 +1090,40 @@
         if (!scene) return;
         if (scene.items.length === 0){
             scene.items.push({
-                id: nextItemId(scene),
+                clientId: nextItemId(scene),
+                cardId: null,
                 order: 1,
+                imageKey: null,
+                imageUrl: null,
                 image: null
             });
         }
 
         scene.items.forEach((it, idx) => {
+            if (!it.clientId) it.clientId = nextItemId(scene);
             const node = tpl.content.firstElementChild.cloneNode(true);
-            node.dataset.id = it.id;
+            node.dataset.id = it.clientId;
             node.draggable = true;
 
             // set header labels
             const badge = node.querySelector("[data-badge]");
             const title = node.querySelector("[data-title]");
             badge.textContent = String(idx + 1);
-            title.textContent = `컷 ${idx + 1} (순서 ${it.order})`;
-
-            // set order
-            node.querySelector("[data-order]").value = String(it.order);
+            title.textContent = "";
 
             // set image preview
             const dz = node.querySelector("[data-dropzone]");
             const preview = node.querySelector("[data-preview]");
             const fileinfo = node.querySelector("[data-fileinfo]");
 
-            if (it.image && it.image.dataUrl){
+            if (it.imageUrl){
                 dz.classList.add("has-image");
-                preview.src = it.image.dataUrl;
-                fileinfo.textContent = `${it.image.name} · ${formatBytes(it.image.size)}`;
+                preview.src = it.imageUrl;
+                if (it.image && it.image.name) {
+                    fileinfo.textContent = `${it.image.name} · ${formatBytes(it.image.size)}`;
+                } else {
+                    fileinfo.textContent = "업로드된 이미지";
+                }
             }else{
                 dz.classList.remove("has-image");
                 preview.removeAttribute("src");
@@ -986,7 +1161,7 @@
         const scene = getActiveScene();
         if (!scene) return;
         const pairs = Array.from(board.querySelectorAll(".pair")).filter(el => !el.classList.contains("add-card"));
-        const ordered = pairs.map(el => scene.items.find(it => it.id === el.dataset.id)).filter(Boolean);
+        const ordered = pairs.map(el => scene.items.find(it => it.clientId === el.dataset.id)).filter(Boolean);
         if (ordered.length === scene.items.length) scene.items = ordered;
         syncTitles();
     }
@@ -1033,13 +1208,13 @@
         state.scenes.forEach((scene, idx) => {
             const btn = document.createElement("button");
             btn.type = "button";
-            btn.className = "scene-tab" + (scene.id === state.activeSceneId ? " active" : "");
+            btn.className = "scene-tab" + (scene.clientId === state.activeSceneId ? " active" : "");
             btn.textContent = `#${idx + 1}`;
-            btn.dataset.sceneId = scene.id;
+            btn.dataset.sceneId = scene.clientId;
             btn.draggable = true;
             btn.addEventListener("click", () => {
-                if (scene.id === state.activeSceneId) return;
-                state.activeSceneId = scene.id;
+                if (scene.clientId === state.activeSceneId) return;
+                state.activeSceneId = scene.clientId;
                 renderAll();
             });
             sceneTabs.appendChild(btn);
@@ -1057,6 +1232,9 @@
         const scene = getActiveScene();
         if (!sceneTitleDisplay) return;
         sceneTitleDisplay.textContent = scene ? scene.title : "";
+        if (scriptSceneLabel) {
+            scriptSceneLabel.textContent = scene ? scene.title : "대본";
+        }
     }
 
     function renderAll(){
@@ -1065,19 +1243,21 @@
         renderBoard();
         const scene = getActiveScene();
         if (scene && scriptEditor) scriptEditor.innerHTML = scene.script || "";
+        if (movieTitleInput) movieTitleInput.value = state.movieTitle;
     }
 
     function addScene(){
         const sceneNumber = state.scenes.length + 1;
         const scene = {
-            id: nextSceneId(),
+            clientId: nextSceneId(),
+            sceneId: null,
             title: `#${sceneNumber} 새 씬`,
             script: "",
             items: [],
             seq: 0
         };
         state.scenes.push(scene);
-        state.activeSceneId = scene.id;
+        state.activeSceneId = scene.clientId;
         renderAll();
     }
 
@@ -1088,10 +1268,37 @@
         scene.title = text.trim() || scene.title;
     });
 
+    movieTitleInput?.addEventListener("input", (e) => {
+        state.movieTitle = e.target.value;
+    });
+
     function applyCommand(cmd, value){
         if (!scriptEditor) return;
         scriptEditor.focus();
         document.execCommand(cmd, false, value);
+    }
+
+    function arrayBufferToBase64(buffer){
+        const bytes = new Uint8Array(buffer);
+        const chunkSize = 0x8000;
+        let binary = "";
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+            const chunk = bytes.subarray(i, i + chunkSize);
+            binary += String.fromCharCode.apply(null, chunk);
+        }
+        return btoa(binary);
+    }
+
+    async function ensureKoreanFont(pdf){
+        if (!notoFontBase64) {
+            const resp = await fetch("vendor/NotoSansKR-Regular.ttf");
+            if (!resp.ok) throw new Error(`font fetch failed: ${resp.status}`);
+            const buf = await resp.arrayBuffer();
+            notoFontBase64 = arrayBufferToBase64(buf);
+        }
+        pdf.addFileToVFS("NotoSansKR-Regular.ttf", notoFontBase64);
+        pdf.addFont("NotoSansKR-Regular.ttf", "NotoSansKR", "normal");
+        pdf.setFont("NotoSansKR", "normal");
     }
 
     fontSelect?.addEventListener("change", (e) => {
@@ -1115,16 +1322,196 @@
         });
     });
 
-    deleteSceneBtn?.addEventListener("click", () => {
+    pdfSaveBtn?.addEventListener("click", async () => {
+        const scene = getActiveScene();
+        const movieTitle = (state.movieTitle || "작품").trim();
+        const sceneTitle = (scene?.title || "씬").trim();
+        const title = `${movieTitle}_#${sceneTitle.replace(/^#/, "")}`;
+        if (!scriptEditor || !window.jspdf) return alert("PDF 저장 모듈을 불러오지 못했습니다.");
+
+        try{
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: "p", unit: "pt", format: "a4" });
+            await ensureKoreanFont(pdf);
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const marginX = 32;
+            const titleY = 36;
+            const textTop = 64;
+            const textWidth = pageWidth - marginX * 2;
+            const text = scriptEditor.innerText.trim();
+
+            pdf.setFontSize(14);
+            pdf.text(`${movieTitle} / ${sceneTitle}`, marginX, titleY);
+
+            pdf.setFontSize(12);
+            const lines = pdf.splitTextToSize(text || " ", textWidth);
+            let y = textTop;
+
+            lines.forEach((line) => {
+                if (y > pageHeight - 40) {
+                    pdf.addPage();
+                    pdf.setFontSize(14);
+                    pdf.text(`${movieTitle} / ${sceneTitle}`, marginX, titleY);
+                    pdf.setFontSize(12);
+                    y = textTop;
+                }
+                pdf.text(line, marginX, y);
+                y += 18;
+            });
+
+            pdf.save(`${title}.pdf`);
+        }catch(e){
+            console.error(e);
+            alert(`PDF 저장 중 문제가 발생했습니다. ${e?.message || ""}`);
+        }
+    });
+
+    async function uploadStoryboardImage(file){
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await authFetch("/api/files/person/me/storyboard", { method: "POST", body: fd });
+        if (!res.ok) {
+            const msg = await res.text().catch(() => "");
+            throw new Error(`UPLOAD_FAILED ${res.status} ${msg}`);
+        }
+        return await res.json();
+    }
+
+    function toScenePayload(scene){
+        return {
+            sceneId: scene.sceneId,
+            title: scene.title,
+            scriptHtml: scene.script || "",
+            cards: scene.items.map((it) => ({
+                cardId: it.cardId,
+                imageKey: it.imageKey
+            }))
+        };
+    }
+
+    function applySavedScene(scene, saved){
+        scene.sceneId = saved.sceneId;
+        if (Array.isArray(saved.cards)) {
+            saved.cards.forEach((card, idx) => {
+                const it = scene.items[idx];
+                if (!it) return;
+                it.cardId = card.cardId;
+                if (card.imageKey) it.imageKey = card.imageKey;
+                if (card.imageUrl) it.imageUrl = card.imageUrl;
+            });
+        }
+    }
+
+    async function persistSceneOrder(){
+        if (!state.publicId) return;
+        const allSaved = state.scenes.every(scene => !!scene.sceneId);
+        if (!allSaved) return;
+        const payload = { sceneIds: state.scenes.map(scene => scene.sceneId) };
+        await authFetch(`/api/people/${encodeURIComponent(state.publicId)}/storyboard/scenes/order`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+    }
+
+    async function fetchPublicIdByUsername(username){
+        const res = await authFetch(`/api/person/${encodeURIComponent(username)}`, {
+            headers: { "Accept": "application/json" }
+        });
+        if (!res.ok) throw new Error("PUBLIC_ID_NOT_FOUND");
+        const ct = res.headers.get("content-type") || "";
+        if (ct.includes("application/json")) {
+            const data = await res.json().catch(() => null);
+            if (typeof data === "string") return data.trim();
+            return data?.publicId || data?.id || data?.personPublicId || data?.personId || "";
+        }
+        return (await res.text().catch(() => "")).trim();
+    }
+
+    async function loadScenesFromApi(){
+        const res = await authFetch(`/api/people/${encodeURIComponent(state.publicId)}/storyboard/scenes`, {
+            headers: { "Accept": "application/json" }
+        });
+        if (!res.ok) throw new Error("LOAD_FAILED");
+        const data = await res.json().catch(() => []);
+        if (!Array.isArray(data) || data.length === 0) return false;
+        const sorted = [...data].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+        state.scenes = sorted.map((scene, idx) => {
+            const rawTitle = (scene.title || "").trim();
+            const defaultTitle = `#${idx + 1} 새 씬`;
+            const title = (!rawTitle || /^#\d+\s*새 씬$/.test(rawTitle)) ? defaultTitle : rawTitle;
+            return {
+            clientId: nextSceneId(),
+            sceneId: scene.sceneId,
+            title,
+            script: scene.scriptHtml || "",
+            items: Array.isArray(scene.cards) ? scene.cards.map((card, cidx) => ({
+                clientId: "card_" + idx + "_" + cidx + "_" + Date.now().toString(36),
+                cardId: card.cardId,
+                order: cidx + 1,
+                imageKey: card.imageKey,
+                imageUrl: card.imageUrl,
+                image: null
+            })) : [],
+            seq: (scene.cards || []).length
+        };
+        });
+        state.activeSceneId = state.scenes[0]?.clientId || null;
+        return true;
+    }
+
+    cancelStoryboardBtn?.addEventListener("click", () => {
+        history.back();
+    });
+
+    saveStoryboardBtn?.addEventListener("click", async () => {
+        const scene = getActiveScene();
+        if (!scene) return;
+        if (!state.publicId) return alert("프로필 정보를 불러오지 못했습니다.");
+        try {
+            const payload = toScenePayload(scene);
+            const url = scene.sceneId
+                    ? `/api/people/${encodeURIComponent(state.publicId)}/storyboard/scenes/${scene.sceneId}`
+                    : `/api/people/${encodeURIComponent(state.publicId)}/storyboard/scenes`;
+            const method = scene.sceneId ? "PUT" : "POST";
+            const res = await authFetch(url, {
+                method,
+                headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error("SAVE_FAILED");
+            const saved = await res.json();
+            applySavedScene(scene, saved);
+            alert("현재 씬이 저장되었습니다.");
+        } catch (e) {
+            console.error(e);
+            alert("저장 중 문제가 발생했습니다.");
+        }
+    });
+
+    deleteSceneBtn?.addEventListener("click", async () => {
         if (state.scenes.length <= 1) return alert("최소 1개의 씬이 필요합니다.");
         const scene = getActiveScene();
         if (!scene) return;
-        const idx = state.scenes.findIndex(s => s.id === scene.id);
+        const idx = state.scenes.findIndex(s => s.clientId === scene.clientId);
         if (idx === -1) return;
-        state.scenes.splice(idx, 1);
-        const next = state.scenes[Math.max(0, idx - 1)];
-        state.activeSceneId = next ? next.id : null;
-        renderAll();
+        try{
+            if (scene.sceneId && state.publicId) {
+                const res = await authFetch(`/api/people/${encodeURIComponent(state.publicId)}/storyboard/scenes/${scene.sceneId}`, {
+                    method: "DELETE"
+                });
+                if (!res.ok) throw new Error("DELETE_FAILED");
+            }
+            state.scenes.splice(idx, 1);
+            const next = state.scenes[Math.max(0, idx - 1)];
+            state.activeSceneId = next ? next.clientId : null;
+            if (!state.activeSceneId) addScene();
+            renderAll();
+        }catch(e){
+            console.error(e);
+            alert("삭제 중 문제가 발생했습니다.");
+        }
     });
 
     // scene drag & drop reorder
@@ -1132,9 +1519,10 @@
 
     function reorderScenesFromDOM(){
         const buttons = Array.from(sceneTabs.querySelectorAll(".scene-tab")).filter(btn => !btn.classList.contains("scene-add"));
-        const ordered = buttons.map(btn => state.scenes.find(scene => scene.id === btn.dataset.sceneId)).filter(Boolean);
+        const ordered = buttons.map(btn => state.scenes.find(scene => scene.clientId === btn.dataset.sceneId)).filter(Boolean);
         if (ordered.length === state.scenes.length) state.scenes = ordered;
         renderAll();
+        persistSceneOrder();
     }
 
     sceneTabs?.addEventListener("dragstart", (e) => {
@@ -1170,8 +1558,45 @@
         reorderScenesFromDOM();
     });
 
-    // init
-    addScene();
+    document.addEventListener("DOMContentLoaded", async () => {
+        if (state.initialized) return;
+        state.initialized = true;
+        window.addEventListener("dragover", (e) => e.preventDefault());
+        window.addEventListener("drop", (e) => e.preventDefault());
+
+        if (!window.OnfilmAuth?.restoreSession) return;
+        const result = await window.OnfilmAuth.restoreSession();
+        if (!result?.ok) {
+            const next = encodeURIComponent(location.pathname + location.search);
+            location.href = `/login.html?next=${next}`;
+            return;
+        }
+        const me = result.me;
+        const uname = me?.username ? String(me.username).trim() : "";
+        if (!uname) {
+            alert("사용자 정보를 불러오지 못했습니다.");
+            return;
+        }
+        if (backToProfileLink) {
+            backToProfileLink.href = "/onfilm/" + encodeURIComponent(uname);
+        }
+        try{
+            state.publicId = await fetchPublicIdByUsername(uname);
+            const loaded = await loadScenesFromApi();
+            if (!loaded) {
+                state.scenes = [];
+                state.activeSceneId = null;
+                addScene();
+            }
+            renderAll();
+        }catch(e){
+            console.error(e);
+            state.scenes = [];
+            state.activeSceneId = null;
+            addScene();
+            renderAll();
+        }
+    });
 </script>
 </body>
 </html>

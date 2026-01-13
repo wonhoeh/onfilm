@@ -70,6 +70,7 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/css/**"),
                                 new AntPathRequestMatcher("/images/**"),
                                 new AntPathRequestMatcher("/videos/**"),
+                                new AntPathRequestMatcher("/vendor/**"),
                                 new AntPathRequestMatcher("/favicon.ico"),
                                 new AntPathRequestMatcher("/onfilm/**"),
                                 new AntPathRequestMatcher("/api/person/**"),
@@ -128,6 +129,7 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/css/**"),
                                 new AntPathRequestMatcher("/images/**"),
                                 new AntPathRequestMatcher("/videos/**"),
+                                new AntPathRequestMatcher("/vendor/**"),
                                 new AntPathRequestMatcher("/favicon.ico"),
                                 new AntPathRequestMatcher("/onfilm/**")
                         ).permitAll()

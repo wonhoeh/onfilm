@@ -78,6 +78,14 @@ public class PersonFileController {
         return new UploadResultResponse(key, storage.toPublicUrl(key));
     }
 
+    @PostMapping("/me/storyboard")
+    public UploadResultResponse uploadStoryboardImage(@RequestParam("file") MultipartFile file) {
+        Long personId = personReadService.findCurrentPersonId();
+        String key = keyFactory.storyboardCard(personId, extOf(file));
+        storage.save(key, file);
+        return new UploadResultResponse(key, storage.toPublicUrl(key));
+    }
+
     // 확장자 추출 예) .jpeg / .mp4
     private String extOf(MultipartFile file) {
         String name = file.getOriginalFilename();

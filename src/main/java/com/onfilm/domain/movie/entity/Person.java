@@ -84,6 +84,14 @@ public class Person {
     private List<GalleryItem> galleryItems = new ArrayList<>();
 
     // ======================================================================
+    // ======= 연관관계: Storyboard =======
+    // ======================================================================
+
+    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderColumn(name = "sort_order")
+    private List<StoryboardScene> storyboardScenes = new ArrayList<>();
+
+    // ======================================================================
     // ======= 생성자 / 정적 팩토리 =======
     // ======================================================================
     @PrePersist

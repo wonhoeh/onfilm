@@ -13,8 +13,14 @@ import com.onfilm.domain.movie.dto.GalleryItemPrivacyRequest;
 import com.onfilm.domain.movie.dto.GalleryItemResponse;
 import com.onfilm.domain.movie.dto.GalleryReorderRequest;
 import com.onfilm.domain.movie.dto.PrivacyUpdateRequest;
+import com.onfilm.domain.movie.dto.StoryboardCardResponse;
+import com.onfilm.domain.movie.dto.StoryboardSceneOrderRequest;
+import com.onfilm.domain.movie.dto.StoryboardSceneRequest;
+import com.onfilm.domain.movie.dto.StoryboardSceneResponse;
 import com.onfilm.domain.movie.dto.UploadResultResponse;
 import com.onfilm.domain.movie.entity.Person;
+import com.onfilm.domain.movie.entity.StoryboardCard;
+import com.onfilm.domain.movie.entity.StoryboardScene;
 import com.onfilm.domain.movie.service.MovieReadService;
 import com.onfilm.domain.movie.service.MovieService;
 import com.onfilm.domain.movie.service.PersonReadService;
@@ -215,6 +221,78 @@ public class PersonController {
         return ResponseEntity.ok().build();
     }
 
+    // =============================
+    // STORYBOARD
+    // =============================
+    @GetMapping("/{publicId}/storyboard/scenes")
+    public ResponseEntity<List<StoryboardSceneResponse>> getStoryboardScenes(@PathVariable String publicId) {
+        Long personId = personReadService.findPersonIdByPublicId(publicId);
+        if (!isOwner(personId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(personReadService.findStoryboardScenesByPublicId(publicId));
+    }
+
+    @PostMapping("/{publicId}/storyboard/scenes")
+    public ResponseEntity<StoryboardSceneResponse> createStoryboardScene(
+            @PathVariable String publicId,
+            @RequestBody StoryboardSceneRequest request
+    ) {
+        Long currentPersonId = personReadService.findCurrentPersonId();
+        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
+        if (!currentPersonId.equals(targetPersonId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        StoryboardScene scene = personReadService.createStoryboardScene(currentPersonId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toSceneResponse(scene));
+    }
+
+    @PutMapping("/{publicId}/storyboard/scenes/{sceneId}")
+    public ResponseEntity<StoryboardSceneResponse> updateStoryboardScene(
+            @PathVariable String publicId,
+            @PathVariable Long sceneId,
+            @RequestBody StoryboardSceneRequest request
+    ) {
+        Long currentPersonId = personReadService.findCurrentPersonId();
+        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
+        if (!currentPersonId.equals(targetPersonId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        StoryboardScene scene = personReadService.updateStoryboardScene(currentPersonId, sceneId, request);
+        return ResponseEntity.ok(toSceneResponse(scene));
+    }
+
+    @PutMapping("/{publicId}/storyboard/scenes/order")
+    public ResponseEntity<Void> reorderStoryboardScenes(
+            @PathVariable String publicId,
+            @RequestBody StoryboardSceneOrderRequest request
+    ) {
+        Long currentPersonId = personReadService.findCurrentPersonId();
+        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
+        if (!currentPersonId.equals(targetPersonId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        List<Long> ordered = (request == null || request.sceneIds() == null)
+                ? List.of()
+                : request.sceneIds();
+        personReadService.reorderStoryboardScenes(currentPersonId, ordered);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{publicId}/storyboard/scenes/{sceneId}")
+    public ResponseEntity<Void> deleteStoryboardScene(
+            @PathVariable String publicId,
+            @PathVariable Long sceneId
+    ) {
+        Long currentPersonId = personReadService.findCurrentPersonId();
+        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
+        if (!currentPersonId.equals(targetPersonId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        personReadService.deleteStoryboardScene(currentPersonId, sceneId);
+        return ResponseEntity.noContent().build();
+    }
+
     private boolean isOwner(Long personId) {
         try {
             Long currentPersonId = personReadService.findCurrentPersonId();
@@ -283,5 +361,29 @@ public class PersonController {
         if (s.startsWith("/")) s = s.substring(1);
 
         return s;
+    }
+
+    private StoryboardSceneResponse toSceneResponse(StoryboardScene scene) {
+        if (scene == null) return null;
+        List<StoryboardCardResponse> cards = new java.util.ArrayList<>();
+        int cardIndex = 1;
+        for (StoryboardCard card : scene.getCards()) {
+            String key = card.getImageKey();
+            String url = (key == null || key.isBlank()) ? null : storageService.toPublicUrl(key);
+            cards.add(new StoryboardCardResponse(card.getId(), key, url, cardIndex));
+            cardIndex += 1;
+        }
+        int sortOrder = 0;
+        if (scene.getPerson() != null) {
+            int sceneIndex = scene.getPerson().getStoryboardScenes().indexOf(scene);
+            if (sceneIndex >= 0) sortOrder = sceneIndex + 1;
+        }
+        return new StoryboardSceneResponse(
+                scene.getId(),
+                scene.getTitle(),
+                scene.getScriptHtml(),
+                sortOrder,
+                cards
+        );
     }
 }

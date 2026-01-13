@@ -854,6 +854,14 @@
           </button>
 
           <div class="profile-divider"></div>
+          <div class="profile-group-title">작업</div>
+
+          <button type="button" class="profile-item" data-action="storyboard">
+            스토리보드
+            <span>대본/컷 관리</span>
+          </button>
+
+          <div class="profile-divider"></div>
 
           <button type="button" class="profile-item" data-action="account-settings">
             계정 설정
@@ -971,6 +979,11 @@
 
         if (action === "edit-gallery") {
           window.location.href = "edit-gallery.html";
+          return;
+        }
+
+        if (action === "storyboard") {
+          window.location.href = "storyboard.html";
           return;
         }
 
