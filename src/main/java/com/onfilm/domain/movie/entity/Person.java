@@ -89,7 +89,7 @@ public class Person {
 
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderColumn(name = "sort_order")
-    private List<StoryboardScene> storyboardScenes = new ArrayList<>();
+    private List<StoryboardProject> storyboardProjects = new ArrayList<>();
 
     // ======================================================================
     // ======= 생성자 / 정적 팩토리 =======

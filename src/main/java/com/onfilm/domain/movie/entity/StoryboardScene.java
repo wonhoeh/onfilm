@@ -24,8 +24,8 @@ public class StoryboardScene {
     private String scriptHtml;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "person_id")
-    private Person person;
+    @JoinColumn(name = "project_id")
+    private StoryboardProject project;
 
     @OneToMany(mappedBy = "scene", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderColumn(name = "sort_order")
@@ -36,8 +36,8 @@ public class StoryboardScene {
         this.scriptHtml = scriptHtml;
     }
 
-    public void attachPerson(Person person) {
-        this.person = person;
+    public void attachProject(StoryboardProject project) {
+        this.project = project;
     }
 
     public void updateTitle(String title) {

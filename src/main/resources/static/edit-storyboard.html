@@ -1,0 +1,1718 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OnFilm – 스토리보드 & 대본 관리</title>
+
+    <style>
+        :root{
+            --bg:#0b0c0f;
+            --panel:#12131a;
+            --panel-2:#161824;
+            --text:#e7e8ee;
+            --muted:#9aa0ad;
+            --line:rgba(255,255,255,.10);
+            --accent:#7c5cff;
+            --accent-2:#24d39a;
+
+            --radius-lg:14px;
+            --radius-xl:20px;
+            --shadow:0 10px 40px rgba(0,0,0,.55);
+        }
+
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{
+            font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;
+            color:var(--text);
+            background:
+                    radial-gradient(900px 400px at 80% 0%, rgba(124,92,255,.18), transparent 60%),
+                    radial-gradient(700px 350px at 10% 10%, rgba(36,211,154,.14), transparent 60%),
+                    var(--bg);
+            min-height:100vh;
+        }
+        .page-shell{
+            min-height:100vh;
+            display:flex;
+            flex-direction:column;
+        }
+        header.top-header{
+            width:100%;
+            border-bottom:1px solid var(--line);
+            padding:16px 0;
+        }
+        .header-inner{
+            width:min(1180px, 92vw);
+            margin:0 auto;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:16px;
+        }
+        .back-link{
+            color:var(--muted);
+            text-decoration:none;
+            font-size:13px;
+        }
+        .back-link:hover{ color:var(--text); }
+        .header-title{
+            font-size:15px;
+            font-weight:600;
+            letter-spacing:-.2px;
+        }
+        /* scrollbar */
+        *{
+            scrollbar-width: thin;
+            scrollbar-color: rgba(124,92,255,.55) rgba(255,255,255,.04);
+        }
+        *::-webkit-scrollbar{ width:10px; height:10px; }
+        *::-webkit-scrollbar-track{ background: rgba(255,255,255,.04); border-radius:999px; }
+        *::-webkit-scrollbar-thumb{
+            background: linear-gradient(180deg, rgba(124,92,255,.7), rgba(36,211,154,.6));
+            border-radius:999px;
+            border:2px solid rgba(0,0,0,.2);
+        }
+        *::-webkit-scrollbar-thumb:hover{
+            background: linear-gradient(180deg, rgba(124,92,255,.9), rgba(36,211,154,.8));
+        }
+
+        .wrap{
+            width:min(1180px, 92vw);
+            margin: 28px auto 60px;
+        }
+
+        .story-header{
+            display:flex;
+            align-items:flex-end;
+            justify-content:space-between;
+            gap:16px;
+            margin-bottom:18px;
+        }
+        .title input{
+            width:min(520px, 80vw);
+            border-radius:12px;
+            border:1px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.04);
+            color:var(--text);
+            padding:10px 12px;
+            font-size:16px;
+            outline:none;
+        }
+        .title input:focus{
+            border-color: rgba(124,92,255,.55);
+            box-shadow:0 0 0 3px rgba(124,92,255,.15);
+        }
+
+        .top-actions{
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap;
+            align-items:center;
+            justify-content:flex-end;
+        }
+
+        .scene-bar{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            margin: 16px 0 18px;
+            padding:12px;
+            border-radius:16px;
+            border:1px solid var(--line);
+            background: rgba(0,0,0,.18);
+        }
+        .scene-tabs{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            flex-wrap:wrap;
+        }
+        .scene-tab{
+            border:1px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.04);
+            color:var(--text);
+            border-radius:999px;
+            padding:6px 12px;
+            font-size:12px;
+            cursor:pointer;
+            transition:.15s transform, .15s border-color, .15s background;
+            user-select:none;
+        }
+        .scene-tab:hover{
+            transform: translateY(-1px);
+            border-color: rgba(255,255,255,.22);
+        }
+        .scene-tab.active{
+            border-color: rgba(124,92,255,.55);
+            background: rgba(124,92,255,.16);
+        }
+        .scene-add{
+            border:1px dashed rgba(255,255,255,.28);
+            background: rgba(255,255,255,.02);
+            color:var(--muted);
+        }
+        .scene-add:hover{
+            color:var(--text);
+            border-color: rgba(255,255,255,.4);
+        }
+        .scene-title-display{
+            margin: 0 0 12px;
+            padding: 8px 2px;
+            font-size:18px;
+            letter-spacing:-.2px;
+            color:var(--text);
+        }
+        .scene-title-display span{
+            display:inline-block;
+            padding:6px 10px;
+            border-radius:999px;
+            border:1px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.03);
+        }
+        .delete-scene{
+            width:36px;
+            height:36px;
+            border-radius:12px;
+            border:1px solid rgba(255,120,120,.25);
+            background: rgba(255,120,120,.08);
+            color:var(--text);
+            cursor:pointer;
+            display:grid;
+            place-items:center;
+            transition:.12s transform, .12s border-color, .12s background;
+        }
+        .delete-scene:hover{
+            transform: translateY(-1px);
+            border-color: rgba(255,120,120,.45);
+            background: rgba(255,120,120,.12);
+        }
+
+        .btn{
+            border:1px solid var(--line);
+            background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+            color:var(--text);
+            border-radius:12px;
+            padding:10px 12px;
+            font-size:13px;
+            cursor:pointer;
+            transition:.15s transform, .15s border-color, .15s background;
+            box-shadow:0 6px 18px rgba(0,0,0,.28);
+            display:inline-flex;
+            gap:8px;
+            align-items:center;
+            user-select:none;
+        }
+        .btn:hover{
+            transform: translateY(-1px);
+            border-color: rgba(255,255,255,.18);
+        }
+        .btn:active{ transform: translateY(0); }
+        .btn.primary{
+            border-color: rgba(124,92,255,.55);
+            background: radial-gradient(900px 300px at 20% 0%, rgba(124,92,255,.28), transparent 55%),
+            linear-gradient(180deg, rgba(124,92,255,.16), rgba(255,255,255,.02));
+        }
+        .btn.danger{
+            border-color: rgba(255,120,120,.35);
+            background: linear-gradient(180deg, rgba(255,120,120,.12), rgba(255,255,255,.02));
+        }
+
+    .board{
+        background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+        border:1px solid var(--line);
+        border-radius: var(--radius-xl);
+        padding:16px;
+        box-shadow: var(--shadow);
+        max-height: calc(100vh - 240px);
+        overflow:auto;
+    }
+    .board-layout{
+        display:grid;
+        grid-template-columns: minmax(460px, 1fr) 460px;
+        gap:16px;
+        align-items:stretch;
+    }
+
+        /* 한 줄 = 스토리보드 카드 */
+        .pair{
+            display:grid;
+            grid-template-columns: 1fr;
+            gap:16px;
+            padding:14px;
+            border-radius: 16px;
+            border:1px solid rgba(255,255,255,.06);
+            background: rgba(0,0,0,.18);
+        }
+    .pair + .pair{ margin-top:14px; }
+    .add-card{
+        border:1px dashed rgba(255,255,255,.25);
+        background: rgba(0,0,0,.12);
+        padding:0;
+    }
+    .add-card-btn{
+        width:100%;
+        padding:22px;
+        border:0;
+        background:transparent;
+        color:var(--muted);
+        font-size:13px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:10px;
+        cursor:pointer;
+    }
+    .add-card-btn .plus{
+        width:28px;
+        height:28px;
+        border-radius:999px;
+        border:1px solid rgba(255,255,255,.22);
+        display:grid;
+        place-items:center;
+        font-size:18px;
+        color:var(--text);
+        background: rgba(255,255,255,.04);
+    }
+    .add-card-btn:hover{
+        color:var(--text);
+        border-color: rgba(255,255,255,.35);
+    }
+
+        /* Storyboard Card */
+    .card{
+        background: var(--panel);
+        border:1px solid rgba(255,255,255,.08);
+        border-radius: 18px;
+        overflow:hidden;
+        box-shadow:0 10px 30px rgba(0,0,0,.35);
+        position:relative;
+    }
+    .pair.dragging{
+        opacity:.7;
+        box-shadow:0 16px 40px rgba(0,0,0,.45);
+        border-color: rgba(124,92,255,.45);
+    }
+
+        .card-head{
+            padding:12px 12px 10px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+            background:
+                    radial-gradient(600px 180px at 20% 0%, rgba(124,92,255,.18), transparent 60%),
+                    rgba(255,255,255,.02);
+        }
+
+        .meta{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            min-width:0;
+        }
+        .badge{
+            width:30px;height:30px;
+            border-radius:10px;
+            display:grid;
+            place-items:center;
+            font-weight:800;
+            background: rgba(124,92,255,.18);
+            border:1px solid rgba(124,92,255,.35);
+            flex:0 0 auto;
+        }
+        .meta .labels{
+            display:flex;
+            flex-direction:column;
+            gap:2px;
+            min-width:0;
+        }
+        .meta .labels .v{
+            font-size:13px;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+        }
+
+        .order{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            flex:0 0 auto;
+        }
+        .order label{
+            font-size:12px;
+            color:var(--muted);
+        }
+        .order input{
+            width:74px;
+            border-radius:12px;
+            border:1px solid rgba(255,255,255,.10);
+            background: rgba(255,255,255,.04);
+            color:var(--text);
+            padding:8px 10px;
+            font-size:13px;
+            outline:none;
+        }
+        .order input:focus{
+            border-color: rgba(124,92,255,.55);
+            box-shadow:0 0 0 3px rgba(124,92,255,.15);
+        }
+
+        .card-body{
+            padding:12px;
+        }
+
+        .dropzone{
+            border-radius: 16px;
+            border:1px dashed rgba(255,255,255,.22);
+            background:
+                    radial-gradient(600px 240px at 80% 0%, rgba(36,211,154,.10), transparent 60%),
+                    rgba(255,255,255,.03);
+            height: 240px;
+            display:grid;
+            place-items:center;
+            position:relative;
+            overflow:hidden;
+            cursor:pointer;
+            transition:.12s border-color, .12s background;
+        }
+        .dropzone.dragover{
+            border-color: rgba(36,211,154,.65);
+            background:
+                    radial-gradient(600px 240px at 80% 0%, rgba(36,211,154,.18), transparent 60%),
+                    rgba(255,255,255,.04);
+        }
+
+        .placeholder{
+            text-align:center;
+            padding: 18px;
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+            align-items:center;
+            color:var(--muted);
+            user-select:none;
+        }
+        .placeholder strong{ color:var(--text); font-size:13px; }
+        .placeholder span{ font-size:12px; line-height:1.35; }
+
+        .preview{
+            position:absolute;
+            inset:0;
+            width:100%;
+            height:100%;
+            object-fit:contain;
+            background: rgba(0,0,0,.35);
+            display:none;
+        }
+        .dropzone.has-image .preview{ display:block; }
+        .dropzone.has-image .placeholder{ display:none; }
+
+        .overlay-actions{
+            position:absolute;
+            top:10px;
+            right:10px;
+            display:flex;
+            gap:8px;
+            z-index:2;
+        }
+        .icon-btn{
+            width:34px;height:34px;
+            border-radius: 12px;
+            border:1px solid rgba(255,255,255,.12);
+            background: rgba(0,0,0,.40);
+            color:#E7E8EE;
+            display:grid;
+            place-items:center;
+            cursor:pointer;
+            transition:.12s transform, .12s border-color, .12s background;
+            backdrop-filter: blur(6px);
+        }
+        .icon-btn:hover{
+            transform: translateY(-1px);
+            border-color: rgba(255,255,255,.22);
+            background: rgba(0,0,0,.55);
+        }
+        .icon-btn.danger{
+            border-color: rgba(255,120,120,.25);
+        }
+        .icon-btn svg{ width:18px; height:18px; opacity:.92; }
+        .icon-btn svg path{ stroke: currentColor; }
+
+        .card-foot{
+            margin-top:10px;
+            display:flex;
+            gap:10px;
+            justify-content:space-between;
+            align-items:center;
+        }
+        .hint{
+            font-size:12px;
+            color:var(--muted);
+        }
+        .file-btn{
+            border:1px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.04);
+            color:var(--text);
+            border-radius: 12px;
+            padding:9px 10px;
+            cursor:pointer;
+            font-size:12px;
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            transition:.12s transform, .12s border-color;
+            user-select:none;
+            flex:0 0 auto;
+        }
+        .file-btn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.20); }
+        .file-btn:active{ transform: translateY(0); }
+
+        /* Script Panel */
+    .script{
+        background: var(--panel-2);
+        border:1px solid rgba(255,255,255,.08);
+        border-radius: 18px;
+        overflow:hidden;
+        box-shadow:0 10px 30px rgba(0,0,0,.35);
+        position:relative;
+        display:flex;
+        flex-direction:column;
+        min-height: 320px;
+        position:sticky;
+        top:16px;
+        max-height: calc(100vh - 240px);
+    }
+        .script-head{
+            padding:12px 12px 10px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+            background:
+                    radial-gradient(600px 180px at 20% 0%, rgba(124,92,255,.14), transparent 60%),
+                    rgba(255,255,255,.02);
+        }
+        .script-head .left{
+            display:flex; flex-direction:column; gap:2px;
+            min-width:0;
+        }
+        .script-head .left .k{ font-size:12px; color:var(--muted); }
+        .script-head .left .v{ font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    .script-body{
+        padding:12px;
+        flex:1;
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+        min-height:0;
+    }
+
+        .toolbar{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+            align-items:center;
+            padding:8px;
+            border-radius:12px;
+            border:1px solid rgba(255,255,255,.08);
+            background: rgba(255,255,255,.03);
+            position:sticky;
+            top:0;
+            z-index:2;
+            backdrop-filter: blur(8px);
+        }
+        .toolbar select,
+        .toolbar button{
+            border:1px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.04);
+            color:var(--text);
+            border-radius:10px;
+            padding:6px 10px;
+            font-size:12px;
+            cursor:pointer;
+        }
+        .toolbar button:hover{
+            border-color: rgba(255,255,255,.22);
+        }
+    .editor{
+        width:100%;
+        min-height: 0;
+        border-radius: 14px;
+        border:1px solid rgba(255,255,255,.10);
+        background: rgba(0,0,0,.20);
+        color: var(--text);
+        padding:12px 12px;
+        line-height:1.55;
+        font-size:13px;
+        outline:none;
+        overflow:auto;
+        flex:1;
+    }
+        .editor:empty:before{
+            content: attr(data-placeholder);
+            color: var(--muted);
+        }
+        .editor:focus{
+            border-color: rgba(124,92,255,.55);
+            box-shadow:0 0 0 3px rgba(124,92,255,.15);
+        }
+        .script-help{
+            font-size:12px;
+            color:var(--muted);
+            display:flex;
+            justify-content:space-between;
+            gap:10px;
+            flex-wrap:wrap;
+        }
+        .chip{
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            padding:6px 10px;
+            border-radius:999px;
+            border:1px solid rgba(255,255,255,.10);
+            background: rgba(255,255,255,.03);
+            color: var(--muted);
+            font-size:12px;
+            user-select:none;
+        }
+        .ghost-btn,
+        .primary-btn{
+            min-width:90px;
+            padding:7px 13px;
+            border-radius:999px;
+            border:0;
+            font-size:13px;
+            cursor:pointer;
+        }
+        .ghost-btn{
+            background:transparent;
+            color:var(--muted);
+            border:1px solid var(--line);
+        }
+        .ghost-btn:hover{
+            border-color:var(--accent);
+            color:var(--text);
+        }
+        .primary-btn{
+            background:var(--accent);
+            color:white;
+        }
+        .primary-btn:hover{
+            background:#8a6dff;
+        }
+        .primary-btn:disabled{
+            opacity:.55;
+            cursor:not-allowed;
+            filter:grayscale(0.25);
+            box-shadow:none;
+        }
+        .floating-actions{
+            position:fixed;
+            right:24px;
+            bottom:24px;
+            display:flex;
+            gap:8px;
+            z-index:30;
+        }
+
+    /* responsive */
+    @media (max-width: 980px){
+        .board-layout{ grid-template-columns: 1fr; }
+        .pair{ grid-template-columns: 1fr; }
+        .card{ order:1; }
+        .script{ position:static; }
+    }
+
+    @media print{
+        body{ background:#fff; color:#000; }
+        .top-actions,
+        .scene-bar,
+        .scene-title-display,
+        .board,
+        .script-help,
+        .toolbar,
+        .floating-actions{
+            display:none !important;
+        }
+        .wrap{ width:100%; margin:0; }
+        .board-layout{ grid-template-columns: 1fr; }
+        .script{
+            position:static;
+            max-height:none;
+            box-shadow:none;
+            border:0;
+        }
+        .editor{
+            border:0;
+            background:transparent;
+            color:#000;
+            min-height:auto;
+            overflow:visible;
+        }
+    }
+    </style>
+</head>
+
+<body>
+<div class="page-shell">
+    <header class="top-header">
+        <div class="header-inner">
+            <a href="/storyboard.html" class="back-link" id="backToProfileLink">← 프로젝트로 돌아가기</a>
+            <div class="header-title">스토리보드 편집</div>
+            <div style="width:70px;"></div>
+        </div>
+    </header>
+
+    <main>
+        <div class="wrap">
+            <div class="story-header">
+                <div class="title">
+                    <input id="movieTitleInput" type="text" placeholder="작품 제목을 입력하세요" />
+                </div>
+
+                <div class="top-actions">
+                    <button class="btn primary" id="pdfSaveBtn" type="button">PDF 저장</button>
+                </div>
+            </div>
+
+            <div class="scene-bar">
+                <div class="scene-tabs" id="sceneTabs"></div>
+                <button class="delete-scene" id="deleteSceneBtn" type="button" aria-label="씬 삭제" title="씬 삭제">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="16" height="16">
+                        <path d="M6 7h12M10 7V5h4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M9 10v8M15 10v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M8 7l1 14h6l1-14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="scene-title-display">
+                <span id="sceneTitleDisplay" contenteditable="true" spellcheck="false"></span>
+            </div>
+
+            <div class="board-layout">
+                <section class="board" id="board">
+                    <!-- pairs injected -->
+                </section>
+
+                <section class="script" id="scriptPanel">
+                    <div class="script-head">
+                        <div class="left">
+                            <div class="v" id="scriptSceneLabel">#1 새 씬</div>
+                        </div>
+                    </div>
+                    <div class="script-body">
+                        <div class="toolbar">
+                            <select id="fontSelect" aria-label="폰트 선택">
+                                <option value="Noto Sans KR">Noto Sans KR</option>
+                                <option value="Nanum Gothic">Nanum Gothic</option>
+                                <option value="Nanum Myeongjo">Nanum Myeongjo</option>
+                                <option value="Malgun Gothic">Malgun Gothic</option>
+                                <option value="sans-serif">Sans Serif</option>
+                            </select>
+                            <select id="fontSizeSelect" aria-label="글자 크기">
+                                <option value="2">12px</option>
+                                <option value="3" selected>14px</option>
+                                <option value="4">16px</option>
+                                <option value="5">18px</option>
+                            </select>
+                            <select id="lineHeightSelect" aria-label="줄간격">
+                                <option value="1.4">1.4</option>
+                                <option value="1.6" selected>1.6</option>
+                                <option value="1.8">1.8</option>
+                                <option value="2">2.0</option>
+                            </select>
+                            <button type="button" data-cmd="bold">굵게</button>
+                            <button type="button" data-cmd="italic">기울기</button>
+                            <button type="button" data-cmd="justifyLeft">왼쪽 정렬</button>
+                            <button type="button" data-cmd="justifyCenter">가운데 정렬</button>
+                            <button type="button" data-cmd="justifyRight">오른쪽 정렬</button>
+                        </div>
+                        <div id="scriptEditor" class="editor" contenteditable="true" aria-label="대본 입력 영역" data-placeholder="전체 대본을 입력하세요. 스크롤하며 읽을 수 있습니다."></div>
+                        <div class="script-help">
+                            <span class="chip">TIP: “VO / OS / SFX” 같은 표기를 섞어도 좋아요</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div class="form-footer floating-actions">
+    <button type="button" class="ghost-btn" id="cancelStoryboardBtn">취소</button>
+    <button type="button" class="primary-btn" id="saveStoryboardBtn">저장</button>
+</div>
+
+<template id="addCardTpl">
+    <div class="pair add-card">
+        <button class="add-card-btn" type="button" id="addCardBtn" aria-label="스토리보드 추가">
+            <span class="plus">＋</span>
+            <span>스토리보드 추가</span>
+        </button>
+    </div>
+</template>
+
+<template id="pairTpl">
+    <div class="pair" data-id="">
+        <!-- storyboard card -->
+        <div class="card">
+            <div class="card-head">
+                <div class="meta">
+                    <div class="badge" data-badge>#</div>
+                    <div class="labels">
+                        <div class="v" data-title>컷</div>
+                    </div>
+                </div>
+
+                <div class="order">
+                    <button class="icon-btn danger" type="button" data-remove-card title="카드 삭제" aria-label="카드 삭제">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M6 7h12M10 7V5h4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M9 10v8M15 10v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M8 7l1 14h6l1-14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="dropzone" data-dropzone role="button" tabindex="0" aria-label="이미지 드래그 앤 드롭 또는 클릭하여 업로드">
+                    <img class="preview" data-preview alt="스토리보드 이미지 미리보기" />
+                    <div class="overlay-actions">
+                        <button class="icon-btn danger" type="button" data-remove-image title="이미지 삭제" aria-label="이미지 삭제">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="placeholder">
+                        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" aria-hidden="true" style="opacity:.9">
+                            <path d="M7 16l3-3 3 3 4-5 3 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M9 8.5a1.5 1.5 0 103 0 1.5 1.5 0 00-3 0z" fill="currentColor" opacity=".25"/>
+                        </svg>
+                        <strong>이미지를 드래그&드롭</strong>
+                        <span>또는 아래 “파일 추가” 버튼으로 업로드<br/>(.png, .jpeg 등)</span>
+                    </div>
+                </div>
+
+                <div class="card-foot">
+                    <div class="hint" data-fileinfo>업로드된 이미지 없음</div>
+                    <button class="file-btn" type="button" data-pick-file>
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="18" height="18">
+                            <path d="M12 5v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M8 9l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M6 19h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        파일 추가
+                    </button>
+                    <input type="file" accept="image/png,image/jpeg,image/jpg,image/webp" hidden data-file />
+                </div>
+            </div>
+        </div>
+
+    </div>
+</template>
+
+<script src="/js/auth.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
+<script>
+    // ─────────────────────────────────────────────
+    // Storyboard + Script Manager (single-file)
+    // ─────────────────────────────────────────────
+    const board = document.getElementById("board");
+    const tpl = document.getElementById("pairTpl");
+    const addTpl = document.getElementById("addCardTpl");
+    const scriptEditor = document.getElementById("scriptEditor");
+    const sceneTabs = document.getElementById("sceneTabs");
+    const sceneTitleDisplay = document.getElementById("sceneTitleDisplay");
+    const deleteSceneBtn = document.getElementById("deleteSceneBtn");
+    const fontSelect = document.getElementById("fontSelect");
+    const fontSizeSelect = document.getElementById("fontSizeSelect");
+    const lineHeightSelect = document.getElementById("lineHeightSelect");
+    const movieTitleInput = document.getElementById("movieTitleInput");
+    const pdfSaveBtn = document.getElementById("pdfSaveBtn");
+    const cancelStoryboardBtn = document.getElementById("cancelStoryboardBtn");
+    const saveStoryboardBtn = document.getElementById("saveStoryboardBtn");
+    const backToProfileLink = document.getElementById("backToProfileLink");
+    const scriptSceneLabel = document.getElementById("scriptSceneLabel");
+
+    let notoFontBase64 = null;
+
+    const state = {
+        scenes: [], // {clientId, sceneId, title, script, items, seq}
+        sceneSeq: 0,
+        activeSceneId: null,
+        movieTitle: "",
+        publicId: null,
+        projectId: null,
+        dirty: false,
+        initialized: false
+    };
+
+    function authFetch(url, options = {}) {
+        if (window.OnfilmAuth?.apiFetchWithAutoRefresh) {
+            return window.OnfilmAuth.apiFetchWithAutoRefresh(url, options);
+        }
+        return fetch(url, options);
+    }
+
+    function updateSaveState(){
+        if (!saveStoryboardBtn || !movieTitleInput) return;
+        const title = movieTitleInput.value.trim();
+        const ready = title.length > 0 && title !== "새 스토리보드";
+        saveStoryboardBtn.disabled = !ready;
+    }
+
+    function setDirty(value = true){
+        state.dirty = value;
+    }
+
+    function stripHtml(value){
+        return String(value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+    }
+
+    function hasAnyInput(){
+        const title = movieTitleInput ? movieTitleInput.value.trim() : state.movieTitle.trim();
+        if (title.length > 0 && title !== "새 스토리보드") return true;
+        const hasScript = state.scenes.some(scene => stripHtml(scene.script).length > 0);
+        if (hasScript) return true;
+        const hasImage = state.scenes.some(scene =>
+            Array.isArray(scene.items) && scene.items.some(it => it.imageKey || it.imageUrl || it.image)
+        );
+        return hasImage;
+    }
+
+    function handleLeaveAttempt(){
+        if (!hasAnyInput()) {
+            window.location.href = "/storyboard.html";
+            return;
+        }
+        const ok = window.confirm("이 페이지를 벗어나면 수정된 내용은 저장되지 않습니다.");
+        if (ok) window.location.href = "/storyboard.html";
+    }
+
+    function nextSceneId(){
+        state.sceneSeq += 1;
+        return "scene_" + state.sceneSeq + "_" + Date.now().toString(36);
+    }
+
+    function nextItemId(scene){
+        scene.seq += 1;
+        return "sb_" + scene.seq + "_" + Date.now().toString(36);
+    }
+
+    function getActiveScene(){
+        return state.scenes.find(s => s.clientId === state.activeSceneId) || null;
+    }
+
+    function getNextOrder(){
+        const scene = getActiveScene();
+        if (!scene || scene.items.length === 0) return 1;
+        const max = Math.max(...scene.items.map(it => Number(it.order) || 0));
+        return max + 1;
+    }
+
+    function formatBytes(bytes){
+        if (!bytes && bytes !== 0) return "";
+        const units = ["B","KB","MB","GB"];
+        let n = bytes;
+        let i = 0;
+        while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+        return `${n.toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
+    }
+
+    function ensureAtLeastOne(){
+        const scene = getActiveScene();
+        if (scene && scene.items.length === 0) addItem();
+    }
+
+    function addItem(){
+        const scene = getActiveScene();
+        if (!scene) return;
+        const item = {
+            clientId: nextItemId(scene),
+            cardId: null,
+            order: getNextOrder(),
+            imageKey: null,
+            imageUrl: null,
+            image: null
+        };
+        scene.items.push(item);
+        setDirty();
+        renderBoard();
+    }
+
+    function removeItem(id){
+        const scene = getActiveScene();
+        if (!scene) return;
+        scene.items = scene.items.filter(it => it.clientId !== id);
+        setDirty();
+        renderBoard();
+        ensureAtLeastOne();
+    }
+
+    function setOrder(id, value){
+        const scene = getActiveScene();
+        if (!scene) return;
+        const it = scene.items.find(x => x.clientId === id);
+        if (!it) return;
+        it.order = value;
+        // 표시 갱신만
+        syncTitles();
+    }
+
+    async function setImage(id, file){
+        try{
+            const scene = getActiveScene();
+            if (!scene) return;
+            const it = scene.items.find(x => x.clientId === id);
+            if (!it) return;
+            if (it.imageUrl && it.imageUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(it.imageUrl);
+            }
+            let previewUrl = null;
+            try{
+                previewUrl = await readFileAsDataURL(file);
+            }catch{
+                previewUrl = URL.createObjectURL(file);
+            }
+            it.imageUrl = previewUrl;
+            it.image = {
+                name: file.name,
+                size: file.size,
+                type: file.type
+            };
+            setDirty();
+            renderBoard();
+
+            const upload = await uploadStoryboardImage(file);
+            if (it.imageUrl && it.imageUrl.startsWith("blob:")) {
+                URL.revokeObjectURL(it.imageUrl);
+            }
+            it.imageKey = upload?.key || null;
+            it.imageUrl = upload?.url || previewUrl;
+            renderBoard();
+        }catch(e){
+            console.error(e);
+            alert(`이미지를 처리하는 중 문제가 발생했어요. ${e?.message || ""}`);
+        }
+    }
+
+    function removeImage(id){
+        const scene = getActiveScene();
+        if (!scene) return;
+        const it = scene.items.find(x => x.clientId === id);
+        if (!it) return;
+        if (it.imageUrl && it.imageUrl.startsWith("blob:")) {
+            URL.revokeObjectURL(it.imageUrl);
+        }
+        it.image = null;
+        it.imageKey = null;
+        it.imageUrl = null;
+        setDirty();
+        renderBoard();
+    }
+
+    function readFileAsDataURL(file){
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result));
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function validateImageFile(file){
+        if (!file) return "파일이 없습니다.";
+        const ok = ["image/png","image/jpeg","image/jpg","image/webp"];
+        // 일부 브라우저는 jpg를 image/jpeg로 줌
+        if (!ok.includes(file.type)) return "PNG/JPEG/WebP 이미지 파일만 업로드할 수 있어요.";
+        return null;
+    }
+
+    function syncTitles(){
+        const scene = getActiveScene();
+        if (!scene) return;
+        // DOM 상에서 order 변경 반영
+        board.querySelectorAll(".pair").forEach((el, idx) => {
+            const id = el.dataset.id;
+            const it = scene.items.find(x => x.clientId === id);
+            if (!it) return;
+
+            const badge = el.querySelector("[data-badge]");
+            const title = el.querySelector("[data-title]");
+            // badge는 "카드 번호(고정 인덱스)" 느낌, order는 "씬 순서"
+            it.order = idx + 1;
+            badge.textContent = String(idx + 1);
+            title.textContent = "";
+        });
+    }
+
+    function wireRowEvents(rowEl){
+        const id = rowEl.dataset.id;
+
+        const dropzone = rowEl.querySelector("[data-dropzone]");
+        const fileInput = rowEl.querySelector("[data-file]");
+        const pickBtn = rowEl.querySelector("[data-pick-file]");
+        const removeImgBtn = rowEl.querySelector("[data-remove-image]");
+        const removeCardBtn = rowEl.querySelector("[data-remove-card]");
+        // order input removed
+
+
+        // file picker
+        pickBtn.addEventListener("click", () => fileInput.click());
+        fileInput.addEventListener("change", async () => {
+            const file = fileInput.files && fileInput.files[0];
+            fileInput.value = ""; // same file reselect 가능
+            const err = validateImageFile(file);
+            if (err) return alert(err);
+
+            await setImage(id, file);
+        });
+
+        // click on dropzone = open picker
+        dropzone.addEventListener("click", () => fileInput.click());
+        dropzone.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                fileInput.click();
+            }
+        });
+
+        // drag & drop
+        const prevent = (e) => { e.preventDefault(); e.stopPropagation(); };
+
+        ["dragenter","dragover"].forEach(evt => {
+            dropzone.addEventListener(evt, (e) => {
+                prevent(e);
+                dropzone.classList.add("dragover");
+            });
+        });
+        ["dragleave","drop"].forEach(evt => {
+            dropzone.addEventListener(evt, (e) => {
+                prevent(e);
+                dropzone.classList.remove("dragover");
+            });
+        });
+
+        dropzone.addEventListener("drop", async (e) => {
+            prevent(e);
+            const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+            const err = validateImageFile(file);
+            if (err) return alert(err);
+
+            await setImage(id, file);
+        });
+
+        // remove image
+        removeImgBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            removeImage(id);
+        });
+
+        // remove card
+        removeCardBtn?.addEventListener("click", (e) => {
+            e.stopPropagation();
+            removeItem(id);
+        });
+
+    }
+
+    function renderBoard(){
+        board.innerHTML = "";
+        const scene = getActiveScene();
+        if (!scene) return;
+        if (scene.items.length === 0){
+            scene.items.push({
+                clientId: nextItemId(scene),
+                cardId: null,
+                order: 1,
+                imageKey: null,
+                imageUrl: null,
+                image: null
+            });
+        }
+
+        scene.items.forEach((it, idx) => {
+            if (!it.clientId) it.clientId = nextItemId(scene);
+            const node = tpl.content.firstElementChild.cloneNode(true);
+            node.dataset.id = it.clientId;
+            node.draggable = true;
+
+            // set header labels
+            const badge = node.querySelector("[data-badge]");
+            const title = node.querySelector("[data-title]");
+            badge.textContent = String(idx + 1);
+            title.textContent = "";
+
+            // set image preview
+            const dz = node.querySelector("[data-dropzone]");
+            const preview = node.querySelector("[data-preview]");
+            const fileinfo = node.querySelector("[data-fileinfo]");
+
+            if (it.imageUrl){
+                dz.classList.add("has-image");
+                preview.src = it.imageUrl;
+                if (it.image && it.image.name) {
+                    fileinfo.textContent = `${it.image.name} · ${formatBytes(it.image.size)}`;
+                } else {
+                    fileinfo.textContent = "업로드된 이미지";
+                }
+            }else{
+                dz.classList.remove("has-image");
+                preview.removeAttribute("src");
+                fileinfo.textContent = "업로드된 이미지 없음";
+            }
+
+            board.appendChild(node);
+            wireRowEvents(node);
+        });
+
+        const addNode = addTpl.content.firstElementChild.cloneNode(true);
+        const addBtn = addNode.querySelector("#addCardBtn");
+        addBtn.addEventListener("click", addItem);
+        board.appendChild(addNode);
+
+        syncTitles();
+    }
+
+    scriptEditor?.addEventListener("input", () => {
+        const scene = getActiveScene();
+        if (!scene) return;
+        scene.script = scriptEditor.innerHTML;
+        setDirty();
+    });
+
+    scriptEditor?.addEventListener("blur", () => {
+        const scene = getActiveScene();
+        if (!scene) return;
+        scene.script = scriptEditor.innerHTML;
+        setDirty();
+    });
+
+    // drag & drop reorder
+    let draggedPair = null;
+
+    function reorderFromDOM() {
+        const scene = getActiveScene();
+        if (!scene) return;
+        const pairs = Array.from(board.querySelectorAll(".pair")).filter(el => !el.classList.contains("add-card"));
+        const ordered = pairs.map(el => scene.items.find(it => it.clientId === el.dataset.id)).filter(Boolean);
+        if (ordered.length === scene.items.length) scene.items = ordered;
+        syncTitles();
+        setDirty();
+    }
+
+    function onDragOver(e) {
+        e.preventDefault();
+        if (!draggedPair) return;
+        const target = e.target.closest(".pair");
+        if (!target || target === draggedPair || target.classList.contains("add-card")) return;
+        const rect = target.getBoundingClientRect();
+        const after = e.clientY > rect.top + rect.height / 2;
+        if (after) target.after(draggedPair);
+        else target.before(draggedPair);
+    }
+
+    board.addEventListener("dragover", onDragOver);
+    board.addEventListener("drop", (e) => {
+        e.preventDefault();
+        if (!draggedPair) return;
+        draggedPair.classList.remove("dragging");
+        draggedPair = null;
+        reorderFromDOM();
+    });
+
+    board.addEventListener("dragend", () => {
+        if (!draggedPair) return;
+        draggedPair.classList.remove("dragging");
+        draggedPair = null;
+        reorderFromDOM();
+    });
+
+    board.addEventListener("dragstart", (e) => {
+        const pair = e.target.closest(".pair");
+        if (!pair || pair.classList.contains("add-card")) return;
+        draggedPair = pair;
+        pair.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", pair.dataset.id);
+    });
+
+    function renderScenes(){
+        if (!sceneTabs) return;
+        sceneTabs.innerHTML = "";
+        state.scenes.forEach((scene, idx) => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "scene-tab" + (scene.clientId === state.activeSceneId ? " active" : "");
+            btn.textContent = `#${idx + 1}`;
+            btn.dataset.sceneId = scene.clientId;
+            btn.draggable = true;
+            btn.addEventListener("click", () => {
+                if (scene.clientId === state.activeSceneId) return;
+                state.activeSceneId = scene.clientId;
+                renderAll();
+            });
+            sceneTabs.appendChild(btn);
+        });
+
+        const addBtn = document.createElement("button");
+        addBtn.type = "button";
+        addBtn.className = "scene-tab scene-add";
+        addBtn.textContent = "+ 씬";
+        addBtn.addEventListener("click", addScene);
+        sceneTabs.appendChild(addBtn);
+    }
+
+    function renderSceneTitle(){
+        const scene = getActiveScene();
+        if (!sceneTitleDisplay) return;
+        sceneTitleDisplay.textContent = scene ? scene.title : "";
+        if (scriptSceneLabel) {
+            scriptSceneLabel.textContent = scene ? scene.title : "대본";
+        }
+    }
+
+    function renderAll(){
+        renderScenes();
+        renderSceneTitle();
+        renderBoard();
+        const scene = getActiveScene();
+        if (scene && scriptEditor) scriptEditor.innerHTML = scene.script || "";
+        if (movieTitleInput) movieTitleInput.value = state.movieTitle;
+    }
+
+    function addScene(){
+        const sceneNumber = state.scenes.length + 1;
+        const scene = {
+            clientId: nextSceneId(),
+            sceneId: null,
+            title: `#${sceneNumber} 새 씬`,
+            script: "",
+            items: [],
+            seq: 0
+        };
+        state.scenes.push(scene);
+        state.activeSceneId = scene.clientId;
+        setDirty();
+        renderAll();
+    }
+
+    sceneTitleDisplay?.addEventListener("input", (e) => {
+        const scene = getActiveScene();
+        if (!scene) return;
+        const text = e.target.textContent || "";
+        scene.title = text.trim() || scene.title;
+        setDirty();
+    });
+
+    movieTitleInput?.addEventListener("input", (e) => {
+        state.movieTitle = e.target.value;
+        updateSaveState();
+        setDirty();
+    });
+
+    function applyCommand(cmd, value){
+        if (!scriptEditor) return;
+        scriptEditor.focus();
+        document.execCommand(cmd, false, value);
+    }
+
+    function arrayBufferToBase64(buffer){
+        const bytes = new Uint8Array(buffer);
+        const chunkSize = 0x8000;
+        let binary = "";
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+            const chunk = bytes.subarray(i, i + chunkSize);
+            binary += String.fromCharCode.apply(null, chunk);
+        }
+        return btoa(binary);
+    }
+
+    async function ensureKoreanFont(pdf){
+        if (!notoFontBase64) {
+            const resp = await fetch("vendor/NotoSansKR-Regular.ttf");
+            if (!resp.ok) throw new Error(`font fetch failed: ${resp.status}`);
+            const buf = await resp.arrayBuffer();
+            notoFontBase64 = arrayBufferToBase64(buf);
+        }
+        pdf.addFileToVFS("NotoSansKR-Regular.ttf", notoFontBase64);
+        pdf.addFont("NotoSansKR-Regular.ttf", "NotoSansKR", "normal");
+        pdf.setFont("NotoSansKR", "normal");
+    }
+
+    fontSelect?.addEventListener("change", (e) => {
+        applyCommand("fontName", e.target.value);
+    });
+
+    fontSizeSelect?.addEventListener("change", (e) => {
+        applyCommand("fontSize", e.target.value);
+    });
+
+    lineHeightSelect?.addEventListener("change", (e) => {
+        if (!scriptEditor) return;
+        scriptEditor.style.lineHeight = e.target.value;
+    });
+
+    document.querySelectorAll(".toolbar [data-cmd]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const cmd = btn.getAttribute("data-cmd");
+            if (!cmd) return;
+            applyCommand(cmd);
+        });
+    });
+
+    pdfSaveBtn?.addEventListener("click", async () => {
+        const scene = getActiveScene();
+        const movieTitle = (state.movieTitle || "작품").trim();
+        const sceneTitle = (scene?.title || "씬").trim();
+        const title = `${movieTitle}_#${sceneTitle.replace(/^#/, "")}`;
+        if (!scriptEditor || !window.jspdf) return alert("PDF 저장 모듈을 불러오지 못했습니다.");
+
+        try{
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: "p", unit: "pt", format: "a4" });
+            await ensureKoreanFont(pdf);
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const marginX = 32;
+            const titleY = 36;
+            const textTop = 64;
+            const textWidth = pageWidth - marginX * 2;
+            const text = scriptEditor.innerText.trim();
+
+            pdf.setFontSize(14);
+            pdf.text(`${movieTitle} / ${sceneTitle}`, marginX, titleY);
+
+            pdf.setFontSize(12);
+            const lines = pdf.splitTextToSize(text || " ", textWidth);
+            let y = textTop;
+
+            lines.forEach((line) => {
+                if (y > pageHeight - 40) {
+                    pdf.addPage();
+                    pdf.setFontSize(14);
+                    pdf.text(`${movieTitle} / ${sceneTitle}`, marginX, titleY);
+                    pdf.setFontSize(12);
+                    y = textTop;
+                }
+                pdf.text(line, marginX, y);
+                y += 18;
+            });
+
+            pdf.save(`${title}.pdf`);
+        }catch(e){
+            console.error(e);
+            alert(`PDF 저장 중 문제가 발생했습니다. ${e?.message || ""}`);
+        }
+    });
+
+    async function uploadStoryboardImage(file){
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await authFetch("/api/files/person/me/storyboard", { method: "POST", body: fd });
+        if (!res.ok) {
+            const msg = await res.text().catch(() => "");
+            throw new Error(`UPLOAD_FAILED ${res.status} ${msg}`);
+        }
+        return await res.json();
+    }
+
+    function toScenePayload(scene){
+        return {
+            sceneId: scene.sceneId,
+            title: scene.title,
+            scriptHtml: scene.script || "",
+            cards: scene.items.map((it) => ({
+                cardId: it.cardId,
+                imageKey: it.imageKey
+            }))
+        };
+    }
+
+    function applySavedScene(scene, saved){
+        scene.sceneId = saved.sceneId;
+        if (Array.isArray(saved.cards)) {
+            saved.cards.forEach((card, idx) => {
+                const it = scene.items[idx];
+                if (!it) return;
+                it.cardId = card.cardId;
+                if (card.imageKey) it.imageKey = card.imageKey;
+                if (card.imageUrl) it.imageUrl = card.imageUrl;
+            });
+        }
+    }
+
+    async function persistSceneOrder(){
+        if (!state.publicId || !state.projectId) return;
+        const allSaved = state.scenes.every(scene => !!scene.sceneId);
+        if (!allSaved) return;
+        const payload = { sceneIds: state.scenes.map(scene => scene.sceneId) };
+        await authFetch(`/api/people/${encodeURIComponent(state.publicId)}/storyboard/projects/${encodeURIComponent(state.projectId)}/scenes/order`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+    }
+
+    async function fetchPublicIdByUsername(username){
+        const res = await authFetch(`/api/person/${encodeURIComponent(username)}`, {
+            headers: { "Accept": "application/json" }
+        });
+        if (!res.ok) throw new Error("PUBLIC_ID_NOT_FOUND");
+        const ct = res.headers.get("content-type") || "";
+        if (ct.includes("application/json")) {
+            const data = await res.json().catch(() => null);
+            if (typeof data === "string") return data.trim();
+            return data?.publicId || data?.id || data?.personPublicId || data?.personId || "";
+        }
+        return (await res.text().catch(() => "")).trim();
+    }
+
+    async function loadProjectFromApi(projectId){
+        const res = await authFetch(`/api/people/${encodeURIComponent(state.publicId)}/storyboard/projects/${encodeURIComponent(projectId)}`, {
+            headers: { "Accept": "application/json" }
+        });
+        if (!res.ok) throw new Error("LOAD_FAILED");
+        const data = await res.json().catch(() => null);
+        if (!data) return false;
+        state.projectId = data.projectId || projectId;
+        const rawTitle = (data.title || "").trim();
+        state.movieTitle = (rawTitle === "새 스토리보드") ? "" : rawTitle;
+        if (movieTitleInput) movieTitleInput.value = state.movieTitle;
+        const scenes = Array.isArray(data.scenes) ? data.scenes : [];
+        if (scenes.length === 0) return false;
+        const sorted = [...scenes].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+        state.scenes = sorted.map((scene, idx) => {
+            const rawTitle = (scene.title || "").trim();
+            const defaultTitle = `#${idx + 1} 새 씬`;
+            const title = (!rawTitle || /^#\d+\s*새 씬$/.test(rawTitle)) ? defaultTitle : rawTitle;
+            return {
+            clientId: nextSceneId(),
+            sceneId: scene.sceneId,
+            title,
+            script: scene.scriptHtml || "",
+            items: Array.isArray(scene.cards) ? scene.cards.map((card, cidx) => ({
+                clientId: "card_" + idx + "_" + cidx + "_" + Date.now().toString(36),
+                cardId: card.cardId,
+                order: cidx + 1,
+                imageKey: card.imageKey,
+                imageUrl: card.imageUrl,
+                image: null
+            })) : [],
+            seq: (scene.cards || []).length
+        };
+        });
+        state.activeSceneId = state.scenes[0]?.clientId || null;
+        return true;
+    }
+
+    cancelStoryboardBtn?.addEventListener("click", () => {
+        handleLeaveAttempt();
+    });
+
+    saveStoryboardBtn?.addEventListener("click", async () => {
+        const scene = getActiveScene();
+        if (!scene) return;
+        if (!state.publicId) return alert("프로필 정보를 불러오지 못했습니다.");
+        const title = movieTitleInput ? movieTitleInput.value.trim() : "";
+        if (!title) return alert("작품 제목을 입력해주세요.");
+        try {
+            if (!state.projectId) {
+                const res = await authFetch(`/api/people/${encodeURIComponent(state.publicId)}/storyboard/projects`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                    body: JSON.stringify({ title })
+                });
+                if (!res.ok) throw new Error("PROJECT_CREATE_FAILED");
+                const project = await res.json().catch(() => null);
+                state.projectId = project?.projectId || project?.id || null;
+            } else {
+                await authFetch(`/api/people/${encodeURIComponent(state.publicId)}/storyboard/projects/${encodeURIComponent(state.projectId)}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ title })
+                });
+            }
+
+            if (scene && scriptEditor) {
+                scene.script = scriptEditor.innerHTML;
+            }
+
+            for (const targetScene of state.scenes) {
+                const payload = toScenePayload(targetScene);
+                const url = targetScene.sceneId
+                        ? `/api/people/${encodeURIComponent(state.publicId)}/storyboard/projects/${encodeURIComponent(state.projectId)}/scenes/${targetScene.sceneId}`
+                        : `/api/people/${encodeURIComponent(state.publicId)}/storyboard/projects/${encodeURIComponent(state.projectId)}/scenes`;
+                const method = targetScene.sceneId ? "PUT" : "POST";
+                const res = await authFetch(url, {
+                    method,
+                    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error("SAVE_FAILED");
+                const saved = await res.json();
+                applySavedScene(targetScene, saved);
+            }
+
+            await persistSceneOrder();
+            setDirty(false);
+            window.location.href = `/storyboard-view.html?projectId=${encodeURIComponent(state.projectId)}`;
+        } catch (e) {
+            console.error(e);
+            alert("저장 중 문제가 발생했습니다.");
+        }
+    });
+
+    deleteSceneBtn?.addEventListener("click", async () => {
+        if (state.scenes.length <= 1) return alert("최소 1개의 씬이 필요합니다.");
+        const scene = getActiveScene();
+        if (!scene) return;
+        const idx = state.scenes.findIndex(s => s.clientId === scene.clientId);
+        if (idx === -1) return;
+        try{
+            if (scene.sceneId && state.publicId && state.projectId) {
+                const res = await authFetch(`/api/people/${encodeURIComponent(state.publicId)}/storyboard/projects/${encodeURIComponent(state.projectId)}/scenes/${scene.sceneId}`, {
+                    method: "DELETE"
+                });
+                if (!res.ok) throw new Error("DELETE_FAILED");
+            }
+            state.scenes.splice(idx, 1);
+            const next = state.scenes[Math.max(0, idx - 1)];
+            state.activeSceneId = next ? next.clientId : null;
+            if (!state.activeSceneId) addScene();
+            renderAll();
+            setDirty();
+        }catch(e){
+            console.error(e);
+            alert("삭제 중 문제가 발생했습니다.");
+        }
+    });
+
+    // scene drag & drop reorder
+    let draggedSceneBtn = null;
+
+    function reorderScenesFromDOM(){
+        const buttons = Array.from(sceneTabs.querySelectorAll(".scene-tab")).filter(btn => !btn.classList.contains("scene-add"));
+        const ordered = buttons.map(btn => state.scenes.find(scene => scene.clientId === btn.dataset.sceneId)).filter(Boolean);
+        if (ordered.length === state.scenes.length) state.scenes = ordered;
+        renderAll();
+        setDirty();
+        persistSceneOrder();
+    }
+
+    sceneTabs?.addEventListener("dragstart", (e) => {
+        const btn = e.target.closest(".scene-tab");
+        if (!btn || btn.classList.contains("scene-add")) return;
+        draggedSceneBtn = btn;
+        btn.classList.add("active");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", btn.dataset.sceneId || "");
+    });
+
+    sceneTabs?.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        if (!draggedSceneBtn) return;
+        const target = e.target.closest(".scene-tab");
+        if (!target || target === draggedSceneBtn || target.classList.contains("scene-add")) return;
+        const rect = target.getBoundingClientRect();
+        const after = e.clientX > rect.left + rect.width / 2;
+        if (after) target.after(draggedSceneBtn);
+        else target.before(draggedSceneBtn);
+    });
+
+    sceneTabs?.addEventListener("drop", (e) => {
+        e.preventDefault();
+        if (!draggedSceneBtn) return;
+        draggedSceneBtn = null;
+        reorderScenesFromDOM();
+    });
+
+    sceneTabs?.addEventListener("dragend", () => {
+        if (!draggedSceneBtn) return;
+        draggedSceneBtn = null;
+        reorderScenesFromDOM();
+    });
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        if (state.initialized) return;
+        state.initialized = true;
+        window.addEventListener("dragover", (e) => e.preventDefault());
+        window.addEventListener("drop", (e) => e.preventDefault());
+
+        if (!window.OnfilmAuth?.restoreSession) return;
+        const result = await window.OnfilmAuth.restoreSession();
+        if (!result?.ok) {
+            const next = encodeURIComponent(location.pathname + location.search);
+            location.href = `/login.html?next=${next}`;
+            return;
+        }
+        const me = result.me;
+        const uname = me?.username ? String(me.username).trim() : "";
+        if (!uname) {
+            alert("사용자 정보를 불러오지 못했습니다.");
+            return;
+        }
+        if (backToProfileLink) {
+            backToProfileLink.href = "/storyboard.html";
+        }
+        try{
+            state.publicId = await fetchPublicIdByUsername(uname);
+            const params = new URLSearchParams(location.search);
+            const projectId = params.get("projectId");
+            if (projectId) {
+                const loaded = await loadProjectFromApi(projectId);
+                if (!loaded) {
+                    state.scenes = [];
+                    state.activeSceneId = null;
+                    addScene();
+                }
+                renderAll();
+                updateSaveState();
+                setDirty(false);
+                return;
+            }
+
+            state.projectId = null;
+            state.movieTitle = "";
+            if (movieTitleInput) movieTitleInput.value = "";
+            state.scenes = [];
+            state.activeSceneId = null;
+            addScene();
+            renderAll();
+            updateSaveState();
+            setDirty(false);
+        }catch(e){
+            console.error(e);
+            state.scenes = [];
+            state.activeSceneId = null;
+            addScene();
+            renderAll();
+            updateSaveState();
+            setDirty(false);
+        }
+    });
+
+    backToProfileLink?.addEventListener("click", (e) => {
+        e.preventDefault();
+        handleLeaveAttempt();
+    });
+
+    window.addEventListener("beforeunload", (e) => {
+        if (!hasAnyInput() || !state.dirty) return;
+        e.preventDefault();
+        e.returnValue = "";
+    });
+</script>
+</body>
+</html>

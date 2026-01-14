@@ -3,6 +3,7 @@ package com.onfilm.domain.common.error;
 import com.onfilm.domain.common.error.exception.InvalidProfileTagException;
 import com.onfilm.domain.common.error.exception.MovieNotFoundException;
 import com.onfilm.domain.common.error.exception.PersonNotFoundException;
+import com.onfilm.domain.common.error.exception.StoryboardProjectNotFoundException;
 import com.onfilm.domain.common.error.exception.StoryboardSceneNotFoundException;
 import com.onfilm.domain.common.error.exception.UserNotFoundException;
 import org.apache.coyote.Response;
@@ -58,6 +59,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleStoryboardSceneNotFound(StoryboardSceneNotFoundException e) {
         return ResponseEntity.status(NOT_FOUND)
                 .body(ErrorResponse.of("STORYBOARD_SCENE_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(StoryboardProjectNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleStoryboardProjectNotFound(StoryboardProjectNotFoundException e) {
+        return ResponseEntity.status(NOT_FOUND)
+                .body(ErrorResponse.of("STORYBOARD_PROJECT_NOT_FOUND", e.getMessage()));
     }
 
     @ExceptionHandler(InvalidProfileTagException.class)
