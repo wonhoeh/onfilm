@@ -13,6 +13,8 @@
             --line:rgba(255,255,255,.10);
             --accent:#7c5cff;
             --accent-2:#24d39a;
+            --link-blue:#5aa7ff;
+            --icon-ring: rgba(255,255,255,.75);
         }
         *{box-sizing:border-box;margin:0;padding:0;}
         body{
@@ -158,28 +160,39 @@
         .toolbar{
             display:flex;
             align-items:center;
-            justify-content:space-between;
+            justify-content:flex-end;
             gap:12px;
             margin-bottom:18px;
         }
-        .toolbar h1{
-            font-size:22px;
-            letter-spacing:-.4px;
-        }
         .primary-btn{
+            width:44px;
+            height:44px;
             border:0;
             background:linear-gradient(135deg, var(--accent), var(--accent-2));
             color:#fff;
-            padding:10px 16px;
-            border-radius:999px;
-            font-weight:600;
+            border-radius:50%;
+            font-weight:700;
+            font-size:22px;
             cursor:pointer;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
             box-shadow:0 8px 24px rgba(36,211,154,.25);
         }
         .grid{
             display:grid;
             grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
             gap:18px;
+            min-height: calc(100vh - 240px);
+        }
+        .grid.empty-mode{
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+        .grid.empty-mode .empty-cta{
+            max-width: 520px;
+            margin: 0 auto;
         }
         .project-card{
             background:#f7f4ee;
@@ -204,12 +217,74 @@
             font-size:20px;
             margin:0;
         }
-        .empty{
-            border:1px dashed rgba(255,255,255,.25);
-            border-radius:18px;
-            padding:40px 30px;
+        .empty-cta{
+            padding:42px 0 36px;
             text-align:center;
             color:var(--muted);
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            gap:12px;
+            width:100%;
+        }
+        .empty-cta-icon{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            text-decoration:none;
+            color:var(--text);
+        }
+        .empty-cta-ring{
+            width:72px;
+            height:72px;
+            border-radius:999px;
+            border:2px solid var(--icon-ring);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background: rgba(255,255,255,0.03);
+            transition: transform .14s ease, border-color .14s ease, background .14s ease;
+        }
+        .empty-cta-icon:hover .empty-cta-ring{
+            transform: translateY(-2px);
+            border-color: var(--link-blue);
+            background: rgba(90,167,255,0.12);
+        }
+        .empty-cta-ring svg{
+            width:30px;
+            height:30px;
+            stroke: rgba(255,255,255,.92);
+            fill:none;
+            stroke-width:1.8;
+            transition: stroke .14s ease;
+        }
+        .empty-cta-icon:hover svg{
+            stroke: var(--link-blue);
+        }
+        .empty-cta-title{
+            margin-top: 18px;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            color:var(--text);
+        }
+        .empty-cta-desc{
+            margin-top: 10px;
+            font-size: 13px;
+            color:var(--muted);
+            line-height: 1.65;
+        }
+        .empty-cta-link{
+            display:inline-block;
+            margin-top: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            color:var(--link-blue);
+            text-decoration:none;
+        }
+        .empty-cta-link:hover{
+            text-decoration:underline;
         }
     </style>
 </head>
@@ -225,8 +300,7 @@
 
     <main class="wrap">
         <div class="toolbar">
-            <h1>내 스토리보드 보관함</h1>
-            <button type="button" class="primary-btn" id="createProjectBtn">새 프로젝트</button>
+            <button type="button" class="primary-btn" id="createProjectBtn" aria-label="새 프로젝트 추가">+</button>
         </div>
 
         <div id="projectList" class="grid"></div>
@@ -269,7 +343,7 @@
           <div class="profile-group-title">${displayName}</div>
 
           <button type="button" class="profile-item" data-action="actor-page">
-            내 배우 페이지
+            프로필
             <span>프로필 보기</span>
           </button>
 
@@ -302,11 +376,6 @@
           <button type="button" class="profile-item" data-action="storyboard-edit">
             스토리보드 편집
             <span>대본/컷 작업</span>
-          </button>
-
-          <button type="button" class="profile-item" data-action="storyboard-view">
-            완성본 보기
-            <span>PDF 느낌 보기</span>
           </button>
 
           <div class="profile-divider"></div>
@@ -399,7 +468,6 @@
                 if (action === "edit-gallery") { window.location.href = "edit-gallery.html"; return; }
                 if (action === "storyboard-projects") { window.location.href = "storyboard.html"; return; }
                 if (action === "storyboard-edit") { window.location.href = "edit-storyboard.html"; return; }
-                if (action === "storyboard-view") { window.location.href = "storyboard-view.html"; return; }
                 if (action === "account-settings") { window.location.href = "account-settings.html"; return; }
                 if (action === "logout") {
                     await window.OnfilmAuth.logout();
@@ -441,10 +509,22 @@
     }
 
     function renderEmpty(){
+        projectList.classList.add("empty-mode");
         projectList.innerHTML = `
-            <div class="empty">
-                아직 저장된 스토리보드가 없습니다.<br/>
-                새 프로젝트를 만들어 시작해보세요.
+            <div class="empty-cta">
+                <a class="empty-cta-icon" href="/edit-storyboard.html" aria-label="스토리보드 등록하기">
+                    <span class="empty-cta-ring">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 4.5h8.2a2.3 2.3 0 0 1 2.3 2.3v12.7H8.5A2.5 2.5 0 0 0 6 22V4.5Z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 7.2H18a2 2 0 0 1 2 2v10.6H8.5A2.5 2.5 0 0 0 6 22h11.5"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.5 8.6h6.2M8.5 11.6h6.2M8.5 14.6h6.2"/>
+                      </svg>
+                    </span>
+                </a>
+
+                <div class="empty-cta-title">스토리보드 업로드</div>
+                <div class="empty-cta-desc">스토리보드를 등록하면 보관함에 표시됩니다</div>
+                <a class="empty-cta-link" href="/edit-storyboard.html">첫 스토리보드 등록하기</a>
             </div>
         `;
     }
@@ -454,6 +534,7 @@
             renderEmpty();
             return;
         }
+        projectList.classList.remove("empty-mode");
         projectList.innerHTML = projects.map(project => {
             return `
                 <article class="project-card" data-project-id="${project.projectId}">
