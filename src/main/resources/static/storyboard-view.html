@@ -222,6 +222,7 @@
             .replace(/'/g, "&#39;");
     }
 
+
     async function fetchPublicIdByUsername(username){
         const res = await authFetch(`/api/person/${encodeURIComponent(username)}`, {
             headers: { "Accept": "application/json" }

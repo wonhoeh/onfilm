@@ -552,6 +552,10 @@
         outline:none;
         overflow:auto;
         flex:1;
+        tab-size: 4;
+        -moz-tab-size: 4;
+        white-space: pre-wrap;
+        word-break: break-word;
     }
         .editor:empty:before{
             content: attr(data-placeholder);
@@ -709,30 +713,36 @@
                     </div>
                     <div class="script-body">
                         <div class="toolbar">
-                            <select id="fontSelect" aria-label="폰트 선택">
-                                <option value="Noto Sans KR">Noto Sans KR</option>
-                                <option value="Nanum Gothic">Nanum Gothic</option>
-                                <option value="Nanum Myeongjo">Nanum Myeongjo</option>
-                                <option value="Malgun Gothic">Malgun Gothic</option>
-                                <option value="sans-serif">Sans Serif</option>
-                            </select>
-                            <select id="fontSizeSelect" aria-label="글자 크기">
-                                <option value="2">12px</option>
-                                <option value="3" selected>14px</option>
-                                <option value="4">16px</option>
-                                <option value="5">18px</option>
-                            </select>
-                            <select id="lineHeightSelect" aria-label="줄간격">
-                                <option value="1.4">1.4</option>
-                                <option value="1.6" selected>1.6</option>
-                                <option value="1.8">1.8</option>
-                                <option value="2">2.0</option>
-                            </select>
-                            <button type="button" data-cmd="bold">굵게</button>
-                            <button type="button" data-cmd="italic">기울기</button>
-                            <button type="button" data-cmd="justifyLeft">왼쪽 정렬</button>
-                            <button type="button" data-cmd="justifyCenter">가운데 정렬</button>
-                            <button type="button" data-cmd="justifyRight">오른쪽 정렬</button>
+                            <button type="button" data-block="h1">H1</button>
+                            <button type="button" data-block="h2">H2</button>
+                            <button type="button" data-block="h3">H3</button>
+                            <button type="button" data-cmd="indent" title="들여쓰기" aria-label="들여쓰기">↦</button>
+                            <button type="button" data-cmd="outdent" title="내어쓰기" aria-label="내어쓰기">↤</button>
+                            <button type="button" data-cmd="bold" title="굵게" aria-label="굵게">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" aria-hidden="true">
+                                  <path stroke-linejoin="round" d="M6.75 3.744h-.753v8.25h7.125a4.125 4.125 0 0 0 0-8.25H6.75Zm0 0v.38m0 16.122h6.747a4.5 4.5 0 0 0 0-9.001h-7.5v9h.753Zm0 0v-.37m0-15.751h6a3.75 3.75 0 1 1 0 7.5h-6m0-7.5v7.5m0 0v8.25m0-8.25h6.375a4.125 4.125 0 0 1 0 8.25H6.75m.747-15.38h4.875a3.375 3.375 0 0 1 0 6.75H7.497v-6.75Zm0 7.5h5.25a3.75 3.75 0 0 1 0 7.5h-5.25v-7.5Z" />
+                                </svg>
+                            </button>
+                            <button type="button" data-cmd="italic" title="기울기" aria-label="기울기">
+                                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                    <path d="M10 5h8M6 19h8M14 5l-4 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </button>
+                            <button type="button" data-cmd="justifyLeft" title="왼쪽 정렬" aria-label="왼쪽 정렬">
+                                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                    <path d="M4 6h16M4 10h12M4 14h16M4 18h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </button>
+                            <button type="button" data-cmd="justifyCenter" title="가운데 정렬" aria-label="가운데 정렬">
+                                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                    <path d="M4 6h16M6 10h12M4 14h16M6 18h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </button>
+                            <button type="button" data-cmd="justifyRight" title="오른쪽 정렬" aria-label="오른쪽 정렬">
+                                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                    <path d="M4 6h16M8 10h12M4 14h16M8 18h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </button>
                         </div>
                         <div id="scriptEditor" class="editor" contenteditable="true" aria-label="대본 입력 영역" data-placeholder="전체 대본을 입력하세요. 스크롤하며 읽을 수 있습니다."></div>
                         <div class="script-help">
@@ -835,9 +845,6 @@
     const sceneTabs = document.getElementById("sceneTabs");
     const sceneTitleDisplay = document.getElementById("sceneTitleDisplay");
     const deleteSceneBtn = document.getElementById("deleteSceneBtn");
-    const fontSelect = document.getElementById("fontSelect");
-    const fontSizeSelect = document.getElementById("fontSizeSelect");
-    const lineHeightSelect = document.getElementById("lineHeightSelect");
     const movieTitleInput = document.getElementById("movieTitleInput");
     const pdfSaveBtn = document.getElementById("pdfSaveBtn");
     const cancelStoryboardBtn = document.getElementById("cancelStoryboardBtn");
@@ -872,6 +879,7 @@
         saveStoryboardBtn.disabled = !ready;
     }
 
+
     function setDirty(value = true){
         state.dirty = value;
     }
@@ -899,6 +907,7 @@
         const ok = window.confirm("이 페이지를 벗어나면 수정된 내용은 저장되지 않습니다.");
         if (ok) window.location.href = "/storyboard.html";
     }
+
 
     function nextSceneId(){
         state.sceneSeq += 1;
@@ -1199,6 +1208,14 @@
         setDirty();
     });
 
+    scriptEditor?.addEventListener("keydown", (e) => {
+        if (e.key !== "Tab") return;
+        e.preventDefault();
+        document.execCommand("insertText", false, "\t");
+        setDirty();
+    });
+
+
     // drag & drop reorder
     let draggedPair = null;
 
@@ -1328,6 +1345,7 @@
         document.execCommand(cmd, false, value);
     }
 
+
     function arrayBufferToBase64(buffer){
         const bytes = new Uint8Array(buffer);
         const chunkSize = 0x8000;
@@ -1351,17 +1369,12 @@
         pdf.setFont("NotoSansKR", "normal");
     }
 
-    fontSelect?.addEventListener("change", (e) => {
-        applyCommand("fontName", e.target.value);
-    });
-
-    fontSizeSelect?.addEventListener("change", (e) => {
-        applyCommand("fontSize", e.target.value);
-    });
-
-    lineHeightSelect?.addEventListener("change", (e) => {
-        if (!scriptEditor) return;
-        scriptEditor.style.lineHeight = e.target.value;
+    document.querySelectorAll(".toolbar [data-block]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const tag = btn.getAttribute("data-block");
+            if (!tag) return;
+            applyCommand("formatBlock", tag.toUpperCase());
+        });
     });
 
     document.querySelectorAll(".toolbar [data-cmd]").forEach((btn) => {
@@ -1543,10 +1556,6 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ title })
                 });
-            }
-
-            if (scene && scriptEditor) {
-                scene.script = scriptEditor.innerHTML;
             }
 
             for (const targetScene of state.scenes) {
