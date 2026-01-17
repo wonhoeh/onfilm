@@ -162,13 +162,26 @@
             font-size:18px;
             letter-spacing:-.2px;
             color:var(--text);
+            display:flex;
+            align-items:center;
+            gap:8px;
         }
-        .scene-title-display span{
+        .scene-title-display .scene-number{
             display:inline-block;
             padding:6px 10px;
             border-radius:999px;
             border:1px solid rgba(255,255,255,.12);
             background: rgba(255,255,255,.03);
+            font-weight:700;
+        }
+        .scene-title-display .scene-title-input{
+            border:none;
+            background:transparent;
+            color:var(--text);
+            font-size:18px;
+            outline:none;
+            padding:4px 0;
+            min-width:160px;
         }
         .delete-scene{
             width:36px;
@@ -697,7 +710,8 @@
             </div>
 
             <div class="scene-title-display">
-                <span id="sceneTitleDisplay" contenteditable="true" spellcheck="false"></span>
+                <span class="scene-number" id="sceneNumberDisplay">#1</span>
+                <input id="sceneTitleInput" class="scene-title-input" type="text" placeholder="씬 제목을 입력해주세요" />
             </div>
 
             <div class="board-layout">
@@ -708,7 +722,7 @@
                 <section class="script" id="scriptPanel">
                     <div class="script-head">
                         <div class="left">
-                            <div class="v" id="scriptSceneLabel">#1 새 씬</div>
+                            <div class="v" id="scriptSceneLabel"></div>
                         </div>
                     </div>
                     <div class="script-body">
@@ -843,7 +857,8 @@
     const addTpl = document.getElementById("addCardTpl");
     const scriptEditor = document.getElementById("scriptEditor");
     const sceneTabs = document.getElementById("sceneTabs");
-    const sceneTitleDisplay = document.getElementById("sceneTitleDisplay");
+    const sceneNumberDisplay = document.getElementById("sceneNumberDisplay");
+    const sceneTitleInput = document.getElementById("sceneTitleInput");
     const deleteSceneBtn = document.getElementById("deleteSceneBtn");
     const movieTitleInput = document.getElementById("movieTitleInput");
     const pdfSaveBtn = document.getElementById("pdfSaveBtn");
@@ -1291,12 +1306,22 @@
         sceneTabs.appendChild(addBtn);
     }
 
+    function normalizeSceneTitle(value){
+        const raw = String(value || "");
+        const stripped = raw.replace(/^#\d+\s*/, "");
+        return stripped;
+    }
+
     function renderSceneTitle(){
         const scene = getActiveScene();
-        if (!sceneTitleDisplay) return;
-        sceneTitleDisplay.textContent = scene ? scene.title : "";
+        const idx = scene ? state.scenes.indexOf(scene) : -1;
+        const numberText = idx >= 0 ? `#${idx + 1}` : "#";
+        const rawTitle = scene ? normalizeSceneTitle(scene.title) : "";
+        const titleForLabel = rawTitle.trim() || "";
+        if (sceneNumberDisplay) sceneNumberDisplay.textContent = numberText;
+        if (sceneTitleInput) sceneTitleInput.value = rawTitle;
         if (scriptSceneLabel) {
-            scriptSceneLabel.textContent = scene ? scene.title : "대본";
+            scriptSceneLabel.textContent = `${numberText} ${titleForLabel}`.trim();
         }
     }
 
@@ -1314,7 +1339,7 @@
         const scene = {
             clientId: nextSceneId(),
             sceneId: null,
-            title: `#${sceneNumber} 새 씬`,
+            title: "",
             script: "",
             items: [],
             seq: 0
@@ -1325,11 +1350,17 @@
         renderAll();
     }
 
-    sceneTitleDisplay?.addEventListener("input", (e) => {
+    sceneTitleInput?.addEventListener("input", (e) => {
         const scene = getActiveScene();
         if (!scene) return;
-        const text = e.target.textContent || "";
-        scene.title = text.trim() || scene.title;
+        const text = e.target.value || "";
+        scene.title = text;
+        const idx = state.scenes.indexOf(scene);
+        const numberText = idx >= 0 ? `#${idx + 1}` : "#";
+        const titleForLabel = text.trim() || "";
+        if (scriptSceneLabel) {
+            scriptSceneLabel.textContent = `${numberText} ${titleForLabel}`.trim();
+        }
         setDirty();
     });
 
@@ -1508,8 +1539,7 @@
         const sorted = [...scenes].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
         state.scenes = sorted.map((scene, idx) => {
             const rawTitle = (scene.title || "").trim();
-            const defaultTitle = `#${idx + 1} 새 씬`;
-            const title = (!rawTitle || /^#\d+\s*새 씬$/.test(rawTitle)) ? defaultTitle : rawTitle;
+            const title = normalizeSceneTitle(rawTitle);
             return {
             clientId: nextSceneId(),
             sceneId: scene.sceneId,
