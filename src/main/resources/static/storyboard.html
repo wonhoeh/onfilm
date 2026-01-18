@@ -181,9 +181,16 @@
         }
         .grid{
             display:grid;
-            grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
-            gap:18px;
+            grid-template-columns:repeat(3, minmax(0, 1fr));
+            gap:20px;
             min-height: calc(100vh - 240px);
+            justify-items:center;
+        }
+        @media (max-width: 980px){
+            .grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 640px){
+            .grid{ grid-template-columns:1fr; }
         }
         .grid.empty-mode{
             display:flex;
@@ -203,7 +210,8 @@
             cursor:pointer;
             position:relative;
             overflow:hidden;
-            min-height:220px;
+            aspect-ratio:16/9;
+            width:380px;
             display:flex;
             align-items:center;
             justify-content:center;
@@ -216,6 +224,17 @@
         .project-card h3{
             font-size:20px;
             margin:0;
+        }
+        .project-item{
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            gap:6px;
+            width:100%;
+        }
+        .project-updated{
+            font-size:11px;
+            color:var(--muted);
         }
         .empty-cta{
             padding:42px 0 36px;
@@ -536,10 +555,15 @@
         }
         projectList.classList.remove("empty-mode");
         projectList.innerHTML = projects.map(project => {
+            const updatedIso = localStorage.getItem(`onfilm.storyboard.updated.${project.projectId}`) || "";
+            const updatedText = formatUpdatedAt(updatedIso);
             return `
-                <article class="project-card" data-project-id="${project.projectId}">
-                    <h3>${escapeHtml(project.title || "제목 없음")}</h3>
-                </article>
+                <div class="project-item">
+                    <article class="project-card" data-project-id="${project.projectId}">
+                        <h3>${escapeHtml(project.title || "제목 없음")}</h3>
+                    </article>
+                    <div class="project-updated">${escapeHtml(updatedText)}</div>
+                </div>
             `;
         }).join("");
     }
@@ -551,6 +575,18 @@
             .replace(/>/g, "&gt;")
             .replace(/\"/g, "&quot;")
             .replace(/'/g, "&#39;");
+    }
+
+    function formatUpdatedAt(iso){
+        if (!iso) return "";
+        const dt = new Date(iso);
+        if (Number.isNaN(dt.getTime())) return "";
+        const y = dt.getFullYear();
+        const m = dt.getMonth() + 1;
+        const d = dt.getDate();
+        const hh = String(dt.getHours()).padStart(2, "0");
+        const mm = String(dt.getMinutes()).padStart(2, "0");
+        return `수정한 날짜: ${y}·${m}·${d}·${hh}:${mm}`;
     }
 
 

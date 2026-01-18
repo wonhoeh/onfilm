@@ -48,6 +48,22 @@ public class LocalStorageService implements StorageService {
     }
 
     @Override
+    public String save(String key, Path source) {
+        if (source == null) throw new IllegalArgumentException("EMPTY_FILE");
+
+        Path target = rootPath.resolve(key).normalize();
+        if (!target.startsWith(rootPath)) throw new SecurityException("INVALID_PATH");
+
+        try {
+            Files.createDirectories(target.getParent());
+            Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+            return key;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @Override
     public void delete(String key) {
         Path target = rootPath.resolve(key).normalize();
         if (!target.startsWith(rootPath)) throw new SecurityException("INVALID_PATH");

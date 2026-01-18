@@ -2,12 +2,20 @@ package com.onfilm.domain.file.service;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Path;
+
 public interface StorageService {
     /**
      * @param key  예: gallery/1/uuid.jpg
      * @return 저장된 key 그대로 반환하거나, 필요하면 정규화된 key 반환
      */
     String save(String key, MultipartFile file);
+
+    /**
+     * @param key  예: gallery/1/uuid.jpg
+     * @return 저장된 key 그대로 반환하거나, 필요하면 정규화된 key 반환
+     */
+    String save(String key, Path source);
 
     void delete(String key);
 

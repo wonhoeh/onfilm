@@ -586,18 +586,6 @@
             gap:10px;
             flex-wrap:wrap;
         }
-        .chip{
-            display:inline-flex;
-            align-items:center;
-            gap:6px;
-            padding:6px 10px;
-            border-radius:999px;
-            border:1px solid rgba(255,255,255,.10);
-            background: rgba(255,255,255,.03);
-            color: var(--muted);
-            font-size:12px;
-            user-select:none;
-        }
         .ghost-btn,
         .primary-btn{
             min-width:90px;
@@ -760,7 +748,6 @@
                         </div>
                         <div id="scriptEditor" class="editor" contenteditable="true" aria-label="대본 입력 영역" data-placeholder="전체 대본을 입력하세요. 스크롤하며 읽을 수 있습니다."></div>
                         <div class="script-help">
-                            <span class="chip">TIP: “VO / OS / SFX” 같은 표기를 섞어도 좋아요</span>
                         </div>
                     </div>
                 </section>
@@ -1606,6 +1593,11 @@
 
             await persistSceneOrder();
             setDirty(false);
+            try{
+                if (state.projectId) {
+                    localStorage.setItem(`onfilm.storyboard.updated.${state.projectId}`, new Date().toISOString());
+                }
+            }catch(_){}
             window.location.href = `/storyboard-view.html?projectId=${encodeURIComponent(state.projectId)}`;
         } catch (e) {
             console.error(e);
