@@ -6,10 +6,7 @@ import com.onfilm.domain.common.error.exception.StoryboardProjectNotFoundExcepti
 import com.onfilm.domain.common.error.exception.StoryboardSceneNotFoundException;
 import com.onfilm.domain.common.util.SecurityUtil;
 import com.onfilm.domain.file.service.StorageService;
-import com.onfilm.domain.movie.dto.ProfileResponse;
-import com.onfilm.domain.movie.dto.StoryboardProjectRequest;
-import com.onfilm.domain.movie.dto.StoryboardProjectSummaryResponse;
-import com.onfilm.domain.movie.dto.StoryboardSceneRequest;
+import com.onfilm.domain.movie.dto.*;
 import com.onfilm.domain.movie.entity.Movie;
 import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.movie.entity.StoryboardCard;
@@ -23,6 +20,8 @@ import com.onfilm.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -101,16 +100,16 @@ public class PersonReadService {
         return person.isGalleryPrivate();
     }
 
-    public java.util.List<Person.GalleryItem> findGalleryItemsByPublicId(String publicId) {
+    public List<Person.GalleryItem> findGalleryItemsByPublicId(String publicId) {
         Person person = personRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new PersonNotFoundException(publicId));
-        return new java.util.ArrayList<>(person.getGalleryItems());
+        return new ArrayList<>(person.getGalleryItems());
     }
 
-    public java.util.List<StoryboardProjectSummaryResponse> findStoryboardProjectsByPublicId(String publicId) {
+    public List<StoryboardProjectSummaryResponse> findStoryboardProjectsByPublicId(String publicId) {
         Person person = personRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new PersonNotFoundException(publicId));
-        java.util.List<StoryboardProjectSummaryResponse> responses = new java.util.ArrayList<>();
+        List<StoryboardProjectSummaryResponse> responses = new ArrayList<>();
         for (StoryboardProject project : person.getStoryboardProjects()) {
             String preview = extractPreview(project);
             responses.add(new StoryboardProjectSummaryResponse(
@@ -221,8 +220,8 @@ public class PersonReadService {
         StoryboardScene scene = new StoryboardScene(title, script);
         scene.attachProject(project);
 
-        java.util.List<String> imageKeys = (request == null || request.cards() == null)
-                ? java.util.List.of()
+        List<String> imageKeys = (request == null || request.cards() == null)
+                ? List.of()
                 : request.cards().stream()
                 .map(card -> card.imageKey())
                 .filter(key -> key != null && !key.isBlank())
@@ -249,16 +248,16 @@ public class PersonReadService {
             scene.updateScriptHtml(request.scriptHtml());
         }
 
-        java.util.Map<Long, StoryboardCard> existing = new java.util.LinkedHashMap<>();
+        Map<Long, StoryboardCard> existing = new LinkedHashMap<>();
         for (StoryboardCard card : scene.getCards()) {
             existing.put(card.getId(), card);
         }
 
-        java.util.List<StoryboardCard> next = new java.util.ArrayList<>();
-        java.util.Set<Long> kept = new java.util.HashSet<>();
+        List<StoryboardCard> next = new ArrayList<>();
+        Set<Long> kept = new HashSet<>();
 
         if (request != null && request.cards() != null) {
-            for (var cardReq : request.cards()) {
+            for (StoryboardCardRequest cardReq : request.cards()) {
                 StoryboardCard card = null;
                 if (cardReq.cardId() != null) {
                     card = existing.get(cardReq.cardId());
@@ -308,18 +307,18 @@ public class PersonReadService {
     }
 
     @Transactional
-    public void reorderStoryboardScenes(Long personId, Long projectId, java.util.List<Long> sceneIds) {
+    public void reorderStoryboardScenes(Long personId, Long projectId, List<Long> sceneIds) {
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         StoryboardProject project = findStoryboardProject(person, projectId);
         if (sceneIds == null) return;
 
-        java.util.Map<Long, StoryboardScene> byId = new java.util.LinkedHashMap<>();
+        Map<Long, StoryboardScene> byId = new LinkedHashMap<>();
         for (StoryboardScene scene : project.getScenes()) {
             byId.putIfAbsent(scene.getId(), scene);
         }
 
-        java.util.List<StoryboardScene> reordered = new java.util.ArrayList<>();
+        List<StoryboardScene> reordered = new ArrayList<>();
         for (Long id : sceneIds) {
             StoryboardScene scene = byId.remove(id);
             if (scene != null) reordered.add(scene);
@@ -378,7 +377,7 @@ public class PersonReadService {
         String thumbnailKey = movie.getThumbnailUrl();
         String movieKey = movie.getMovieUrl();
 
-        java.util.List<String> trailerKeys = movie.getTrailers().stream()
+        List<String> trailerKeys = movie.getTrailers().stream()
                 .map(Trailer::getUrl)
                 .filter(k -> k != null && !k.isBlank())
                 .toList();
@@ -416,7 +415,7 @@ public class PersonReadService {
     public void deleteMovieTrailers(Long movieId) {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new MovieNotFoundException(movieId));
-        java.util.List<String> keys = movie.getTrailers().stream()
+        List<String> keys = movie.getTrailers().stream()
                 .map(Trailer::getUrl)
                 .filter(k -> k != null && !k.isBlank())
                 .toList();

@@ -27,7 +27,7 @@ public class MovieService {
 
     private final MovieRepository movieRepository;
     private final UserRepository userRepository;
-    private final MovieGenreFactory movieGenreFactory;
+    private final MovieGenreNormalizer movieGenreNormalizer;
     private final MoviePersonRepository moviePersonRepository;
     private final PersonRepository personRepository;
 
@@ -66,7 +66,7 @@ public class MovieService {
         mp.updateSortOrder(max == null ? 0 : max + 1);
 
         // 장르는 도메인 서비스(팩토리)로만 부착
-        movieGenreFactory.attachGenre(movie, request.getRawGenreTexts());
+        movieGenreNormalizer.attachGenre(movie, request.getRawGenreTexts());
 
         Movie saved = movieRepository.save(movie);
         return saved.getId();
@@ -104,7 +104,7 @@ public class MovieService {
                 );
 
                 movie.clearGenres();
-                movieGenreFactory.attachGenre(movie, item.rawGenreTexts());
+                movieGenreNormalizer.attachGenre(movie, item.rawGenreTexts());
 
                 mp.updateRole(item.role(), item.castType(), item.characterName());
                 mp.updateSortOrder(i);
@@ -137,7 +137,7 @@ public class MovieService {
             createdMp.updateSortOrder(i);
             createdMp.updatePrivate(item.isPrivate());
 
-            movieGenreFactory.attachGenre(movie, item.rawGenreTexts());
+            movieGenreNormalizer.attachGenre(movie, item.rawGenreTexts());
 
             Movie saved = movieRepository.save(movie);
             Long savedId = saved.getId();

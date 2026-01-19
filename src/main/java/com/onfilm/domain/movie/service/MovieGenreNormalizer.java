@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class MovieGenreFactory {
+public class MovieGenreNormalizer {
 
     private final GenreRepository genreRepository;
 

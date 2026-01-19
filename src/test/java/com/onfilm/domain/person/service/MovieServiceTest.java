@@ -6,7 +6,7 @@ import com.onfilm.domain.common.util.SecurityUtil;
 import com.onfilm.domain.movie.dto.CreateMovieRequest;
 import com.onfilm.domain.movie.entity.*;
 import com.onfilm.domain.movie.repository.MovieRepository;
-import com.onfilm.domain.movie.service.MovieGenreFactory;
+import com.onfilm.domain.movie.service.MovieGenreNormalizer;
 import com.onfilm.domain.movie.service.MovieService;
 import com.onfilm.domain.user.entity.User;
 import com.onfilm.domain.user.repository.UserRepository;
@@ -29,7 +29,8 @@ public class MovieServiceTest {
 
     @Mock MovieRepository movieRepository;
     @Mock UserRepository userRepository;
-    @Mock MovieGenreFactory movieGenreFactory;
+    @Mock
+    MovieGenreNormalizer movieGenreNormalizer;
 
     @InjectMocks
     MovieService movieService;
@@ -79,7 +80,7 @@ public class MovieServiceTest {
             assertThat(resultId).isEqualTo(10L);
 
             // 1) 장르 부착 호출 확인
-            then(movieGenreFactory).should(times(1))
+            then(movieGenreNormalizer).should(times(1))
                     .attachGenre(movieCaptor.capture(), eq(rawGenres));
 
             // 2) 저장 호출 확인

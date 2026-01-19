@@ -62,10 +62,10 @@ public class Movie {
 
         this.title = title;
         this.runtime = runtime;
-        this.ageRating = ageRating;
         this.releaseYear = releaseYear;
         this.movieUrl = movieUrl;
         this.thumbnailUrl = thumbnailUrl;
+        this.ageRating = ageRating;
     }
 
     public static Movie create(
@@ -126,6 +126,7 @@ public class Movie {
                         (x.getCastType() == moviePerson.getCastType()) &&
                         Objects.equals(x.getCharacterName(), moviePerson.getCharacterName())
         );
+
         if (duplicated) return; // or throw new XXX
 
         moviePerson.attachMovie(this);         // 배우 필모에 this 영화 추가

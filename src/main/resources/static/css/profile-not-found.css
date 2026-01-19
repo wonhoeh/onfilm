@@ -1,0 +1,62 @@
+
+    :root{
+      --bg:#0b0c0f;
+      --panel:#12131a;
+      --text:#e7e8ee;
+      --muted:#9aa0ad;
+      --line:rgba(255,255,255,.12);
+      --accent:#7c5cff;
+      --shadow:0 10px 40px rgba(0,0,0,.55);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;
+      background:
+              radial-gradient(900px 400px at 80% 0%, rgba(124,92,255,.2), transparent 60%),
+              radial-gradient(700px 350px at 10% 10%, rgba(36,211,154,.15), transparent 60%),
+              var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+    .card{
+      width:min(720px,92vw);
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:28px;
+      text-align:center;
+    }
+    .title{
+      font-size:22px;
+      font-weight:800;
+    }
+    .desc{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.6;
+    }
+    .hint{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .actions{
+      margin-top:18px;
+      display:flex;
+      justify-content:center;
+    }
+    .text-link{
+      font-size:14px;
+      color:#69a7ff;
+      text-decoration:none;
+    }
+    .text-link:hover{
+      text-decoration:underline;
+    }
+  
