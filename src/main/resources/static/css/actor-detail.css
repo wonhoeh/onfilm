@@ -44,10 +44,6 @@
                     radial-gradient(700px 350px at 10% 10%, rgba(36,211,154,.15), transparent 60%),
                     var(--bg);
         }
-        .container{
-            width:min(1100px,92vw);
-            margin:0 auto;
-        }
 
         main.container{ flex: 1; }
 
@@ -740,23 +736,6 @@
             font-size:18px;
             color:var(--text);
             text-decoration:none;
-        }
-
-        .login-btn{
-            padding:6px 14px;
-            font-size:13px;
-            border-radius:999px;
-            border:1px solid var(--line);
-            background:rgba(255,255,255,0.06);
-            color:var(--text);
-            cursor:pointer;
-            font-weight:600;
-            transition:background .15s ease, border-color .15s ease, transform .12s ease;
-        }
-        .login-btn:hover{
-            background:rgba(124,92,255,0.22);
-            border-color:var(--accent);
-            transform:translateY(-1px);
         }
 
         /* 로그인 오버레이 */

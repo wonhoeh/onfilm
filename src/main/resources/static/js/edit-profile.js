@@ -26,26 +26,24 @@
         return uname || null;
     }
 
-    // ✅ /api/person/{username} -> { publicId: "..." }
-    async function fetchPublicIdByUsername(username) {
-        const res = await window.OnfilmAuth.apiFetchWithAutoRefresh(
-            `/api/person/${encodeURIComponent(username)}`,
-            { method:"GET", headers:{ "Accept":"application/json" } }
-        );
-        if (!res.ok) return null;
-        const data = await res.json().catch(() => null);
-        return data?.publicId != null ? String(data.publicId) : null;
-    }
+    // ✅ /api/person/{username} -> publicId
+    const fetchPublicIdByUsername = async (username) => {
+        try {
+            const id = await window.OnfilmCommon.fetchPublicIdByUsername(username);
+            return id ? String(id) : null;
+        } catch (_) {
+            return null;
+        }
+    };
 
     // ✅ /api/people/{publicId} -> person
-    async function fetchPersonByPublicId(publicId) {
-        const res = await window.OnfilmAuth.apiFetchWithAutoRefresh(
-            `/api/people/${encodeURIComponent(publicId)}`,
-            { method:"GET", headers:{ "Accept":"application/json" } }
-        );
-        if (!res.ok) return null;
-        return await res.json().catch(() => null);
-    }
+    const fetchPersonByPublicId = async (publicId) => {
+        try {
+            return await window.OnfilmCommon.fetchPersonByPublicId(publicId);
+        } catch (_) {
+            return null;
+        }
+    };
 
     function personHasAnyContent(p) {
         return !!(p?.name && String(p.name).trim())
@@ -689,4 +687,3 @@
     // 전체 드롭 기본 동작 방지(페이지 이동 방지)
     window.addEventListener("dragover", (e) => e.preventDefault());
     window.addEventListener("drop", (e) => e.preventDefault());
-

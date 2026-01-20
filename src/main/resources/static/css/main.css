@@ -24,7 +24,6 @@
         }
 
         a{text-decoration:none;color:inherit;}
-        .container{width:min(1100px,92vw);margin:0 auto;}
 
         /* HEADER */
         header{
@@ -108,7 +107,6 @@
             width:100vw;left:50%;margin-left:-50vw;position:relative;
             padding:0 50px;margin-top:28px;
         }
-        .section-title{font-size:18px;font-weight:800;margin-bottom:12px;}
 
         /* SLIDER */
         .slider-container{position:relative;margin-bottom:40px;}

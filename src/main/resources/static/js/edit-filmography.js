@@ -75,37 +75,12 @@
   async function resolvePublicIdByUsername(username) {
     const uname = String(username || "").trim();
     if (!uname) return null;
-
-    const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
-            ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
-            : fetch;
-
-    const res = await fetcher(`/api/person/${encodeURIComponent(uname)}`, {
-      method: "GET",
-      headers: { "Accept": "application/json" }
-    });
-
-    if (!res.ok) return null;
-
-    const ct = res.headers.get("content-type") || "";
-    if (ct.includes("application/json")) {
-      const data = await res.json().catch(() => null);
-      if (typeof data === "string") return data.trim() || null;
-
-      const candidates = [
-        data?.publicId,
-        data?.id,
-        data?.personPublicId,
-        data?.personId,
-        data?.data?.publicId,
-        data?.data?.id,
-      ].filter(Boolean);
-
-      return candidates.length ? String(candidates[0]).trim() : null;
+    try {
+      const id = await window.OnfilmCommon.fetchPublicIdByUsername(uname);
+      return id ? String(id).trim() : null;
+    } catch (_) {
+      return null;
     }
-
-    const text = await res.text().catch(() => "");
-    return text.trim() || null;
   }
 
   async function fetchFilmographyByPublicId(publicId) {
@@ -124,15 +99,11 @@
   }
 
   async function fetchProfileByPublicId(publicId) {
-    const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
-            ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
-            : fetch;
-    const res = await fetcher(`/api/people/${encodeURIComponent(publicId)}`, {
-      method: "GET",
-      headers: { "Accept": "application/json" }
-    });
-    if (!res.ok) return null;
-    return await res.json().catch(() => null);
+    try {
+      return await window.OnfilmCommon.fetchPersonByPublicId(publicId);
+    } catch (_) {
+      return null;
+    }
   }
 
   /* ============================
@@ -1136,4 +1107,3 @@
   }
 
   document.addEventListener("DOMContentLoaded", main);
-

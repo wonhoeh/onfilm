@@ -9,18 +9,18 @@
     <link rel="stylesheet" href="/css/edit-gallery.css">
 </head>
 
-<body>
-<div class="page-shell">
-  <header>
-    <div class="header-inner">
+<body class="ui-body bg-fixed">
+<div class="page-shell centered">
+  <header class="top-header">
+    <div class="header-inner page-inner">
       <a href="#" class="back-link" id="backToProfileLink">← 프로필로 돌아가기</a>
       <div class="header-title">사진 갤러리 편집</div>
       <div style="width:70px;"></div>
     </div>
   </header>
 
-  <main>
-    <section class="edit-card">
+  <main class="page-main">
+    <section class="edit-card card-surface">
       <div>
         <div class="section-title">사진 갤러리</div>
         <div class="section-hint">
@@ -40,8 +40,8 @@
           </div>
 
           <div class="upload-actions">
-            <button type="button" id="browseBtn" class="btn primary">파일 선택</button>
-            <button type="button" id="clearAllBtn" class="btn">전체 비우기</button>
+            <button type="button" id="browseBtn" class="btn pill primary">파일 선택</button>
+            <button type="button" id="clearAllBtn" class="btn pill">전체 비우기</button>
           </div>
 
           <input id="fileInput" class="hidden-input" type="file" accept="image/*" multiple />

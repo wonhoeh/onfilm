@@ -66,13 +66,8 @@
         return await res.json();
     }
 
-    async function fetchPublicIdByUsername(username) {
-        return apiGetJson(`/api/person/${encodeURIComponent(username)}`); // { publicId }
-    }
-
-    async function fetchPersonByPublicId(publicId) {
-        return apiGetJson(`/api/people/${encodeURIComponent(publicId)}`);
-    }
+    const fetchPublicIdByUsername = window.OnfilmCommon.fetchPublicIdByUsername;
+    const fetchPersonByPublicId = window.OnfilmCommon.fetchPersonByPublicId;
 
     async function fetchFilmographyByPublicId(publicId) {
         return apiGetJson(`/api/people/${encodeURIComponent(publicId)}/movies`);
@@ -1026,8 +1021,7 @@
         if (!username) return;
 
         try {
-            const onfilm = await fetchPublicIdByUsername(username);
-            const publicId = onfilm?.publicId;
+            const publicId = await fetchPublicIdByUsername(username);
             if (!publicId) {
                 window.location.href = `/profile-not-found.html?u=${encodeURIComponent(username)}`;
                 return;

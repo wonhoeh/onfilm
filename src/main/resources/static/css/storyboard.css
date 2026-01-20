@@ -12,51 +12,6 @@
             --profile-dropdown-bg: var(--panel);
         }
         *{box-sizing:border-box;margin:0;padding:0;}
-        body{
-            font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;
-            background:
-                    radial-gradient(900px 400px at 80% 0%, rgba(124,92,255,.18), transparent 60%),
-                    radial-gradient(700px 350px at 10% 10%, rgba(36,211,154,.14), transparent 60%),
-                    var(--bg);
-            color:var(--text);
-            min-height:100vh;
-        }
-        .page-shell{
-            min-height:100vh;
-            display:flex;
-            flex-direction:column;
-        }
-        header.top-header{
-            width:100%;
-            border-bottom:1px solid var(--line);
-            padding:16px 0;
-        }
-        .header-inner{
-            width:min(1180px, 92vw);
-            margin:0 auto;
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            gap:16px;
-        }
-        .login-btn{
-            border:1px solid var(--line);
-            background:rgba(255,255,255,.04);
-            color:var(--text);
-            padding:6px 12px;
-            border-radius:999px;
-            cursor:pointer;
-            font-size:12px;
-        }
-        .header-title{
-            font-size:15px;
-            font-weight:600;
-            letter-spacing:-.2px;
-        }
-        .wrap{
-            width:min(1180px, 92vw);
-            margin: 28px auto 70px;
-        }
         .toolbar{
             display:flex;
             align-items:center;

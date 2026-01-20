@@ -9,18 +9,18 @@
     <link rel="stylesheet" href="/css/edit-profile.css">
 </head>
 
-<body>
-<div class="page-shell">
-    <header>
-        <div class="header-inner">
+<body class="ui-body">
+<div class="page-shell centered">
+    <header class="top-header">
+        <div class="header-inner page-inner">
             <a href="#" class="back-link" id="backToProfileLink">← 프로필로 돌아가기</a>
             <div class="header-title">프로필 편집</div>
             <div style="width:70px;"></div>
         </div>
     </header>
 
-    <main>
-        <section class="edit-card">
+    <main class="page-main">
+        <section class="edit-card card-surface">
             <!-- 왼쪽: 프로필 사진 -->
             <section class="photo-section">
                 <img
@@ -133,9 +133,7 @@
 <!-- ✅ auth 먼저 -->
 <script src="/js/auth.js"></script>
 <script src="/js/app.js"></script>
-
-
-
+<script src="/js/common.js"></script>
 <script src="/js/edit-profile.js" defer></script>
 </body>
 </html>

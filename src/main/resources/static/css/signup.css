@@ -15,17 +15,7 @@
         }
 
         *{box-sizing:border-box;}
-        body{
-            margin:0;
-            font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;
-            color:var(--text);
-            background:
-                    radial-gradient(900px 400px at 80% 0%, rgba(124,92,255,.2), transparent 60%),
-                    radial-gradient(700px 350px at 10% 10%, rgba(36,211,154,.15), transparent 60%),
-                    var(--bg);
-        }
 
-        .container{ width:min(1100px,92vw); margin:0 auto; }
 
         header{
             position:sticky; top:0; z-index:10;

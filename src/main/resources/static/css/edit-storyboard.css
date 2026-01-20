@@ -16,36 +16,7 @@
 
         *{box-sizing:border-box;margin:0;padding:0;}
         body{
-            font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;
             color:var(--text);
-            background:
-                    radial-gradient(900px 400px at 80% 0%, rgba(124,92,255,.18), transparent 60%),
-                    radial-gradient(700px 350px at 10% 10%, rgba(36,211,154,.14), transparent 60%),
-                    var(--bg);
-            min-height:100vh;
-        }
-        .page-shell{
-            min-height:100vh;
-            display:flex;
-            flex-direction:column;
-        }
-        header.top-header{
-            width:100%;
-            border-bottom:1px solid var(--line);
-            padding:16px 0;
-        }
-        .header-inner{
-            width:min(1180px, 92vw);
-            margin:0 auto;
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            gap:16px;
-        }
-        .header-title{
-            font-size:15px;
-            font-weight:600;
-            letter-spacing:-.2px;
         }
         /* scrollbar */
         *{
@@ -63,10 +34,6 @@
             background: linear-gradient(180deg, rgba(124,92,255,.9), rgba(36,211,154,.8));
         }
 
-        .wrap{
-            width:min(1180px, 92vw);
-            margin: 28px auto 60px;
-        }
 
         .story-header{
             display:flex;
@@ -189,15 +156,9 @@
         }
 
         .btn{
-            border:1px solid var(--line);
             background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-            color:var(--text);
             border-radius:12px;
-            padding:10px 12px;
-            font-size:13px;
-            cursor:pointer;
             transition:.15s transform, .15s border-color, .15s background;
-            box-shadow:0 6px 18px rgba(0,0,0,.28);
             display:inline-flex;
             gap:8px;
             align-items:center;
@@ -214,7 +175,6 @@
             linear-gradient(180deg, rgba(124,92,255,.16), rgba(255,255,255,.02));
         }
         .btn.danger{
-            border-color: rgba(255,120,120,.35);
             background: linear-gradient(180deg, rgba(255,120,120,.12), rgba(255,255,255,.02));
         }
 
