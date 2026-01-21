@@ -241,12 +241,13 @@
 
         /* Storyboard Card */
     .card{
-        background: var(--panel);
-        border:1px solid rgba(255,255,255,.08);
-        border-radius: 18px;
         overflow:hidden;
-        box-shadow:0 10px 30px rgba(0,0,0,.35);
         position:relative;
+    }
+    .storyboard-card{
+        border:1px solid rgba(255,255,255,.08);
+        border-radius:18px;
+        box-shadow:0 10px 30px rgba(0,0,0,.35);
     }
     .pair.dragging{
         opacity:.7;

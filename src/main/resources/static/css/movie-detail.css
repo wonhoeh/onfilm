@@ -99,11 +99,6 @@
         }
 
         /* ACTORS */
-        .section-title.large{
-            font-size:22px;
-            font-weight:900;
-            margin:40px 0 14px;
-        }
         .actor-grid{
             display:grid;
             grid-template-columns:repeat(3,1fr);
