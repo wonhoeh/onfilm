@@ -334,7 +334,9 @@
         article.dataset.movie = movie;
 
         article.innerHTML = `
-      <img class="film-poster" src="${thumb || "/videos/thumbnail.png"}" alt="">
+      <div class="film-poster-frame">
+        <img class="film-poster" src="${thumb || "/videos/thumbnail.png"}" alt="">
+      </div>
       <div class="film-body">
         <div class="film-title">${escapeHtml(title)}</div>
         <div class="film-meta">${escapeHtml(metaText)}</div>
