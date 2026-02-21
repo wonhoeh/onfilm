@@ -78,6 +78,9 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/auth/**")
                         ).permitAll()
 
+                        // ✅ 헬스 체크 (ELB 등)
+                        .requestMatchers("/health", "/health/**").permitAll()
+
                         // ✅ auth 정책
                         .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh", "/auth/logout").permitAll()
                         .requestMatchers("/auth/me").authenticated()
@@ -133,6 +136,9 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/favicon.ico"),
                                 new AntPathRequestMatcher("/onfilm/**")
                         ).permitAll()
+
+                        // ✅ 헬스 체크 (ELB 등)
+                        .requestMatchers("/health", "/health/**").permitAll()
 
                         .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh", "/auth/logout").permitAll()
                         .requestMatchers("/auth/me").authenticated()
