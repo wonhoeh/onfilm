@@ -83,6 +83,7 @@ public class SecurityConfig {
 
                         // ✅ auth 정책
                         .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh", "/auth/logout").permitAll()
+                        .requestMatchers("/auth/check-email", "/auth/check-username").permitAll()
                         .requestMatchers("/auth/me").authenticated()
 
                         // ✅ dev 전용
@@ -141,6 +142,7 @@ public class SecurityConfig {
                         .requestMatchers("/health", "/health/**").permitAll()
 
                         .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh", "/auth/logout").permitAll()
+                        .requestMatchers("/auth/check-email", "/auth/check-username").permitAll()
                         .requestMatchers("/auth/me").authenticated()
 
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
