@@ -22,7 +22,7 @@ public class LocalStorageService implements StorageService {
     private final String publicBaseUrl;
 
     public LocalStorageService(
-            @Value("${file.storage.root}") String rootDir,
+            @Value("${file.storage.root:./local-storage}") String rootDir,
             @Value("${file.public-base-url}") String publicBaseUrl
     ) {
         this.rootPath = Paths.get(rootDir).toAbsolutePath().normalize();

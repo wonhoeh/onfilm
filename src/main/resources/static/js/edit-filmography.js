@@ -730,27 +730,60 @@
     return t;
   }
 
-  async function uploadMovieAsset(movieId, kind, file) {
+  async function uploadMovieAsset(movieId, kind, file, onProgress) {
     if (!file) return null;
 
-    const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
-            ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
-            : fetch;
+    const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
+    if (!authReady?.ok) throw new Error("로그인이 필요합니다.");
 
+    const url = `/api/files/movie/${movieId}/${kind}`;
     const fd = new FormData();
     fd.append("file", file);
 
-    const res = await fetcher(`/api/files/movie/${movieId}/${kind}`, {
-      method: "POST",
-      body: fd,
+    const doUpload = () => new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", url, true);
+      xhr.withCredentials = true;
+
+      const token = window.OnfilmAuth?.getAccessToken?.();
+      if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+
+      xhr.upload.onprogress = (e) => {
+        if (!e.lengthComputable) return;
+        const percent = Math.max(0, Math.min(100, Math.round((e.loaded / e.total) * 100)));
+        if (typeof onProgress === "function") onProgress(percent);
+      };
+
+      xhr.onerror = () => {
+        reject(new Error(`업로드 실패(${kind}): 네트워크 오류`));
+      };
+
+      xhr.onload = () => {
+        const text = xhr.responseText || "";
+        const ok = xhr.status >= 200 && xhr.status < 300;
+        if (!ok) {
+          resolve({ ok: false, status: xhr.status, text });
+          return;
+        }
+        let data = null;
+        try { data = text ? JSON.parse(text) : null; } catch { data = null; }
+        resolve({ ok: true, status: xhr.status, data });
+      };
+
+      xhr.send(fd);
     });
 
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`업로드 실패(${kind}): ${res.status} ${text}`);
+    let res = await doUpload();
+    if (res.ok) return res.data;
+
+    if ((res.status === 401 || res.status === 403) && window.OnfilmAuth?.restoreSession) {
+      await window.OnfilmAuth.restoreSession().catch(() => null);
+      if (typeof onProgress === "function") onProgress(0);
+      res = await doUpload();
+      if (res.ok) return res.data;
     }
 
-    return await res.json().catch(() => null);
+    throw new Error(`업로드 실패(${kind}): ${res.status} ${res.text || ""}`);
   }
 
   async function deleteMovieAsset(movieId, kind) {
@@ -935,14 +968,17 @@
           const trailerStatus = card.querySelector(".trailer-status");
           const videoStatus = card.querySelector(".video-status");
 
-          const showLoading = (statusBox) => {
+          const showLoading = (statusBox, percent) => {
             if (!statusBox) return;
             const spinner = statusBox.querySelector(".spinner-circle");
             const check = statusBox.querySelector(".check");
             const text = statusBox.querySelector(".status-text");
             if (spinner) spinner.style.display = "block";
             if (check) check.style.display = "none";
-            if (text) text.textContent = "업로드 중...";
+            if (text) {
+              const p = Number.isFinite(percent) ? Math.max(0, Math.min(100, Math.round(percent))) : null;
+              text.textContent = p == null ? "업로드 중..." : `업로드 중... ${p}%`;
+            }
           };
           const showDone = (statusBox) => {
             if (!statusBox) return;
@@ -961,8 +997,10 @@
           }
           let thumbRes = null;
           if (card._thumbnailFile) {
-            showLoading(thumbStatus);
-            thumbRes = await uploadMovieAsset(movieId, "thumbnail", card._thumbnailFile);
+            showLoading(thumbStatus, 0);
+            thumbRes = await uploadMovieAsset(movieId, "thumbnail", card._thumbnailFile, (p) => {
+              showLoading(thumbStatus, p);
+            });
           }
           if (thumbRes?.url) {
             card._thumbnailUrl = thumbRes.url;
@@ -977,8 +1015,10 @@
           }
           let trailerRes = null;
           if (card._trailerFile) {
-            showLoading(trailerStatus);
-            trailerRes = await uploadMovieAsset(movieId, "trailer", card._trailerFile);
+            showLoading(trailerStatus, 0);
+            trailerRes = await uploadMovieAsset(movieId, "trailer", card._trailerFile, (p) => {
+              showLoading(trailerStatus, p);
+            });
           }
           if (trailerRes?.url) {
             card._trailerUrls = [trailerRes.url];
@@ -993,8 +1033,10 @@
           }
           let movieRes = null;
           if (card._videoFile) {
-            showLoading(videoStatus);
-            movieRes = await uploadMovieAsset(movieId, "file", card._videoFile);
+            showLoading(videoStatus, 0);
+            movieRes = await uploadMovieAsset(movieId, "file", card._videoFile, (p) => {
+              showLoading(videoStatus, p);
+            });
           }
           if (movieRes?.url) {
             card._movieUrl = movieRes.url;

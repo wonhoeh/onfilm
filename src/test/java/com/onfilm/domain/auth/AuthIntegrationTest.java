@@ -7,6 +7,7 @@ import com.onfilm.domain.token.repository.RefreshTokenRepository;
 import com.onfilm.domain.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -46,6 +47,7 @@ class AuthIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @DisplayName("회원가입 후 로그인 성공 및 accessToken 반환 확인")
     @Test
     void signupThenLoginSucceeds() throws Exception {
         SignupRequest signup = new SignupRequest("user@example.com", "password123!", "qwer");
@@ -62,6 +64,8 @@ class AuthIntegrationTest {
                 .andExpect(jsonPath("$.accessToken").isNotEmpty());
     }
 
+
+    @DisplayName("로그인 시 refresh_token 쿠키가 내려오는지 확인")
     @Test
     void loginSetsRefreshCookieAndReturnsAccessToken() throws Exception {
         signup("cookie@example.com");
@@ -79,6 +83,7 @@ class AuthIntegrationTest {
         assertThat(setCookie).contains("Path=/auth");
     }
 
+    @DisplayName("리프레시 토큰 회전(새 토큰 발급, 이전 토큰 무효) 확인")
     @Test
     void refreshRotatesTokenAndOldTokenFails() throws Exception {
         signup("rotate@example.com");
@@ -101,6 +106,7 @@ class AuthIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @DisplayName("로그아웃 시 쿠키 삭제 및 리프레시 토큰 무효 확인")
     @Test
     void logoutClearsCookieAndRevokesToken() throws Exception {
         signup("logout@example.com");
@@ -119,6 +125,7 @@ class AuthIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @DisplayName("인증 필요 여부와 /auth/me 응답 검증")
     @Test
     void meRequiresAuthAndReturnsUser() throws Exception {
         signup("me@example.com");

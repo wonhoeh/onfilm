@@ -14,7 +14,7 @@ import java.nio.file.Paths;
 @ConditionalOnProperty(name = "file.storage.type", havingValue = "local", matchIfMissing = true)
 public class LocalFileServeConfig implements WebMvcConfigurer {
 
-    @Value("${file.storage.root}")
+    @Value("${file.storage.root:./local-storage}")
     private String rootDir;
 
     @Override
