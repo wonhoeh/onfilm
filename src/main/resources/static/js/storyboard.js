@@ -102,7 +102,7 @@
             return;
         }
         if (backToProfileLink) {
-            backToProfileLink.href = "/onfilm/" + encodeURIComponent(uname);
+            backToProfileLink.href = "/" + encodeURIComponent(uname);
         }
 
         const publicId = await fetchPublicIdByUsername(uname);

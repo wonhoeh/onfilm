@@ -545,7 +545,7 @@
             alert("저장 완료!");
 
             const uname = await getUsernameSafe();
-            if (uname) location.href = `/onfilm/${encodeURIComponent(uname)}`;
+            if (uname) location.href = `/${encodeURIComponent(uname)}`;
             else location.href = `/onfilm`;
 
         } catch (err) {
@@ -657,7 +657,7 @@
                 return;
             }
 
-            window.location.href = "/onfilm/" + encodeURIComponent(uname);
+            window.location.href = "/" + encodeURIComponent(uname);
         } catch (_) {
             window.location.href = "/index.html";
         }

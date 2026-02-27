@@ -67,7 +67,7 @@
       if (!publicId) return "/edit-profile.html";
       const p = await fetchPersonByPublicId(publicId);
       if (!p || !personHasAnyContent(p)) return "/edit-profile.html";
-      return "/onfilm/" + encodeURIComponent(uname);
+      return "/" + encodeURIComponent(uname);
     } catch (e) {
       return "/edit-profile.html";
     }

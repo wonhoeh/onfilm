@@ -15,6 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 @Configuration
 @EnableWebSecurity
@@ -22,6 +24,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final HandlerMappingIntrospector handlerMappingIntrospector;
 
     // =========================
     // DEV
@@ -29,6 +32,8 @@ public class SecurityConfig {
     @Bean
     @Profile("dev")
     SecurityFilterChain devFilterChain(HttpSecurity http) throws Exception {
+        MvcRequestMatcher publicProfileMatcher =
+                new MvcRequestMatcher(handlerMappingIntrospector, "/{username:[a-zA-Z0-9_-]{3,20}}");
 
         http
                 .exceptionHandling(e -> e
@@ -73,6 +78,7 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/vendor/**"),
                                 new AntPathRequestMatcher("/favicon.ico"),
                                 new AntPathRequestMatcher("/onfilm/**"),
+                                publicProfileMatcher,
                                 new AntPathRequestMatcher("/api/person/**"),
                                 new AntPathRequestMatcher("/api/people/**"),
                                 new AntPathRequestMatcher("/auth/**")
@@ -105,6 +111,8 @@ public class SecurityConfig {
     @Bean
     @Profile("!dev")
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        MvcRequestMatcher publicProfileMatcher =
+                new MvcRequestMatcher(handlerMappingIntrospector, "/{username:[a-zA-Z0-9_-]{3,20}}");
 
         http
                 .exceptionHandling(e -> e
@@ -135,7 +143,8 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/videos/**"),
                                 new AntPathRequestMatcher("/vendor/**"),
                                 new AntPathRequestMatcher("/favicon.ico"),
-                                new AntPathRequestMatcher("/onfilm/**")
+                                new AntPathRequestMatcher("/onfilm/**"),
+                                publicProfileMatcher
                         ).permitAll()
 
                         // ✅ 헬스 체크 (ELB 등)

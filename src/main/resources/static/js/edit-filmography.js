@@ -861,7 +861,7 @@
         }
 
         // ✅ 최종 라우팅은 username
-        window.location.href = "/onfilm/" + encodeURIComponent(uname);
+        window.location.href = "/" + encodeURIComponent(uname);
 
       } catch (_) {
         window.location.href = "/index.html";
@@ -1053,7 +1053,7 @@
         }
         window.__DELETED_MOVIE_IDS__ = [];
 
-        location.href = "/onfilm/" + encodeURIComponent(username);
+        location.href = "/" + encodeURIComponent(username);
 
       } catch (err) {
         console.error(err);

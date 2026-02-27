@@ -355,7 +355,7 @@
 
     const uname = await getUsernameSafe();
     if (uname) {
-      location.href = "/onfilm/" + encodeURIComponent(uname);
+      location.href = "/" + encodeURIComponent(uname);
       return;
     }
 
@@ -518,6 +518,6 @@
         return;
       }
 
-      location.href = "/onfilm/" + encodeURIComponent(uname);
+      location.href = "/" + encodeURIComponent(uname);
     });
   });

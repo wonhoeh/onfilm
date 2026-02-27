@@ -1,6 +1,6 @@
     /* =========================================================
        OnFilm Actor Detail
-       URL:  /onfilm/{username}
+       URL:  /{username}
        API:  /api/person/{username} -> { publicId }
              /api/people/{publicId}
              /api/people/{publicId}/movies
