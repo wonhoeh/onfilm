@@ -8,11 +8,6 @@ spring:
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-spring:
-  config:
-    activate:
-      on-profile: prod
-
 file:
   storage:
     type: s3
