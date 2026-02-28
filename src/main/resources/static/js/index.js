@@ -17,7 +17,7 @@
 
     container.querySelector("#loginBtn")?.addEventListener("click", () => {
       // 로그인 후 다시 index로 돌아오게 next를 index로 잡아도 됨
-      goRequireLogin("index.html");
+      goRequireLogin("/");
     });
   }
 
@@ -106,8 +106,9 @@
     goSetupBtn?.addEventListener("click", () => {
       // 로그인 상태면 바로 편집, 아니면 로그인으로
       const me = window.OnfilmAuth.getMe();
-      if (!me) return goRequireLogin("edit-profile.html");
-      window.location.href = "edit-profile.html";
+      if (!me) return goRequireLogin("edit-profile");
+      const uname = window.OnfilmCommon.normalizeMe(me).username;
+      window.location.href = window.OnfilmCommon.buildUserScopedPath(uname, "edit-profile");
     });
 
     welcomeLater?.addEventListener("click", () => {

@@ -28,6 +28,20 @@
     return fetch(url, options);
   }
 
+  function getUsernameFromPath() {
+    const parts = window.location.pathname.split("/").filter(Boolean);
+    if (parts.length === 0) return "";
+    if (parts[0] === "onfilm") return parts[1] || "";
+    return parts[0] || "";
+  }
+
+  function buildUserScopedPath(username, suffix) {
+    const uname = String(username || "").trim();
+    if (!uname) return "/" + String(suffix || "").replace(/^\/+/, "");
+    const s = String(suffix || "").replace(/^\/+/, "");
+    return "/" + encodeURIComponent(uname) + (s ? ("/" + s) : "");
+  }
+
   async function fetchPublicIdByUsername(username) {
     const res = await authFetch(`/api/person/${encodeURIComponent(username)}`, {
       headers: { "Accept": "application/json" }
@@ -64,12 +78,12 @@
     if (!uname) return "/edit-profile.html";
     try {
       const publicId = await fetchPublicIdByUsername(uname);
-      if (!publicId) return "/edit-profile.html";
+      if (!publicId) return buildUserScopedPath(uname, "edit-profile");
       const p = await fetchPersonByPublicId(publicId);
-      if (!p || !personHasAnyContent(p)) return "/edit-profile.html";
+      if (!p || !personHasAnyContent(p)) return buildUserScopedPath(uname, "edit-profile");
       return "/" + encodeURIComponent(uname);
     } catch (e) {
-      return "/edit-profile.html";
+      return buildUserScopedPath(uname, "edit-profile");
     }
   }
 
@@ -142,6 +156,13 @@
     const dropdown = document.getElementById("profileDropdown");
     if (!avatarBtn || !dropdown) return;
 
+    const { username } = normalizeMe(me);
+    const toUserPath = (suffix, fallback) => {
+      const path = buildUserScopedPath(username, suffix);
+      if (path === "/" + String(suffix || "").replace(/^\/+/, "") && fallback) return fallback;
+      return path;
+    };
+
     const close = () => dropdown.classList.remove("open");
 
     avatarBtn.addEventListener("click", (e) => {
@@ -164,11 +185,11 @@
           return;
         }
 
-        if (action === "edit-profile") { window.location.href = "/edit-profile.html"; return; }
-        if (action === "edit-filmography") { window.location.href = "/edit-filmography.html"; return; }
-        if (action === "edit-gallery") { window.location.href = "/edit-gallery.html"; return; }
-        if (action === "storyboard-projects") { window.location.href = "/storyboard.html"; return; }
-        if (action === "storyboard-edit") { window.location.href = "/edit-storyboard.html"; return; }
+        if (action === "edit-profile") { window.location.href = toUserPath("edit-profile", "/edit-profile.html"); return; }
+        if (action === "edit-filmography") { window.location.href = toUserPath("edit-filmography", "/edit-filmography.html"); return; }
+        if (action === "edit-gallery") { window.location.href = toUserPath("edit-gallery", "/edit-gallery.html"); return; }
+        if (action === "storyboard-projects") { window.location.href = toUserPath("storyboard", "/storyboard.html"); return; }
+        if (action === "storyboard-edit") { window.location.href = toUserPath("edit-storyboard", "/edit-storyboard.html"); return; }
         if (action === "account-settings") { window.location.href = "/account-settings.html"; return; }
 
         if (action === "logout") {
@@ -177,7 +198,7 @@
             return;
           }
           await window.OnfilmAuth?.logout?.();
-          window.location.href = "/index.html";
+          window.location.href = "/";
         }
       });
     });
@@ -199,6 +220,8 @@
     getInitial,
     buildProfileMenuHtml,
     attachProfileMenuHandlers,
-    resolveActorPageUrl
+    resolveActorPageUrl,
+    getUsernameFromPath,
+    buildUserScopedPath
   };
 })();

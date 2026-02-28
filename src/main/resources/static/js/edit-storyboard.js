@@ -61,11 +61,21 @@
 
     function handleLeaveAttempt(){
         if (!hasAnyInput()) {
-            window.location.href = "/storyboard.html";
+            const uname = window.OnfilmCommon?.getUsernameFromPath?.() || "";
+            const target = window.OnfilmCommon?.buildUserScopedPath
+                ? window.OnfilmCommon.buildUserScopedPath(uname, "storyboard")
+                : "/storyboard.html";
+            window.location.href = target;
             return;
         }
         const ok = window.confirm("이 페이지를 벗어나면 수정된 내용은 저장되지 않습니다.");
-        if (ok) window.location.href = "/storyboard.html";
+        if (ok) {
+            const uname = window.OnfilmCommon?.getUsernameFromPath?.() || "";
+            const target = window.OnfilmCommon?.buildUserScopedPath
+                ? window.OnfilmCommon.buildUserScopedPath(uname, "storyboard")
+                : "/storyboard.html";
+            window.location.href = target;
+        }
     }
 
 
@@ -744,7 +754,11 @@
                     localStorage.setItem(`onfilm.storyboard.updated.${state.projectId}`, new Date().toISOString());
                 }
             }catch(_){}
-            window.location.href = `/storyboard-view.html?projectId=${encodeURIComponent(state.projectId)}`;
+            const uname = window.OnfilmCommon?.getUsernameFromPath?.() || "";
+            const base = window.OnfilmCommon?.buildUserScopedPath
+                ? window.OnfilmCommon.buildUserScopedPath(uname, "storyboard-view")
+                : "/storyboard-view.html";
+            window.location.href = `${base}?projectId=${encodeURIComponent(state.projectId)}`;
         } catch (e) {
             console.error(e);
             alert("저장 중 문제가 발생했습니다.");
@@ -841,7 +855,10 @@
             return;
         }
         if (backToProfileLink) {
-            backToProfileLink.href = "/storyboard.html";
+            const unameFromPath = window.OnfilmCommon?.getUsernameFromPath?.() || uname;
+            backToProfileLink.href = window.OnfilmCommon?.buildUserScopedPath
+                ? window.OnfilmCommon.buildUserScopedPath(unameFromPath, "storyboard")
+                : "/storyboard.html";
         }
         try{
             state.publicId = await fetchPublicIdByUsername(uname);

@@ -19,12 +19,16 @@
 
     const authFetch = window.OnfilmCommon.authFetch;
     const fetchPublicIdByUsername = window.OnfilmCommon.fetchPublicIdByUsername;
+    const getUsernameFromPath = window.OnfilmCommon.getUsernameFromPath;
+    const buildUserScopedPath = window.OnfilmCommon.buildUserScopedPath;
 
     function renderEmpty(){
+        const uname = getUsernameFromPath ? getUsernameFromPath() : "";
+        const editUrl = buildUserScopedPath ? buildUserScopedPath(uname, "edit-storyboard") : "/edit-storyboard.html";
         projectList.classList.add("empty-mode");
         projectList.innerHTML = `
             <div class="empty-cta">
-                <a class="empty-cta-icon" href="/edit-storyboard.html" aria-label="스토리보드 등록하기">
+                <a class="empty-cta-icon" href="${editUrl}" aria-label="스토리보드 등록하기">
                     <span class="empty-cta-ring">
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 4.5h8.2a2.3 2.3 0 0 1 2.3 2.3v12.7H8.5A2.5 2.5 0 0 0 6 22V4.5Z"/>
@@ -36,7 +40,7 @@
 
                 <div class="empty-cta-title">스토리보드 업로드</div>
                 <div class="empty-cta-desc">스토리보드를 등록하면 보관함에 표시됩니다</div>
-                <a class="empty-cta-link" href="/edit-storyboard.html">첫 스토리보드 등록하기</a>
+                <a class="empty-cta-link" href="${editUrl}">첫 스토리보드 등록하기</a>
             </div>
         `;
     }
@@ -118,11 +122,15 @@
             if (!card) return;
             const projectId = card.dataset.projectId;
             if (!projectId) return;
-            location.href = `/storyboard-view.html?projectId=${encodeURIComponent(projectId)}`;
+            const uname = getUsernameFromPath ? getUsernameFromPath() : "";
+            const base = buildUserScopedPath ? buildUserScopedPath(uname, "storyboard-view") : "/storyboard-view.html";
+            location.href = `${base}?projectId=${encodeURIComponent(projectId)}`;
         });
 
         createProjectBtn?.addEventListener("click", () => {
-            location.href = "/edit-storyboard.html";
+            const uname = getUsernameFromPath ? getUsernameFromPath() : "";
+            const target = buildUserScopedPath ? buildUserScopedPath(uname, "edit-storyboard") : "/edit-storyboard.html";
+            location.href = target;
         });
     }
 

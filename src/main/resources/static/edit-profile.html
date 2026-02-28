@@ -29,12 +29,14 @@
                         src="/videos/profile-placeholder.png"
                         alt="프로필 사진 미리보기" />
 
-                <label class="pill-btn">
-                    사진 선택
-                    <input type="file" id="profileFileInput" accept="image/*">
-                </label>
+                <div class="photo-actions">
+                    <label class="pill-btn">
+                        사진 선택
+                        <input type="file" id="profileFileInput" accept="image/*">
+                    </label>
 
-                <button type="button" class="pill-btn" id="deleteProfileBtn">사진 삭제</button>
+                    <button type="button" class="pill-btn" id="deleteProfileBtn">사진 삭제</button>
+                </div>
 
                 <p class="photo-hint">
                     4:5 비율의 선명한 정면 사진을 권장해요.<br/>
@@ -67,7 +69,6 @@
                                 <span>일</span>
                             </div>
 
-                            <div class="field-hint">YYYY-MM-DD 형식으로 입력해주세요.</div>
 
                             <!-- 실제로 서버에 보낼 hidden input -->
                             <input type="hidden" id="birthDate" name="birthDate">
@@ -76,16 +77,12 @@
                         <div class="field-group">
                             <label for="birthPlace" class="field-label">출생</label>
                             <input id="birthPlace" class="text-input" type="text" placeholder="예) 서울, 부산, 인천">
-                            <div class="field-hint">시 단위로 입력해주세요.</div>
                         </div>
                     </div>
 
                     <!-- 소개글 -->
                     <div class="field-group">
                         <label for="bioInput" class="field-label">소개글</label>
-                        <div class="field-hint">
-                            배우로서의 소개, 활동 경력, 분위기를 간단히 적어주세요. (3~4문장 정도 권장)
-                        </div>
                         <textarea
                                 id="bioInput"
                                 class="text-input"
@@ -106,7 +103,6 @@
                     <!-- PROFILE TAGS -->
                     <div class="field-group">
                         <div class="field-label">PROFILE TAGS</div>
-                        <div class="field-hint">배우의 이미지/강점을 나타내는 키워드를 입력해주세요. (예: 독립영화, 밝은이미지)</div>
 
                         <div id="tagList" class="tag-list"></div>
 

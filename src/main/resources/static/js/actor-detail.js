@@ -50,6 +50,7 @@
     function getUsernameFromPath() {
         const parts = window.location.pathname.split("/").filter(Boolean);
         if (parts.length >= 2 && parts[0] === "onfilm") return decodeURIComponent(parts[1]);
+        if (parts.length >= 1) return decodeURIComponent(parts[0]);
         return null;
     }
 
@@ -128,6 +129,22 @@
             if (!isOwner) el.classList.add("hidden-keep-space");
         });
 
+        if (isOwner) {
+            const uname = getUsernameFromPath();
+            const toUserPath = (suffix, fallback) => {
+                if (window.OnfilmCommon?.buildUserScopedPath) {
+                    return window.OnfilmCommon.buildUserScopedPath(uname, suffix);
+                }
+                return fallback;
+            };
+            $$(".empty-cta-link[href='/edit-filmography.html'], .empty-cta-icon[href='/edit-filmography.html']").forEach(a => {
+                a.setAttribute("href", toUserPath("edit-filmography", "/edit-filmography.html"));
+            });
+            $$(".empty-cta-link[href='/edit-gallery.html'], .empty-cta-icon[href='/edit-gallery.html']").forEach(a => {
+                a.setAttribute("href", toUserPath("edit-gallery", "/edit-gallery.html"));
+            });
+        }
+
         window.__isOwner = !!isOwner;
     }
 
@@ -172,11 +189,11 @@
         if (snsRow) {
             snsRow.innerHTML = "";
             const list = Array.isArray(p?.snsList) ? p.snsList : [];
-            list.forEach(sns => {
+            list.forEach((sns, idx) => {
                 const type = (sns?.type || "").toString().toUpperCase();
-                let url = (sns?.url || "").toString().trim();
-                if (!url) return;
-                if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+                const rawUrl = (sns?.url || "").toString().trim();
+                if (!rawUrl) return;
+                const href = /^https?:\/\//i.test(rawUrl) ? rawUrl : ("https://" + rawUrl);
 
                 const brand =
                     type === "INSTAGRAM" ? "instagram" :
@@ -184,16 +201,21 @@
                             type === "NAVER"     ? "naver"     :
                                 (type === "TWITTER" || type === "X") ? "x" : "x";
 
+                if (idx > 0) {
+                    const sep = document.createElement("span");
+                    sep.className = "sns-separator";
+                    sep.textContent = "·";
+                    snsRow.appendChild(sep);
+                }
+
                 const a = document.createElement("a");
                 a.className = "sns-pill";
-                a.href = url;
+                a.href = href;
                 a.target = "_blank";
                 a.rel = "noopener";
                 a.dataset.brand = brand;
                 a.innerHTML = `
           <span class="sns-badge"><span class="sns-icon"></span></span>
-          <span>${escapeHtml(type)}</span>
-          <span class="sns-handle">${escapeHtml(safeHostname(url))}</span>
         `;
                 snsRow.appendChild(a);
             });
@@ -850,9 +872,16 @@
             if (!item) return;
 
             const action = item.dataset.action;
-            if (action === "profile") window.location.href = "/edit-profile.html";
-            else if (action === "filmography") window.location.href = "/edit-filmography.html";
-            else if (action === "gallery") window.location.href = "/edit-gallery.html";
+            const uname = getUsernameFromPath();
+            const toUserPath = (suffix, fallback) => {
+                if (window.OnfilmCommon?.buildUserScopedPath) {
+                    return window.OnfilmCommon.buildUserScopedPath(uname, suffix);
+                }
+                return fallback;
+            };
+            if (action === "profile") window.location.href = toUserPath("edit-profile", "/edit-profile.html");
+            else if (action === "filmography") window.location.href = toUserPath("edit-filmography", "/edit-filmography.html");
+            else if (action === "gallery") window.location.href = toUserPath("edit-gallery", "/edit-gallery.html");
 
             closeEditOverlay();
         });

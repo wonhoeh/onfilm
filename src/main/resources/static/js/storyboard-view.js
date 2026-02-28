@@ -11,6 +11,8 @@
     const authFetch = window.OnfilmCommon.authFetch;
     const fetchPublicIdByUsername = window.OnfilmCommon.fetchPublicIdByUsername;
     const escapeHtml = window.OnfilmCommon.escapeHtml;
+    const getUsernameFromPath = window.OnfilmCommon.getUsernameFromPath;
+    const buildUserScopedPath = window.OnfilmCommon.buildUserScopedPath;
 
     function renderSceneTabs(scenes){
         if (!sceneTabs) return;
@@ -83,19 +85,27 @@
             location.href = `/login.html?next=${next}`;
             return;
         }
+        const backLink = document.querySelector(".back-link");
         const params = new URLSearchParams(location.search);
         const projectId = params.get("projectId");
         if (!projectId) {
-            location.href = "/storyboard.html";
+            const uname = getUsernameFromPath ? getUsernameFromPath() : "";
+            const target = buildUserScopedPath ? buildUserScopedPath(uname, "storyboard") : "/storyboard.html";
+            location.href = target;
             return;
         }
         editBtn.addEventListener("click", () => {
-            location.href = `/edit-storyboard.html?projectId=${encodeURIComponent(projectId)}`;
+            const uname = getUsernameFromPath ? getUsernameFromPath() : "";
+            const base = buildUserScopedPath ? buildUserScopedPath(uname, "edit-storyboard") : "/edit-storyboard.html";
+            location.href = `${base}?projectId=${encodeURIComponent(projectId)}`;
         });
 
         const me = result.me;
         const uname = me?.username ? String(me.username).trim() : "";
         if (!uname) return;
+        if (backLink) {
+            backLink.href = buildUserScopedPath ? buildUserScopedPath(uname, "storyboard") : "/storyboard.html";
+        }
         const publicId = await fetchPublicIdByUsername(uname);
         const res = await authFetch(`/api/people/${encodeURIComponent(publicId)}/storyboard/projects/${encodeURIComponent(projectId)}`, {
             headers: { "Accept": "application/json" }

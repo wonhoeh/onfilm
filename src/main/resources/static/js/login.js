@@ -33,7 +33,7 @@
             // next 파라미터가 있으면 그쪽으로, 없으면 홈으로
             const params = new URLSearchParams(location.search);
             const next = params.get("next");
-            location.href = next ? decodeURIComponent(next) : "/index.html";
+            location.href = next ? decodeURIComponent(next) : "/";
         } catch (e) {
             loginError.textContent = e.message || "로그인 실패";
             loginError.style.display = "block";
@@ -72,4 +72,3 @@
             if (e.key === "Enter") tryLogin();
         });
     });
-

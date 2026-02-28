@@ -207,7 +207,7 @@
 
         const input = document.createElement("input");
         input.className = "text-input";
-        input.type = "url";
+        input.type = "text";
         input.placeholder = "www.example.com/...";
         input.value = initial.url || "";
 
@@ -421,24 +421,8 @@
             const raw  = row.querySelector("input").value.trim();
             if (!raw) return;
 
-            let finalUrl = raw;
-
-            // scheme 없으면 보정
-            if (!/^https?:\/\//i.test(raw)) {
-                if (type === "instagram") {
-                    const handle = raw.replace(/^@/, "");
-                    finalUrl = `https://www.instagram.com/${handle}`;
-                } else if (type === "youtube") {
-                    finalUrl = `https://www.youtube.com/${raw}`;
-                } else if (type === "tiktok") {
-                    const handle = raw.replace(/^@/, "");
-                    finalUrl = `https://www.tiktok.com/@${handle}`;
-                } else {
-                    finalUrl = `https://${raw}`;
-                }
-            }
-
-            snsData.push({ type: type.toUpperCase(), url: finalUrl });
+            // 입력값 그대로 저장 (자동 보정 없음)
+            snsData.push({ type: type.toUpperCase(), url: raw });
         });
         return snsData.length ? snsData : null;
     }
@@ -627,7 +611,7 @@
     /* =========================================================
        9) BACK LINK (프로필로 돌아가기)
        - 프로필 존재+내용 있으면 /onfilm/{username}
-       - 아니면 /index.html
+       - 아니면 /
     ========================================================= */
     async function handleBackToProfile(e) {
         e.preventDefault();
@@ -635,31 +619,31 @@
         try {
             const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
             if (!authReady?.ok) {
-                window.location.href = "/index.html";
+                window.location.href = "/";
                 return;
             }
 
             const uname = await getUsernameSafe();
             if (!uname) {
-                window.location.href = "/index.html";
+                window.location.href = "/";
                 return;
             }
 
             const publicId = await fetchPublicIdByUsername(uname);
             if (!publicId) {
-                window.location.href = "/index.html";
+                window.location.href = "/";
                 return;
             }
 
             const p = await fetchPersonByPublicId(publicId);
             if (!p || !personHasAnyContent(p)) {
-                window.location.href = "/index.html";
+                window.location.href = "/";
                 return;
             }
 
             window.location.href = "/" + encodeURIComponent(uname);
         } catch (_) {
-            window.location.href = "/index.html";
+            window.location.href = "/";
         }
     }
 

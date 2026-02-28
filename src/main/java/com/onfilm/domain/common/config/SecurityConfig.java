@@ -34,6 +34,18 @@ public class SecurityConfig {
     SecurityFilterChain devFilterChain(HttpSecurity http) throws Exception {
         MvcRequestMatcher publicProfileMatcher =
                 new MvcRequestMatcher(handlerMappingIntrospector, "/{username:[a-zA-Z0-9_-]{3,20}}");
+        MvcRequestMatcher userEditProfileMatcher =
+                new MvcRequestMatcher(handlerMappingIntrospector, "/{username:[a-zA-Z0-9_-]{3,20}}/edit-profile");
+        MvcRequestMatcher userEditFilmographyMatcher =
+                new MvcRequestMatcher(handlerMappingIntrospector, "/{username:[a-zA-Z0-9_-]{3,20}}/edit-filmography");
+        MvcRequestMatcher userEditGalleryMatcher =
+                new MvcRequestMatcher(handlerMappingIntrospector, "/{username:[a-zA-Z0-9_-]{3,20}}/edit-gallery");
+        MvcRequestMatcher userStoryboardMatcher =
+                new MvcRequestMatcher(handlerMappingIntrospector, "/{username:[a-zA-Z0-9_-]{3,20}}/storyboard");
+        MvcRequestMatcher userEditStoryboardMatcher =
+                new MvcRequestMatcher(handlerMappingIntrospector, "/{username:[a-zA-Z0-9_-]{3,20}}/edit-storyboard");
+        MvcRequestMatcher userStoryboardViewMatcher =
+                new MvcRequestMatcher(handlerMappingIntrospector, "/{username:[a-zA-Z0-9_-]{3,20}}/storyboard-view");
 
         http
                 .exceptionHandling(e -> e
@@ -79,6 +91,18 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/favicon.ico"),
                                 new AntPathRequestMatcher("/onfilm/**"),
                                 publicProfileMatcher,
+                                userEditProfileMatcher,
+                                userEditFilmographyMatcher,
+                                userEditGalleryMatcher,
+                                userStoryboardMatcher,
+                                userEditStoryboardMatcher,
+                                userStoryboardViewMatcher,
+                                new AntPathRequestMatcher("/edit-profile"),
+                                new AntPathRequestMatcher("/edit-filmography"),
+                                new AntPathRequestMatcher("/edit-gallery"),
+                                new AntPathRequestMatcher("/storyboard"),
+                                new AntPathRequestMatcher("/edit-storyboard"),
+                                new AntPathRequestMatcher("/storyboard-view"),
                                 new AntPathRequestMatcher("/api/person/**"),
                                 new AntPathRequestMatcher("/api/people/**"),
                                 new AntPathRequestMatcher("/auth/**")
@@ -113,6 +137,18 @@ public class SecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         MvcRequestMatcher publicProfileMatcher =
                 new MvcRequestMatcher(handlerMappingIntrospector, "/{username:[a-zA-Z0-9_-]{3,20}}");
+        MvcRequestMatcher userEditProfileMatcher =
+                new MvcRequestMatcher(handlerMappingIntrospector, "/{username:[a-zA-Z0-9_-]{3,20}}/edit-profile");
+        MvcRequestMatcher userEditFilmographyMatcher =
+                new MvcRequestMatcher(handlerMappingIntrospector, "/{username:[a-zA-Z0-9_-]{3,20}}/edit-filmography");
+        MvcRequestMatcher userEditGalleryMatcher =
+                new MvcRequestMatcher(handlerMappingIntrospector, "/{username:[a-zA-Z0-9_-]{3,20}}/edit-gallery");
+        MvcRequestMatcher userStoryboardMatcher =
+                new MvcRequestMatcher(handlerMappingIntrospector, "/{username:[a-zA-Z0-9_-]{3,20}}/storyboard");
+        MvcRequestMatcher userEditStoryboardMatcher =
+                new MvcRequestMatcher(handlerMappingIntrospector, "/{username:[a-zA-Z0-9_-]{3,20}}/edit-storyboard");
+        MvcRequestMatcher userStoryboardViewMatcher =
+                new MvcRequestMatcher(handlerMappingIntrospector, "/{username:[a-zA-Z0-9_-]{3,20}}/storyboard-view");
 
         http
                 .exceptionHandling(e -> e
@@ -144,7 +180,21 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/vendor/**"),
                                 new AntPathRequestMatcher("/favicon.ico"),
                                 new AntPathRequestMatcher("/onfilm/**"),
-                                publicProfileMatcher
+                                publicProfileMatcher,
+                                userEditProfileMatcher,
+                                userEditFilmographyMatcher,
+                                userEditGalleryMatcher,
+                                userStoryboardMatcher,
+                                userEditStoryboardMatcher,
+                                userStoryboardViewMatcher,
+                                new AntPathRequestMatcher("/edit-profile"),
+                                new AntPathRequestMatcher("/edit-filmography"),
+                                new AntPathRequestMatcher("/edit-gallery"),
+                                new AntPathRequestMatcher("/storyboard"),
+                                new AntPathRequestMatcher("/edit-storyboard"),
+                                new AntPathRequestMatcher("/storyboard-view"),
+                                new AntPathRequestMatcher("/api/person/**"),
+                                new AntPathRequestMatcher("/api/people/**")
                         ).permitAll()
 
                         // ✅ 헬스 체크 (ELB 등)

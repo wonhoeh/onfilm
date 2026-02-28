@@ -147,6 +147,7 @@
       bindThumbDropzone(card);
       bindTrailerDropzone(card);
       bindVideoDropzone(card);
+      bindRoleCharacterSync(card);
       updateInitialUploadStatus(card);
 
       containerEl.appendChild(card);
@@ -174,7 +175,7 @@
         <div class="film-fields">
           <div class="field-group">
             <label class="field-label">제목</label>
-            <input class="text-input film-title-input" type="text" placeholder="예) 인셉션" value="${initial.title || ""}">
+            <input class="text-input film-title-input" type="text" placeholder="작품 제목을 입력해주세요" value="${initial.title || ""}">
           </div>
 
           <div class="film-meta-grid">
@@ -185,7 +186,7 @@
 
             <div class="field-group">
               <label class="field-label">런타임(분)</label>
-              <input class="text-input film-runtime-input" type="number" min="1" placeholder="예) 120" value="${initial.runtime || ""}">
+              <input class="text-input film-runtime-input" type="number" min="1" placeholder="분 단위로 입력해주세요" value="${initial.runtime || ""}">
             </div>
 
             <div class="field-group">
@@ -202,16 +203,15 @@
 
           <div class="field-group">
             <label class="field-label">장르</label>
-            <div class="field-hint">입력 후 엔터를 누르면 장르가 추가됩니다.</div>
             <div class="chip-input-wrap">
-              <input class="text-input genre-chip-input" type="text" placeholder="예) 드라마 (엔터로 추가)">
+              <input class="text-input genre-chip-input" type="text" placeholder="작품의 장르를 여러개 입력할 수 있어요">
               <div class="chip-box genre-chip-box" aria-label="장르 목록"></div>
             </div>
           </div>
 
           <div class="film-meta-grid">
             <div class="field-group">
-              <label class="field-label">PersonRole</label>
+              <label class="field-label">역할</label>
               <select class="select-input mp-person-role">
                 <option value="">선택</option>
                 <option value="ACTOR">배우</option>
@@ -221,7 +221,7 @@
             </div>
 
             <div class="field-group">
-              <label class="field-label">CastType</label>
+              <label class="field-label">캐스팅 구분</label>
               <select class="select-input mp-cast-type">
                 <option value="">선택</option>
                 <option value="LEAD">주연</option>
@@ -232,7 +232,7 @@
 
             <div class="field-group">
               <label class="field-label">극중 배역이름</label>
-              <input class="text-input mp-character-name" type="text" placeholder="예) 코브" value="${initial.characterName || ""}">
+              <input class="text-input mp-character-name" type="text" placeholder="배역 이름을 입력해주세요" value="${initial.characterName || ""}">
             </div>
           </div>
         </div>
@@ -588,6 +588,27 @@
       });
     }
 
+    function bindRoleCharacterSync(card) {
+      const roleSelect = card.querySelector(".mp-person-role");
+      const characterInput = card.querySelector(".mp-character-name");
+      const castSelect = card.querySelector(".mp-cast-type");
+      if (!roleSelect || !characterInput) return;
+
+      const applyState = () => {
+        const role = roleSelect.value;
+        const isActor = role === "ACTOR";
+        characterInput.disabled = !isActor;
+        if (!isActor) characterInput.value = "";
+        if (castSelect) {
+          castSelect.disabled = !isActor;
+          if (!isActor) castSelect.value = "";
+        }
+      };
+
+      roleSelect.addEventListener("change", applyState);
+      applyState();
+    }
+
     function getPayload(card) {
       const title      = card.querySelector(".film-title-input").value.trim();
       const yearStr    = card.querySelector(".film-year-input").value.trim();
@@ -818,14 +839,14 @@
         }
         const uname = me?.username ? String(me.username).trim() : "";
         if (!uname) {
-          window.location.href = "/index.html";
+          window.location.href = "/";
           return;
         }
 
         // 2) username -> publicId (프로필 존재 확인용)
         const publicId = await resolvePublicIdByUsername(uname);
         if (!publicId) {
-          window.location.href = "/index.html";
+          window.location.href = "/";
           return;
         }
 
@@ -840,7 +861,7 @@
         });
 
         if (!res.ok) {
-          window.location.href = "/index.html";
+          window.location.href = "/";
           return;
         }
 
@@ -856,7 +877,7 @@
                 (Array.isArray(p?.rawTags) && p.rawTags.length > 0);
 
         if (!hasAny) {
-          window.location.href = "/index.html";
+          window.location.href = "/";
           return;
         }
 
@@ -864,7 +885,7 @@
         window.location.href = "/" + encodeURIComponent(uname);
 
       } catch (_) {
-        window.location.href = "/index.html";
+        window.location.href = "/";
       }
     });
   }
@@ -1092,7 +1113,7 @@
         const profile = await fetchProfileByPublicId(publicId);
         const isPrivate = !!profile?.filmographyPrivate;
         privacyBtn.classList.toggle("is-on", isPrivate);
-        privacyBtn.textContent = isPrivate ? "비공개" : "공개";
+        privacyBtn.textContent = isPrivate ? "전체 비공개" : "전체 공개";
         privacyBtn.onclick = async () => {
           const next = !privacyBtn.classList.contains("is-on");
           const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
@@ -1109,7 +1130,7 @@
             return;
           }
           privacyBtn.classList.toggle("is-on", next);
-          privacyBtn.textContent = next ? "비공개" : "공개";
+          privacyBtn.textContent = next ? "전체 비공개" : "전체 공개";
         };
       }
 

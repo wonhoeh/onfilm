@@ -669,6 +669,12 @@
             align-items: center;
             min-height: 34px;
         }
+        .sns-separator{
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1;
+            user-select: none;
+        }
 
         .sns-row.is-empty::before {
             content:"SNS를 추가해주세요.";
@@ -680,17 +686,15 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 6px 12px;
-            border-radius: 999px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid var(--line);
+            padding: 0;
+            border-radius: 0;
+            background: transparent;
+            border: none;
             font-size: 13px;
             color: var(--text);
             text-decoration: none;
         }
-        .sns-pill:hover{ background: rgba(124,92,255,0.18); }
-
-        .sns-handle{ color: var(--muted); font-size: 12px; }
+        .sns-pill:hover{ background: transparent; }
 
         .sns-badge{
             width:22px;
