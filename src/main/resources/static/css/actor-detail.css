@@ -80,6 +80,9 @@
             margin:30px 0 20px;
             display:flex; gap:28px; align-items:center;
         }
+        .page-root.booting main{
+            visibility:hidden;
+        }
         .profile-photo{
             width:220px; height:300px; border-radius:var(--radius-lg);
             object-fit:cover; border:1px solid var(--line);

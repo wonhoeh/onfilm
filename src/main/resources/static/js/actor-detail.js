@@ -1090,6 +1090,9 @@
         } catch (e) {
             console.error(e);
             window.location.href = `/profile-not-found.html?u=${encodeURIComponent(username)}`;
+        } finally {
+            const root = document.getElementById("pageRoot");
+            root?.classList.remove("booting");
         }
     }
 
