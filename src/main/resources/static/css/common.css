@@ -128,10 +128,6 @@ a{text-decoration:none;color:inherit;}
   gap:8px;
 }
 
-#headerActions{
-  visibility:hidden;
-}
-
 .profile-menu{ position:relative; }
 
 .profile-avatar-btn{
