@@ -24,6 +24,7 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final AuthPageBlockFilter authPageBlockFilter;
     private final CsrfProtectionFilter csrfProtectionFilter;
     private final HandlerMappingIntrospector handlerMappingIntrospector;
 
@@ -125,6 +126,7 @@ public class SecurityConfig {
                 )
 
                 // JWT 필터
+                .addFilterBefore(authPageBlockFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(csrfProtectionFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -210,6 +212,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
+                .addFilterBefore(authPageBlockFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(csrfProtectionFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
