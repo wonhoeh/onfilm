@@ -1035,14 +1035,19 @@
         container.style.visibility = "hidden";
 
         try {
+            if (!window.OnfilmAuth?.restoreSession) {
+                renderLoggedOut(container);
+                return;
+            }
             const result = await window.OnfilmAuth.restoreSession();
             if (result && result.ok && result.me) renderLoggedIn(container, result.me);
             else renderLoggedOut(container);
         } catch (e) {
             console.error("restoreSession failed", e);
             renderLoggedOut(container);
+        } finally {
+            container.style.visibility = "";
         }
-        container.style.visibility = "";
     }
 
     /* ---------------------------
