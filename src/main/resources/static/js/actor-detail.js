@@ -1032,7 +1032,7 @@
         const container = $("#headerActions");
         if (!container) return;
 
-        renderLoggedOut(container);
+        container.style.visibility = "hidden";
 
         try {
             const result = await window.OnfilmAuth.restoreSession();
@@ -1042,6 +1042,7 @@
             console.error("restoreSession failed", e);
             renderLoggedOut(container);
         }
+        container.style.visibility = "";
     }
 
     /* ---------------------------

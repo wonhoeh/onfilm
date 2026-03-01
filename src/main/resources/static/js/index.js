@@ -43,18 +43,19 @@
     const container = document.getElementById("headerActions");
     if (!container) return;
 
-    // 기본은 비로그인 UI
-    renderLoggedOut(container);
+    container.style.visibility = "hidden";
 
     // ✅ 자동 복구: me -> refresh -> me
     const { ok, me } = await window.OnfilmAuth.restoreSession();
 
     if (!ok || !me) {
       renderLoggedOut(container);
+      container.style.visibility = "";
       return;
     }
 
     renderLoggedIn(container, me);
+    container.style.visibility = "";
   }
 
   // ===== 도트 / 스크롤 =====
