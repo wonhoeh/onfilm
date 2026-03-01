@@ -31,10 +31,14 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         AuthTokens tokens = authService.login(request);
+        ResponseCookie accessCookie = buildAccessCookie(tokens.accessToken(), authProperties.accessTokenTtl().toSeconds());
+        ResponseCookie csrfCookie = buildCsrfCookie(generateCsrfToken(), authProperties.accessTokenTtl().toSeconds());
         ResponseCookie cookie = buildRefreshCookie(tokens.refreshToken(), authProperties.refreshTokenTtl().toSeconds());
         return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, csrfCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(new AuthResponse(tokens.accessToken()));
+                .body(new AuthResponse(null));
     }
 
     @PostMapping("/refresh")
@@ -43,17 +47,25 @@ public class AuthController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing refresh token");
         }
         AuthTokens tokens = authService.refresh(refreshToken);
+        ResponseCookie accessCookie = buildAccessCookie(tokens.accessToken(), authProperties.accessTokenTtl().toSeconds());
+        ResponseCookie csrfCookie = buildCsrfCookie(generateCsrfToken(), authProperties.accessTokenTtl().toSeconds());
         ResponseCookie cookie = buildRefreshCookie(tokens.refreshToken(), authProperties.refreshTokenTtl().toSeconds());
         return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, csrfCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(new AuthResponse(tokens.accessToken()));
+                .body(new AuthResponse(null));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@CookieValue(name = "refresh_token", required = false) String refreshToken) {
         authService.logout(refreshToken);
+        ResponseCookie accessCookie = buildAccessCookie("", 0);
+        ResponseCookie csrfCookie = buildCsrfCookie("", 0);
         ResponseCookie cookie = buildRefreshCookie("", 0);
         return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, csrfCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .build();
     }
@@ -93,5 +105,31 @@ public class AuthController {
                 .sameSite(authProperties.refreshCookieSameSite())
                 .maxAge(maxAgeSeconds)
                 .build();
+    }
+
+    private ResponseCookie buildAccessCookie(String value, long maxAgeSeconds) {
+        return ResponseCookie.from(authProperties.accessCookieName(), value)
+                .httpOnly(true)
+                .secure(authProperties.accessCookieSecure())
+                .path(authProperties.accessCookiePath())
+                .sameSite(authProperties.accessCookieSameSite())
+                .maxAge(maxAgeSeconds)
+                .build();
+    }
+
+    private ResponseCookie buildCsrfCookie(String value, long maxAgeSeconds) {
+        return ResponseCookie.from(authProperties.csrfCookieName(), value)
+                .httpOnly(false)
+                .secure(authProperties.csrfCookieSecure())
+                .path(authProperties.csrfCookiePath())
+                .sameSite(authProperties.csrfCookieSameSite())
+                .maxAge(maxAgeSeconds)
+                .build();
+    }
+
+    private String generateCsrfToken() {
+        byte[] buf = new byte[32];
+        new java.security.SecureRandom().nextBytes(buf);
+        return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(buf);
     }
 }

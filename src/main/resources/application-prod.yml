@@ -18,4 +18,6 @@ file:
   public-base-url: ${S3_PUBLIC_BASE_URL:}
 
 auth:
+  access-cookie-secure: true
+  csrf-cookie-secure: true
   refresh-cookie-secure: true

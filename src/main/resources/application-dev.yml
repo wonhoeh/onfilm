@@ -19,6 +19,8 @@ spring:
       enabled: true
 
 auth:
+  access-cookie-secure: false
+  csrf-cookie-secure: false
   refresh-cookie-secure: false
 
 file:

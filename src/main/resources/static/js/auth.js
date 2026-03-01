@@ -33,13 +33,14 @@ window.OnfilmAuth = (() => {
         const headers = new Headers(options.headers || {});
         headers.set("Accept", "application/json");
 
+        const csrf = getCsrfToken();
+        if (csrf) {
+            headers.set("X-CSRF-TOKEN", csrf);
+        }
+
         // JSON 문자열 body면 Content-Type 세팅 (FormData는 세팅하면 안 됨)
         if (options.body && typeof options.body === "string") {
             headers.set("Content-Type", "application/json");
-        }
-
-        if (accessToken) {
-            headers.set("Authorization", `Bearer ${accessToken}`);
         }
 
         return fetch(url, {
@@ -55,6 +56,18 @@ window.OnfilmAuth = (() => {
             try { return await res.json(); } catch { return null; }
         }
         try { return await res.text(); } catch { return null; }
+    }
+
+    function getCsrfToken() {
+        try {
+            const name = "XSRF-TOKEN";
+            const parts = document.cookie ? document.cookie.split(";") : [];
+            for (const p of parts) {
+                const [k, ...rest] = p.trim().split("=");
+                if (k === name) return decodeURIComponent(rest.join("="));
+            }
+        } catch (_) {}
+        return null;
     }
 
     async function fetchMe() {
@@ -78,12 +91,10 @@ window.OnfilmAuth = (() => {
             const res = await apiFetch(AUTH.refresh, { method: "POST" });
             if (res.status !== 200) return null;
 
-            const data = await safeReadBody(res);
-            const token = data && (data.accessToken || data.access_token);
-            if (!token) throw new Error("REFRESH_OK_BUT_NO_ACCESS_TOKEN_IN_BODY");
-
-            setAccessToken(token);
-            return token;
+            if (res.status !== 200) return null;
+            await safeReadBody(res);
+            setAccessToken(null);
+            return "ok";
         })();
 
         try {
@@ -148,10 +159,7 @@ window.OnfilmAuth = (() => {
             throw new Error(msg);
         }
 
-        const token = data && (data.accessToken || data.access_token);
-        if (!token) throw new Error("LOGIN_OK_BUT_NO_ACCESS_TOKEN_IN_BODY");
-
-        setAccessToken(token);
+        setAccessToken(null);
         const me = await fetchMe();
         return me;
     }

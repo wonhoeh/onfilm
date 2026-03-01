@@ -694,14 +694,10 @@
             ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
             : fetch;
 
-    const token = await Promise.resolve(window.OnfilmAuth?.getAccessToken?.()).catch(() => null);
-    console.log("token head:", token ? token.slice(0, 12) + "..." : "(none)");
-
     const res = await fetcher(url, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
+        "Content-Type": "application/json"
       },
       credentials: "include",
       body: JSON.stringify(body),
@@ -728,12 +724,10 @@
             ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
             : fetch;
 
-    const token = await Promise.resolve(window.OnfilmAuth?.getAccessToken?.()).catch(() => null);
     const res = await fetcher(url, {
       method: "PUT",
       headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
+        "Content-Type": "application/json"
       },
       credentials: "include",
       body: JSON.stringify(body),
@@ -765,9 +759,6 @@
       const xhr = new XMLHttpRequest();
       xhr.open("POST", url, true);
       xhr.withCredentials = true;
-
-      const token = window.OnfilmAuth?.getAccessToken?.();
-      if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
 
       xhr.upload.onprogress = (e) => {
         if (!e.lengthComputable) return;

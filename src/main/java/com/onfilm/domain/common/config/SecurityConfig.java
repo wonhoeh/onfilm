@@ -24,6 +24,7 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final CsrfProtectionFilter csrfProtectionFilter;
     private final HandlerMappingIntrospector handlerMappingIntrospector;
 
     // =========================
@@ -124,6 +125,7 @@ public class SecurityConfig {
                 )
 
                 // JWT 필터
+                .addFilterBefore(csrfProtectionFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -208,6 +210,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
+                .addFilterBefore(csrfProtectionFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

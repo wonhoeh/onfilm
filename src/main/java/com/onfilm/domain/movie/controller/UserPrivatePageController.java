@@ -45,6 +45,9 @@ public class UserPrivatePageController {
     })
     public String forwardPrivatePages(@PathVariable String username, HttpServletRequest request) {
         String current = currentUsernameOrNull();
+        if (current == null) {
+            return "redirect:" + buildLoginRedirect(request);
+        }
         if (current != null && !current.equals(username)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "FORBIDDEN");
         }

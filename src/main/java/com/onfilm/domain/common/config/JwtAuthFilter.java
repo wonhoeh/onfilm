@@ -16,6 +16,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtProvider jwtProvider;
+    private final com.onfilm.domain.auth.config.AuthProperties authProperties;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -36,13 +37,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         //System.out.println("[JWT] path=" + request.getRequestURI() + " auth=" + request.getHeader("Authorization"));
 
+        String token = null;
         if (auth != null && auth.startsWith("Bearer ")) {
-            String token = auth.substring(7);
-
-            if (jwtProvider.validate(token)) {
-                Authentication authentication = jwtProvider.getAuthentication(token);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            token = auth.substring(7);
+        } else if (request.getCookies() != null) {
+            String cookieName = authProperties.accessCookieName();
+            for (var c : request.getCookies()) {
+                if (cookieName.equals(c.getName())) {
+                    token = c.getValue();
+                    break;
+                }
             }
+        }
+
+        if (token != null && !token.isBlank() && jwtProvider.validate(token)) {
+            Authentication authentication = jwtProvider.getAuthentication(token);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
         filterChain.doFilter(request, response);
