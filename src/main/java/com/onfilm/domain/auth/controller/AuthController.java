@@ -98,7 +98,7 @@ public class AuthController {
     }
 
     private ResponseCookie buildRefreshCookie(String value, long maxAgeSeconds) {
-        return ResponseCookie.from(authProperties.refreshCookieName(), value)
+        return ResponseCookie.from(authProperties.refreshCookieNameOrDefault(), value)
                 .httpOnly(true)
                 .secure(authProperties.refreshCookieSecure())
                 .path(authProperties.refreshCookiePath())
@@ -108,7 +108,7 @@ public class AuthController {
     }
 
     private ResponseCookie buildAccessCookie(String value, long maxAgeSeconds) {
-        return ResponseCookie.from(authProperties.accessCookieName(), value)
+        return ResponseCookie.from(authProperties.accessCookieNameOrDefault(), value)
                 .httpOnly(true)
                 .secure(authProperties.accessCookieSecure())
                 .path(authProperties.accessCookiePath())
@@ -118,7 +118,7 @@ public class AuthController {
     }
 
     private ResponseCookie buildCsrfCookie(String value, long maxAgeSeconds) {
-        return ResponseCookie.from(authProperties.csrfCookieName(), value)
+        return ResponseCookie.from(authProperties.csrfCookieNameOrDefault(), value)
                 .httpOnly(false)
                 .secure(authProperties.csrfCookieSecure())
                 .path(authProperties.csrfCookiePath())

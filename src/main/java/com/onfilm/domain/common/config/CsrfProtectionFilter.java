@@ -55,7 +55,7 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
             return;
         }
 
-        String csrfCookieName = authProperties.csrfCookieName();
+        String csrfCookieName = authProperties.csrfCookieNameOrDefault();
         String csrfCookieValue = null;
         if (request.getCookies() != null) {
             for (var c : request.getCookies()) {

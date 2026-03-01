@@ -21,4 +21,16 @@ public record AuthProperties(
         String refreshCookiePath,
         String refreshCookieSameSite
         ) {
+
+    public String accessCookieNameOrDefault() {
+        return (accessCookieName == null || accessCookieName.isBlank()) ? "access_token" : accessCookieName;
+    }
+
+    public String refreshCookieNameOrDefault() {
+        return (refreshCookieName == null || refreshCookieName.isBlank()) ? "refresh_token" : refreshCookieName;
+    }
+
+    public String csrfCookieNameOrDefault() {
+        return (csrfCookieName == null || csrfCookieName.isBlank()) ? "XSRF-TOKEN" : csrfCookieName;
+    }
 }
