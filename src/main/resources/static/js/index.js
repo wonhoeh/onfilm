@@ -44,18 +44,20 @@
     if (!container) return;
 
     container.style.visibility = "hidden";
-
-    // ✅ 자동 복구: me -> refresh -> me
-    const { ok, me } = await window.OnfilmAuth.restoreSession();
-
-    if (!ok || !me) {
-      renderLoggedOut(container);
+    try {
+      if (!window.OnfilmAuth?.restoreSession) {
+        renderLoggedOut(container);
+        return;
+      }
+      const { ok, me } = await window.OnfilmAuth.restoreSession();
+      if (!ok || !me) {
+        renderLoggedOut(container);
+        return;
+      }
+      renderLoggedIn(container, me);
+    } finally {
       container.style.visibility = "";
-      return;
     }
-
-    renderLoggedIn(container, me);
-    container.style.visibility = "";
   }
 
   // ===== 도트 / 스크롤 =====
