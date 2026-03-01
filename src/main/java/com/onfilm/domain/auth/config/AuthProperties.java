@@ -33,4 +33,28 @@ public record AuthProperties(
     public String csrfCookieNameOrDefault() {
         return (csrfCookieName == null || csrfCookieName.isBlank()) ? "XSRF-TOKEN" : csrfCookieName;
     }
+
+    public String accessCookiePathOrDefault() {
+        return (accessCookiePath == null || accessCookiePath.isBlank()) ? "/" : accessCookiePath;
+    }
+
+    public String refreshCookiePathOrDefault() {
+        return (refreshCookiePath == null || refreshCookiePath.isBlank()) ? "/auth" : refreshCookiePath;
+    }
+
+    public String csrfCookiePathOrDefault() {
+        return (csrfCookiePath == null || csrfCookiePath.isBlank()) ? "/" : csrfCookiePath;
+    }
+
+    public String accessCookieSameSiteOrDefault() {
+        return (accessCookieSameSite == null || accessCookieSameSite.isBlank()) ? "Lax" : accessCookieSameSite;
+    }
+
+    public String refreshCookieSameSiteOrDefault() {
+        return (refreshCookieSameSite == null || refreshCookieSameSite.isBlank()) ? "Lax" : refreshCookieSameSite;
+    }
+
+    public String csrfCookieSameSiteOrDefault() {
+        return (csrfCookieSameSite == null || csrfCookieSameSite.isBlank()) ? "Lax" : csrfCookieSameSite;
+    }
 }

@@ -101,8 +101,8 @@ public class AuthController {
         return ResponseCookie.from(authProperties.refreshCookieNameOrDefault(), value)
                 .httpOnly(true)
                 .secure(authProperties.refreshCookieSecure())
-                .path(authProperties.refreshCookiePath())
-                .sameSite(authProperties.refreshCookieSameSite())
+                .path(authProperties.refreshCookiePathOrDefault())
+                .sameSite(authProperties.refreshCookieSameSiteOrDefault())
                 .maxAge(maxAgeSeconds)
                 .build();
     }
@@ -111,8 +111,8 @@ public class AuthController {
         return ResponseCookie.from(authProperties.accessCookieNameOrDefault(), value)
                 .httpOnly(true)
                 .secure(authProperties.accessCookieSecure())
-                .path(authProperties.accessCookiePath())
-                .sameSite(authProperties.accessCookieSameSite())
+                .path(authProperties.accessCookiePathOrDefault())
+                .sameSite(authProperties.accessCookieSameSiteOrDefault())
                 .maxAge(maxAgeSeconds)
                 .build();
     }
@@ -121,8 +121,8 @@ public class AuthController {
         return ResponseCookie.from(authProperties.csrfCookieNameOrDefault(), value)
                 .httpOnly(false)
                 .secure(authProperties.csrfCookieSecure())
-                .path(authProperties.csrfCookiePath())
-                .sameSite(authProperties.csrfCookieSameSite())
+                .path(authProperties.csrfCookiePathOrDefault())
+                .sameSite(authProperties.csrfCookieSameSiteOrDefault())
                 .maxAge(maxAgeSeconds)
                 .build();
     }
