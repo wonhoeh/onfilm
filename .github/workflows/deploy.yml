@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -39,6 +43,26 @@ jobs:
 
       - name: S3에 프로젝트 폴더 업로드하기
         run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.tar.gz s3://onfilm-static-files/deployments/onfilm/$GITHUB_SHA.tar.gz
+
+      - name: 기존 active 배포 대기
+        run: |
+          set -e
+          for i in {1..60}; do
+            ACTIVE=$(aws deploy list-deployments \
+              --application-name onfilm-server \
+              --deployment-group-name Production \
+              --include-only-statuses Created Queued InProgress Ready \
+              --query 'deployments | length(@)' \
+              --output text)
+            if [ "$ACTIVE" = "0" ]; then
+              echo "active deployment 없음"
+              exit 0
+            fi
+            echo "active deployment 있음($ACTIVE), 10초 대기..."
+            sleep 10
+          done
+          echo "timeout: 기존 배포가 너무 오래 걸림"
+          exit 1
 
       - name: Code Deploy를 활용해 EC2에 프로젝트 코드 배포
         run: |
