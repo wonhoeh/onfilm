@@ -1,19 +1,20 @@
 #!/bin/bash
-
 set -e
 
-echo "--------------- 서버 배포 시작 -----------------"
+echo "start 1" >> /home/ubuntu/start-debug.log
 
 cd /home/ubuntu/onfilm-server/current
+echo "start 2" >> /home/ubuntu/start-debug.log
 
 set -a
-
 source /etc/onfilm.env
-
 set +a
+echo "start 3" >> /home/ubuntu/start-debug.log
+
+echo "DB_URL=$DB_URL" >> /home/ubuntu/start-debug.log
 
 sudo fuser -k -n tcp 8080 || true
+echo "start 4" >> /home/ubuntu/start-debug.log
 
-nohup java -jar project.jar --spring.profiles.active=prod > ./output.log 2>&1 &
-
-echo "--------------- 서버 배포 끝 -----------------"
+nohup java -jar project.jar --spring.profiles.active=prod > /home/ubuntu/onfilm-server/current/output.log 2>&1 &
+echo "start 5" >> /home/ubuntu/start-debug.log
