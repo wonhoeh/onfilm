@@ -1,12 +1,12 @@
 package com.onfilm.domain.common.error;
 
 import com.onfilm.domain.common.error.exception.InvalidProfileTagException;
+import com.onfilm.domain.common.error.exception.MediaEncodeJobNotFoundException;
 import com.onfilm.domain.common.error.exception.MovieNotFoundException;
 import com.onfilm.domain.common.error.exception.PersonNotFoundException;
 import com.onfilm.domain.common.error.exception.StoryboardProjectNotFoundException;
 import com.onfilm.domain.common.error.exception.StoryboardSceneNotFoundException;
 import com.onfilm.domain.common.error.exception.UserNotFoundException;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -71,5 +71,28 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleInvalidProfileTag(InvalidProfileTagException e) {
         return ResponseEntity.status(BAD_REQUEST)
                 .body(ErrorResponse.of("INVALID_PROFILE_TAG", e.getMessage()));
+    }
+
+    @ExceptionHandler(MediaEncodeJobNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleMediaEncodeJobNotFound(MediaEncodeJobNotFoundException e) {
+        return ResponseEntity.status(NOT_FOUND)
+                .body(ErrorResponse.of("MEDIA_ENCODE_JOB_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException e) {
+        return ResponseEntity.status(BAD_REQUEST)
+                .body(ErrorResponse.of("BAD_REQUEST", e.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException e) {
+        HttpStatus status = switch (e.getMessage()) {
+            case "FORBIDDEN_MOVIE_ACCESS", "FORBIDDEN_MEDIA_JOB_ACCESS" -> HttpStatus.FORBIDDEN;
+            case "MEDIA_ENCODE_PRODUCER_NOT_CONFIGURED", "PRESIGNED_UPLOAD_NOT_CONFIGURED" -> HttpStatus.SERVICE_UNAVAILABLE;
+            default -> BAD_REQUEST;
+        };
+        return ResponseEntity.status(status)
+                .body(ErrorResponse.of(e.getMessage(), e.getMessage()));
     }
 }

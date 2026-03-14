@@ -745,20 +745,68 @@
     return t;
   }
 
-  async function uploadMovieAsset(movieId, kind, file, onProgress) {
-    if (!file) return null;
-
+  async function fetchJobStatus(jobId) {
     const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
     if (!authReady?.ok) throw new Error("로그인이 필요합니다.");
 
-    const url = `/api/files/movie/${movieId}/${kind}`;
-    const fd = new FormData();
-    fd.append("file", file);
+    const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
+            ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
+            : fetch;
 
-    const doUpload = () => new Promise((resolve, reject) => {
+    const res = await fetcher(`/api/media-jobs/${encodeURIComponent(jobId)}`, {
+      method: "GET",
+      headers: { "Accept": "application/json" },
+      credentials: "include"
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`작업 상태 조회 실패: ${res.status} ${text}`);
+    }
+    return await res.json();
+  }
+
+  async function waitForJobCompletion(jobId, onStatus) {
+    const timeoutMs = 30 * 60 * 1000;
+    const intervalMs = 3000;
+    const startedAt = Date.now();
+
+    while (Date.now() - startedAt < timeoutMs) {
+      const job = await fetchJobStatus(jobId);
+      if (typeof onStatus === "function") onStatus(job);
+
+      if (job?.status === "DONE") return job;
+      if (job?.status === "FAILED") {
+        throw new Error(job?.failureReason || "인코딩 작업에 실패했습니다.");
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    }
+
+    throw new Error("인코딩 대기 시간이 초과되었습니다.");
+  }
+
+  async function requestMovieAssetPresign(movieId, kind, file) {
+    return await postJson(`/api/files/movie/${movieId}/${kind}/presign`, {
+      contentType: file?.type || "application/octet-stream"
+    });
+  }
+
+  async function completeMovieAssetUpload(movieId, kind, sourceKey, file) {
+    return await postJson(`/api/files/movie/${movieId}/${kind}/complete`, {
+      sourceKey,
+      contentType: file?.type || "application/octet-stream"
+    });
+  }
+
+  async function uploadFileToPresignedUrl(uploadUrl, file, onProgress) {
+    return await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      xhr.open("POST", url, true);
-      xhr.withCredentials = true;
+      xhr.open("PUT", uploadUrl, true);
+
+      if (file?.type) {
+        xhr.setRequestHeader("Content-Type", file.type);
+      }
 
       xhr.upload.onprogress = (e) => {
         if (!e.lengthComputable) return;
@@ -766,36 +814,51 @@
         if (typeof onProgress === "function") onProgress(percent);
       };
 
-      xhr.onerror = () => {
-        reject(new Error(`업로드 실패(${kind}): 네트워크 오류`));
-      };
-
+      xhr.onerror = () => reject(new Error("S3 업로드 중 네트워크 오류가 발생했습니다."));
       xhr.onload = () => {
-        const text = xhr.responseText || "";
-        const ok = xhr.status >= 200 && xhr.status < 300;
-        if (!ok) {
-          resolve({ ok: false, status: xhr.status, text });
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve();
           return;
         }
-        let data = null;
-        try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-        resolve({ ok: true, status: xhr.status, data });
+        reject(new Error(`S3 업로드 실패: ${xhr.status} ${xhr.responseText || ""}`));
       };
 
-      xhr.send(fd);
+      xhr.send(file);
     });
+  }
 
-    let res = await doUpload();
-    if (res.ok) return res.data;
+  async function uploadMovieAsset(movieId, kind, file, onProgress, onStatus) {
+    if (!file) return null;
 
-    if ((res.status === 401 || res.status === 403) && window.OnfilmAuth?.restoreSession) {
-      await window.OnfilmAuth.restoreSession().catch(() => null);
-      if (typeof onProgress === "function") onProgress(0);
-      res = await doUpload();
-      if (res.ok) return res.data;
+    const authReady = await window.__ONFILM_AUTH_READY_PROMISE__;
+    if (!authReady?.ok) throw new Error("로그인이 필요합니다.");
+
+    if (typeof onStatus === "function") onStatus("presign");
+    const presigned = await requestMovieAssetPresign(movieId, kind, file);
+
+    if (!presigned?.sourceKey || !presigned?.uploadUrl) {
+      throw new Error(`업로드 준비 실패(${kind}): presign 응답이 올바르지 않습니다.`);
     }
 
-    throw new Error(`업로드 실패(${kind}): ${res.status} ${res.text || ""}`);
+    if (typeof onStatus === "function") onStatus("uploading");
+    await uploadFileToPresignedUrl(presigned.uploadUrl, file, onProgress);
+
+    if (typeof onStatus === "function") onStatus("completing");
+    const jobResponse = await completeMovieAssetUpload(movieId, kind, presigned.sourceKey, file);
+
+    if (!jobResponse?.jobId) {
+      throw new Error(`업로드 완료 처리 실패(${kind}): jobId가 없습니다.`);
+    }
+
+    if (typeof onStatus === "function") onStatus("processing");
+    const job = await waitForJobCompletion(jobResponse.jobId, (jobStatus) => {
+      if (typeof onStatus === "function") onStatus("polling", jobStatus);
+    });
+
+    return {
+      ...jobResponse,
+      status: job?.status || "DONE"
+    };
   }
 
   async function deleteMovieAsset(movieId, kind) {
@@ -980,7 +1043,7 @@
           const trailerStatus = card.querySelector(".trailer-status");
           const videoStatus = card.querySelector(".video-status");
 
-          const showLoading = (statusBox, percent) => {
+          const showLoading = (statusBox, percent, label) => {
             if (!statusBox) return;
             const spinner = statusBox.querySelector(".spinner-circle");
             const check = statusBox.querySelector(".check");
@@ -989,7 +1052,8 @@
             if (check) check.style.display = "none";
             if (text) {
               const p = Number.isFinite(percent) ? Math.max(0, Math.min(100, Math.round(percent))) : null;
-              text.textContent = p == null ? "업로드 중..." : `업로드 중... ${p}%`;
+              if (p == null) text.textContent = label || "처리 중...";
+              else text.textContent = `${label || "업로드 중..."} ${p}%`;
             }
           };
           const showDone = (statusBox) => {
@@ -1009,14 +1073,17 @@
           }
           let thumbRes = null;
           if (card._thumbnailFile) {
-            showLoading(thumbStatus, 0);
+            showLoading(thumbStatus, null, "업로드 준비 중...");
             thumbRes = await uploadMovieAsset(movieId, "thumbnail", card._thumbnailFile, (p) => {
-              showLoading(thumbStatus, p);
+              showLoading(thumbStatus, p, "업로드 중...");
+            }, (stage) => {
+              if (stage === "completing") showLoading(thumbStatus, null, "인코딩 요청 중...");
+              if (stage === "processing" || stage === "polling") showLoading(thumbStatus, null, "인코딩 중...");
             });
           }
-          if (thumbRes?.url) {
-            card._thumbnailUrl = thumbRes.url;
-            if (thumbInfo) thumbInfo.textContent = "업로드 완료";
+          if (thumbRes?.jobId) {
+            card._thumbnailUrl = thumbRes.targetKey || card._thumbnailUrl;
+            if (thumbInfo) thumbInfo.textContent = "인코딩 완료";
             showDone(thumbStatus);
           }
 
@@ -1027,14 +1094,17 @@
           }
           let trailerRes = null;
           if (card._trailerFile) {
-            showLoading(trailerStatus, 0);
+            showLoading(trailerStatus, null, "업로드 준비 중...");
             trailerRes = await uploadMovieAsset(movieId, "trailer", card._trailerFile, (p) => {
-              showLoading(trailerStatus, p);
+              showLoading(trailerStatus, p, "업로드 중...");
+            }, (stage) => {
+              if (stage === "completing") showLoading(trailerStatus, null, "인코딩 요청 중...");
+              if (stage === "processing" || stage === "polling") showLoading(trailerStatus, null, "인코딩 중...");
             });
           }
-          if (trailerRes?.url) {
-            card._trailerUrls = [trailerRes.url];
-            if (trailerInfo) trailerInfo.textContent = "업로드 완료";
+          if (trailerRes?.jobId) {
+            card._trailerUrls = trailerRes.targetKey ? [trailerRes.targetKey] : card._trailerUrls;
+            if (trailerInfo) trailerInfo.textContent = "인코딩 완료";
             showDone(trailerStatus);
           }
 
@@ -1045,14 +1115,17 @@
           }
           let movieRes = null;
           if (card._videoFile) {
-            showLoading(videoStatus, 0);
+            showLoading(videoStatus, null, "업로드 준비 중...");
             movieRes = await uploadMovieAsset(movieId, "file", card._videoFile, (p) => {
-              showLoading(videoStatus, p);
+              showLoading(videoStatus, p, "업로드 중...");
+            }, (stage) => {
+              if (stage === "completing") showLoading(videoStatus, null, "인코딩 요청 중...");
+              if (stage === "processing" || stage === "polling") showLoading(videoStatus, null, "인코딩 중...");
             });
           }
-          if (movieRes?.url) {
-            card._movieUrl = movieRes.url;
-            if (videoInfo) videoInfo.textContent = "업로드 완료";
+          if (movieRes?.jobId) {
+            card._movieUrl = movieRes.targetKey || card._movieUrl;
+            if (videoInfo) videoInfo.textContent = "인코딩 완료";
             showDone(videoStatus);
           }
         }

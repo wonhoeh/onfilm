@@ -13,6 +13,7 @@ import com.onfilm.domain.movie.entity.StoryboardCard;
 import com.onfilm.domain.movie.entity.StoryboardProject;
 import com.onfilm.domain.movie.entity.StoryboardScene;
 import com.onfilm.domain.movie.entity.Trailer;
+import com.onfilm.domain.movie.repository.MoviePersonRepository;
 import com.onfilm.domain.movie.repository.MovieRepository;
 import com.onfilm.domain.movie.repository.PersonRepository;
 import com.onfilm.domain.user.entity.User;
@@ -30,6 +31,7 @@ public class PersonReadService {
 
     private final PersonRepository personRepository;
     private final MovieRepository movieRepository;
+    private final MoviePersonRepository moviePersonRepository;
     private final UserRepository userRepository;
     private final StorageService storageService;
 
@@ -163,6 +165,10 @@ public class PersonReadService {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new MovieNotFoundException(movieId));
         movie.addTrailer(key);
+    }
+
+    public boolean canEditMovie(Long personId, Long movieId) {
+        return moviePersonRepository.findByPersonIdAndMovieId(personId, movieId) != null;
     }
 
     @Transactional

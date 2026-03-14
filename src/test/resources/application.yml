@@ -13,3 +13,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+
+app:
+  kafka:
+    topic:
+      media-encode-requested: media.encode.requested

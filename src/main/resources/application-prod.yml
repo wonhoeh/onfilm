@@ -27,9 +27,15 @@ file:
     region: ${S3_REGION}
     access-key: ${S3_ACCESS_KEY:}
     secret-key: ${S3_SECRET_KEY:}
+    presign-expiration-minutes: 10
   public-base-url: ${S3_PUBLIC_BASE_URL:}
 
 auth:
   access-cookie-secure: true
   csrf-cookie-secure: true
   refresh-cookie-secure: true
+
+app:
+  kafka:
+    topic:
+      media-encode-requested: media.encode.requested

@@ -28,3 +28,9 @@ file:
   storage:
     type: local
     root: ./local-storage
+    presign-expiration-minutes: 10
+
+app:
+  kafka:
+    topic:
+      media-encode-requested: media.encode.requested
