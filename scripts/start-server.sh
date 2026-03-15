@@ -12,6 +12,7 @@ set +a
 echo "start 3" >> /home/ubuntu/start-debug.log
 
 echo "DB_URL=$DB_URL" >> /home/ubuntu/start-debug.log
+echo "KAFKA_PRODUCER_IP=[$KAFKA_PRODUCER_IP]" >> /home/ubuntu/start-debug.log
 
 sudo fuser -k -n tcp 8080 || true
 echo "start 4" >> /home/ubuntu/start-debug.log
