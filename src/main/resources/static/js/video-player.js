@@ -18,6 +18,9 @@
   const skipLeft = document.getElementById("skipLeft");
   const skipRight = document.getElementById("skipRight");
   const titleEl = document.querySelector(".video-title");
+  const playerStatus = document.getElementById("playerStatus");
+  let hlsPlayer = null;
+  let hasPlayableSource = false;
 
   function toPublicMediaUrl(value) {
     const raw = String(value || "").trim();
@@ -27,6 +30,72 @@
     if (raw.startsWith("/files/")) return raw;
     if (raw.startsWith("files/")) return "/" + raw;
     return "/files/" + raw.replace(/^\/+/, "");
+  }
+
+  function isHlsSource(src) {
+    return /\.m3u8($|\?)/i.test(String(src || "").trim());
+  }
+
+  function destroyHlsPlayer() {
+    if (!hlsPlayer) return;
+    hlsPlayer.destroy();
+    hlsPlayer = null;
+  }
+
+  function setPlayerStatus(message) {
+    if (!playerStatus) return;
+    const text = String(message || "").trim();
+    playerStatus.textContent = text;
+    playerStatus.classList.toggle("show", !!text);
+  }
+
+  function setControlsVisible(visible) {
+    const display = visible ? "" : "none";
+    controls.style.display = display;
+    timeDisplay.style.display = display;
+    timeline.style.display = display;
+    centerIndicator.style.display = display;
+  }
+
+  function setVideoSource(src) {
+    const mediaUrl = toPublicMediaUrl(src);
+    destroyHlsPlayer();
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+    hasPlayableSource = false;
+
+    if (!mediaUrl) {
+      setPlayerStatus("재생 가능한 영상이 없습니다.");
+      setControlsVisible(false);
+      return;
+    }
+
+    setPlayerStatus("");
+    setControlsVisible(true);
+    hasPlayableSource = true;
+
+    if (!isHlsSource(mediaUrl)) {
+      video.src = mediaUrl;
+      return;
+    }
+
+    if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = mediaUrl;
+      return;
+    }
+
+    if (window.Hls && window.Hls.isSupported()) {
+      hlsPlayer = new window.Hls({ enableWorker: true });
+      hlsPlayer.loadSource(mediaUrl);
+      hlsPlayer.attachMedia(video);
+      return;
+    }
+
+    console.error("HLS playback is not supported in this browser:", mediaUrl);
+    setPlayerStatus("이 브라우저에서는 HLS 재생을 지원하지 않습니다.");
+    setControlsVisible(false);
+    hasPlayableSource = false;
   }
 
   function initPlayerData() {
@@ -41,16 +110,14 @@
     const qsSrc = params.get("src");
 
     const title = (data?.title || qsTitle || "").toString().trim();
-    const src = (data?.movieUrl || qsSrc || "").toString().trim();
+    const src = (data?.movieUrl || data?.trailerUrl || qsSrc || "").toString().trim();
 
     if (title) {
       titleEl.textContent = title;
       document.title = title;
     }
 
-    if (src) {
-      video.src = toPublicMediaUrl(src);
-    }
+    setVideoSource(src);
   }
 
   initPlayerData();
@@ -102,6 +169,7 @@
 
   /* 재생 / 일시정지 */
   function togglePlay() {
+    if (!hasPlayableSource) return;
     if (video.paused) {
       video.play();
       playPause.textContent = "⏸";
@@ -123,12 +191,14 @@
     }
 
     if (e.key === "ArrowLeft") {
+      if (!hasPlayableSource) return;
       e.preventDefault();
       video.currentTime = Math.max(0, video.currentTime - 5);
       showSkipIndicator("left");
     }
 
     if (e.key === "ArrowRight") {
+      if (!hasPlayableSource) return;
       e.preventDefault();
       if (!isNaN(video.duration)) {
         video.currentTime = Math.min(video.duration, video.currentTime + 5);
@@ -170,10 +240,12 @@
 
   /* 10초 이동 */
   back10.onclick = () => {
+    if (!hasPlayableSource) return;
     video.currentTime = Math.max(0, video.currentTime - 10);
     showSkipIndicator("left");
   }
   forward10.onclick = () => {
+    if (!hasPlayableSource) return;
     if (!isNaN(video.duration)) {
       video.currentTime = Math.min(video.duration, video.currentTime + 10);
       showSkipIndicator("right");
@@ -377,6 +449,7 @@
 
   /* 타임라인 클릭 */
   timeline.onclick = (e) => {
+    if (!hasPlayableSource) return;
     const r = timeline.getBoundingClientRect();
     const p = (e.clientX - r.left) / r.width;
     if (!isNaN(video.duration)) {
@@ -420,6 +493,10 @@
   document.onmousemove = showUI;
   document.ontouchstart = showUI;
   showUI();
+
+  window.addEventListener("beforeunload", () => {
+    destroyHlsPlayer();
+  });
 
   /* 모바일 더블탭 → 10초 이동 */
   let lastTap = 0;
@@ -477,5 +554,3 @@
       }, 400);
     }
   }
-
-

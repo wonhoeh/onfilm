@@ -415,6 +415,48 @@
     /* ---- movie popup ---- */
     let hideTimer = null;
     let activeCard = null;
+    let popupHls = null;
+
+    function isHlsSource(src) {
+        return /\.m3u8($|\?)/i.test(String(src || "").trim());
+    }
+
+    function destroyPopupVideoSource() {
+        if (popupHls) {
+            popupHls.destroy();
+            popupHls = null;
+        }
+        if (!popup) return;
+        const videoEl = popup.querySelector("video");
+        if (!videoEl) return;
+        videoEl.pause();
+        videoEl.removeAttribute("src");
+        videoEl.load();
+    }
+
+    function attachPopupVideoSource(videoEl, src) {
+        destroyPopupVideoSource();
+        if (!videoEl || !src) return;
+
+        if (!isHlsSource(src)) {
+            videoEl.src = src;
+            return;
+        }
+
+        if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
+            videoEl.src = src;
+            return;
+        }
+
+        if (window.Hls && window.Hls.isSupported()) {
+            popupHls = new window.Hls({ enableWorker: true });
+            popupHls.loadSource(src);
+            popupHls.attachMedia(videoEl);
+            return;
+        }
+
+        console.error("HLS preview is not supported in this browser:", src);
+    }
 
     function createPopup() {
         popup = document.createElement("div");
@@ -556,8 +598,7 @@
             thumbEl.style.display = "none";
         }
 
-        videoEl.pause();
-        videoEl.src = card.dataset.video || "";
+        attachPopupVideoSource(videoEl, card.dataset.video || "");
         videoEl.currentTime = 0;
         videoEl.muted = true;
         if (soundOn && soundOff) {
@@ -592,19 +633,22 @@
 
     function hidePopup(){
         hideTimer = setTimeout(() => {
-            const videoEl = popup.querySelector("video");
             const thumbEl = popup.querySelector(".popup-thumb");
 
             popup.style.opacity = "0";
             popup.style.transform = "scale(0.85) translateY(10px)";
 
-            videoEl.pause();
+            destroyPopupVideoSource();
             if (thumbEl) thumbEl.style.opacity = "1";
 
             setTimeout(() => popup.classList.remove("show"), 180);
             activeCard = null;
         }, 120);
     }
+
+    window.addEventListener("beforeunload", () => {
+        destroyPopupVideoSource();
+    });
 
     slider?.addEventListener("mouseover", (e) => {
         const card = e.target.closest(".film-card");

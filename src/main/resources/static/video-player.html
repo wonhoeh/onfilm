@@ -25,7 +25,8 @@
   </div>
 
   <!-- 영상 -->
-  <video id="video" src="videos/trailer.mp4"></video>
+  <video id="video"></video>
+  <div id="playerStatus" class="player-status" style="display:none;"></div>
 
   <!-- 가운데 재생/일시정지 표시 -->
   <div id="centerIndicator" class="center-play-indicator">▶</div>
@@ -138,6 +139,7 @@
 
 
 
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <script src="/js/video-player.js" defer></script>
 </body>
 </html>

@@ -25,6 +25,12 @@ public class StorageKeyFactory {
     public String movieFile(Long movieId, String ext) {
         return "movie/" + movieId + "/file/" + UUID.randomUUID() + ext;
     }
+    public String movieTrailerHlsTarget(Long movieId) {
+        return "movie/" + movieId + "/trailer/" + UUID.randomUUID() + "/index.m3u8";
+    }
+    public String movieFileHlsTarget(Long movieId) {
+        return "movie/" + movieId + "/file/" + UUID.randomUUID() + "/index.m3u8";
+    }
     public String storyboardCard(Long personId, String ext) {
         return "storyboard/" + personId + "/" + UUID.randomUUID() + ext;
     }

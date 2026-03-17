@@ -98,18 +98,28 @@ public class MediaEncodeJob {
     }
 
     public void markProcessing(Instant startedAt) {
+        if (this.status != MediaEncodeJobStatus.REQUESTED) {
+            throw new IllegalStateException("INVALID_MEDIA_JOB_STATUS_TRANSITION");
+        }
         this.status = MediaEncodeJobStatus.PROCESSING;
         this.startedAt = startedAt;
+        this.completedAt = null;
         this.failureReason = null;
     }
 
     public void markDone(Instant completedAt) {
+        if (this.status != MediaEncodeJobStatus.PROCESSING) {
+            throw new IllegalStateException("INVALID_MEDIA_JOB_STATUS_TRANSITION");
+        }
         this.status = MediaEncodeJobStatus.DONE;
         this.completedAt = completedAt;
         this.failureReason = null;
     }
 
     public void markFailed(String failureReason, Instant completedAt) {
+        if (this.status != MediaEncodeJobStatus.REQUESTED && this.status != MediaEncodeJobStatus.PROCESSING) {
+            throw new IllegalStateException("INVALID_MEDIA_JOB_STATUS_TRANSITION");
+        }
         this.status = MediaEncodeJobStatus.FAILED;
         this.completedAt = completedAt;
         this.failureReason = failureReason;

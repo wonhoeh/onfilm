@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.util.Set;
 
 @Component
+@Profile("prod")
 @RequiredArgsConstructor
 public class CsrfProtectionFilter extends OncePerRequestFilter {
 
@@ -30,11 +32,7 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String method = request.getMethod();
         if (SAFE_METHODS.contains(method)) return true;
-        String path = request.getRequestURI();
-        return path.startsWith("/auth/login")
-                || path.startsWith("/auth/signup")
-                || path.startsWith("/auth/refresh")
-                || path.startsWith("/auth/logout");
+        return shouldSkipByPath(request.getRequestURI());
     }
 
     @Override
@@ -91,5 +89,12 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    protected boolean shouldSkipByPath(String path) {
+        return path.startsWith("/auth/login")
+                || path.startsWith("/auth/signup")
+                || path.startsWith("/auth/refresh")
+                || path.startsWith("/auth/logout");
     }
 }

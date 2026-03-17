@@ -20,12 +20,16 @@ public class LocalStorageService implements StorageService {
 
     private final Path rootPath;
     private final String publicBaseUrl;
+    private final String bucket;
 
     public LocalStorageService(
             @Value("${file.storage.root:./local-storage}") String rootDir,
-            @Value("${file.public-base-url}") String publicBaseUrl
+            @Value("${file.public-base-url}") String publicBaseUrl,
+            @Value("${file.storage.bucket:}") String bucket
     ) {
-        this.rootPath = Paths.get(rootDir).toAbsolutePath().normalize();
+        Path baseRoot = Paths.get(rootDir).toAbsolutePath().normalize();
+        this.bucket = (bucket == null) ? "" : bucket.trim();
+        this.rootPath = this.bucket.isBlank() ? baseRoot : baseRoot.resolve(this.bucket).normalize();
         this.publicBaseUrl = publicBaseUrl;
     }
 
@@ -78,7 +82,14 @@ public class LocalStorageService implements StorageService {
     public String toPublicUrl(String key) {
         if (key == null || key.isBlank()) return null;
 
-        String normalized = key.replace("\\", "/");
+        String trimmed = key.trim();
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            return trimmed;
+        }
+
+        String normalized = trimmed.replace("\\", "/");
+        if (normalized.startsWith("/files/")) return normalized;
+        if (normalized.startsWith("files/")) return "/" + normalized;
         while (normalized.startsWith("/")) normalized = normalized.substring(1);
 
         String base = publicBaseUrl;

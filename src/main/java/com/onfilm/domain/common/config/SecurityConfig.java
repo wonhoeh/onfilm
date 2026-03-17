@@ -107,6 +107,7 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/storyboard-view"),
                                 new AntPathRequestMatcher("/api/person/**"),
                                 new AntPathRequestMatcher("/api/people/**"),
+                                new AntPathRequestMatcher("/internal/api/**"),
                                 new AntPathRequestMatcher("/auth/**")
                         ).permitAll()
 
@@ -198,7 +199,8 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/edit-storyboard"),
                                 new AntPathRequestMatcher("/storyboard-view"),
                                 new AntPathRequestMatcher("/api/person/**"),
-                                new AntPathRequestMatcher("/api/people/**")
+                                new AntPathRequestMatcher("/api/people/**"),
+                                new AntPathRequestMatcher("/internal/api/**")
                         ).permitAll()
 
                         // ✅ 헬스 체크 (ELB 등)

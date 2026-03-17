@@ -800,12 +800,30 @@
   }
 
   async function uploadFileToPresignedUrl(uploadUrl, file, onProgress) {
+    const getCsrfToken = () => {
+      try {
+        const name = "XSRF-TOKEN";
+        const parts = document.cookie ? document.cookie.split(";") : [];
+        for (const p of parts) {
+          const [k, ...rest] = p.trim().split("=");
+          if (k === name) return decodeURIComponent(rest.join("="));
+        }
+      } catch (_) {}
+      return null;
+    };
+
     return await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open("PUT", uploadUrl, true);
+      xhr.withCredentials = true;
 
       if (file?.type) {
         xhr.setRequestHeader("Content-Type", file.type);
+      }
+
+      const csrf = getCsrfToken();
+      if (csrf && /^\/|^https?:\/\/localhost(?::\d+)?\//i.test(String(uploadUrl || ""))) {
+        xhr.setRequestHeader("X-CSRF-TOKEN", csrf);
       }
 
       xhr.upload.onprogress = (e) => {
@@ -1056,6 +1074,10 @@
               else text.textContent = `${label || "업로드 중..."} ${p}%`;
             }
           };
+          const setInfoText = (infoEl, label) => {
+            if (!infoEl) return;
+            infoEl.textContent = label || "";
+          };
           const showDone = (statusBox) => {
             if (!statusBox) return;
             const spinner = statusBox.querySelector(".spinner-circle");
@@ -1074,11 +1096,21 @@
           let thumbRes = null;
           if (card._thumbnailFile) {
             showLoading(thumbStatus, null, "업로드 준비 중...");
+            setInfoText(thumbInfo, "업로드 준비 중");
             thumbRes = await uploadMovieAsset(movieId, "thumbnail", card._thumbnailFile, (p) => {
               showLoading(thumbStatus, p, "업로드 중...");
+              setInfoText(thumbInfo, Number.isFinite(p) ? `업로드 중 ${Math.round(p)}%` : "업로드 중");
             }, (stage) => {
-              if (stage === "completing") showLoading(thumbStatus, null, "인코딩 요청 중...");
-              if (stage === "processing" || stage === "polling") showLoading(thumbStatus, null, "인코딩 중...");
+              if (stage === "presign") setInfoText(thumbInfo, "업로드 준비 중");
+              if (stage === "uploading") setInfoText(thumbInfo, "업로드 중");
+              if (stage === "completing") {
+                showLoading(thumbStatus, null, "인코딩 요청 중...");
+                setInfoText(thumbInfo, "인코딩 요청 중");
+              }
+              if (stage === "processing" || stage === "polling") {
+                showLoading(thumbStatus, null, "인코딩 중...");
+                setInfoText(thumbInfo, "인코딩 중");
+              }
             });
           }
           if (thumbRes?.jobId) {
@@ -1095,11 +1127,21 @@
           let trailerRes = null;
           if (card._trailerFile) {
             showLoading(trailerStatus, null, "업로드 준비 중...");
+            setInfoText(trailerInfo, "업로드 준비 중");
             trailerRes = await uploadMovieAsset(movieId, "trailer", card._trailerFile, (p) => {
               showLoading(trailerStatus, p, "업로드 중...");
+              setInfoText(trailerInfo, Number.isFinite(p) ? `업로드 중 ${Math.round(p)}%` : "업로드 중");
             }, (stage) => {
-              if (stage === "completing") showLoading(trailerStatus, null, "인코딩 요청 중...");
-              if (stage === "processing" || stage === "polling") showLoading(trailerStatus, null, "인코딩 중...");
+              if (stage === "presign") setInfoText(trailerInfo, "업로드 준비 중");
+              if (stage === "uploading") setInfoText(trailerInfo, "업로드 중");
+              if (stage === "completing") {
+                showLoading(trailerStatus, null, "인코딩 요청 중...");
+                setInfoText(trailerInfo, "인코딩 요청 중");
+              }
+              if (stage === "processing" || stage === "polling") {
+                showLoading(trailerStatus, null, "인코딩 중...");
+                setInfoText(trailerInfo, "인코딩 중");
+              }
             });
           }
           if (trailerRes?.jobId) {
@@ -1116,11 +1158,21 @@
           let movieRes = null;
           if (card._videoFile) {
             showLoading(videoStatus, null, "업로드 준비 중...");
+            setInfoText(videoInfo, "업로드 준비 중");
             movieRes = await uploadMovieAsset(movieId, "file", card._videoFile, (p) => {
               showLoading(videoStatus, p, "업로드 중...");
+              setInfoText(videoInfo, Number.isFinite(p) ? `업로드 중 ${Math.round(p)}%` : "업로드 중");
             }, (stage) => {
-              if (stage === "completing") showLoading(videoStatus, null, "인코딩 요청 중...");
-              if (stage === "processing" || stage === "polling") showLoading(videoStatus, null, "인코딩 중...");
+              if (stage === "presign") setInfoText(videoInfo, "업로드 준비 중");
+              if (stage === "uploading") setInfoText(videoInfo, "업로드 중");
+              if (stage === "completing") {
+                showLoading(videoStatus, null, "인코딩 요청 중...");
+                setInfoText(videoInfo, "인코딩 요청 중");
+              }
+              if (stage === "processing" || stage === "polling") {
+                showLoading(videoStatus, null, "인코딩 중...");
+                setInfoText(videoInfo, "인코딩 중");
+              }
             });
           }
           if (movieRes?.jobId) {

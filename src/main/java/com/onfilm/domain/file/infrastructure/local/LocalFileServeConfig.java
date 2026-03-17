@@ -17,9 +17,15 @@ public class LocalFileServeConfig implements WebMvcConfigurer {
     @Value("${file.storage.root:./local-storage}")
     private String rootDir;
 
+    @Value("${file.storage.bucket:}")
+    private String bucket;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        String location = Paths.get(rootDir).toAbsolutePath().toUri().toString();
+        String configuredBucket = (bucket == null) ? "" : bucket.trim();
+        String location = configuredBucket.isBlank()
+                ? Paths.get(rootDir).toAbsolutePath().toUri().toString()
+                : Paths.get(rootDir).toAbsolutePath().resolve(configuredBucket).toUri().toString();
         log.info("[storage location] {}", location);
         registry.addResourceHandler("/files/**")
                 .addResourceLocations(location);

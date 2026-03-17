@@ -16,9 +16,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -131,7 +133,7 @@ public class MovieFileController {
     @PostMapping("/{movieId}/trailer/complete")
     public ResponseEntity<MediaEncodeJobResponse> completeTrailerUpload(@PathVariable Long movieId,
                                                                         @RequestBody MediaUploadCompleteRequest request) {
-        String targetKey = keyFactory.movieTrailer(movieId, ".mp4");
+        String targetKey = keyFactory.movieTrailerHlsTarget(movieId);
         String jobId = enqueueTrailerJob(movieId, request, targetKey);
         return ResponseEntity.status(HttpStatus.ACCEPTED)
                 .body(new MediaEncodeJobResponse(jobId, request.sourceKey(), targetKey));
@@ -178,7 +180,7 @@ public class MovieFileController {
     @PostMapping("/{movieId}/file/complete")
     public ResponseEntity<MediaEncodeJobResponse> completeMovieFileUpload(@PathVariable Long movieId,
                                                                           @RequestBody MediaUploadCompleteRequest request) {
-        String targetKey = keyFactory.movieFile(movieId, ".mp4");
+        String targetKey = keyFactory.movieFileHlsTarget(movieId);
         String jobId = enqueueMovieJob(movieId, request, targetKey);
         return ResponseEntity.status(HttpStatus.ACCEPTED)
                 .body(new MediaEncodeJobResponse(jobId, request.sourceKey(), targetKey));
@@ -188,6 +190,34 @@ public class MovieFileController {
     public ResponseEntity<Void> deleteMovieFiles(@PathVariable Long movieId) {
         personReadService.deleteMovieFiles(movieId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping(value = "/raw-upload", consumes = MediaType.ALL_VALUE)
+    public ResponseEntity<Void> uploadRawMovieAsset(@RequestParam("sourceKey") String sourceKey,
+                                                    HttpServletRequest request) {
+        if (sourceKey == null || sourceKey.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (!sourceKey.startsWith("movie/") || !sourceKey.contains("/raw/")) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Path temp = null;
+        try {
+            temp = Files.createTempFile("onfilm-raw-upload-", ".bin");
+            try (InputStream in = request.getInputStream()) {
+                long copied = Files.copy(in, temp, StandardCopyOption.REPLACE_EXISTING);
+                if (copied <= 0) {
+                    return ResponseEntity.badRequest().build();
+                }
+            }
+            storage.save(sourceKey, temp);
+            return ResponseEntity.noContent().build();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } finally {
+            deleteTemp(temp);
+        }
     }
 
     private Path toTempFile(MultipartFile file) {

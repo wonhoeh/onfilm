@@ -30,14 +30,14 @@ public class MediaEncodeJobCommandService {
     @Transactional
     public String requestMovieEncoding(Long movieId, Long requestedByUserId, String sourceBucket, String sourceKey,
                                        String targetBucket, String targetKey, String contentType) {
-        return send(movieId, requestedByUserId, EncodeJobType.MOVIE, EncodeJobPreset.MOVIE_720P_3000K,
+        return send(movieId, requestedByUserId, EncodeJobType.MOVIE, EncodeJobPreset.VIDEO_HLS_720P_2500K_AAC_96K,
                 sourceBucket, sourceKey, targetBucket, targetKey, contentType);
     }
 
     @Transactional
     public String requestTrailerEncoding(Long movieId, Long requestedByUserId, String sourceBucket, String sourceKey,
                                          String targetBucket, String targetKey, String contentType) {
-        return send(movieId, requestedByUserId, EncodeJobType.TRAILER, EncodeJobPreset.TRAILER_720P_3000K,
+        return send(movieId, requestedByUserId, EncodeJobType.TRAILER, EncodeJobPreset.VIDEO_HLS_720P_2500K_AAC_96K,
                 sourceBucket, sourceKey, targetBucket, targetKey, contentType);
     }
 

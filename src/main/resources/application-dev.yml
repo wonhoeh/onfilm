@@ -17,6 +17,11 @@ spring:
   h2:
     console:
       enabled: true
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
 auth:
   access-cookie-secure: false
@@ -27,7 +32,8 @@ file:
   public-base-url: http://localhost:8080/files
   storage:
     type: local
-    root: ./local-storage
+    bucket: onfilm-media
+    root: /Users/whheo/Desktop/onfilm/local-storage
     presign-expiration-minutes: 10
 
 app:

@@ -85,7 +85,12 @@ public class S3StorageService implements StorageService {
     public String toPublicUrl(String key) {
         if (key == null || key.isBlank()) return null;
 
-        String normalized = normalizeKey(key);
+        String trimmed = key.trim();
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            return trimmed;
+        }
+
+        String normalized = normalizeKey(trimmed);
         String base = publicBaseUrl;
         if (base == null || base.isBlank()) {
             if (region == null || region.isBlank()) {

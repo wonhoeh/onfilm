@@ -90,6 +90,7 @@ public class GlobalExceptionHandler {
         HttpStatus status = switch (e.getMessage()) {
             case "FORBIDDEN_MOVIE_ACCESS", "FORBIDDEN_MEDIA_JOB_ACCESS" -> HttpStatus.FORBIDDEN;
             case "MEDIA_ENCODE_PRODUCER_NOT_CONFIGURED", "PRESIGNED_UPLOAD_NOT_CONFIGURED" -> HttpStatus.SERVICE_UNAVAILABLE;
+            case "INVALID_MEDIA_JOB_STATUS_TRANSITION" -> BAD_REQUEST;
             default -> BAD_REQUEST;
         };
         return ResponseEntity.status(status)
