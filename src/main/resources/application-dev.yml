@@ -9,11 +9,15 @@ spring:
     driver-class-name: org.h2.Driver
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
+    defer-datasource-initialization: true
     properties:
       hibernate:
         format_sql: true
         show_sql: false
+  sql:
+    init:
+      mode: always
   h2:
     console:
       enabled: true

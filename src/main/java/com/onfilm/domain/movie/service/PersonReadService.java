@@ -109,7 +109,7 @@ public class PersonReadService {
     }
 
     public List<StoryboardProjectSummaryResponse> findStoryboardProjectsByPublicId(String publicId) {
-        Person person = personRepository.findByPublicId(publicId)
+        Person person = personRepository.findByPublicIdWithStoryboards(publicId)
                 .orElseThrow(() -> new PersonNotFoundException(publicId));
         List<StoryboardProjectSummaryResponse> responses = new ArrayList<>();
         for (StoryboardProject project : person.getStoryboardProjects()) {
