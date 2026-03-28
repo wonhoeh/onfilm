@@ -9,14 +9,6 @@ public final class SecurityUtil {
 
     private SecurityUtil() {}
 
-    public static Authentication currentAuth() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
-            throw new IllegalStateException("UNAUTHENTICATED");
-        }
-        return auth;
-    }
-
     public static String currentPrincipal() {
         return currentAuth().getName(); // email/username/publicId 중 무엇이든 여기로 나옴
     }
@@ -36,6 +28,14 @@ public final class SecurityUtil {
         }
 
         throw new IllegalStateException("UNSUPPORTED_PRINCIPAL_TYPE: " + principal.getClass().getName());
+    }
+
+    public static Authentication currentAuth() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
+            throw new IllegalStateException("UNAUTHENTICATED");
+        }
+        return auth;
     }
 
     private static Long parseId(String value) {

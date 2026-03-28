@@ -1,6 +1,6 @@
 package com.onfilm.domain.token.service;
 
-import com.onfilm.domain.common.config.JwtProvider;
+import com.onfilm.domain.auth.security.JwtProvider;
 import com.onfilm.domain.token.entity.RefreshToken;
 import com.onfilm.domain.token.entity.TokenHashing;
 import com.onfilm.domain.token.repository.RefreshTokenRepository;

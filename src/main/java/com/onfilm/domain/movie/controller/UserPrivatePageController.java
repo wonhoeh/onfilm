@@ -22,7 +22,14 @@ public class UserPrivatePageController {
 
     private final UserRepository userRepository;
 
-    @GetMapping({"/edit-profile", "/edit-filmography", "/edit-gallery", "/storyboard", "/edit-storyboard", "/storyboard-view"})
+    @GetMapping({
+            "/edit-profile",
+            "/edit-filmography",
+            "/edit-gallery",
+            "/storyboard",
+            "/edit-storyboard",
+            "/storyboard-view"
+    })
     public String redirectToUserScoped(HttpServletRequest request) {
         String username = currentUsernameOrNull();
         if (username == null) {

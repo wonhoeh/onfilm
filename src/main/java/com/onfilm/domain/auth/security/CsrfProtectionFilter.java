@@ -1,4 +1,4 @@
-package com.onfilm.domain.common.config;
+package com.onfilm.domain.auth.security;
 
 import com.onfilm.domain.auth.config.AuthProperties;
 import jakarta.servlet.FilterChain;
@@ -41,6 +41,7 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
+        String path = request.getRequestURI();
         String origin = request.getHeader("Origin");
         String referer = request.getHeader("Referer");
         String host = request.getHeader("Host");

@@ -1,5 +1,8 @@
-package com.onfilm.domain.common.config;
+package com.onfilm.domain.auth.config;
 
+import com.onfilm.domain.auth.security.AuthPageBlockFilter;
+import com.onfilm.domain.auth.security.CsrfProtectionFilter;
+import com.onfilm.domain.auth.security.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -91,14 +94,6 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/videos/**"),
                                 new AntPathRequestMatcher("/vendor/**"),
                                 new AntPathRequestMatcher("/favicon.ico"),
-                                new AntPathRequestMatcher("/onfilm/**"),
-                                publicProfileMatcher,
-                                userEditProfileMatcher,
-                                userEditFilmographyMatcher,
-                                userEditGalleryMatcher,
-                                userStoryboardMatcher,
-                                userEditStoryboardMatcher,
-                                userStoryboardViewMatcher,
                                 new AntPathRequestMatcher("/edit-profile"),
                                 new AntPathRequestMatcher("/edit-filmography"),
                                 new AntPathRequestMatcher("/edit-gallery"),
@@ -108,8 +103,15 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/api/person/**"),
                                 new AntPathRequestMatcher("/api/people/**"),
                                 new AntPathRequestMatcher("/internal/api/**"),
-                                new AntPathRequestMatcher("/auth/**")
-                        ).permitAll()
+                                new AntPathRequestMatcher("/auth/**"),
+                                publicProfileMatcher,
+                                userEditProfileMatcher,
+                                userEditFilmographyMatcher,
+                                userEditGalleryMatcher,
+                                userStoryboardMatcher,
+                                userEditStoryboardMatcher,
+                                userStoryboardViewMatcher
+                                ).permitAll()
 
                         // ✅ 헬스 체크 (ELB 등)
                         .requestMatchers("/health", "/health/**").permitAll()
@@ -184,14 +186,6 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/videos/**"),
                                 new AntPathRequestMatcher("/vendor/**"),
                                 new AntPathRequestMatcher("/favicon.ico"),
-                                new AntPathRequestMatcher("/onfilm/**"),
-                                publicProfileMatcher,
-                                userEditProfileMatcher,
-                                userEditFilmographyMatcher,
-                                userEditGalleryMatcher,
-                                userStoryboardMatcher,
-                                userEditStoryboardMatcher,
-                                userStoryboardViewMatcher,
                                 new AntPathRequestMatcher("/edit-profile"),
                                 new AntPathRequestMatcher("/edit-filmography"),
                                 new AntPathRequestMatcher("/edit-gallery"),
@@ -200,8 +194,15 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/storyboard-view"),
                                 new AntPathRequestMatcher("/api/person/**"),
                                 new AntPathRequestMatcher("/api/people/**"),
-                                new AntPathRequestMatcher("/internal/api/**")
-                        ).permitAll()
+                                new AntPathRequestMatcher("/internal/api/**"),
+                                publicProfileMatcher,
+                                userEditProfileMatcher,
+                                userEditFilmographyMatcher,
+                                userEditGalleryMatcher,
+                                userStoryboardMatcher,
+                                userEditStoryboardMatcher,
+                                userStoryboardViewMatcher
+                                ).permitAll()
 
                         // ✅ 헬스 체크 (ELB 등)
                         .requestMatchers("/health", "/health/**").permitAll()

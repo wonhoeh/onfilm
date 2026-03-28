@@ -4,7 +4,7 @@ import com.onfilm.domain.auth.config.AuthProperties;
 import com.onfilm.domain.auth.dto.AuthTokens;
 import com.onfilm.domain.auth.dto.LoginRequest;
 import com.onfilm.domain.auth.dto.SignupRequest;
-import com.onfilm.domain.common.config.JwtProvider;
+import com.onfilm.domain.auth.security.JwtProvider;
 import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.token.service.RefreshTokenService;
 import com.onfilm.domain.user.entity.User;

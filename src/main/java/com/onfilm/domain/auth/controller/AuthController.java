@@ -1,7 +1,7 @@
 package com.onfilm.domain.auth.controller;
 
-import com.onfilm.domain.auth.config.AuthProperties;
 import com.onfilm.domain.auth.dto.*;
+import com.onfilm.domain.auth.infrastructure.AuthCookieFactory;
 import com.onfilm.domain.auth.service.AuthService;
 import com.onfilm.domain.user.entity.User;
 import jakarta.validation.Valid;
@@ -20,7 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class AuthController {
 
     private final AuthService authService;
-    private final AuthProperties authProperties;
+    private final AuthCookieFactory authCookieFactory;
 
     @PostMapping("/signup")
     public ResponseEntity<Void> signup(@Valid @RequestBody SignupRequest request) {
@@ -31,13 +31,14 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         AuthTokens tokens = authService.login(request);
-        ResponseCookie accessCookie = buildAccessCookie(tokens.accessToken(), authProperties.accessTokenTtl().toSeconds());
-        ResponseCookie csrfCookie = buildCsrfCookie(generateCsrfToken(), authProperties.accessTokenTtl().toSeconds());
-        ResponseCookie cookie = buildRefreshCookie(tokens.refreshToken(), authProperties.refreshTokenTtl().toSeconds());
+        ResponseCookie accessCookie = authCookieFactory.createAccessCookie(tokens.accessToken());
+        ResponseCookie csrfCookie = authCookieFactory.createCsrfCookie();
+        ResponseCookie refreshCookie = authCookieFactory.createRefreshCookie(tokens.refreshToken());
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, csrfCookie.toString())
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .body(new AuthResponse(null));
     }
 
@@ -47,26 +48,26 @@ public class AuthController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing refresh token");
         }
         AuthTokens tokens = authService.refresh(refreshToken);
-        ResponseCookie accessCookie = buildAccessCookie(tokens.accessToken(), authProperties.accessTokenTtl().toSeconds());
-        ResponseCookie csrfCookie = buildCsrfCookie(generateCsrfToken(), authProperties.accessTokenTtl().toSeconds());
-        ResponseCookie cookie = buildRefreshCookie(tokens.refreshToken(), authProperties.refreshTokenTtl().toSeconds());
+        ResponseCookie accessCookie = authCookieFactory.createAccessCookie(tokens.accessToken());
+        ResponseCookie csrfCookie = authCookieFactory.createCsrfCookie();
+        ResponseCookie refreshCookie = authCookieFactory.createRefreshCookie(tokens.refreshToken());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, csrfCookie.toString())
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .body(new AuthResponse(null));
     }
 
     @RequestMapping(value = "/logout", method = {RequestMethod.POST, RequestMethod.GET})
     public ResponseEntity<Void> logout(@CookieValue(name = "refresh_token", required = false) String refreshToken) {
         authService.logout(refreshToken);
-        ResponseCookie accessCookie = buildAccessCookie("", 0);
-        ResponseCookie csrfCookie = buildCsrfCookie("", 0);
-        ResponseCookie cookie = buildRefreshCookie("", 0);
+        ResponseCookie accessCookie = authCookieFactory.deleteAccessCookie();
+        ResponseCookie csrfCookie = authCookieFactory.deleteCsrfCookie();
+        ResponseCookie refreshCookie = authCookieFactory.deleteRefreshCookie();
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, csrfCookie.toString())
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .build();
     }
 
@@ -95,41 +96,5 @@ public class AuthController {
     public ResponseEntity<EmailCheckResponse> checkEmail(@RequestParam String email) {
         boolean available = authService.isEmailAvailable(email);
         return ResponseEntity.ok(new EmailCheckResponse(available));
-    }
-
-    private ResponseCookie buildRefreshCookie(String value, long maxAgeSeconds) {
-        return ResponseCookie.from(authProperties.refreshCookieNameOrDefault(), value)
-                .httpOnly(true)
-                .secure(authProperties.refreshCookieSecure())
-                .path(authProperties.refreshCookiePathOrDefault())
-                .sameSite(authProperties.refreshCookieSameSiteOrDefault())
-                .maxAge(maxAgeSeconds)
-                .build();
-    }
-
-    private ResponseCookie buildAccessCookie(String value, long maxAgeSeconds) {
-        return ResponseCookie.from(authProperties.accessCookieNameOrDefault(), value)
-                .httpOnly(true)
-                .secure(authProperties.accessCookieSecure())
-                .path(authProperties.accessCookiePathOrDefault())
-                .sameSite(authProperties.accessCookieSameSiteOrDefault())
-                .maxAge(maxAgeSeconds)
-                .build();
-    }
-
-    private ResponseCookie buildCsrfCookie(String value, long maxAgeSeconds) {
-        return ResponseCookie.from(authProperties.csrfCookieNameOrDefault(), value)
-                .httpOnly(false)
-                .secure(authProperties.csrfCookieSecure())
-                .path(authProperties.csrfCookiePathOrDefault())
-                .sameSite(authProperties.csrfCookieSameSiteOrDefault())
-                .maxAge(maxAgeSeconds)
-                .build();
-    }
-
-    private String generateCsrfToken() {
-        byte[] buf = new byte[32];
-        new java.security.SecureRandom().nextBytes(buf);
-        return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(buf);
     }
 }

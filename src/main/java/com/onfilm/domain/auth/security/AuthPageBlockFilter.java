@@ -1,4 +1,4 @@
-package com.onfilm.domain.common.config;
+package com.onfilm.domain.auth.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

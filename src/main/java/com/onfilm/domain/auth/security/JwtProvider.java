@@ -1,4 +1,4 @@
-package com.onfilm.domain.common.config;
+package com.onfilm.domain.auth.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -20,6 +20,8 @@ import java.util.Date;
 import java.util.List;
 
 @Component
+// access token 자체를 만드는 클래스
+// JWT의 구조와 검증 방식
 public class JwtProvider {
 
     // 예: application.yml에서 secret 주입
@@ -54,20 +56,20 @@ public class JwtProvider {
         }
     }
 
-    public Long parseUserId(String token) {
-        Claims claims = Jwts.parser().verifyWith((SecretKey) key).build()
-                .parseSignedClaims(token)
-                .getPayload();
-
-        return Long.valueOf(claims.getSubject());
-    }
-
     public Authentication getAuthentication(String token) {
         Long userId = parseUserId(token);
 
         // 여기서는 userId만 principal로 둠 (원하면 UserDetails 조회해서 권한 세팅 가능)
         User principal = new User(String.valueOf(userId), "", List.of());
         return new UsernamePasswordAuthenticationToken(principal, token, principal.getAuthorities());
+    }
+
+    public Long parseUserId(String token) {
+        Claims claims = Jwts.parser().verifyWith((SecretKey) key).build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        return Long.valueOf(claims.getSubject());
     }
 
     private static final class SecureRandomHolder {
