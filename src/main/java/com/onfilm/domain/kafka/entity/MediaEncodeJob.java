@@ -108,6 +108,9 @@ public class MediaEncodeJob {
     }
 
     public void markDone(Instant completedAt) {
+        if (this.status == MediaEncodeJobStatus.DONE) {
+            return;
+        }
         if (this.status != MediaEncodeJobStatus.PROCESSING) {
             throw new IllegalStateException("INVALID_MEDIA_JOB_STATUS_TRANSITION");
         }
@@ -117,6 +120,9 @@ public class MediaEncodeJob {
     }
 
     public void markFailed(String failureReason, Instant completedAt) {
+        if (this.status == MediaEncodeJobStatus.FAILED) {
+            return;
+        }
         if (this.status != MediaEncodeJobStatus.REQUESTED && this.status != MediaEncodeJobStatus.PROCESSING) {
             throw new IllegalStateException("INVALID_MEDIA_JOB_STATUS_TRANSITION");
         }
