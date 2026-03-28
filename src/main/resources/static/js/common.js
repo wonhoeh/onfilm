@@ -31,7 +31,6 @@
   function getUsernameFromPath() {
     const parts = window.location.pathname.split("/").filter(Boolean);
     if (parts.length === 0) return "";
-    if (parts[0] === "onfilm") return parts[1] || "";
     return parts[0] || "";
   }
 
