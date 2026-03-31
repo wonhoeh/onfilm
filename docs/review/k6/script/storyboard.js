@@ -2,7 +2,7 @@ import http from 'k6/http';
 import { sleep, check } from 'k6';
 
 const BASE_URL   = 'http://13.125.228.215:8080';
-const PUBLIC_ID  = '9d981c8b-7a5f-4f3c-99a9-c72f776f1253';
+const PUBLIC_ID  = '7edaa5f1-db5c-45ab-a2ea-1f81c54c3b3b';
 const EMAIL      = 'test@test.com';   // prod RDS에 등록된 테스트 계정
 const PASSWORD   = 'qwer1234';         // 위 계정의 비밀번호
 
