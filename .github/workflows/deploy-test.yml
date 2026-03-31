@@ -49,5 +49,8 @@ jobs:
             mv /home/ubuntu/onfilm-server/tobe/project.jar /home/ubuntu/onfilm-server/current/project.jar
             cd /home/ubuntu/onfilm-server/current
             sudo fuser -k -n tcp 8080 || true
+            export DB_URL=${{ secrets.DB_URL }}
+            export DB_USER=${{ secrets.DB_USER }}
+            export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             nohup java -jar project.jar --spring.profiles.active=prod > ./output.log 2>&1 &
             rm -rf /home/ubuntu/onfilm-server/tobe
