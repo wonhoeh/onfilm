@@ -7,8 +7,13 @@ import com.onfilm.domain.token.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
+
+import jakarta.persistence.OptimisticLockException;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -20,6 +25,7 @@ public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final TokenHashing tokenHashing;
     private final JwtProvider jwtProvider;
+    private final PlatformTransactionManager transactionManager;
 
     @Transactional
     public String issue(Long userId, Duration ttl) {
@@ -32,8 +38,20 @@ public class RefreshTokenService {
 
     @Transactional
     public RotationResult rotate(String rawToken, Duration ttl) {
-        RefreshToken existing = refreshTokenRepository.findByTokenHashAndRevokedAtIsNull(tokenHashing.sha256(rawToken))
+        String hash = tokenHashing.sha256(rawToken);
+
+        RefreshToken existing = refreshTokenRepository.findByTokenHash(hash)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token"));
+
+        // 이미 revoked된 토큰으로 재요청 → 탈취 의심 → 해당 유저 전체 토큰 삭제
+        if (existing.isRevoked()) {
+            // 별도 트랜잭션으로 삭제 → 이후 예외 롤백과 무관하게 즉시 커밋
+            TransactionTemplate tx = new TransactionTemplate(transactionManager);
+            tx.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
+            Long userId = existing.getUserId();
+            tx.execute(status -> { refreshTokenRepository.deleteAllByUserId(userId); return null; });
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token reuse detected");
+        }
 
         existing.markUsed();
 
@@ -44,7 +62,11 @@ public class RefreshTokenService {
         }
 
         existing.revoke();
-        refreshTokenRepository.save(existing);
+        try {
+            refreshTokenRepository.saveAndFlush(existing);
+        } catch (OptimisticLockException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Concurrent refresh token rotation detected");
+        }
 
         String newRawToken = jwtProvider.createRefreshToken();
         Instant expiresAt = Instant.now().plus(ttl);
