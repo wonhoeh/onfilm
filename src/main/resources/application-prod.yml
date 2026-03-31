@@ -33,9 +33,10 @@ file:
   public-base-url: ${S3_PUBLIC_BASE_URL:}
 
 auth:
-  access-cookie-secure: true
-  csrf-cookie-secure: true
-  refresh-cookie-secure: true
+  # Secure 플래그가 붙은 쿠키는 HTTPS에서만 저장/전송되서 k6 테스트 환경일 때는 false, 배포할 때 true
+  access-cookie-secure: false
+  csrf-cookie-secure: false
+  refresh-cookie-secure: false
 
 app:
   kafka:

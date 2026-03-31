@@ -32,27 +32,27 @@ SET @person_id = LAST_INSERT_ID();
 -- ============================================================
 -- 2. person_sns 5개
 -- ============================================================
-INSERT INTO person_sns (type, url, person_id) VALUES
-('INSTAGRAM', 'https://instagram.com/k6test1', @person_id),
-('YOUTUBE',   'https://youtube.com/k6test2',   @person_id),
-('TWITTER',   'https://twitter.com/k6test3',   @person_id),
-('FACEBOOK',  'https://facebook.com/k6test4',  @person_id),
-('NAVER',     'https://blog.naver.com/k6test5', @person_id);
+INSERT INTO person_sns (id, type, url, person_id) VALUES
+(9001, 'INSTAGRAM', 'https://instagram.com/k6test1',  @person_id),
+(9002, 'YOUTUBE',   'https://youtube.com/k6test2',    @person_id),
+(9003, 'TWITTER',   'https://twitter.com/k6test3',    @person_id),
+(9004, 'FACEBOOK',  'https://facebook.com/k6test4',   @person_id),
+(9005, 'NAVER',     'https://blog.naver.com/k6test5', @person_id);
 
 -- ============================================================
 -- 3. profile_tag 10개
 -- ============================================================
-INSERT INTO profile_tag (person_id, raw_text, normalized) VALUES
-(@person_id, '액션',   '액션'),
-(@person_id, '멜로',   '멜로'),
-(@person_id, '코미디', '코미디'),
-(@person_id, '드라마', '드라마'),
-(@person_id, '스릴러', '스릴러'),
-(@person_id, '공포',   '공포'),
-(@person_id, 'SF',     'sf'),
-(@person_id, '판타지', '판타지'),
-(@person_id, '범죄',   '범죄'),
-(@person_id, '다큐',   '다큐');
+INSERT INTO profile_tag (id, person_id, raw_text, normalized) VALUES
+(9001, @person_id, '액션',   '액션'),
+(9002, @person_id, '멜로',   '멜로'),
+(9003, @person_id, '코미디', '코미디'),
+(9004, @person_id, '드라마', '드라마'),
+(9005, @person_id, '스릴러', '스릴러'),
+(9006, @person_id, '공포',   '공포'),
+(9007, @person_id, 'SF',     'sf'),
+(9008, @person_id, '판타지', '판타지'),
+(9009, @person_id, '범죄',   '범죄'),
+(9010, @person_id, '다큐',   '다큐');
 
 -- ============================================================
 -- 4. person_gallery 30개
@@ -118,7 +118,7 @@ INSERT INTO movie (title, runtime, release_year, movie_url, thumbnail_url, age_r
 -- MySQL 멀티 ROW INSERT 시 LAST_INSERT_ID()는 첫 번째 행의 ID를 반환
 SET @movie_base = LAST_INSERT_ID();
 
-INSERT INTO movie_person (movie_id, person_id, role, castType, characterName, sort_order, is_private) VALUES
+INSERT INTO movie_person (movie_id, person_id, role, cast_type, character_name, sort_order, is_private) VALUES
 (@movie_base +  0, @person_id, 'ACTOR', 'LEAD',       '캐릭터01', 0, false),
 (@movie_base +  1, @person_id, 'ACTOR', 'LEAD',       '캐릭터02', 0, false),
 (@movie_base +  2, @person_id, 'ACTOR', 'SUPPORTING', '캐릭터03', 0, false),
