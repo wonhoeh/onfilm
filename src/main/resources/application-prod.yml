@@ -15,7 +15,7 @@ spring:
         format_sql: true
         show_sql: false
   kafka:
-    bootstrap-servers: ${KAFKA_PRODUCER_IP}:9092
+    bootstrap-servers: ${KAFKA_PRODUCER_IP:localhost}:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -23,8 +23,8 @@ spring:
 file:
   storage:
     type: s3
-    bucket: ${S3_BUCKET}
-    region: ${S3_REGION}
+    bucket: ${S3_BUCKET:test-bucket}
+    region: ${S3_REGION:ap-northeast-2}
     access-key: ${S3_ACCESS_KEY:}
     secret-key: ${S3_SECRET_KEY:}
     presign-expiration-minutes: 10
