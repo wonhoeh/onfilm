@@ -116,12 +116,6 @@ public class PersonController {
     @PutMapping("/{publicId}/gallery")
     public ResponseEntity<Void> reorderGallery(@PathVariable String publicId,
                                                @RequestBody GalleryReorderRequest request) {
-        Long currentPersonId = personReadService.findCurrentPersonId();
-        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
-        if (!currentPersonId.equals(targetPersonId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
         List<String> ordered = (request == null || request.keys() == null)
                 ? List.of()
                 : request.keys().stream()
@@ -129,25 +123,19 @@ public class PersonController {
                 .filter(k -> k != null && !k.isBlank())
                 .toList();
 
-        personReadService.reorderGallery(currentPersonId, ordered);
+        personReadService.reorderGallery(ordered);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{publicId}/gallery")
     public ResponseEntity<Void> deleteGallery(@PathVariable String publicId,
                                               @RequestParam("key") String key) {
-        Long currentPersonId = personReadService.findCurrentPersonId();
-        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
-        if (!currentPersonId.equals(targetPersonId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
         String storageKey = toStorageKey(key);
         if (storageKey == null || storageKey.isBlank()) {
             return ResponseEntity.badRequest().build();
         }
 
-        personReadService.removeGalleryImage(currentPersonId, storageKey);
+        personReadService.removeGalleryImage(storageKey);
         storageService.delete(storageKey);
         return ResponseEntity.noContent().build();
     }
@@ -180,13 +168,7 @@ public class PersonController {
             @PathVariable String publicId,
             @RequestBody PrivacyUpdateRequest request
     ) {
-        Long currentPersonId = personReadService.findCurrentPersonId();
-        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
-        if (!currentPersonId.equals(targetPersonId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        personReadService.updateFilmographyPrivate(currentPersonId, request.isPrivate());
+        personReadService.updateFilmographyPrivate(request.isPrivate());
         return ResponseEntity.ok().build();
     }
 
@@ -195,13 +177,7 @@ public class PersonController {
             @PathVariable String publicId,
             @RequestBody PrivacyUpdateRequest request
     ) {
-        Long currentPersonId = personReadService.findCurrentPersonId();
-        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
-        if (!currentPersonId.equals(targetPersonId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        personReadService.updateGalleryPrivate(currentPersonId, request.isPrivate());
+        personReadService.updateGalleryPrivate(request.isPrivate());
         return ResponseEntity.ok().build();
     }
 
@@ -210,18 +186,12 @@ public class PersonController {
             @PathVariable String publicId,
             @RequestBody GalleryItemPrivacyRequest request
     ) {
-        Long currentPersonId = personReadService.findCurrentPersonId();
-        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
-        if (!currentPersonId.equals(targetPersonId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
         String storageKey = toStorageKey(request.key());
         if (storageKey == null || storageKey.isBlank()) {
             return ResponseEntity.badRequest().build();
         }
 
-        personReadService.updateGalleryItemPrivacy(currentPersonId, storageKey, request.isPrivate());
+        personReadService.updateGalleryItemPrivacy(storageKey, request.isPrivate());
         return ResponseEntity.ok().build();
     }
 
@@ -242,12 +212,7 @@ public class PersonController {
             @PathVariable String publicId,
             @RequestBody StoryboardProjectRequest request
     ) {
-        Long currentPersonId = personReadService.findCurrentPersonId();
-        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
-        if (!currentPersonId.equals(targetPersonId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        StoryboardProject project = personReadService.createStoryboardProject(currentPersonId, request);
+        StoryboardProject project = personReadService.createStoryboardProject(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(toProjectResponse(project));
     }
 
@@ -270,12 +235,7 @@ public class PersonController {
             @PathVariable Long projectId,
             @RequestBody StoryboardProjectRequest request
     ) {
-        Long currentPersonId = personReadService.findCurrentPersonId();
-        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
-        if (!currentPersonId.equals(targetPersonId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        StoryboardProject project = personReadService.updateStoryboardProject(currentPersonId, projectId, request);
+        StoryboardProject project = personReadService.updateStoryboardProject(projectId, request);
         return ResponseEntity.ok(toProjectResponse(project));
     }
 
@@ -284,12 +244,7 @@ public class PersonController {
             @PathVariable String publicId,
             @PathVariable Long projectId
     ) {
-        Long currentPersonId = personReadService.findCurrentPersonId();
-        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
-        if (!currentPersonId.equals(targetPersonId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        personReadService.deleteStoryboardProject(currentPersonId, projectId);
+        personReadService.deleteStoryboardProject(projectId);
         return ResponseEntity.noContent().build();
     }
 
@@ -299,12 +254,7 @@ public class PersonController {
             @PathVariable Long projectId,
             @RequestBody StoryboardSceneRequest request
     ) {
-        Long currentPersonId = personReadService.findCurrentPersonId();
-        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
-        if (!currentPersonId.equals(targetPersonId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        StoryboardScene scene = personReadService.createStoryboardScene(currentPersonId, projectId, request);
+        StoryboardScene scene = personReadService.createStoryboardScene(projectId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(toSceneResponse(scene));
     }
 
@@ -315,12 +265,7 @@ public class PersonController {
             @PathVariable Long sceneId,
             @RequestBody StoryboardSceneRequest request
     ) {
-        Long currentPersonId = personReadService.findCurrentPersonId();
-        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
-        if (!currentPersonId.equals(targetPersonId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        StoryboardScene scene = personReadService.updateStoryboardScene(currentPersonId, projectId, sceneId, request);
+        StoryboardScene scene = personReadService.updateStoryboardScene(projectId, sceneId, request);
         return ResponseEntity.ok(toSceneResponse(scene));
     }
 
@@ -330,15 +275,10 @@ public class PersonController {
             @PathVariable Long projectId,
             @RequestBody StoryboardSceneOrderRequest request
     ) {
-        Long currentPersonId = personReadService.findCurrentPersonId();
-        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
-        if (!currentPersonId.equals(targetPersonId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
         List<Long> ordered = (request == null || request.sceneIds() == null)
                 ? List.of()
                 : request.sceneIds();
-        personReadService.reorderStoryboardScenes(currentPersonId, projectId, ordered);
+        personReadService.reorderStoryboardScenes(projectId, ordered);
         return ResponseEntity.ok().build();
     }
 
@@ -348,12 +288,7 @@ public class PersonController {
             @PathVariable Long projectId,
             @PathVariable Long sceneId
     ) {
-        Long currentPersonId = personReadService.findCurrentPersonId();
-        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
-        if (!currentPersonId.equals(targetPersonId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        personReadService.deleteStoryboardScene(currentPersonId, projectId, sceneId);
+        personReadService.deleteStoryboardScene(projectId, sceneId);
         return ResponseEntity.noContent().build();
     }
 
@@ -372,7 +307,7 @@ public class PersonController {
     @PostMapping("/{publicId}/filmography")
     public ResponseEntity<UploadResultResponse> uploadFilmography(@PathVariable String publicId,
                                                                   @RequestParam("file") MultipartFile file) {
-        Long personId = personReadService.findPersonIdByPublicId(publicId);
+        Long personId = personReadService.findCurrentPersonId();
         String oldKey = personReadService.findFilmographyKey(personId);
         String oldDeleteKey = toStorageKey(oldKey);
 
@@ -380,7 +315,7 @@ public class PersonController {
         storageService.save(newKey, file);
 
         try {
-            personReadService.updateFilmographyFile(personId, newKey);
+            personReadService.updateFilmographyFile(newKey);
 
             if (oldDeleteKey != null && !oldDeleteKey.isBlank() && !oldDeleteKey.equals(newKey)) {
                 storageService.delete(oldDeleteKey);

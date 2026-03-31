@@ -26,27 +26,21 @@ public class PersonFileController {
     public UploadResultResponse uploadMyProfile(@RequestParam("file") MultipartFile file) {
         Long personId = personReadService.findCurrentPersonId();
 
-        // 기존 프로필 이미지 있는 경우, 삭제할 때 사용
         String oldKey = personReadService.findProfileImageKey(personId);
-
         String oldDeleteKey = toStorageKey(oldKey);
 
-        // 새로운 프로필 이미지 key 생성 및 저장
         String newKey = keyFactory.profileAvatar(personId, extOf(file));
         storage.save(newKey, file);
 
         try {
-            personReadService.updatePersonProfileImage(personId, newKey);       // DB 반영
+            personReadService.updatePersonProfileImage(newKey);
 
-            // 이전 프로필 이미지 삭제
             if (oldDeleteKey != null && !oldDeleteKey.isBlank() && !oldDeleteKey.equals(newKey)) {
                 storage.delete(oldDeleteKey);
             }
 
             return new UploadResultResponse(newKey, storage.toPublicUrl(newKey));
         } catch (Exception e) {
-            // DB 반영 실패 시: 새로 올린 파일을 롤백 삭제(선택)
-            // 이걸 넣으면 스토리지 orphan을 줄일 수 있음
             try { storage.delete(newKey); } catch (Exception ignore) {}
             throw e;
         }
@@ -58,7 +52,7 @@ public class PersonFileController {
         String oldKey = personReadService.findProfileImageKey(personId);
         String oldDeleteKey = toStorageKey(oldKey);
 
-        personReadService.clearProfileImage(personId);
+        personReadService.clearProfileImage();
 
         if (oldDeleteKey != null && !oldDeleteKey.isBlank()) {
             storage.delete(oldDeleteKey);
@@ -73,7 +67,7 @@ public class PersonFileController {
 
         String key = keyFactory.gallery(personId, extOf(file));
         storage.save(key, file);
-        personReadService.addPersonGalleryImage(personId, key); // 아래 3)에서 추가
+        personReadService.addPersonGalleryImage(key);
 
         return new UploadResultResponse(key, storage.toPublicUrl(key));
     }

@@ -39,7 +39,6 @@ public class PersonReadService {
         Person person = personRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new PersonNotFoundException(publicId));
 
-        // key -> publicUrl 변환
         String key = person.getProfileImageUrl();
         String publicUrl = (key == null || key.isBlank()) ? null : storageService.toPublicUrl(key);
 
@@ -47,7 +46,7 @@ public class PersonReadService {
     }
 
     public Long findCurrentPersonId() {
-        String principal = SecurityUtil.currentPrincipal(); // auth.getName()
+        String principal = SecurityUtil.currentPrincipal();
 
         Long userId;
         try {
@@ -132,15 +131,21 @@ public class PersonReadService {
         return project;
     }
 
+    // =============================
+    // WRITE — 현재 유저 소유 데이터만 수정
+    // =============================
+
     @Transactional
-    public void updatePersonProfileImage(Long personId, String key) {
+    public void updatePersonProfileImage(String key) {
+        Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         person.changeProfileImageUrl(key);
     }
 
     @Transactional
-    public void addPersonGalleryImage(Long personId, String key) {
+    public void addPersonGalleryImage(String key) {
+        Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         person.addGalleryImageKey(key);
@@ -172,14 +177,16 @@ public class PersonReadService {
     }
 
     @Transactional
-    public void updateFilmographyFile(Long personId, String key) {
+    public void updateFilmographyFile(String key) {
+        Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         person.changeFilmographyFileKey(key);
     }
 
     @Transactional
-    public StoryboardProject createStoryboardProject(Long personId, StoryboardProjectRequest request) {
+    public StoryboardProject createStoryboardProject(StoryboardProjectRequest request) {
+        Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         String title = (request == null || request.title() == null || request.title().isBlank())
@@ -192,7 +199,8 @@ public class PersonReadService {
     }
 
     @Transactional
-    public StoryboardProject updateStoryboardProject(Long personId, Long projectId, StoryboardProjectRequest request) {
+    public StoryboardProject updateStoryboardProject(Long projectId, StoryboardProjectRequest request) {
+        Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         StoryboardProject project = findStoryboardProject(person, projectId);
@@ -203,7 +211,8 @@ public class PersonReadService {
     }
 
     @Transactional
-    public void deleteStoryboardProject(Long personId, Long projectId) {
+    public void deleteStoryboardProject(Long projectId) {
+        Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         StoryboardProject project = findStoryboardProject(person, projectId);
@@ -217,7 +226,8 @@ public class PersonReadService {
     }
 
     @Transactional
-    public StoryboardScene createStoryboardScene(Long personId, Long projectId, StoryboardSceneRequest request) {
+    public StoryboardScene createStoryboardScene(Long projectId, StoryboardSceneRequest request) {
+        Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         StoryboardProject project = findStoryboardProject(person, projectId);
@@ -244,7 +254,8 @@ public class PersonReadService {
     }
 
     @Transactional
-    public StoryboardScene updateStoryboardScene(Long personId, Long projectId, Long sceneId, StoryboardSceneRequest request) {
+    public StoryboardScene updateStoryboardScene(Long projectId, Long sceneId, StoryboardSceneRequest request) {
+        Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         StoryboardProject project = findStoryboardProject(person, projectId);
@@ -300,7 +311,8 @@ public class PersonReadService {
     }
 
     @Transactional
-    public void deleteStoryboardScene(Long personId, Long projectId, Long sceneId) {
+    public void deleteStoryboardScene(Long projectId, Long sceneId) {
+        Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         StoryboardProject project = findStoryboardProject(person, projectId);
@@ -313,7 +325,8 @@ public class PersonReadService {
     }
 
     @Transactional
-    public void reorderStoryboardScenes(Long personId, Long projectId, List<Long> sceneIds) {
+    public void reorderStoryboardScenes(Long projectId, List<Long> sceneIds) {
+        Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         StoryboardProject project = findStoryboardProject(person, projectId);
@@ -335,41 +348,9 @@ public class PersonReadService {
         project.getScenes().addAll(reordered);
     }
 
-    private StoryboardProject findStoryboardProject(Person person, Long projectId) {
-        return person.getStoryboardProjects().stream()
-                .filter(project -> project.getId().equals(projectId))
-                .findFirst()
-                .orElseThrow(() -> new StoryboardProjectNotFoundException(projectId));
-    }
-
-    private StoryboardScene findStoryboardScene(StoryboardProject project, Long sceneId) {
-        return project.getScenes().stream()
-                .filter(scene -> scene.getId().equals(sceneId))
-                .findFirst()
-                .orElseThrow(() -> new StoryboardSceneNotFoundException(sceneId));
-    }
-
-    private String extractPreview(StoryboardProject project) {
-        for (StoryboardScene scene : project.getScenes()) {
-            String script = scene.getScriptHtml();
-            if (script == null || script.isBlank()) continue;
-            String cleaned = script.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
-            if (!cleaned.isBlank()) {
-                return cleaned.length() > 160 ? cleaned.substring(0, 160) + "…" : cleaned;
-            }
-        }
-        return "";
-    }
-
-    private void initializeProject(StoryboardProject project) {
-        if (project == null) return;
-        for (StoryboardScene scene : project.getScenes()) {
-            scene.getCards().size();
-        }
-    }
-
     @Transactional
-    public void clearProfileImage(Long personId) {
+    public void clearProfileImage() {
+        Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         person.changeProfileImageUrl(null);
@@ -432,37 +413,75 @@ public class PersonReadService {
     }
 
     @Transactional
-    public void removeGalleryImage(Long personId, String key) {
+    public void removeGalleryImage(String key) {
+        Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         person.removeGalleryImageKey(key);
     }
 
     @Transactional
-    public void reorderGallery(Long personId, java.util.List<String> orderedKeys) {
+    public void reorderGallery(java.util.List<String> orderedKeys) {
+        Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         person.reorderGallery(orderedKeys);
     }
 
     @Transactional
-    public void updateFilmographyPrivate(Long personId, boolean isPrivate) {
+    public void updateFilmographyPrivate(boolean isPrivate) {
+        Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         person.changeFilmographyPrivate(isPrivate);
     }
 
     @Transactional
-    public void updateGalleryPrivate(Long personId, boolean isPrivate) {
+    public void updateGalleryPrivate(boolean isPrivate) {
+        Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         person.changeGalleryPrivate(isPrivate);
     }
 
     @Transactional
-    public void updateGalleryItemPrivacy(Long personId, String key, boolean isPrivate) {
+    public void updateGalleryItemPrivacy(String key, boolean isPrivate) {
+        Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         person.updateGalleryItemPrivacy(key, isPrivate);
+    }
+
+    private StoryboardProject findStoryboardProject(Person person, Long projectId) {
+        return person.getStoryboardProjects().stream()
+                .filter(project -> project.getId().equals(projectId))
+                .findFirst()
+                .orElseThrow(() -> new StoryboardProjectNotFoundException(projectId));
+    }
+
+    private StoryboardScene findStoryboardScene(StoryboardProject project, Long sceneId) {
+        return project.getScenes().stream()
+                .filter(scene -> scene.getId().equals(sceneId))
+                .findFirst()
+                .orElseThrow(() -> new StoryboardSceneNotFoundException(sceneId));
+    }
+
+    private String extractPreview(StoryboardProject project) {
+        for (StoryboardScene scene : project.getScenes()) {
+            String script = scene.getScriptHtml();
+            if (script == null || script.isBlank()) continue;
+            String cleaned = script.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
+            if (!cleaned.isBlank()) {
+                return cleaned.length() > 160 ? cleaned.substring(0, 160) + "…" : cleaned;
+            }
+        }
+        return "";
+    }
+
+    private void initializeProject(StoryboardProject project) {
+        if (project == null) return;
+        for (StoryboardScene scene : project.getScenes()) {
+            scene.getCards().size();
+        }
     }
 }

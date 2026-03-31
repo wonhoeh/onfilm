@@ -2,6 +2,7 @@
         :root{
             --bg:#0b0c0f;
             --panel:#12131a;
+            --panel-2:#161824;
             --text:#e7e8ee;
             --muted:#9aa0ad;
             --line:rgba(255,255,255,.10);
@@ -9,7 +10,6 @@
             --accent-2:#24d39a;
             --link-blue:#5aa7ff;
             --icon-ring: rgba(255,255,255,.75);
-            --profile-dropdown-bg: var(--panel);
         }
         *{box-sizing:border-box;margin:0;padding:0;}
         .toolbar{

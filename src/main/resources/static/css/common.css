@@ -172,14 +172,14 @@ a{text-decoration:none;color:inherit;}
   padding:6px 0;
   opacity:0;
   pointer-events:none;
-  transform:translateY(-6px);
+  transform:translateY(-6px) translateZ(0);
   transition:opacity .16s ease, transform .16s ease;
   z-index:9999;
 }
 .profile-dropdown.open{
   opacity:1;
   pointer-events:auto;
-  transform:translateY(0);
+  transform:translateY(0) translateZ(0);
 }
 
 .profile-group-title{
