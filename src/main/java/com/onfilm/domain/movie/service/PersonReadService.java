@@ -108,8 +108,12 @@ public class PersonReadService {
     }
 
     public List<StoryboardProjectSummaryResponse> findStoryboardProjectsByPublicId(String publicId) {
-        Person person = personRepository.findByPublicIdWithStoryboards(publicId)
+        // [k6 N+1 테스트] fetch join 제거 버전 (N+1 발생)
+        Person person = personRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new PersonNotFoundException(publicId));
+        // [k6 N+1 테스트] fetch join 적용 버전 (정상)
+        // Person person = personRepository.findByPublicIdWithStoryboards(publicId)
+        //         .orElseThrow(() -> new PersonNotFoundException(publicId));
         List<StoryboardProjectSummaryResponse> responses = new ArrayList<>();
         for (StoryboardProject project : person.getStoryboardProjects()) {
             String preview = extractPreview(project);

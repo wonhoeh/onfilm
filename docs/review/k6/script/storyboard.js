@@ -2,9 +2,9 @@ import http from 'k6/http';
 import { sleep, check } from 'k6';
 
 const BASE_URL   = 'http://13.125.228.215:8080';
-const PUBLIC_ID  = 'k6-test-person-uuid-0001';
-const EMAIL      = 'k6test@onfilm.com';   // prod RDS에 등록된 테스트 계정
-const PASSWORD   = 'k6test1234!';         // 위 계정의 비밀번호
+const PUBLIC_ID  = '9d981c8b-7a5f-4f3c-99a9-c72f776f1253';
+const EMAIL      = 'test@test.com';   // prod RDS에 등록된 테스트 계정
+const PASSWORD   = 'qwer1234';         // 위 계정의 비밀번호
 
 export const options = {
   stages: [
@@ -29,13 +29,13 @@ export function setup() {
 
   check(res, { 'login success': (r) => r.status === 200 });
 
-  // Set-Cookie 헤더에서 access_token 추출
-  const setCookie = res.headers['Set-Cookie'] || '';
-  const match = setCookie.match(/access_token=([^;]+)/);
-  const token = match ? match[1] : null;
+  // res.cookies로 access_token 추출 (Set-Cookie 헤더가 여러 개일 때 안전)
+  const token = res.cookies['access_token'] ? res.cookies['access_token'][0].value : null;
 
   if (!token) {
     console.error('access_token을 가져오지 못했습니다. 계정 정보를 확인하세요.');
+    console.log('login status:', res.status);
+    console.log('cookies:', JSON.stringify(res.cookies));
   }
 
   return { token };
