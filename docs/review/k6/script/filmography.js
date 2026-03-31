@@ -2,7 +2,7 @@ import http from 'k6/http';
 import { sleep, check } from 'k6';
 
 const BASE_URL  = 'http://13.125.228.215:8080';
-const PUBLIC_ID = 'ce3ec2c5-ef98-4a04-83e5-fca8dabf5c26';
+const PUBLIC_ID = 'c08ec574-20cc-4980-8f4b-459390cee377';
 const EMAIL     = 'test@test.com';
 const PASSWORD  = 'qwer1234';
 
