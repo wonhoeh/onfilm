@@ -25,29 +25,27 @@ stages: [
 
 | 지표 | 결과 | 기준 |
 |---|---|---|
-| p(95) | **28ms** | < 500ms ✅ |
-| p(99) | 45ms | - |
-| p(90) | 24ms | - |
-| avg | 19ms | - |
-| max | 274ms | - |
+| p(95) | **32.7ms** | < 500ms ✅ |
+| p(90) | 28.16ms | - |
+| avg | 21.1ms | - |
+| max | 377.7ms | - |
 | 에러율 | **0.00%** | < 1% ✅ |
-| TPS | **35.52/s** | - |
-| 총 요청 수 | **8,500건** | - |
+| TPS | **35.40/s** | - |
+| 총 요청 수 | **8,527건** | - |
 | 성공률 | **100%** | - |
 
 ## 쿼리 발생 현황
 
-fetch join 적용으로 요청 1건당 **쿼리 1회** 발생
+fetch join 적용으로 요청 1건당 **쿼리 3회** 발생
 
-```sql
-select distinct p1_0.id, ...
-from person p1_0
-left join storyboard_project sp1_0 on p1_0.id = sp1_0.person_id
-left join storyboard_scene s1_0 on sp1_0.id = s1_0.project_id
-where p1_0.public_id = '...'
 ```
-
-> fetch join 미적용 시 예상 쿼리 수: 1 + 20 + 200 = **221회**
+1. SELECT ... FROM person WHERE public_id = '...'           ← isOwner 체크
+2. SELECT ... FROM users WHERE person_id = 1                ← isOwner 체크
+3. SELECT distinct ... FROM person
+   LEFT JOIN storyboard_project ON person.id = project.person_id
+   LEFT JOIN storyboard_scene   ON project.id = scene.project_id
+   WHERE person.public_id = '...'                           ← fetch join 1회
+```
 
 ## 결과 (fetch join 제거 후 - N+1 발생)
 
@@ -67,14 +65,14 @@ where p1_0.public_id = '...'
 
 | 지표 | fetch join 적용 | fetch join 제거 (N+1) |
 |---|---|---|
-| p(95) | **28ms** | 55.02ms (+96%) |
-| p(90) | **24ms** | 44.56ms (+86%) |
-| avg | **19ms** | 35.31ms (+86%) |
-| max | 274ms | 221.39ms |
-| TPS | 35.52/s | 34.97/s |
+| p(95) | **32.7ms** | 55.02ms (+68%) |
+| p(90) | **28.16ms** | 44.56ms (+58%) |
+| avg | **21.1ms** | 35.31ms (+67%) |
+| max | 377.7ms | 221.39ms |
+| TPS | 35.40/s | 34.97/s |
 | 에러율 | 0.00% | 0.00% |
-| data_received | 18.3 MB | 18 MB |
-| 쿼리 수/요청 | **1회** | 22회 (1 + 1 + 20) |
+| data_received | 18 MB | 18 MB |
+| 쿼리 수/요청 | **3회** | 24회 (2 + 1 + 20 + 1) |
 
 ## 결과 분석
 
