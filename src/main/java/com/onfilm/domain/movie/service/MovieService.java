@@ -156,13 +156,28 @@ public class MovieService {
     }
 
     @Transactional
-    public void updateFilmographyItemPrivacy(String publicId, Long movieId, boolean isPrivate) {
-        Person person = personRepository.findByPublicId(publicId)
-                .orElseThrow(() -> new PersonNotFoundException(publicId));
+    public void updateFilmographyItemPrivacy(Long movieId, boolean isPrivate) {
+        Long personId = findCurrentPersonId();
         if (movieId == null) throw new IllegalArgumentException("movieId is required");
 
-        MoviePerson mp = moviePersonRepository.findByPersonIdAndMovieId(person.getId(), movieId);
+        MoviePerson mp = moviePersonRepository.findByPersonIdAndMovieId(personId, movieId);
         if (mp == null) throw new IllegalArgumentException("filmography item not found");
         mp.updatePrivate(isPrivate);
+    }
+
+    private Long findCurrentPersonId() {
+        String principal = SecurityUtil.currentPrincipal();
+        Long userId;
+        try {
+            userId = Long.valueOf(principal);
+        } catch (NumberFormatException e) {
+            throw new IllegalStateException("INVALID_PRINCIPAL");
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("USER_NOT_FOUND"));
+        if (user.getPerson() == null) {
+            throw new IllegalStateException("PERSON_NOT_LINKED");
+        }
+        return user.getPerson().getId();
     }
 }

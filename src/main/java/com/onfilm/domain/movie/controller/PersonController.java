@@ -154,12 +154,7 @@ public class PersonController {
             @PathVariable String publicId,
             @RequestBody FilmographyItemPrivacyRequest request
     ) {
-        Long currentPersonId = personReadService.findCurrentPersonId();
-        Long targetPersonId = personReadService.findPersonIdByPublicId(publicId);
-        if (!currentPersonId.equals(targetPersonId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        movieService.updateFilmographyItemPrivacy(publicId, request.movieId(), request.isPrivate());
+        movieService.updateFilmographyItemPrivacy(request.movieId(), request.isPrivate());
         return ResponseEntity.ok().build();
     }
 

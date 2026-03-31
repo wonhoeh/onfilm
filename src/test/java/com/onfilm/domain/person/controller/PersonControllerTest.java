@@ -1,7 +1,7 @@
 package com.onfilm.domain.person.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.onfilm.domain.common.config.JwtProvider;
+import com.onfilm.domain.auth.security.JwtProvider;
 import com.onfilm.domain.file.service.StorageKeyFactory;
 import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.movie.controller.PersonController;

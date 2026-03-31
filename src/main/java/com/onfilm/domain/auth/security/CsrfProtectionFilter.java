@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.Set;
 
 @Component
-@Profile("prod")
+@Profile("!dev")
 @RequiredArgsConstructor
 public class CsrfProtectionFilter extends OncePerRequestFilter {
 
