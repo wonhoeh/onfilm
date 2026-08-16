@@ -82,7 +82,7 @@ public class PersonService {
             imageValue = request.getProfileImageUrl();
         }
 
-        person.updateBasic(
+        person.changeBasicInfo(
                 request.getName(),
                 request.getBirthDate(),
                 request.getBirthPlace(),

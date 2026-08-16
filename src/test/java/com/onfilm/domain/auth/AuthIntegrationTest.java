@@ -47,7 +47,7 @@ class AuthIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @DisplayName("회원가입 후 로그인 성공 및 accessToken 반환 확인")
+    @DisplayName("회원가입 후 로그인 성공 및 access token 쿠키 발급 확인")
     @Test
     void signupThenLoginSucceeds() throws Exception {
         SignupRequest signup = new SignupRequest("user@example.com", "password123!", "qwer");
@@ -57,30 +57,38 @@ class AuthIntegrationTest {
                 .andExpect(status().isCreated());
 
         LoginRequest login = new LoginRequest("user@example.com", "password123!");
-        mockMvc.perform(post("/auth/login")
+        var result = mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(login)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").isNotEmpty());
+                .andReturn();
+
+        assertThat(extractCookieValue(
+                result.getResponse().getHeaders(HttpHeaders.SET_COOKIE),
+                "access_token"
+        )).isNotBlank();
     }
 
 
-    @DisplayName("로그인 시 refresh_token 쿠키가 내려오는지 확인")
+    @DisplayName("로그인 시 access_token과 refresh_token 쿠키가 내려오는지 확인")
     @Test
     void loginSetsRefreshCookieAndReturnsAccessToken() throws Exception {
         signup("cookie@example.com");
 
         var result = mockMvc.perform(post("/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new LoginRequest("cookie@example.com", "password123!"))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").isNotEmpty())
                 .andReturn();
 
-        String setCookie = result.getResponse().getHeader(HttpHeaders.SET_COOKIE);
-        assertThat(setCookie).contains("refresh_token=");
-        assertThat(setCookie).contains("HttpOnly");
-        assertThat(setCookie).contains("Path=/auth");
+        List<String> setCookies = result.getResponse().getHeaders(HttpHeaders.SET_COOKIE);
+        assertThat(extractCookieValue(setCookies, "access_token")).isNotBlank();
+        assertThat(extractCookieValue(setCookies, "refresh_token")).isNotBlank();
+        assertThat(setCookies).anyMatch(cookie ->
+                cookie.startsWith("refresh_token=")
+                        && cookie.contains("HttpOnly")
+                        && cookie.contains("Path=/auth")
+        );
     }
 
     @DisplayName("리프레시 토큰 회전(새 토큰 발급, 이전 토큰 무효) 확인")
@@ -90,10 +98,14 @@ class AuthIntegrationTest {
         String refreshToken = loginAndExtractRefreshToken("rotate@example.com");
 
         var refreshResult = mockMvc.perform(post("/auth/refresh")
-                        .cookie(new Cookie("refresh_token", refreshToken)))  // ✅ 여기!
+                        .cookie(new Cookie("refresh_token", refreshToken)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").isNotEmpty())
                 .andReturn();
+
+        assertThat(extractCookieValue(
+                refreshResult.getResponse().getHeaders(HttpHeaders.SET_COOKIE),
+                "access_token"
+        )).isNotBlank();
 
         String newRefreshToken = extractCookieValue(
                 refreshResult.getResponse().getHeaders(HttpHeaders.SET_COOKIE),
@@ -102,7 +114,7 @@ class AuthIntegrationTest {
         assertThat(newRefreshToken).isNotEqualTo(refreshToken);
 
         mockMvc.perform(post("/auth/refresh")
-                        .cookie(new Cookie("refresh_token", refreshToken)))  // ✅ 여기!
+                        .cookie(new Cookie("refresh_token", refreshToken)))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -135,12 +147,13 @@ class AuthIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String accessToken = objectMapper.readTree(loginResult.getResponse().getContentAsString())
-                .get("accessToken")
-                .asText();
+        String accessToken = extractCookieValue(
+                loginResult.getResponse().getHeaders(HttpHeaders.SET_COOKIE),
+                "access_token"
+        );
 
         mockMvc.perform(get("/auth/me")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+                        .cookie(new Cookie("access_token", accessToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("me@example.com"));
 

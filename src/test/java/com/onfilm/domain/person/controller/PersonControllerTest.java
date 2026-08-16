@@ -1,6 +1,7 @@
 package com.onfilm.domain.person.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.onfilm.domain.auth.config.AuthProperties;
 import com.onfilm.domain.auth.security.JwtProvider;
 import com.onfilm.domain.file.service.StorageKeyFactory;
 import com.onfilm.domain.file.service.StorageService;
@@ -46,6 +47,9 @@ class PersonControllerTest {
 
     @MockBean
     private JwtProvider jwtProvider;
+
+    @MockBean
+    private AuthProperties authProperties;
 
     @MockBean
     private MovieReadService movieReadService;
@@ -118,8 +122,8 @@ class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("GET /persons/{name} -> 202 ACCEPTED + PersonResponse JSON 반환")
-    void getPerson_returnsAcceptedAndBody() throws Exception {
+    @DisplayName("GET /api/people/{publicId} -> 200 OK + ProfileResponse JSON 반환")
+    void getPerson_returnsOkAndBody() throws Exception {
         // given
         String name = "디카프리오";
 
@@ -149,9 +153,9 @@ class PersonControllerTest {
         // when & then
         mockMvc.perform(get("/api/people/{publicId}", publicId)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isAccepted())
+                .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.publicId").value(publicId))
                 .andExpect(jsonPath("$.name").value(name))
                 .andExpect(jsonPath("$.birthDate").value("1974-11-11"))
                 .andExpect(jsonPath("$.birthPlace").value("Los Angeles"))

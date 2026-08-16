@@ -15,7 +15,8 @@ import java.util.Objects;
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProfileTag {
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -67,7 +68,7 @@ public class ProfileTag {
         return t;
     }
 
-    public void updateRawTextKeepingNormalized(String rawText) {
+    public void changeRawTextKeepingNormalized(String rawText) {
         String cleaned = validate(rawText);
         String n = normalize(cleaned);
 

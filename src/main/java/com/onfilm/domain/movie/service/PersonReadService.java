@@ -205,7 +205,7 @@ public class PersonReadService {
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         StoryboardProject project = findStoryboardProject(person, projectId);
         if (request != null && request.title() != null && !request.title().isBlank()) {
-            project.updateTitle(request.title().trim());
+            project.changeTitle(request.title().trim());
         }
         return project;
     }
@@ -261,8 +261,8 @@ public class PersonReadService {
         StoryboardProject project = findStoryboardProject(person, projectId);
         StoryboardScene scene = findStoryboardScene(project, sceneId);
         if (request != null) {
-            scene.updateTitle(request.title());
-            scene.updateScriptHtml(request.scriptHtml());
+            scene.changeTitle(request.title());
+            scene.changeScriptHtml(request.scriptHtml());
         }
 
         Map<Long, StoryboardCard> existing = new LinkedHashMap<>();
@@ -287,9 +287,9 @@ public class PersonReadService {
                     String newKey = cardReq.imageKey();
                     if (newKey == null || newKey.isBlank()) {
                         if (oldKey != null && !oldKey.isBlank()) storageService.delete(oldKey);
-                        card.updateImageKey(null);
+                        card.changeImageKey(null);
                     } else if (!newKey.equals(oldKey)) {
-                        card.updateImageKey(newKey);
+                        card.changeImageKey(newKey);
                         if (oldKey != null && !oldKey.isBlank()) storageService.delete(oldKey);
                     }
                     kept.add(card.getId());
@@ -449,7 +449,7 @@ public class PersonReadService {
         Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
-        person.updateGalleryItemPrivacy(key, isPrivate);
+        person.changeGalleryItemPrivacy(key, isPrivate);
     }
 
     private StoryboardProject findStoryboardProject(Person person, Long projectId) {

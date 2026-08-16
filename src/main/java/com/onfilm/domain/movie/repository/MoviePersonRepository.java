@@ -16,7 +16,7 @@ public interface MoviePersonRepository extends JpaRepository<MoviePerson, Long> 
             """)
     List<MoviePerson> findFilmographyByPersonId(@Param("personId") Long personId);
 
-    @Query("select coalesce(max(mp.sortOrder), 0) from MoviePerson mp where mp.person.id = :personId")
+    @Query("select max(mp.sortOrder) from MoviePerson mp where mp.person.id = :personId")
     Integer findMaxSortOrderByPersonId(@Param("personId") Long personId);
 
     @Query("select mp from MoviePerson mp where mp.person.id = :personId and mp.movie.id = :movieId")

@@ -17,7 +17,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -52,8 +56,7 @@ public class MovieService {
             throw new PersonNotFoundException(userId);
         }
 
-        // MoviePerson은 Movie에 소속시키는 생성 규칙을 create()에 캡슐화
-        MoviePerson.create(
+        MoviePerson moviePerson = MoviePerson.create(
                 movie,
                 person,
                 request.getRole(),
@@ -61,9 +64,8 @@ public class MovieService {
                 request.getCharacterName()
         );
 
-        MoviePerson mp = movie.getMoviePeople().get(movie.getMoviePeople().size() - 1);
         Integer max = moviePersonRepository.findMaxSortOrderByPersonId(person.getId());
-        mp.updateSortOrder(max == null ? 0 : max + 1);
+        moviePerson.changeSortOrder(max == null ? 0 : max + 1);
 
         // 장르는 도메인 서비스(팩토리)로만 부착
         movieGenreNormalizer.attachGenre(movie, request.getRawGenreTexts());
@@ -82,10 +84,10 @@ public class MovieService {
 
         List<MoviePerson> existing = moviePersonRepository.findFilmographyByPersonId(person.getId());
         var mpByMovieId = existing.stream()
-                .collect(java.util.stream.Collectors.toMap(mp -> mp.getMovie().getId(), mp -> mp));
+                .collect(Collectors.toMap(mp -> mp.getMovie().getId(), mp -> mp));
 
-        java.util.Set<Long> keepMovieIds = new java.util.HashSet<>();
-        java.util.List<FilmographyUpsertResponse.Item> results = new java.util.ArrayList<>();
+        Set<Long> keepMovieIds = new HashSet<>();
+        List<FilmographyUpsertResponse.Item> results = new ArrayList<>();
 
         for (int i = 0; i < items.size(); i++) {
             FilmographyUpsertRequest.Item item = items.get(i);
@@ -96,7 +98,7 @@ public class MovieService {
                 MoviePerson mp = mpByMovieId.get(movieId);
                 Movie movie = mp.getMovie();
 
-                movie.updateBasic(
+                movie.changeBasicInfo(
                         item.title(),
                         item.runtime(),
                         item.releaseYear(),
@@ -106,9 +108,9 @@ public class MovieService {
                 movie.clearGenres();
                 movieGenreNormalizer.attachGenre(movie, item.rawGenreTexts());
 
-                mp.updateRole(item.role(), item.castType(), item.characterName());
-                mp.updateSortOrder(i);
-                mp.updatePrivate(item.isPrivate());
+                mp.changeRole(item.role(), item.castType(), item.characterName());
+                mp.changeSortOrder(i);
+                mp.changePrivacy(item.isPrivate());
 
                 keepMovieIds.add(movieId);
                 results.add(new FilmographyUpsertResponse.Item(item.clientKey(), movieId));
@@ -125,7 +127,7 @@ public class MovieService {
                     item.ageRating()
             );
 
-            MoviePerson.create(
+            MoviePerson createdMoviePerson = MoviePerson.create(
                     movie,
                     person,
                     item.role(),
@@ -133,9 +135,8 @@ public class MovieService {
                     item.characterName()
             );
 
-            MoviePerson createdMp = movie.getMoviePeople().get(movie.getMoviePeople().size() - 1);
-            createdMp.updateSortOrder(i);
-            createdMp.updatePrivate(item.isPrivate());
+            createdMoviePerson.changeSortOrder(i);
+            createdMoviePerson.changePrivacy(item.isPrivate());
 
             movieGenreNormalizer.attachGenre(movie, item.rawGenreTexts());
 
@@ -162,7 +163,7 @@ public class MovieService {
 
         MoviePerson mp = moviePersonRepository.findByPersonIdAndMovieId(personId, movieId);
         if (mp == null) throw new IllegalArgumentException("filmography item not found");
-        mp.updatePrivate(isPrivate);
+        mp.changePrivacy(isPrivate);
     }
 
     private Long findCurrentPersonId() {

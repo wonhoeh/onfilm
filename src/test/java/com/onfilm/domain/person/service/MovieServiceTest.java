@@ -5,7 +5,9 @@ import com.onfilm.domain.common.error.exception.UserNotFoundException;
 import com.onfilm.domain.common.util.SecurityUtil;
 import com.onfilm.domain.movie.dto.CreateMovieRequest;
 import com.onfilm.domain.movie.entity.*;
+import com.onfilm.domain.movie.repository.MoviePersonRepository;
 import com.onfilm.domain.movie.repository.MovieRepository;
+import com.onfilm.domain.movie.repository.PersonRepository;
 import com.onfilm.domain.movie.service.MovieGenreNormalizer;
 import com.onfilm.domain.movie.service.MovieService;
 import com.onfilm.domain.user.entity.User;
@@ -28,6 +30,8 @@ import static org.mockito.Mockito.mockStatic;
 public class MovieServiceTest {
 
     @Mock MovieRepository movieRepository;
+    @Mock MoviePersonRepository moviePersonRepository;
+    @Mock PersonRepository personRepository;
     @Mock UserRepository userRepository;
     @Mock
     MovieGenreNormalizer movieGenreNormalizer;
@@ -58,7 +62,9 @@ public class MovieServiceTest {
         User user = mock(User.class);
         Person person = mock(Person.class);
         given(user.getPerson()).willReturn(person);
+        given(person.getId()).willReturn(7L);
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(moviePersonRepository.findMaxSortOrderByPersonId(7L)).willReturn(3);
 
         // save 시 id가 생긴 것처럼 만들어주기(단위테스트라 JPA가 없으니 reflection으로 세팅)
         given(movieRepository.save(any(Movie.class))).willAnswer(inv -> {
@@ -95,6 +101,7 @@ public class MovieServiceTest {
             assertThat(mp.getRole()).isEqualTo(PersonRole.ACTOR);
             assertThat(mp.getCastType()).isEqualTo(CastType.LEAD);
             assertThat(mp.getCharacterName()).isEqualTo("코브");
+            assertThat(mp.getSortOrder()).isEqualTo(4);
         }
     }
 

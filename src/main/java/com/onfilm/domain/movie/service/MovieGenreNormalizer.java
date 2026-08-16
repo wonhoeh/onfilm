@@ -49,8 +49,7 @@ public class MovieGenreNormalizer {
         // 3) MovieGenre 생성 + Movie에 추가(중복 방지는 Movie에서)
         for (RawAndNormalized input : inputs) {
             Genre matched = genreByNormalized.get(input.normalized());
-            MovieGenre mg = MovieGenre.create(movie, matched, input.raw());
-            movie.addMovieGenre(mg);
+            MovieGenre.create(movie, matched, input.raw());
         }
     }
 

@@ -109,6 +109,16 @@ public class Person {
             String oneLineIntro,
             String profileImageUrl
     ) {
+        applyBasicInfo(name, birthDate, birthPlace, oneLineIntro, profileImageUrl);
+    }
+
+    private void applyBasicInfo(
+            String name,
+            LocalDate birthDate,
+            String birthPlace,
+            String oneLineIntro,
+            String profileImageUrl
+    ) {
         this.name = name;
         this.birthDate = birthDate;
         this.birthPlace = birthPlace;
@@ -242,7 +252,7 @@ public class Person {
                 this.profileTags.add(ProfileTag.from(this, cleanedRaw));
             } else {
                 // 표시용(rawText) 업데이트가 필요하면 아래 메서드 추가해서 호출
-                tag.updateRawTextKeepingNormalized(cleanedRaw);
+                tag.changeRawTextKeepingNormalized(cleanedRaw);
             }
         }
     }
@@ -251,18 +261,14 @@ public class Person {
     // ======= 기본정보 변경 메서드 =======
     // ======================================================================
 
-    public void updateBasic(
+    public void changeBasicInfo(
             String name,
             LocalDate birthDate,
             String birthPlace,
             String oneLineIntro,
             String profileImageUrl
     ) {
-        this.name = name;
-        this.birthDate = birthDate;
-        this.birthPlace = birthPlace;
-        this.oneLineIntro = oneLineIntro;
-        this.profileImageUrl = profileImageUrl;
+        applyBasicInfo(name, birthDate, birthPlace, oneLineIntro, profileImageUrl);
     }
 
     // ======================================================================
@@ -313,7 +319,7 @@ public class Person {
         this.galleryItems.addAll(reordered);
     }
 
-    public void updateGalleryItemPrivacy(String key, boolean isPrivate) {
+    public void changeGalleryItemPrivacy(String key, boolean isPrivate) {
         if (key == null) return;
         for (GalleryItem item : galleryItems) {
             if (item.getKey().equals(key)) {

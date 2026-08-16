@@ -36,7 +36,9 @@ public class StoryboardProject {
         this.person = person;
     }
 
-    public void updateTitle(String title) {
+    public void changeTitle(String title) {
         this.title = title;
     }
+
+
 }

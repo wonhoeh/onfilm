@@ -28,7 +28,7 @@ public class StoryboardCard {
         this.scene = scene;
     }
 
-    public void updateImageKey(String imageKey) {
+    public void changeImageKey(String imageKey) {
         this.imageKey = imageKey;
     }
 }

@@ -2,7 +2,6 @@ package com.onfilm.domain.movie.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.BatchSize;
@@ -16,7 +15,8 @@ import java.util.Objects;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Movie {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "movie_id", nullable = false)
     private Long id;
 
@@ -27,13 +27,17 @@ public class Movie {
     private int runtime;
 
     @Column(nullable = false)
-    private Integer releaseYear;
+    private int releaseYear;
 
-    @Column(nullable = false)
+    @Column
     private String movieUrl;
 
-    @Column(nullable = true)
+    @Column
     private String thumbnailUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AgeRating ageRating;
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MoviePerson> moviePeople = new ArrayList<>();
@@ -45,27 +49,20 @@ public class Movie {
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MovieGenre> genres = new ArrayList<>();
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private AgeRating ageRating;
-
     @ElementCollection
     private List<String> likes = new ArrayList<>();
 
-    @Builder(access = AccessLevel.PRIVATE)
-    public Movie(String title,
-                 int runtime,
-                 Integer releaseYear,
-                 String movieUrl,
-                 String thumbnailUrl,
-                 AgeRating ageRating) {
-
-        this.title = title;
-        this.runtime = runtime;
-        this.releaseYear = releaseYear;
-        this.movieUrl = movieUrl;
-        this.thumbnailUrl = thumbnailUrl;
-        this.ageRating = ageRating;
+    private Movie(
+            String title,
+            int runtime,
+            Integer releaseYear,
+            String movieUrl,
+            String thumbnailUrl,
+            AgeRating ageRating
+    ) {
+        applyBasicInfo(title, runtime, releaseYear, ageRating);
+        this.movieUrl = requireText(movieUrl, "movieUrl");
+        this.thumbnailUrl = normalizeOptionalText(thumbnailUrl);
     }
 
     public static Movie create(
@@ -76,24 +73,19 @@ public class Movie {
             String thumbnailUrl,
             List<String> trailerUrls,
             AgeRating ageRating) {
-        if (title == null || title.isBlank()) {
-            throw new IllegalArgumentException("invalid title");
+
+        Movie movie = new Movie(
+                title,
+                runtime,
+                releaseYear,
+                movieUrl,
+                thumbnailUrl,
+                ageRating
+        );
+
+        if (trailerUrls != null) {
+            trailerUrls.forEach(movie::addTrailer);
         }
-
-        if (releaseYear != null && (releaseYear < 1900 || releaseYear > LocalDate.now().getYear() + 1)) {
-            throw new IllegalArgumentException("invalid releaseYear");
-        }
-
-        Movie movie = Movie.builder()
-                .title(title)
-                .runtime(runtime)
-                .releaseYear(releaseYear)
-                .movieUrl(movieUrl)
-                .thumbnailUrl(thumbnailUrl)
-                .ageRating(ageRating)
-                .build();
-
-        if (trailerUrls != null) trailerUrls.forEach(movie::addTrailer);
 
         return movie;
     }
@@ -102,15 +94,22 @@ public class Movie {
     // ======= 연관관계 편의 메서드: MovieGenre =======
     // ======================================================================
 
-    public void addMovieGenre(MovieGenre mg) {
-        if (mg == null) return;
+    public void addMovieGenre(MovieGenre movieGenre) {
+        MovieGenre requiredMovieGenre = require(movieGenre, "movieGenre");
 
-        // ✅ normalized 기준 중복 방지(정책 통일)
-        boolean duplicated = genres.stream()
-                .anyMatch(g -> g.getNormalizedText().equals(mg.getNormalizedText()));
-        if (duplicated) return; // 또는 throw (정책에 따라)
+        if (hasGenre(requiredMovieGenre.getNormalizedText())) {
+            throw new IllegalArgumentException("duplicate movie genre");
+        }
 
-        genres.add(mg); // mg.movie는 create에서 이미 세팅됨
+        requiredMovieGenre.attachMovie(this);
+        genres.add(requiredMovieGenre);
+    }
+
+    private boolean hasGenre(String normalizedText) {
+        return genres.stream()
+                .anyMatch(movieGenre ->
+                        movieGenre.getNormalizedText().equals(normalizedText)
+                );
     }
 
     // ======================================================================
@@ -118,19 +117,35 @@ public class Movie {
     // ======================================================================
 
     public void addMoviePerson(MoviePerson moviePerson) {
-        if (moviePerson == null) return;
+        if (moviePerson == null) {
+            throw new IllegalArgumentException("moviePerson is required");
+        }
 
-        boolean duplicated = moviePeople.stream().anyMatch(x ->
-                x.getPerson().getId().equals(moviePerson.getId()) &&
-                        (x.getRole() == moviePerson.getRole()) &&
-                        (x.getCastType() == moviePerson.getCastType()) &&
-                        Objects.equals(x.getCharacterName(), moviePerson.getCharacterName())
+        if (hasSameCredit(moviePerson)) {
+            throw new IllegalArgumentException("duplicate movie credit");
+        }
+
+        moviePerson.attachMovie(this);
+        moviePeople.add(moviePerson);
+    }
+
+    private boolean hasSameCredit(MoviePerson candidate) {
+        return moviePeople.stream().anyMatch(existing ->
+                isSamePerson(existing.getPerson(), candidate.getPerson())
+                        && existing.getRole() == candidate.getRole()
+                        && existing.getCastType() == candidate.getCastType()
+                        && Objects.equals(existing.getCharacterName(), candidate.getCharacterName())
         );
+    }
 
-        if (duplicated) return; // or throw new XXX
-
-        moviePerson.attachMovie(this);         // 배우 필모에 this 영화 추가
-        moviePeople.add(moviePerson);          // 영화에 출연한 배우에 moviePerson 추가
+    private boolean isSamePerson(Person existing, Person candidate) {
+        if (existing == candidate) {
+            return true;
+        }
+        if (existing.getId() == null || candidate.getId() == null) {
+            return false;
+        }
+        return Objects.equals(existing.getId(), candidate.getId());
     }
 
     // ======================================================================
@@ -138,16 +153,15 @@ public class Movie {
     // ======================================================================
 
     public void addTrailer(String trailerUrl) {
-        if (trailerUrl == null) return;
+        String normalizedUrl = requireText(trailerUrl, "trailerUrl");
 
-        // 중복 방지
         boolean duplicated = trailers.stream()
-                        .anyMatch(t -> t.getUrl().equals(trailerUrl));
+                .anyMatch(trailer -> trailer.getUrl().equals(normalizedUrl));
         if (duplicated) return;
 
         Trailer trailer = Trailer.builder()
                 .movie(this)
-                .url(trailerUrl)
+                .url(normalizedUrl)
                 .build();
         trailers.add(trailer);
     }
@@ -156,44 +170,79 @@ public class Movie {
     // ======= URL 변경 메서드: MovieUrl, ThumbnailUrl =======
     // ======================================================================
 
+    public void changeThumbnailUrl(String key) {
+        this.thumbnailUrl = normalizeOptionalText(key);
+    }
 
-    public void changeThumbnailUrl(String key) { this.thumbnailUrl = key; }
-    public void changeMovieUrl(String key) { this.movieUrl = key; }
+    public void changeMovieUrl(String key) {
+        this.movieUrl = requireText(key, "movieUrl");
+    }
 
     public void clearThumbnailUrl() { this.thumbnailUrl = null; }
     public void clearMovieUrl() { this.movieUrl = null; }
     public void clearTrailers() { this.trailers.clear(); }
 
-    public void updateBasic(
+    public void changeBasicInfo(
             String title,
             int runtime,
             Integer releaseYear,
             AgeRating ageRating
     ) {
-        if (title == null || title.isBlank()) {
-            throw new IllegalArgumentException("invalid title");
-        }
-        if (releaseYear != null && (releaseYear < 1900 || releaseYear > LocalDate.now().getYear() + 1)) {
-            throw new IllegalArgumentException("invalid releaseYear");
-        }
-        if (ageRating == null) {
-            throw new IllegalArgumentException("invalid ageRating");
-        }
-        this.title = title;
-        this.runtime = runtime;
-        this.releaseYear = releaseYear;
-        this.ageRating = ageRating;
+        applyBasicInfo(title, runtime, releaseYear, ageRating);
     }
 
     public void clearGenres() {
         this.genres.clear();
     }
 
+    private void applyBasicInfo(
+            String title,
+            int runtime,
+            Integer releaseYear,
+            AgeRating ageRating
+    ) {
+        this.title = requireText(title, "title");
+        this.runtime = validateRuntime(runtime);
+        this.releaseYear = validateReleaseYear(releaseYear);
+        this.ageRating = require(ageRating, "ageRating");
+    }
 
+    private static <T> T require(T value, String fieldName) {
+        if (value == null) {
+            throw new IllegalArgumentException(fieldName + " is required");
+        }
+        return value;
+    }
 
-    // ======================================================================
-    // ======= 기본정보 변경 메서드 =======
-    // ======================================================================
+    private static String requireText(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(fieldName + " is required");
+        }
+        return value.trim();
+    }
 
+    private static String normalizeOptionalText(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private static int validateRuntime(int runtime) {
+        if (runtime <= 0 || runtime > 1000) {
+            throw new IllegalArgumentException("runtime must be between 1 and 1000");
+        }
+        return runtime;
+    }
+
+    private static int validateReleaseYear(Integer releaseYear) {
+        int year = require(releaseYear, "releaseYear");
+        int maximumYear = LocalDate.now().getYear() + 1;
+        if (year < 1900 || year > maximumYear) {
+            throw new IllegalArgumentException("invalid releaseYear");
+        }
+        return year;
+    }
 
 }

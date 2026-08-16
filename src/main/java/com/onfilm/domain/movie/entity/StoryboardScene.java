@@ -40,11 +40,11 @@ public class StoryboardScene {
         this.project = project;
     }
 
-    public void updateTitle(String title) {
+    public void changeTitle(String title) {
         this.title = title;
     }
 
-    public void updateScriptHtml(String scriptHtml) {
+    public void changeScriptHtml(String scriptHtml) {
         this.scriptHtml = scriptHtml;
     }
 }

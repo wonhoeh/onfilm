@@ -4,7 +4,6 @@ import com.onfilm.domain.common.util.TextNormalizer;
 import com.onfilm.domain.genre.entity.Genre;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +11,10 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "movie_genre",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_movie_genre_normalized",
+                columnNames = {"movie_id", "normalized_text"}
+        ),
         indexes = {
                 @Index(name = "idx_movie_genre_movie", columnList = "movie_id"),
                 @Index(name = "idx_movie_genre_genre", columnList = "genre_id"),
@@ -38,28 +41,47 @@ public class MovieGenre {
     @Column(name = "normalized_text", nullable = false, length = 60)
     private String normalizedText;
 
-    @Builder(access = AccessLevel.PRIVATE)
-    private MovieGenre(Movie movie, Genre genre, String rawText, String normalizedText) {
-        this.movie = movie;
+    private MovieGenre(Genre genre, String rawText, String normalizedText) {
         this.genre = genre;
         this.rawText = rawText;
         this.normalizedText = normalizedText;
     }
 
     public static MovieGenre create(Movie movie, Genre matchedGenreOrNull, String rawText) {
-        if (movie == null) throw new IllegalArgumentException("movie is required");
-        if (rawText == null || rawText.isBlank()) throw new IllegalArgumentException("rawText is required");
+        Movie requiredMovie = require(movie, "movie");
+        if (rawText == null || rawText.isBlank()) {
+            throw new IllegalArgumentException("rawText is required");
+        }
 
         String cleanedRaw = rawText.trim();
         String normalized = TextNormalizer.textNormalizer(cleanedRaw);
-        if (normalized.isBlank()) throw new IllegalArgumentException("normalizedText is blank");
+        if (normalized.isBlank()) {
+            throw new IllegalArgumentException("normalizedText is blank");
+        }
 
-        return MovieGenre.builder()
-                .movie(movie)
-                .genre(matchedGenreOrNull)   // ✅ 있으면 연결, 없으면 null
-                .rawText(cleanedRaw)
-                .normalizedText(normalized)
-                .build();
+        MovieGenre movieGenre = new MovieGenre(
+                matchedGenreOrNull,
+                cleanedRaw,
+                normalized
+        );
+        requiredMovie.addMovieGenre(movieGenre);
+
+        return movieGenre;
+    }
+
+    void attachMovie(Movie movie) {
+        Movie requiredMovie = require(movie, "movie");
+        if (this.movie != null && this.movie != requiredMovie) {
+            throw new IllegalStateException("movieGenre already belongs to another movie");
+        }
+        this.movie = requiredMovie;
+    }
+
+    private static <T> T require(T value, String fieldName) {
+        if (value == null) {
+            throw new IllegalArgumentException(fieldName + " is required");
+        }
+        return value;
     }
 
     // 나중에 표준 장르 매핑할 때 사용
