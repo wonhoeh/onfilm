@@ -331,7 +331,12 @@
         article.className = "film-card";
 
         const title = item?.title ?? "";
-        const genre = item?.genre ?? "";
+        const genre = Array.isArray(item?.genres)
+            ? item.genres
+                .map(value => String(value?.name || "").trim())
+                .filter(Boolean)
+                .join(" / ")
+            : "";
         const runtime = (item?.runtime != null) ? `${item.runtime}분` : "";
         const age = ageToBadge(item?.ageRating);
         const video = toPublicMediaUrl(item?.trailerUrl || "");
@@ -585,8 +590,8 @@
 
         popup.querySelector(".popup-title").textContent = card.dataset.title ?? "";
         popup.querySelector(".popup-meta").innerHTML = `
-      ${card.dataset.genre ?? ""} · ${card.dataset.runtime ?? ""}
-      <span class="popup-age">${card.dataset.age ?? ""}</span>
+      ${escapeHtml(card.dataset.genre ?? "")} · ${escapeHtml(card.dataset.runtime ?? "")}
+      <span class="popup-age">${escapeHtml(card.dataset.age ?? "")}</span>
     `;
 
         const thumb = card.dataset.thumb;

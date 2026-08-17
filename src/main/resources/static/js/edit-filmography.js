@@ -111,6 +111,38 @@
    * ============================ */
   const FilmCardModule = (() => {
     let idSeq = 1;
+    let genreInputSeq = 1;
+    const AUTOCOMPLETE_DELAY_MS = 250;
+
+    function toGenreState(value) {
+      if (typeof value === "string") {
+        const name = Util.normalizeGenre(value);
+        return name ? { genreId: null, name, custom: true } : null;
+      }
+
+      const name = Util.normalizeGenre(value?.name ?? value?.customText);
+      if (!name) return null;
+
+      const genreId = value?.genreId == null ? null : Number(value.genreId);
+      return {
+        genreId: Number.isFinite(genreId) ? genreId : null,
+        name,
+        custom: value?.custom === true || !Number.isFinite(genreId)
+      };
+    }
+
+    function genreKey(value) {
+      return Util.normalizeGenre(value?.name)
+              .replace(/^#+/, "")
+              .trim()
+              .toLocaleLowerCase("ko-KR");
+    }
+
+    function toGenreRequest(genre) {
+      return genre.custom
+              ? { genreId: null, customText: genre.name }
+              : { genreId: genre.genreId, customText: null };
+    }
 
     function create(containerEl, initial = {}) {
       const card = document.createElement("div");
@@ -125,7 +157,10 @@
       card._thumbnailUrl = initial.thumbnailUrl || "";
       card._trailerUrls  = Array.isArray(initial.trailerUrls) ? [...initial.trailerUrls] : [];
       card._movieUrl     = initial.movieUrl || "";
-      card._genres = Array.isArray(initial.genres) ? [...initial.genres] : [];
+      card._genres = Array.isArray(initial.genres)
+              ? initial.genres.map(toGenreState).filter(Boolean)
+              : [];
+      card._genreAutocompleteId = `genre-autocomplete-${genreInputSeq++}`;
       card._isPrivate = !!initial.isPrivate;
       card._hadThumbnail = !!initial.thumbnailUrl;
       card._hadTrailer = Array.isArray(initial.trailerUrls) && initial.trailerUrls.length > 0;
@@ -204,7 +239,21 @@
           <div class="field-group">
             <label class="field-label">장르</label>
             <div class="chip-input-wrap">
-              <input class="text-input genre-chip-input" type="text" placeholder="작품의 장르를 여러개 입력할 수 있어요">
+              <div class="genre-input-shell">
+                <input class="text-input genre-chip-input"
+                       type="text"
+                       maxlength="60"
+                       autocomplete="off"
+                       role="combobox"
+                       aria-autocomplete="list"
+                       aria-expanded="false"
+                       aria-controls="${card._genreAutocompleteId}"
+                       placeholder="표준 장르를 검색하거나 직접 입력하세요">
+                <div id="${card._genreAutocompleteId}"
+                     class="genre-autocomplete"
+                     role="listbox"
+                     hidden></div>
+              </div>
               <div class="chip-box genre-chip-box" aria-label="장르 목록"></div>
             </div>
           </div>
@@ -317,6 +366,8 @@
       card.querySelector(".delete-film-btn").addEventListener("click", () => {
         if (!confirm("이 작품을 삭제할까요?")) return;
 
+        card._genreAbortController?.abort();
+
         const movieId = card.dataset.filmId;
         if (movieId && /^[0-9]+$/.test(movieId)) {
           window.__DELETED_MOVIE_IDS__.push(Number(movieId));
@@ -361,26 +412,239 @@
 
     function bindGenreChips(card){
       const input = card.querySelector(".genre-chip-input");
+      const listbox = card.querySelector(".genre-autocomplete");
+      const state = {
+        suggestions: [],
+        activeIndex: -1,
+        loading: false,
+        error: "",
+        debounceTimer: null,
+        requestSequence: 0
+      };
 
       let composing = false;
       input.addEventListener("compositionstart", () => composing = true);
-      input.addEventListener("compositionend", () => composing = false);
+      input.addEventListener("compositionend", () => {
+        composing = false;
+        scheduleAutocomplete();
+      });
+
+      function closeAutocomplete() {
+        listbox.hidden = true;
+        input.setAttribute("aria-expanded", "false");
+        input.removeAttribute("aria-activedescendant");
+        state.activeIndex = -1;
+      }
+
+      function cancelAutocomplete() {
+        clearTimeout(state.debounceTimer);
+        card._genreAbortController?.abort();
+        state.requestSequence += 1;
+        state.loading = false;
+        state.suggestions = [];
+        closeAutocomplete();
+      }
+
+      function setActiveIndex(index) {
+        const options = [...listbox.querySelectorAll("[role='option']")];
+        if (!options.length) {
+          state.activeIndex = -1;
+          input.removeAttribute("aria-activedescendant");
+          return;
+        }
+
+        state.activeIndex = (index + options.length) % options.length;
+        options.forEach((option, optionIndex) => {
+          const active = optionIndex === state.activeIndex;
+          option.classList.toggle("is-active", active);
+          option.setAttribute("aria-selected", String(active));
+        });
+
+        const activeOption = options[state.activeIndex];
+        input.setAttribute("aria-activedescendant", activeOption.id);
+        activeOption.scrollIntoView({ block: "nearest" });
+      }
+
+      function renderAutocomplete() {
+        const query = Util.normalizeGenre(input.value);
+        listbox.innerHTML = "";
+
+        if (!query) {
+          closeAutocomplete();
+          return;
+        }
+
+        listbox.hidden = false;
+        input.setAttribute("aria-expanded", "true");
+
+        if (state.loading) {
+          const loading = document.createElement("div");
+          loading.className = "genre-autocomplete-message";
+          loading.textContent = "표준 장르를 검색하고 있어요.";
+          listbox.appendChild(loading);
+          return;
+        }
+
+        if (state.error) {
+          const error = document.createElement("div");
+          error.className = "genre-autocomplete-message is-error";
+          error.textContent = state.error;
+          listbox.appendChild(error);
+        } else if (!state.suggestions.length) {
+          const empty = document.createElement("div");
+          empty.className = "genre-autocomplete-message";
+          empty.textContent = "일치하는 표준 장르가 없습니다.";
+          listbox.appendChild(empty);
+        } else {
+          state.suggestions.forEach((genre, index) => {
+            const option = document.createElement("button");
+            option.type = "button";
+            option.id = `${card._genreAutocompleteId}-option-${index}`;
+            option.className = "genre-autocomplete-option";
+            option.setAttribute("role", "option");
+            option.setAttribute("aria-selected", "false");
+            option.textContent = genre.name;
+            option.addEventListener("mousedown", event => event.preventDefault());
+            option.addEventListener("click", () => addGenre(genre));
+            listbox.appendChild(option);
+          });
+        }
+
+        const customHint = document.createElement("div");
+        customHint.className = "genre-custom-hint";
+        customHint.textContent = `Enter를 누르면 '${query}'을(를) 직접 입력 장르로 추가합니다.`;
+        listbox.appendChild(customHint);
+        state.activeIndex = -1;
+        input.removeAttribute("aria-activedescendant");
+      }
+
+      function addGenre(value) {
+        const genre = toGenreState(value);
+        if (!genre) return;
+
+        const duplicate = card._genres.some(existing => genreKey(existing) === genreKey(genre));
+        if (!duplicate) {
+          card._genres.push(genre);
+          renderGenreChips(card);
+        }
+
+        input.value = "";
+        state.error = "";
+        cancelAutocomplete();
+        input.focus();
+      }
+
+      async function loadAutocomplete(query, sequence) {
+        const controller = new AbortController();
+        card._genreAbortController = controller;
+
+        try {
+          const fetcher = window.OnfilmAuth?.apiFetchWithAutoRefresh
+                  ? window.OnfilmAuth.apiFetchWithAutoRefresh.bind(window.OnfilmAuth)
+                  : fetch;
+          const response = await fetcher(
+                  `/api/genres/autocomplete?query=${encodeURIComponent(query)}`,
+                  {
+                    method: "GET",
+                    headers: { "Accept": "application/json" },
+                    credentials: "include",
+                    signal: controller.signal
+                  }
+          );
+
+          if (!response.ok) {
+            throw new Error(`자동완성 요청 실패 (${response.status})`);
+          }
+
+          const body = await response.json().catch(() => []);
+          if (sequence !== state.requestSequence) return;
+
+          const selectedKeys = new Set(card._genres.map(genreKey));
+          state.suggestions = (Array.isArray(body) ? body : [])
+                  .map(item => toGenreState({
+                    genreId: item?.id,
+                    name: item?.name,
+                    custom: false
+                  }))
+                  .filter(Boolean)
+                  .filter(genre => !selectedKeys.has(genreKey(genre)));
+          state.error = "";
+        } catch (error) {
+          if (error?.name === "AbortError" || sequence !== state.requestSequence) return;
+          state.suggestions = [];
+          state.error = "추천 장르를 불러오지 못했습니다. 직접 입력은 계속 사용할 수 있어요.";
+        } finally {
+          if (sequence !== state.requestSequence) return;
+          state.loading = false;
+          renderAutocomplete();
+        }
+      }
+
+      function scheduleAutocomplete() {
+        if (composing) return;
+
+        clearTimeout(state.debounceTimer);
+        card._genreAbortController?.abort();
+        const query = Util.normalizeGenre(input.value);
+        state.requestSequence += 1;
+        state.suggestions = [];
+        state.error = "";
+
+        if (!query) {
+          state.loading = false;
+          closeAutocomplete();
+          return;
+        }
+
+        const sequence = state.requestSequence;
+        state.loading = true;
+        renderAutocomplete();
+        state.debounceTimer = setTimeout(
+                () => loadAutocomplete(query, sequence),
+                AUTOCOMPLETE_DELAY_MS
+        );
+      }
+
+      input.addEventListener("input", scheduleAutocomplete);
 
       input.addEventListener("keydown", (e) => {
-        if (e.key !== "Enter") return;
         if (e.isComposing || composing) return;
 
+        if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+          if (listbox.hidden || !state.suggestions.length) return;
+          e.preventDefault();
+          setActiveIndex(state.activeIndex + (e.key === "ArrowDown" ? 1 : -1));
+          return;
+        }
+
+        if (e.key === "Escape") {
+          cancelAutocomplete();
+          return;
+        }
+
+        if (e.key !== "Enter") return;
         e.preventDefault();
 
-        const value = Util.normalizeGenre(input.value);
-        if (!value) return;
+        const inputGenreKey = genreKey({ name: input.value });
+        const selected = state.suggestions[state.activeIndex]
+                ?? state.suggestions.find(genre => genreKey(genre) === inputGenreKey);
+        if (selected) {
+          addGenre(selected);
+          return;
+        }
 
-        const exists = card._genres.some(g => g.toLowerCase() === value.toLowerCase());
-        if (exists) { input.value = ""; return; }
+        const customText = Util.normalizeGenre(input.value);
+        if (customText) {
+          addGenre({ genreId: null, name: customText, custom: true });
+        }
+      });
 
-        card._genres.push(value);
-        input.value = "";
-        renderGenreChips(card);
+      input.addEventListener("blur", () => {
+        window.setTimeout(() => {
+          if (document.activeElement !== input) {
+            cancelAutocomplete();
+          }
+        }, 150);
       });
     }
 
@@ -388,12 +652,13 @@
       const box = card.querySelector(".genre-chip-box");
       box.innerHTML = "";
 
-      (card._genres || []).forEach((g, idx) => {
+      (card._genres || []).forEach((genre, idx) => {
         const chip = document.createElement("span");
-        chip.className = "chip";
+        chip.className = `chip ${genre.custom ? "is-custom" : "is-standard"}`;
         chip.draggable = true;
         chip.innerHTML = `
-          <span>${Util.escapeHtml(g)}</span>
+          <span>${Util.escapeHtml(genre.name)}</span>
+          <span class="chip-kind">${genre.custom ? "직접 입력" : "표준"}</span>
           <button type="button" aria-label="장르 삭제">×</button>
         `;
         chip.querySelector("button").addEventListener("click", () => {
@@ -405,7 +670,7 @@
           chip.classList.add("dragging");
           card._dragGenreIndex = idx;
           card.setAttribute("draggable", "false");
-          try { e.dataTransfer.setData("text/plain", g); } catch (_) {}
+          try { e.dataTransfer.setData("text/plain", genre.name); } catch (_) {}
         });
         chip.addEventListener("dragend", (e) => {
           e.stopPropagation();
@@ -627,10 +892,7 @@
         role,
         castType,
         characterName,
-        genres: [...(card._genres || [])].map(customText => ({
-          genreId: null,
-          customText
-        })),
+        genres: [...(card._genres || [])].map(toGenreRequest),
         thumbnailUrl: card._thumbnailUrl || null,
         trailerUrls: card._trailerUrls || [],
         movieUrl: card._movieUrl || ""
@@ -1261,10 +1523,7 @@
 
       filmListEl.innerHTML = "";
       films.forEach((item) => {
-        const genres = (item?.genre || "")
-                .split("/")
-                .map(s => s.trim())
-                .filter(Boolean);
+        const genres = Array.isArray(item?.genres) ? item.genres : [];
 
         FilmCardModule.create(filmListEl, {
           id: item?.movieId ?? null,
