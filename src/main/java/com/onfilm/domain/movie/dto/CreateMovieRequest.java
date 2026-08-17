@@ -1,6 +1,8 @@
 package com.onfilm.domain.movie.dto;
 
 import com.onfilm.domain.movie.entity.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +19,7 @@ public class CreateMovieRequest {
     private String movieUrl;
     private String thumbnailUrl;
     private List<String> trailerUrls;
-    private List<String> rawGenreTexts;
+    private List<@NotNull @Valid MovieGenreRequest> genres;
     private AgeRating ageRating;
 
     private PersonRole role;

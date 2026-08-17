@@ -2,6 +2,7 @@ package com.onfilm.domain.movie.service;
 
 import com.onfilm.domain.common.error.exception.PersonNotFoundException;
 import com.onfilm.domain.movie.dto.MovieCardResponse;
+import com.onfilm.domain.movie.dto.MovieGenreResponse;
 import com.onfilm.domain.movie.entity.*;
 import com.onfilm.domain.movie.repository.MovieGenreRepository;
 import com.onfilm.domain.movie.repository.MoviePersonRepository;
@@ -41,22 +42,14 @@ public class MovieReadService {
                 .toList();
 
         // 2) genres IN 조회 -> movieId별로 그룹핑
-        Map<Long, String> genreTextByMovieId =
+        Map<Long, List<MovieGenreResponse>> genresByMovieId =
                 movieGenreRepository.findAllByMovieIds(movieIds).stream()
                         .collect(Collectors.groupingBy(
                                 mg -> mg.getMovie().getId(),
                                 Collectors.mapping(
-                                        MovieGenre::getNormalizedText,
+                                        MovieGenreResponse::from,
                                         Collectors.toList()
                                 )
-                        ))
-                        .entrySet().stream()
-                        .collect(Collectors.toMap(
-                                Map.Entry::getKey,
-                                e -> e.getValue().stream()
-                                        .filter(s -> s != null && !s.isBlank())
-                                        .distinct()
-                                        .collect(Collectors.joining(" / "))
                         ));
 
         // 2) trailers IN 조회 -> movieId별 대표 1개 선정
@@ -78,7 +71,7 @@ public class MovieReadService {
                     return new MovieCardResponse(
                             m.getId(),
                             m.getTitle(),
-                            genreTextByMovieId.getOrDefault(mid, ""),
+                            genresByMovieId.getOrDefault(mid, List.of()),
                             m.getRuntime(),
                             m.getReleaseYear(),
                             m.getAgeRating(),

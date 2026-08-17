@@ -4,6 +4,7 @@ import com.onfilm.domain.common.error.exception.PersonNotFoundException;
 import com.onfilm.domain.common.error.exception.UserNotFoundException;
 import com.onfilm.domain.common.util.SecurityUtil;
 import com.onfilm.domain.movie.dto.CreateMovieRequest;
+import com.onfilm.domain.movie.dto.MovieGenreRequest;
 import com.onfilm.domain.movie.entity.*;
 import com.onfilm.domain.movie.repository.MoviePersonRepository;
 import com.onfilm.domain.movie.repository.MovieRepository;
@@ -55,8 +56,12 @@ public class MovieServiceTest {
         given(request.getCastType()).willReturn(CastType.LEAD);
         given(request.getCharacterName()).willReturn("코브");
 
-        List<String> rawGenres = List.of("드라마", " 스릴러 ", "드라마"); // 중복 포함
-        given(request.getRawGenreTexts()).willReturn(rawGenres);
+        List<MovieGenreRequest> genres = List.of(
+                new MovieGenreRequest(null, "드라마"),
+                new MovieGenreRequest(null, " 스릴러 "),
+                new MovieGenreRequest(null, "드라마")
+        );
+        given(request.getGenres()).willReturn(genres);
 
         long userId = 1L;
         User user = mock(User.class);
@@ -87,7 +92,7 @@ public class MovieServiceTest {
 
             // 1) 장르 부착 호출 확인
             then(movieGenreNormalizer).should(times(1))
-                    .attachGenre(movieCaptor.capture(), eq(rawGenres));
+                    .attachGenre(movieCaptor.capture(), eq(genres));
 
             // 2) 저장 호출 확인
             then(movieRepository).should(times(1)).save(any(Movie.class));

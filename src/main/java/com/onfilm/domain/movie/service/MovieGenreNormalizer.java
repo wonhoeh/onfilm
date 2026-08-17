@@ -3,12 +3,16 @@ package com.onfilm.domain.movie.service;
 import com.onfilm.domain.common.util.TextNormalizer;
 import com.onfilm.domain.genre.entity.Genre;
 import com.onfilm.domain.genre.repository.GenreRepository;
+import com.onfilm.domain.movie.dto.MovieGenreRequest;
 import com.onfilm.domain.movie.entity.Movie;
 import com.onfilm.domain.movie.entity.MovieGenre;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -19,50 +23,133 @@ public class MovieGenreNormalizer {
 
     private final GenreRepository genreRepository;
 
-    public void attachGenre(Movie movie, List<String> rawGenreTexts) {
-        if (movie == null) throw new IllegalArgumentException("movie is required");
-        if (rawGenreTexts == null || rawGenreTexts.isEmpty()) return;
+    public void attachGenre(Movie movie, List<MovieGenreRequest> requests) {
+        if (movie == null) {
+            throw new IllegalArgumentException("movie is required");
+        }
+        if (requests == null || requests.isEmpty()) {
+            return;
+        }
 
-        // 1) 입력 정리 (일단 리스트로 만들기)
-        List<RawAndNormalized> prepared = rawGenreTexts.stream()
+        validateRequests(requests);
+
+        Map<Long, Genre> genreById = findSelectedStandardGenres(requests);
+        Map<String, Genre> genreByNormalized = findMatchingStandardGenres(requests);
+        Map<String, ResolvedGenre> resolvedByNormalized = new LinkedHashMap<>();
+
+        for (MovieGenreRequest request : requests) {
+            ResolvedGenre resolved = request.genreId() != null
+                    ? resolveStandard(request.genreId(), genreById)
+                    : resolveCustom(request.customText(), genreByNormalized);
+
+            resolvedByNormalized.putIfAbsent(resolved.normalized(), resolved);
+        }
+
+        resolvedByNormalized.values()
+                .forEach(resolved -> attachResolvedGenre(movie, resolved));
+    }
+
+    private static void validateRequests(List<MovieGenreRequest> requests) {
+        for (MovieGenreRequest request : requests) {
+            if (request == null || !request.isSourceValid()) {
+                throw new IllegalArgumentException(
+                        "genreId or customText must be provided exclusively"
+                );
+            }
+        }
+    }
+
+    private Map<Long, Genre> findSelectedStandardGenres(List<MovieGenreRequest> requests) {
+        List<Long> genreIds = requests.stream()
+                .map(MovieGenreRequest::genreId)
                 .filter(Objects::nonNull)
-                .map(String::trim)
-                .filter(s -> !s.isBlank())
-                .map(raw -> new RawAndNormalized(raw, TextNormalizer.textNormalizer(raw)))
-                .filter(rn -> rn.normalized() != null && !rn.normalized().isBlank())
+                .distinct()
                 .toList();
 
-        // 2) normalized 기준 중복 제거 + 순서 유지
-        List<RawAndNormalized> inputs = distinctByNormalized(prepared);
-        if (inputs.isEmpty()) return;
+        if (genreIds.isEmpty()) {
+            return Map.of();
+        }
 
-        // 2) DB Genre 매칭 (활성만)
-        List<String> normalizedList = inputs.stream()
-                .map(RawAndNormalized::normalized)
+        return genreRepository.findActiveByIds(genreIds).stream()
+                .collect(Collectors.toMap(Genre::getId, Function.identity()));
+    }
+
+    private Map<String, Genre> findMatchingStandardGenres(
+            List<MovieGenreRequest> requests
+    ) {
+        List<String> normalizedValues = requests.stream()
+                .filter(MovieGenreRequest::hasCustomText)
+                .map(MovieGenreRequest::customText)
+                .map(TextNormalizer::textNormalizer)
+                .filter(normalized -> !normalized.isBlank())
+                .distinct()
                 .toList();
 
-        List<Genre> found = genreRepository.findByNormalizedInAndIsActiveTrue(normalizedList);
-
-        Map<String, Genre> genreByNormalized = found.stream()
-                .collect(Collectors.toMap(Genre::getNormalized, Function.identity(), (a, b) -> a));
-
-        // 3) MovieGenre 생성 + Movie에 추가(중복 방지는 Movie에서)
-        for (RawAndNormalized input : inputs) {
-            Genre matched = genreByNormalized.get(input.normalized());
-            MovieGenre.create(movie, matched, input.raw());
+        if (normalizedValues.isEmpty()) {
+            return Map.of();
         }
+
+        return genreRepository.findActiveByNormalizedValues(normalizedValues)
+                .stream()
+                .collect(Collectors.toMap(
+                        Genre::getNormalized,
+                        Function.identity(),
+                        (first, ignored) -> first
+                ));
     }
 
-    private static List<RawAndNormalized> distinctByNormalized(List<RawAndNormalized> inputs) {
-        if (inputs == null || inputs.isEmpty()) return List.of();
-
-        Map<String, RawAndNormalized> map = new LinkedHashMap<>();
-        for (RawAndNormalized rn : inputs) {
-            if (rn == null) continue;
-            map.putIfAbsent(rn.normalized(), rn); // ✅ 이미 있으면(중복) 무시, 없으면 추가
+    private static ResolvedGenre resolveStandard(
+            Long genreId,
+            Map<Long, Genre> genreById
+    ) {
+        Genre genre = genreById.get(genreId);
+        if (genre == null) {
+            throw new IllegalArgumentException(
+                    "active genre not found: " + genreId
+            );
         }
-        return new ArrayList<>(map.values()); // ✅ 입력 순서 유지
+
+        return new ResolvedGenre(
+                genre,
+                null,
+                genre.getNormalized()
+        );
     }
 
-    private record RawAndNormalized(String raw, String normalized) {}
+    private static ResolvedGenre resolveCustom(
+            String customText,
+            Map<String, Genre> genreByNormalized
+    ) {
+        String rawText = customText.trim();
+        String normalized = TextNormalizer.textNormalizer(rawText);
+        Genre matchedGenre = genreByNormalized.get(normalized);
+
+        if (matchedGenre != null) {
+            return new ResolvedGenre(
+                    matchedGenre,
+                    null,
+                    matchedGenre.getNormalized()
+            );
+        }
+
+        return new ResolvedGenre(null, rawText, normalized);
+    }
+
+    private static void attachResolvedGenre(
+            Movie movie,
+            ResolvedGenre resolved
+    ) {
+        if (resolved.genre() != null) {
+            MovieGenre.createStandard(movie, resolved.genre());
+            return;
+        }
+
+        MovieGenre.createCustom(movie, resolved.customText());
+    }
+
+    private record ResolvedGenre(
+            Genre genre,
+            String customText,
+            String normalized
+    ) {}
 }

@@ -3,11 +3,13 @@ package com.onfilm.domain.movie.dto;
 import com.onfilm.domain.movie.entity.AgeRating;
 import com.onfilm.domain.movie.entity.CastType;
 import com.onfilm.domain.movie.entity.PersonRole;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
 public record FilmographyUpsertRequest(
-        List<Item> items
+        List<@NotNull @Valid Item> items
 ) {
     public record Item(
             String clientKey,
@@ -16,7 +18,7 @@ public record FilmographyUpsertRequest(
             int runtime,
             Integer releaseYear,
             AgeRating ageRating,
-            List<String> rawGenreTexts,
+            List<@NotNull @Valid MovieGenreRequest> genres,
             PersonRole role,
             CastType castType,
             String characterName,

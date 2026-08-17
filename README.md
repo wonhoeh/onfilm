@@ -87,6 +87,7 @@ Local profile defaults:
 
 - Consumer development spec: [docs/consumer-dev-spec.md](docs/consumer-dev-spec.md)
 - Entity method naming convention: [docs/convention/entity-method-naming-convention.md](docs/convention/entity-method-naming-convention.md)
+- Backend three-year growth plan: [docs/interview/backend-three-year-growth-plan.md](docs/interview/backend-three-year-growth-plan.md)
 
 ## Current Notes
 

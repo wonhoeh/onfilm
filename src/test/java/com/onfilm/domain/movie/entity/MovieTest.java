@@ -1,5 +1,6 @@
 package com.onfilm.domain.movie.entity;
 
+import com.onfilm.domain.genre.entity.Genre;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -74,10 +75,10 @@ class MovieTest {
     }
 
     @Test
-    void createMovieGenre_attachesBothSides() {
+    void createCustomMovieGenre_attachesBothSides() {
         Movie movie = createMovie(120, 2020, AgeRating.ALL);
 
-        MovieGenre movieGenre = MovieGenre.create(movie, null, "  Action  ");
+        MovieGenre movieGenre = MovieGenre.createCustom(movie, "  Action  ");
 
         assertThat(movieGenre.getMovie()).isSameAs(movie);
         assertThat(movie.getGenres()).containsExactly(movieGenre);
@@ -86,11 +87,11 @@ class MovieTest {
     }
 
     @Test
-    void createMovieGenre_rejectsDuplicateNormalizedText() {
+    void createCustomMovieGenre_rejectsDuplicateNormalizedText() {
         Movie movie = createMovie(120, 2020, AgeRating.ALL);
-        MovieGenre.create(movie, null, "Action");
+        MovieGenre.createCustom(movie, "Action");
 
-        assertThatThrownBy(() -> MovieGenre.create(movie, null, "  action  "))
+        assertThatThrownBy(() -> MovieGenre.createCustom(movie, "  action  "))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("duplicate movie genre");
 
@@ -101,13 +102,35 @@ class MovieTest {
     void addMovieGenre_rejectsReassignmentToAnotherMovie() {
         Movie firstMovie = createMovie(120, 2020, AgeRating.ALL);
         Movie secondMovie = createMovie(120, 2021, AgeRating.ALL);
-        MovieGenre movieGenre = MovieGenre.create(firstMovie, null, "Action");
+        MovieGenre movieGenre = MovieGenre.createCustom(firstMovie, "Action");
 
         assertThatThrownBy(() -> secondMovie.addMovieGenre(movieGenre))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("movieGenre already belongs to another movie");
 
         assertThat(secondMovie.getGenres()).isEmpty();
+    }
+
+    @Test
+    void createStandardMovieGenre_usesStandardGenreValues() {
+        Movie movie = createMovie(120, 2020, AgeRating.ALL);
+        Genre genre = Genre.create("  Action  ");
+
+        MovieGenre movieGenre = MovieGenre.createStandard(movie, genre);
+
+        assertThat(movieGenre.getGenre()).isSameAs(genre);
+        assertThat(movieGenre.getRawText()).isEqualTo("Action");
+        assertThat(movieGenre.getNormalizedText()).isEqualTo("action");
+        assertThat(movie.getGenres()).containsExactly(movieGenre);
+    }
+
+    @Test
+    void createStandardMovieGenre_requiresGenre() {
+        Movie movie = createMovie(120, 2020, AgeRating.ALL);
+
+        assertThatThrownBy(() -> MovieGenre.createStandard(movie, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("genre is required");
     }
 
     private static Movie createMovie(int runtime, Integer releaseYear, AgeRating ageRating) {

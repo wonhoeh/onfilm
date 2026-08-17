@@ -627,7 +627,10 @@
         role,
         castType,
         characterName,
-        rawGenreTexts: [...(card._genres || [])],
+        genres: [...(card._genres || [])].map(customText => ({
+          genreId: null,
+          customText
+        })),
         thumbnailUrl: card._thumbnailUrl || null,
         trailerUrls: card._trailerUrls || [],
         movieUrl: card._movieUrl || ""
@@ -1033,7 +1036,7 @@
             runtime,
             releaseYear,
             ageRating: data.ageRate,
-            rawGenreTexts: data.rawGenreTexts,
+            genres: data.genres,
             role: data.role,
             castType: data.castType,
             characterName: data.characterName,

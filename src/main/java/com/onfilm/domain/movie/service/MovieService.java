@@ -68,7 +68,7 @@ public class MovieService {
         moviePerson.changeSortOrder(max == null ? 0 : max + 1);
 
         // 장르는 도메인 서비스(팩토리)로만 부착
-        movieGenreNormalizer.attachGenre(movie, request.getRawGenreTexts());
+        movieGenreNormalizer.attachGenre(movie, request.getGenres());
 
         Movie saved = movieRepository.save(movie);
         return saved.getId();
@@ -106,7 +106,7 @@ public class MovieService {
                 );
 
                 movie.clearGenres();
-                movieGenreNormalizer.attachGenre(movie, item.rawGenreTexts());
+                movieGenreNormalizer.attachGenre(movie, item.genres());
 
                 mp.changeRole(item.role(), item.castType(), item.characterName());
                 mp.changeSortOrder(i);
@@ -138,7 +138,7 @@ public class MovieService {
             createdMoviePerson.changeSortOrder(i);
             createdMoviePerson.changePrivacy(item.isPrivate());
 
-            movieGenreNormalizer.attachGenre(movie, item.rawGenreTexts());
+            movieGenreNormalizer.attachGenre(movie, item.genres());
 
             Movie saved = movieRepository.save(movie);
             Long savedId = saved.getId();

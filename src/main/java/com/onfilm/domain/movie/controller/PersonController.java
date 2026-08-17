@@ -29,6 +29,7 @@ import com.onfilm.domain.movie.service.MovieReadService;
 import com.onfilm.domain.movie.service.MovieService;
 import com.onfilm.domain.movie.service.PersonReadService;
 import com.onfilm.domain.movie.service.PersonService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -143,7 +144,7 @@ public class PersonController {
     @PutMapping("/{publicId}/filmography")
     public ResponseEntity<FilmographyUpsertResponse> upsertFilmography(
             @PathVariable String publicId,
-            @RequestBody FilmographyUpsertRequest request
+            @RequestBody @Valid FilmographyUpsertRequest request
     ) {
         FilmographyUpsertResponse response = movieService.upsertFilmography(publicId, request);
         return ResponseEntity.ok(response);

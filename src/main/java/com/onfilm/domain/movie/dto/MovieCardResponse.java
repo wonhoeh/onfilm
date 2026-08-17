@@ -2,12 +2,12 @@ package com.onfilm.domain.movie.dto;
 
 import com.onfilm.domain.movie.entity.*;
 
-import java.util.stream.Collectors;
+import java.util.List;
 
 public record MovieCardResponse(
         Long movieId,
         String title,
-        String genre,
+        List<MovieGenreResponse> genres,
         int runtime,
         Integer releaseYear,
         AgeRating ageRating,
@@ -23,13 +23,11 @@ public record MovieCardResponse(
     public static MovieCardResponse from(MoviePerson mp) {
         Movie m = mp.getMovie();
 
-        String genreText = (m.getGenres() == null || m.getGenres().isEmpty())
-                ? ""
+        List<MovieGenreResponse> genres = (m.getGenres() == null)
+                ? List.of()
                 : m.getGenres().stream()
-                // MovieGenre의 실제 getter에 맞게 수정
-                .map(MovieGenre::getRawText)
-                .filter(s -> s != null && !s.isBlank())
-                .collect(Collectors.joining(" / "));
+                .map(MovieGenreResponse::from)
+                .toList();
 
         String trailer = (m.getTrailers() == null || m.getTrailers().isEmpty())
                 ? null
@@ -42,7 +40,7 @@ public record MovieCardResponse(
         return new MovieCardResponse(
                 m.getId(),
                 m.getTitle(),
-                genreText,
+                genres,
                 m.getRuntime(),
                 m.getReleaseYear(),
                 m.getAgeRating(),

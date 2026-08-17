@@ -4,27 +4,49 @@
 -- publicId: test-public-id-001
 -- ============================================================
 
--- 1. Person
+-- 1. 표준 장르
+-- ID는 IDENTITY 생성 전략에 맡긴다.
+INSERT INTO genre (name, normalized, is_active) VALUES ('액션', '액션', TRUE);
+INSERT INTO genre (name, normalized, is_active) VALUES ('드라마', '드라마', TRUE);
+INSERT INTO genre (name, normalized, is_active) VALUES ('코미디', '코미디', TRUE);
+INSERT INTO genre (name, normalized, is_active) VALUES ('로맨스', '로맨스', TRUE);
+INSERT INTO genre (name, normalized, is_active) VALUES ('스릴러', '스릴러', TRUE);
+INSERT INTO genre (name, normalized, is_active) VALUES ('공포', '공포', TRUE);
+INSERT INTO genre (name, normalized, is_active) VALUES ('SF', 'sf', TRUE);
+INSERT INTO genre (name, normalized, is_active) VALUES ('판타지', '판타지', TRUE);
+INSERT INTO genre (name, normalized, is_active) VALUES ('범죄', '범죄', TRUE);
+INSERT INTO genre (name, normalized, is_active) VALUES ('미스터리', '미스터리', TRUE);
+INSERT INTO genre (name, normalized, is_active) VALUES ('모험', '모험', TRUE);
+INSERT INTO genre (name, normalized, is_active) VALUES ('애니메이션', '애니메이션', TRUE);
+INSERT INTO genre (name, normalized, is_active) VALUES ('다큐멘터리', '다큐멘터리', TRUE);
+INSERT INTO genre (name, normalized, is_active) VALUES ('가족', '가족', TRUE);
+INSERT INTO genre (name, normalized, is_active) VALUES ('전쟁', '전쟁', TRUE);
+INSERT INTO genre (name, normalized, is_active) VALUES ('역사', '역사', TRUE);
+INSERT INTO genre (name, normalized, is_active) VALUES ('음악', '음악', TRUE);
+INSERT INTO genre (name, normalized, is_active) VALUES ('스포츠', '스포츠', TRUE);
+INSERT INTO genre (name, normalized, is_active) VALUES ('서부', '서부', TRUE);
+
+-- 2. Person
 INSERT INTO person (id, name, birth_date, birth_place, one_line_intro, profile_image_url, filmography_file_key, public_id, filmography_private, gallery_private)
 VALUES (1, '테스트 배우', '1995-03-15', '서울', '독립영화를 사랑하는 배우입니다.', NULL, NULL, 'test-public-id-001', FALSE, FALSE);
 
--- 2. User는 DevDataInitializer.java에서 PasswordEncoder로 생성 (BCrypt 해시 불일치 방지)
+-- 3. User는 DevDataInitializer.java에서 PasswordEncoder로 생성 (BCrypt 해시 불일치 방지)
 
--- 3. SNS (2개)
+-- 4. SNS (2개)
 INSERT INTO person_sns (id, type, url, person_id) VALUES (1, 'INSTAGRAM', 'https://instagram.com/testactor', 1);
 INSERT INTO person_sns (id, type, url, person_id) VALUES (2, 'YOUTUBE', 'https://youtube.com/testactor', 1);
 
--- 4. 프로필 태그 (3개)
+-- 5. 프로필 태그 (3개)
 INSERT INTO profile_tag (id, person_id, raw_text, normalized) VALUES (1, 1, '연기', '연기');
 INSERT INTO profile_tag (id, person_id, raw_text, normalized) VALUES (2, 1, '독립영화', '독립영화');
 INSERT INTO profile_tag (id, person_id, raw_text, normalized) VALUES (3, 1, '단편영화', '단편영화');
 
--- 5. 갤러리 (3개)
+-- 6. 갤러리 (3개)
 INSERT INTO person_gallery (person_id, image_key, is_private, sort_order) VALUES (1, 'gallery/1/img1.jpg', FALSE, 0);
 INSERT INTO person_gallery (person_id, image_key, is_private, sort_order) VALUES (1, 'gallery/1/img2.jpg', FALSE, 1);
 INSERT INTO person_gallery (person_id, image_key, is_private, sort_order) VALUES (1, 'gallery/1/img3.jpg', FALSE, 2);
 
--- 6. 스토리보드 프로젝트 10개 (N+1 확인용)
+-- 7. 스토리보드 프로젝트 10개 (N+1 확인용)
 INSERT INTO storyboard_project (id, title, person_id, sort_order) VALUES (1,  '프로젝트 1',  1, 0);
 INSERT INTO storyboard_project (id, title, person_id, sort_order) VALUES (2,  '프로젝트 2',  1, 1);
 INSERT INTO storyboard_project (id, title, person_id, sort_order) VALUES (3,  '프로젝트 3',  1, 2);
@@ -36,7 +58,7 @@ INSERT INTO storyboard_project (id, title, person_id, sort_order) VALUES (8,  '�
 INSERT INTO storyboard_project (id, title, person_id, sort_order) VALUES (9,  '프로젝트 9',  1, 8);
 INSERT INTO storyboard_project (id, title, person_id, sort_order) VALUES (10, '프로젝트 10', 1, 9);
 
--- 7. 씬 (프로젝트당 3개 = 총 30개)
+-- 8. 씬 (프로젝트당 3개 = 총 30개)
 -- 프로젝트 1
 INSERT INTO storyboard_scene (id, title, script_html, project_id, sort_order) VALUES (1,  '씬 1', '<p>대사 내용입니다.</p>', 1, 0);
 INSERT INTO storyboard_scene (id, title, script_html, project_id, sort_order) VALUES (2,  '씬 2', '<p>대사 내용입니다.</p>', 1, 1);
