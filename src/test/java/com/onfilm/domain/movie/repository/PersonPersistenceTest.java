@@ -54,18 +54,34 @@ class PersonPersistenceTest {
         assertThat(personRepository.findProfileImageKeyById(personId))
                 .contains("profile/avatar.jpg");
 
+        Long originalSnsId = found.getSnsList().get(0).getId();
         found.replaceSns(List.of(PersonSns.create(
-                SnsType.YOUTUBE,
-                "https://youtube.com/onfilm"
+                SnsType.ETC,
+                "https://instagram.com/onfilm"
         )));
         found.removeStoryboardProject(found.getStoryboardProjects().get(0));
         personRepository.flush();
         entityManager.clear();
 
         Person replaced = personRepository.findById(personId).orElseThrow();
-        assertThat(replaced.getSnsList())
+        assertThat(replaced.getSnsList()).singleElement().satisfies(sns -> {
+            assertThat(sns.getId()).isEqualTo(originalSnsId);
+            assertThat(sns.getType()).isEqualTo(SnsType.ETC);
+        });
+        assertThat(replaced.getStoryboardProjects()).isEmpty();
+
+        replaced.replaceSns(List.of(PersonSns.create(
+                SnsType.YOUTUBE,
+                "https://youtube.com/onfilm"
+        )));
+        personRepository.flush();
+        entityManager.clear();
+
+        Person changedUrl = personRepository.findById(personId).orElseThrow();
+        assertThat(changedUrl.getSnsList())
                 .extracting(PersonSns::getType)
                 .containsExactly(SnsType.YOUTUBE);
-        assertThat(replaced.getStoryboardProjects()).isEmpty();
+        assertThat(changedUrl.getSnsList().get(0).getId())
+                .isNotEqualTo(originalSnsId);
     }
 }

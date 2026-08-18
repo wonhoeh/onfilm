@@ -1,5 +1,7 @@
 package com.onfilm.domain.movie.dto;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +19,8 @@ public class UpdatePersonRequest {
     private String oneLineIntro;
     private String profileImageKey;
     private String profileImageUrl;
-    private List<CreatePersonSnsRequest> snsList;
+    @Valid
+    private List<@NotNull CreatePersonSnsRequest> snsList;
     private List<String> rawTags;
 
     public List<String> safeRawTags() {

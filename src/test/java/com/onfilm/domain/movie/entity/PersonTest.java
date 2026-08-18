@@ -84,7 +84,7 @@ class PersonTest {
         Person anotherPerson = createPerson();
         PersonSns sns = PersonSns.create(
                 SnsType.INSTAGRAM,
-                "  https://instagram.com/onfilm  "
+                "  INSTAGRAM.COM/onfilm/  "
         );
 
         person.addSns(sns);
@@ -94,15 +94,39 @@ class PersonTest {
         assertThat(person.getSnsList()).containsExactly(sns);
 
         assertThatThrownBy(() -> person.addSns(PersonSns.create(
-                SnsType.INSTAGRAM,
-                "https://instagram.com/onfilm"
+                SnsType.ETC,
+                "https://INSTAGRAM.COM:443/onfilm/"
         )))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("duplicate person sns");
 
+        PersonSns anotherInstagram = PersonSns.create(
+                SnsType.INSTAGRAM,
+                "https://instagram.com/onfilm-official"
+        );
+        person.addSns(anotherInstagram);
+        assertThat(person.getSnsList()).containsExactly(sns, anotherInstagram);
+
         assertThatThrownBy(() -> anotherPerson.addSns(sns))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("personSns already belongs to another person");
+    }
+
+    @Test
+    void sns_rejectsUnsupportedSchemeOrMissingHost() {
+        assertThatThrownBy(() -> PersonSns.create(
+                SnsType.ETC,
+                "ftp://example.com/profile"
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("sns url must use http or https");
+
+        assertThatThrownBy(() -> PersonSns.create(
+                SnsType.ETC,
+                "https:///profile"
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("sns url host is required");
     }
 
     @Test

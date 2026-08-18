@@ -27,6 +27,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -78,7 +79,7 @@ class PersonControllerTest {
                 "https://cdn.example.com/profiles/leonardo.jpg",
                 List.of(
                         new CreatePersonSnsRequest(SnsType.INSTAGRAM, "https://www.instagram.com/leonardodicaprio/"),
-                        new CreatePersonSnsRequest(SnsType.TWITTER, "https://x.com/leodicaprio")
+                        new CreatePersonSnsRequest(SnsType.TIKTOK, "https://tiktok.com/@leodicaprio")
                 ),
                 List.of("배우", "헐리우드", "환경운동")
         );
@@ -119,6 +120,31 @@ class PersonControllerTest {
                 )
                 .andExpect(status().isCreated())
                 .andExpect(content().string("2"));
+    }
+
+    @Test
+    @DisplayName("POST /persons - SNS 타입과 URL이 유효하지 않으면 422를 반환한다")
+    void createPerson_rejectsInvalidSnsRequest() throws Exception {
+        CreatePersonRequest request = new CreatePersonRequest(
+                "테스트 인물",
+                LocalDate.of(2000, 1, 1),
+                "서울",
+                "한 줄 소개",
+                null,
+                List.of(new CreatePersonSnsRequest(null, " ")),
+                List.of()
+        );
+
+        mockMvc.perform(
+                        post("/api/people")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                )
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors.length()").value(2));
+
+        verifyNoInteractions(personService);
     }
 
     @Test

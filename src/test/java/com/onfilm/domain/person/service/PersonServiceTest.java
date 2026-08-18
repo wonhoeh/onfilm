@@ -56,8 +56,8 @@ public class PersonServiceTest {
         );
 
         PersonSns sns2 = PersonSns.create(
-                SnsType.TWITTER,
-                "https://x.com/leo"
+                SnsType.TIKTOK,
+                "https://tiktok.com/@leo"
         );
 
         Person person = Person.create(
@@ -88,11 +88,14 @@ public class PersonServiceTest {
         assertThat(res.getSnsList()).hasSize(2);
         assertThat(res.getSnsList())
                 .extracting("type")
-                .containsExactlyInAnyOrder(SnsType.INSTAGRAM, SnsType.TWITTER);
+                .containsExactlyInAnyOrder(SnsType.INSTAGRAM, SnsType.TIKTOK);
 
         assertThat(res.getSnsList())
                 .extracting("url")
-                .containsExactlyInAnyOrder("https://instagram.com/leo", "https://x.com/leo");
+                .containsExactlyInAnyOrder(
+                        "https://instagram.com/leo",
+                        "https://tiktok.com/@leo"
+                );
 
         assertThat(res.getRawTags()).hasSize(2);
         assertThat(res.getRawTags())

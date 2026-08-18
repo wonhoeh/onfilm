@@ -62,14 +62,14 @@ public class PersonController {
     }
 
     @PostMapping()
-    public ResponseEntity<Long> createPerson(@RequestBody CreatePersonRequest request) {
+    public ResponseEntity<Long> createPerson(@Valid @RequestBody CreatePersonRequest request) {
         Long personId = personService.createPerson(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(personId);
     }
 
     @PutMapping("/{publicId}")
     public ResponseEntity<String> updatePerson(@PathVariable String publicId,
-                                             @RequestBody UpdatePersonRequest request) {
+                                             @Valid @RequestBody UpdatePersonRequest request) {
         personService.updatePerson(publicId, request);
         return ResponseEntity.ok(publicId);
     }

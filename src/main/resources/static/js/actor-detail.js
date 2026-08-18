@@ -198,8 +198,7 @@
                 const brand =
                     type === "INSTAGRAM" ? "instagram" :
                         type === "YOUTUBE"   ? "youtube"   :
-                            type === "NAVER"     ? "naver"     :
-                                (type === "TWITTER" || type === "X") ? "x" : "x";
+                            type === "TIKTOK"    ? "tiktok"    : "etc";
 
                 if (idx > 0) {
                     const sep = document.createElement("span");

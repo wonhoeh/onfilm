@@ -175,10 +175,9 @@ public class Person {
     public void addSns(PersonSns sns) {
         PersonSns requiredSns = require(sns, "sns");
 
-        // JPA 엔티티는 저장 전 id가 없을 수 있어 비즈니스 키(type+url)로 중복 체크
+        // 플랫폼이 달라도 동일한 canonical URL은 한 번만 등록한다.
         boolean duplicated = snsList.stream().anyMatch(s ->
-                s.getType() == requiredSns.getType() &&
-                        s.getUrl().equals(requiredSns.getUrl())
+                s.getUrl().equals(requiredSns.getUrl())
         );
         if (duplicated) {
             throw new IllegalArgumentException("duplicate person sns");
@@ -199,8 +198,28 @@ public class Person {
     public void replaceSns(List<PersonSns> newList) {
         List<PersonSns> replacements = (newList == null) ? List.of() : newList;
         validateSnsReplacements(replacements);
-        clearSns();
-        replacements.forEach(this::addSns);
+
+        Map<String, PersonSns> existingByUrl = new LinkedHashMap<>();
+        for (PersonSns existing : snsList) {
+            existingByUrl.put(existing.getUrl(), existing);
+        }
+
+        List<PersonSns> resolved = new ArrayList<>();
+        for (PersonSns replacement : replacements) {
+            PersonSns existing = existingByUrl.remove(replacement.getUrl());
+            if (existing != null) {
+                existing.changeType(replacement.getType());
+                resolved.add(existing);
+                continue;
+            }
+
+            replacement.attachPerson(this);
+            resolved.add(replacement);
+        }
+
+        existingByUrl.values().forEach(existing -> existing.detachPerson(this));
+        snsList.clear();
+        snsList.addAll(resolved);
     }
 
     // ======================================================================
@@ -456,7 +475,7 @@ public class Person {
     }
 
     private void validateSnsReplacements(List<PersonSns> replacements) {
-        Set<String> businessKeys = new HashSet<>();
+        Set<String> urls = new HashSet<>();
         for (PersonSns sns : replacements) {
             PersonSns requiredSns = require(sns, "sns");
             if (requiredSns.getPerson() != null && requiredSns.getPerson() != this) {
@@ -465,8 +484,7 @@ public class Person {
                 );
             }
 
-            String businessKey = requiredSns.getType() + "\u0000" + requiredSns.getUrl();
-            if (!businessKeys.add(businessKey)) {
+            if (!urls.add(requiredSns.getUrl())) {
                 throw new IllegalArgumentException("duplicate person sns");
             }
         }

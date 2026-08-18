@@ -7,6 +7,7 @@ import com.onfilm.domain.common.error.exception.PersonNotFoundException;
 import com.onfilm.domain.common.error.exception.StoryboardProjectNotFoundException;
 import com.onfilm.domain.common.error.exception.StoryboardSceneNotFoundException;
 import com.onfilm.domain.common.error.exception.UserNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -83,6 +84,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException e) {
         return ResponseEntity.status(BAD_REQUEST)
                 .body(ErrorResponse.of("BAD_REQUEST", e.getMessage()));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(
+            DataIntegrityViolationException e
+    ) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErrorResponse.of(
+                        "DATA_INTEGRITY_VIOLATION",
+                        "이미 등록된 값이거나 데이터 제약조건을 위반했습니다."
+                ));
     }
 
     @ExceptionHandler(IllegalStateException.class)

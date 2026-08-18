@@ -4,6 +4,7 @@ import com.onfilm.domain.common.error.exception.PersonNotFoundException;
 import com.onfilm.domain.common.error.exception.UserNotFoundException;
 import com.onfilm.domain.common.util.SecurityUtil;
 import com.onfilm.domain.movie.dto.CreatePersonRequest;
+import com.onfilm.domain.movie.dto.CreatePersonSnsRequest;
 import com.onfilm.domain.movie.dto.UpdatePersonRequest;
 import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.movie.entity.PersonSns;
@@ -34,13 +35,7 @@ public class PersonService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
-        // rawSns -> PersonSns 변환
-        List<PersonSns> snsList = Optional.ofNullable(request.getSnsList())
-                .orElseGet(List::of)
-                .stream()
-                .filter(Objects::nonNull)
-                .map(s -> PersonSns.create(s.getType(), s.getUrl()))
-                .toList();
+        List<PersonSns> snsList = toSnsEntities(request.getSnsList());
 
         Person person = Person.create(
                 request.getName(),
@@ -88,18 +83,24 @@ public class PersonService {
                 imageValue
         );
 
-        // ✅ SNS 전체 교체 (null-safe)
-        List<PersonSns> snsEntities = Optional.ofNullable(request.getSnsList())
-                .orElseGet(List::of)
-                .stream()
-                .filter(Objects::nonNull)
-                .map(r -> PersonSns.create(r.getType(), r.getUrl()))
-                .toList();
-        person.replaceSns(snsEntities);
+        person.replaceSns(toSnsEntities(request.getSnsList()));
 
         // ✅ TAG 전체 교체 (null-safe로 넘기는 게 안전)
         person.replaceProfileTags(
                 Optional.ofNullable(request.getRawTags()).orElseGet(List::of)
         );
+    }
+
+    private List<PersonSns> toSnsEntities(List<CreatePersonSnsRequest> requests) {
+        return Optional.ofNullable(requests)
+                .orElseGet(List::of)
+                .stream()
+                .map(request -> {
+                    if (request == null) {
+                        throw new IllegalArgumentException("sns request is required");
+                    }
+                    return PersonSns.create(request.getType(), request.getUrl());
+                })
+                .toList();
     }
 }

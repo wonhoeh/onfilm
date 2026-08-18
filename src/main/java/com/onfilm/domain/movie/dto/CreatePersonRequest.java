@@ -1,13 +1,12 @@
 package com.onfilm.domain.movie.dto;
 
-import com.onfilm.domain.movie.entity.Person;
-import com.onfilm.domain.movie.entity.PersonSns;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -19,6 +18,7 @@ public class CreatePersonRequest {
     private String birthPlace;
     private String oneLineIntro;
     private String profileImageUrl;
-    private List<CreatePersonSnsRequest> snsList;
+    @Valid
+    private List<@NotNull CreatePersonSnsRequest> snsList;
     private List<String> rawTags;
 }

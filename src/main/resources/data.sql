@@ -33,8 +33,8 @@ VALUES (1, '테스트 배우', '1995-03-15', '서울', '독립영화를 사랑�
 -- 3. User는 DevDataInitializer.java에서 PasswordEncoder로 생성 (BCrypt 해시 불일치 방지)
 
 -- 4. SNS (2개)
-INSERT INTO person_sns (id, type, url, person_id) VALUES (1, 'INSTAGRAM', 'https://instagram.com/testactor', 1);
-INSERT INTO person_sns (id, type, url, person_id) VALUES (2, 'YOUTUBE', 'https://youtube.com/testactor', 1);
+INSERT INTO person_sns (type, url, person_id) VALUES ('INSTAGRAM', 'https://instagram.com/testactor', 1);
+INSERT INTO person_sns (type, url, person_id) VALUES ('YOUTUBE', 'https://youtube.com/testactor', 1);
 
 -- 5. 프로필 태그 (3개)
 INSERT INTO profile_tag (id, person_id, raw_text, normalized) VALUES (1, 1, '연기', '연기');

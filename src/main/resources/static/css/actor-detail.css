@@ -723,13 +723,10 @@
         .sns-pill[data-brand="instagram"] .sns-icon{ --sns-mask: url("https://cdn.jsdelivr.net/npm/simple-icons/icons/instagram.svg"); }
         .sns-pill[data-brand="youtube"] .sns-badge{ background:#FF0000; }
         .sns-pill[data-brand="youtube"] .sns-icon{ --sns-mask: url("https://cdn.jsdelivr.net/npm/simple-icons/icons/youtube.svg"); }
-        .sns-pill[data-brand="naver"] .sns-badge{ background:#03C75A; }
-        .sns-pill[data-brand="naver"] .sns-icon{ --sns-mask: url("https://cdn.jsdelivr.net/npm/simple-icons/icons/naver.svg"); }
-        .sns-pill[data-brand="x"] .sns-badge{ background:#FFFFFF; }
-        .sns-pill[data-brand="x"] .sns-icon{
-            background:#000;
-            --sns-mask: url("https://cdn.jsdelivr.net/npm/simple-icons/icons/x.svg");
-        }
+        .sns-pill[data-brand="tiktok"] .sns-badge{ background:#000000; }
+        .sns-pill[data-brand="tiktok"] .sns-icon{ --sns-mask: url("https://cdn.jsdelivr.net/npm/simple-icons/icons/tiktok.svg"); }
+        .sns-pill[data-brand="etc"] .sns-badge{ background:#64748B; }
+        .sns-pill[data-brand="etc"] .sns-icon{ --sns-mask: url("https://cdn.jsdelivr.net/npm/bootstrap-icons/icons/link-45deg.svg"); }
 
         .profile-tag-section{ margin-top: 14px; }
         .profile-tag-title{
