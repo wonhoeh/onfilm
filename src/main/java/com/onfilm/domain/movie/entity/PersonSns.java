@@ -2,7 +2,6 @@ package com.onfilm.domain.movie.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,27 +9,26 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PersonSns {
+    private static final int URL_MAX_LENGTH = 512;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private SnsType type; // instagrm, youtube, twitter
+    @Column(nullable = false)
+    private SnsType type;
+
+    @Column(nullable = false, length = URL_MAX_LENGTH)
     private String url;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "person_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "person_id", nullable = false)
     private Person person;
 
-    @Builder
-    public PersonSns(SnsType type, String url) {
+    private PersonSns(SnsType type, String url) {
         this.type = type;
         this.url = url;
-    }
-
-    public void setPerson(Person person) {
-        this.person = person;
     }
 
     public static PersonSns create(SnsType type, String url) {
@@ -40,9 +38,32 @@ public class PersonSns {
         if (url == null || url.isBlank()) {
             throw new IllegalArgumentException("sns url is required");
         }
-        return PersonSns.builder()
-                .type(type)
-                .url(url)
-                .build();
+
+        String normalizedUrl = url.trim();
+        if (normalizedUrl.length() > URL_MAX_LENGTH) {
+            throw new IllegalArgumentException(
+                    "sns url is too long (max " + URL_MAX_LENGTH + ")"
+            );
+        }
+
+        return new PersonSns(type, normalizedUrl);
+    }
+
+    void attachPerson(Person person) {
+        if (person == null) {
+            throw new IllegalArgumentException("person is required");
+        }
+        if (this.person != null && this.person != person) {
+            throw new IllegalStateException(
+                    "personSns already belongs to another person"
+            );
+        }
+        this.person = person;
+    }
+
+    void detachPerson(Person person) {
+        if (this.person == person) {
+            this.person = null;
+        }
     }
 }

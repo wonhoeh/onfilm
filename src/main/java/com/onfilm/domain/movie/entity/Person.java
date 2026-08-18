@@ -1,11 +1,8 @@
 package com.onfilm.domain.movie.entity;
 
-import com.onfilm.domain.common.util.TextNormalizer;
-import com.onfilm.domain.common.error.exception.InvalidProfileTagException;
 import com.onfilm.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -16,6 +13,10 @@ import java.util.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Person {
+    private static final int NAME_MAX_LENGTH = 60;
+    private static final int BIRTH_PLACE_MAX_LENGTH = 80;
+    private static final int ONE_LINE_INTRO_MAX_LENGTH = 120;
+    private static final int STORAGE_KEY_MAX_LENGTH = 512;
 
     // ======================================================================
     // ======= 식별자 / 기본 컬럼 =======
@@ -35,8 +36,8 @@ public class Person {
     @Column(length = 120)
     private String oneLineIntro;
 
-    @Column(length = 512)
-    private String profileImageUrl; // profileImageUrl -> key ("profile/" + personId + "/avatar/" + UUID.randomUUID() + ext) 형식으로 변환
+    @Column(name = "profile_image_url", length = 512)
+    private String profileImageKey;
 
     @Column(length = 512)
     private String filmographyFileKey;
@@ -101,15 +102,15 @@ public class Person {
         }
     }
 
-    @Builder(access = AccessLevel.PRIVATE)
     private Person(
             String name,
             LocalDate birthDate,
             String birthPlace,
             String oneLineIntro,
-            String profileImageUrl
+            String profileImageKey
     ) {
-        applyBasicInfo(name, birthDate, birthPlace, oneLineIntro, profileImageUrl);
+        this.publicId = UUID.randomUUID().toString();
+        applyBasicInfo(name, birthDate, birthPlace, oneLineIntro, profileImageKey);
     }
 
     private void applyBasicInfo(
@@ -117,13 +118,31 @@ public class Person {
             LocalDate birthDate,
             String birthPlace,
             String oneLineIntro,
-            String profileImageUrl
+            String profileImageKey
     ) {
-        this.name = name;
-        this.birthDate = birthDate;
-        this.birthPlace = birthPlace;
-        this.oneLineIntro = oneLineIntro;
-        this.profileImageUrl = profileImageUrl;
+        String validatedName = requireText(name, "name", NAME_MAX_LENGTH);
+        LocalDate validatedBirthDate = validateBirthDate(birthDate);
+        String normalizedBirthPlace = normalizeOptionalText(
+                birthPlace,
+                "birthPlace",
+                BIRTH_PLACE_MAX_LENGTH
+        );
+        String normalizedOneLineIntro = normalizeOptionalText(
+                oneLineIntro,
+                "oneLineIntro",
+                ONE_LINE_INTRO_MAX_LENGTH
+        );
+        String normalizedProfileImageKey = normalizeOptionalText(
+                profileImageKey,
+                "profileImageKey",
+                STORAGE_KEY_MAX_LENGTH
+        );
+
+        this.name = validatedName;
+        this.birthDate = validatedBirthDate;
+        this.birthPlace = normalizedBirthPlace;
+        this.oneLineIntro = normalizedOneLineIntro;
+        this.profileImageKey = normalizedProfileImageKey;
     }
 
     public static Person create(
@@ -131,17 +150,17 @@ public class Person {
             LocalDate birthDate,
             String birthPlace,
             String oneLineIntro,
-            String profileImageUrl,
+            String profileImageKey,
             List<PersonSns> snsList,
             List<String> rawTags
     ) {
-        Person person = Person.builder()
-                .name(name)
-                .birthDate(birthDate)
-                .birthPlace(birthPlace)
-                .oneLineIntro(oneLineIntro)
-                .profileImageUrl(profileImageUrl)
-                .build();
+        Person person = new Person(
+                name,
+                birthDate,
+                birthPlace,
+                oneLineIntro,
+                profileImageKey
+        );
 
         if (snsList != null) snsList.forEach(person::addSns);
         if (rawTags != null) rawTags.forEach(person::addProfileTag);
@@ -154,30 +173,34 @@ public class Person {
     // ======================================================================
 
     public void addSns(PersonSns sns) {
-        if (sns == null) return;
+        PersonSns requiredSns = require(sns, "sns");
 
         // JPA 엔티티는 저장 전 id가 없을 수 있어 비즈니스 키(type+url)로 중복 체크
         boolean duplicated = snsList.stream().anyMatch(s ->
-                s.getType() == sns.getType() &&
-                        s.getUrl().equals(sns.getUrl())
+                s.getType() == requiredSns.getType() &&
+                        s.getUrl().equals(requiredSns.getUrl())
         );
-        if (duplicated) return;
+        if (duplicated) {
+            throw new IllegalArgumentException("duplicate person sns");
+        }
 
-        sns.setPerson(this);
-        snsList.add(sns);
+        requiredSns.attachPerson(this);
+        snsList.add(requiredSns);
     }
 
     public void clearSns() {
         // 양방향 끊기 + orphanRemoval 삭제 유도
         for (PersonSns s : new ArrayList<>(snsList)) {
-            s.setPerson(null);
+            s.detachPerson(this);
         }
         snsList.clear();
     }
 
     public void replaceSns(List<PersonSns> newList) {
+        List<PersonSns> replacements = (newList == null) ? List.of() : newList;
+        validateSnsReplacements(replacements);
         clearSns();
-        if (newList != null) newList.forEach(this::addSns);
+        replacements.forEach(this::addSns);
     }
 
     // ======================================================================
@@ -185,29 +208,22 @@ public class Person {
     // ======================================================================
 
     public void addProfileTag(String rawText) {
-        if (rawText == null) return;
-
-        String normalized = ProfileTag.normalize(rawText);
-        if (normalized.isBlank()) return;
+        ProfileTag tag = ProfileTag.create(this, rawText);
 
         boolean duplicated = profileTags.stream()
-                .anyMatch(t -> t.getNormalized().equals(normalized));
+                .anyMatch(t -> t.getNormalized().equals(tag.getNormalized()));
         if (duplicated) return;
 
-        ProfileTag tag = ProfileTag.from(this, rawText); // from에서 연관 관계 설정
         profileTags.add(tag);
     }
 
     public void removeProfileTag(String rawText) {
-        if (rawText == null) return;
-
-        String normalized = ProfileTag.normalize(rawText);
+        String cleaned = ProfileTag.validate(rawText);
+        String normalized = ProfileTag.normalize(cleaned);
         profileTags.removeIf(t -> t.getNormalized().equals(normalized));
     }
 
     public void clearProfileTags() {
-        // ProfileTag.from(this, ...)가 연관관계 설정해주니까 clear만 해도 됨
-        // (ProfileTag가 person을 필수로 들고 있으면, 끊는 메서드가 있으면 더 좋음)
         profileTags.clear();
     }
 
@@ -218,17 +234,8 @@ public class Person {
         // (같은 normalized면 최초 입력(rawText)만 유지)
         Map<String, String> normToRaw = new LinkedHashMap<>();
         for (String raw : input) {
-            String cleaned = ProfileTag.validate(raw);              // blank 방지 + 길이 체크
-            String normalized = TextNormalizer.textNormalizer(cleaned);
-
-            // normalized가 비어있으면 스킵 (validate에서 거의 걸러지겠지만 안전장치)
-            if (normalized.isBlank()) continue;
-
-            // ⚠️ 컬럼이 length=30인데 validate는 40으로 되어있어서 불일치.
-            // 아래에서 안전하게 막거나, validate max를 30으로 맞추는 걸 추천.
-            if (normalized.length() > 30) {
-                throw new InvalidProfileTagException("tag is too long (max 30)");
-            }
+            String cleaned = ProfileTag.validate(raw);
+            String normalized = ProfileTag.normalize(cleaned);
 
             normToRaw.putIfAbsent(normalized, cleaned);
         }
@@ -249,9 +256,8 @@ public class Person {
 
             ProfileTag tag = existing.get(normalized);
             if (tag == null) {
-                this.profileTags.add(ProfileTag.from(this, cleanedRaw));
+                this.profileTags.add(ProfileTag.create(this, cleanedRaw));
             } else {
-                // 표시용(rawText) 업데이트가 필요하면 아래 메서드 추가해서 호출
                 tag.changeRawTextKeepingNormalized(cleanedRaw);
             }
         }
@@ -266,9 +272,9 @@ public class Person {
             LocalDate birthDate,
             String birthPlace,
             String oneLineIntro,
-            String profileImageUrl
+            String profileImageKey
     ) {
-        applyBasicInfo(name, birthDate, birthPlace, oneLineIntro, profileImageUrl);
+        applyBasicInfo(name, birthDate, birthPlace, oneLineIntro, profileImageKey);
     }
 
     // ======================================================================
@@ -276,14 +282,52 @@ public class Person {
     // ======================================================================
 
     public void attachUser(User user) {
-        this.user = user;
-        if (user != null && user.getPerson() != this) {
-            user.attachPerson(this);
+        User requiredUser = require(user, "user");
+        if (this.user != null && this.user != requiredUser) {
+            throw new IllegalStateException("person already belongs to another user");
+        }
+        if (requiredUser.getPerson() != null && requiredUser.getPerson() != this) {
+            throw new IllegalStateException("user already has another person");
+        }
+
+        this.user = requiredUser;
+        if (requiredUser.getPerson() != this) {
+            requiredUser.attachPerson(this);
         }
     }
 
     public void detachUser() {
+        if (this.user == null) {
+            return;
+        }
+
+        User oldUser = this.user;
         this.user = null;
+        if (oldUser.getPerson() == this) {
+            oldUser.detachPerson();
+        }
+    }
+
+    // ======================================================================
+    // ======= 연관관계 편의 메서드: Storyboard =======
+    // ======================================================================
+
+    public void addStoryboardProject(StoryboardProject project) {
+        StoryboardProject requiredProject = require(project, "storyboardProject");
+        if (storyboardProjects.contains(requiredProject)) {
+            throw new IllegalArgumentException("duplicate storyboard project");
+        }
+
+        requiredProject.attachPerson(this);
+        storyboardProjects.add(requiredProject);
+    }
+
+    public void removeStoryboardProject(StoryboardProject project) {
+        StoryboardProject requiredProject = require(project, "storyboardProject");
+        if (!storyboardProjects.remove(requiredProject)) {
+            throw new IllegalArgumentException("storyboard project not found");
+        }
+        requiredProject.detachPerson(this);
     }
 
     // ======================================================================
@@ -291,57 +335,89 @@ public class Person {
     // ======================================================================
 
     public void addGalleryImageKey(String key) {
-        if (key == null || key.isBlank()) return;
-        galleryItems.add(new GalleryItem(key, false));
+        String normalizedKey = requireText(key, "galleryImageKey", STORAGE_KEY_MAX_LENGTH);
+        boolean duplicated = galleryItems.stream()
+                .anyMatch(item -> item.getKey().equals(normalizedKey));
+        if (duplicated) {
+            throw new IllegalArgumentException("duplicate gallery image key");
+        }
+
+        galleryItems.add(GalleryItem.create(normalizedKey));
     }
 
     public void removeGalleryImageKey(String key) {
-        if (key == null) return;
-        galleryItems.removeIf(item -> item.getKey().equals(key));
+        String normalizedKey = requireText(key, "galleryImageKey", STORAGE_KEY_MAX_LENGTH);
+        boolean removed = galleryItems.removeIf(item -> item.getKey().equals(normalizedKey));
+        if (!removed) {
+            throw new IllegalArgumentException("gallery image not found");
+        }
     }
 
     public void reorderGallery(List<String> orderedKeys) {
-        if (orderedKeys == null) return;
-        // 요청 받은 순서대로 교체(유효성은 서비스에서 체크 추천)
+        List<String> requiredKeys = require(orderedKeys, "orderedKeys").stream()
+                .map(key -> requireText(key, "galleryImageKey", STORAGE_KEY_MAX_LENGTH))
+                .toList();
+
+        Set<String> uniqueKeys = new LinkedHashSet<>(requiredKeys);
+        Set<String> existingKeys = galleryItems.stream()
+                .map(GalleryItem::getKey)
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+        if (uniqueKeys.size() != requiredKeys.size() || !uniqueKeys.equals(existingKeys)) {
+            throw new IllegalArgumentException(
+                    "orderedKeys must contain every gallery image exactly once"
+            );
+        }
+
         Map<String, GalleryItem> byKey = new LinkedHashMap<>();
         for (GalleryItem item : galleryItems) {
-            byKey.putIfAbsent(item.getKey(), item);
+            byKey.put(item.getKey(), item);
         }
 
         List<GalleryItem> reordered = new ArrayList<>();
-        for (String key : orderedKeys) {
-            GalleryItem item = byKey.remove(key);
-            if (item != null) reordered.add(item);
+        for (String key : requiredKeys) {
+            reordered.add(byKey.get(key));
         }
-        reordered.addAll(byKey.values());
 
         this.galleryItems.clear();
         this.galleryItems.addAll(reordered);
     }
 
     public void changeGalleryItemPrivacy(String key, boolean isPrivate) {
-        if (key == null) return;
+        String normalizedKey = requireText(key, "galleryImageKey", STORAGE_KEY_MAX_LENGTH);
         for (GalleryItem item : galleryItems) {
-            if (item.getKey().equals(key)) {
-                item.setPrivate(isPrivate);
+            if (item.getKey().equals(normalizedKey)) {
+                item.changePrivacy(isPrivate);
                 return;
             }
         }
+        throw new IllegalArgumentException("gallery image not found");
     }
 
     // ======================================================================
-    // ======= 편의 메서드: ImageUrl =======
+    // ======= 파일 및 공개 범위 변경 메서드 =======
     // ======================================================================
-    public void changeProfileImageUrl(String key) { this.profileImageUrl = key; }
+    public void changeProfileImageKey(String key) {
+        this.profileImageKey = normalizeOptionalText(
+                key,
+                "profileImageKey",
+                STORAGE_KEY_MAX_LENGTH
+        );
+    }
 
-    public void changeFilmographyFileKey(String key) { this.filmographyFileKey = key; }
+    public void changeFilmographyFileKey(String key) {
+        this.filmographyFileKey = normalizeOptionalText(
+                key,
+                "filmographyFileKey",
+                STORAGE_KEY_MAX_LENGTH
+        );
+    }
 
     public void changeFilmographyPrivate(boolean value) { this.filmographyPrivate = value; }
     public void changeGalleryPrivate(boolean value) { this.galleryPrivate = value; }
 
     @Embeddable
     public static class GalleryItem {
-        @Column(name = "image_key", length = 512)
+        @Column(name = "image_key", nullable = false, length = 512)
         private String key;
 
         @Column(name = "is_private", nullable = false)
@@ -349,13 +425,107 @@ public class Person {
 
         protected GalleryItem() {}
 
-        public GalleryItem(String key, boolean isPrivate) {
+        private GalleryItem(String key, boolean isPrivate) {
             this.key = key;
             this.isPrivate = isPrivate;
         }
 
+        private static GalleryItem create(String key) {
+            return new GalleryItem(key, false);
+        }
+
         public String getKey() { return key; }
         public boolean isPrivate() { return isPrivate; }
-        public void setPrivate(boolean isPrivate) { this.isPrivate = isPrivate; }
+        private void changePrivacy(boolean isPrivate) { this.isPrivate = isPrivate; }
+    }
+
+    public List<PersonSns> getSnsList() {
+        return Collections.unmodifiableList(snsList);
+    }
+
+    public List<ProfileTag> getProfileTags() {
+        return Collections.unmodifiableList(profileTags);
+    }
+
+    public List<GalleryItem> getGalleryItems() {
+        return Collections.unmodifiableList(galleryItems);
+    }
+
+    public List<StoryboardProject> getStoryboardProjects() {
+        return Collections.unmodifiableList(storyboardProjects);
+    }
+
+    private void validateSnsReplacements(List<PersonSns> replacements) {
+        Set<String> businessKeys = new HashSet<>();
+        for (PersonSns sns : replacements) {
+            PersonSns requiredSns = require(sns, "sns");
+            if (requiredSns.getPerson() != null && requiredSns.getPerson() != this) {
+                throw new IllegalStateException(
+                        "personSns already belongs to another person"
+                );
+            }
+
+            String businessKey = requiredSns.getType() + "\u0000" + requiredSns.getUrl();
+            if (!businessKeys.add(businessKey)) {
+                throw new IllegalArgumentException("duplicate person sns");
+            }
+        }
+    }
+
+    private static <T> T require(T value, String fieldName) {
+        if (value == null) {
+            throw new IllegalArgumentException(fieldName + " is required");
+        }
+        return value;
+    }
+
+    private static String requireText(
+            String value,
+            String fieldName,
+            int maxLength
+    ) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(fieldName + " is required");
+        }
+
+        String trimmed = value.trim();
+        validateLength(trimmed, fieldName, maxLength);
+        return trimmed;
+    }
+
+    private static String normalizeOptionalText(
+            String value,
+            String fieldName,
+            int maxLength
+    ) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        validateLength(trimmed, fieldName, maxLength);
+        return trimmed;
+    }
+
+    private static void validateLength(
+            String value,
+            String fieldName,
+            int maxLength
+    ) {
+        if (value.length() > maxLength) {
+            throw new IllegalArgumentException(
+                    fieldName + " is too long (max " + maxLength + ")"
+            );
+        }
+    }
+
+    private static LocalDate validateBirthDate(LocalDate birthDate) {
+        if (birthDate != null && birthDate.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("birthDate must not be in the future");
+        }
+        return birthDate;
     }
 }

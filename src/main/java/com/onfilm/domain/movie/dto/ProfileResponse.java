@@ -33,7 +33,7 @@ public class ProfileResponse {
                 .birthDate(person.getBirthDate())
                 .birthPlace(person.getBirthPlace())
                 .oneLineIntro(person.getOneLineIntro())
-                .profileImageKey(person.getProfileImageUrl())
+                .profileImageKey(person.getProfileImageKey())
                 .profileImageUrl(publicUrl)
                 .filmographyPrivate(person.isFilmographyPrivate())
                 .galleryPrivate(person.isGalleryPrivate())

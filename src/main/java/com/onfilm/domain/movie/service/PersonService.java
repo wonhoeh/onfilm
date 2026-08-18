@@ -7,7 +7,6 @@ import com.onfilm.domain.movie.dto.CreatePersonRequest;
 import com.onfilm.domain.movie.dto.UpdatePersonRequest;
 import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.movie.entity.PersonSns;
-import com.onfilm.domain.movie.repository.MoviePersonRepository;
 import com.onfilm.domain.movie.repository.PersonRepository;
 import com.onfilm.domain.user.entity.User;
 import com.onfilm.domain.user.repository.UserRepository;
@@ -25,7 +24,6 @@ import java.util.Optional;
 @Slf4j
 public class PersonService {
 
-    private final MoviePersonRepository moviePersonRepository;
     private final PersonRepository personRepository;
     private final UserRepository userRepository;
 
@@ -95,10 +93,7 @@ public class PersonService {
                 .orElseGet(List::of)
                 .stream()
                 .filter(Objects::nonNull)
-                .map(r -> PersonSns.builder()
-                        .type(r.getType())
-                        .url(r.getUrl())
-                        .build())
+                .map(r -> PersonSns.create(r.getType(), r.getUrl()))
                 .toList();
         person.replaceSns(snsEntities);
 

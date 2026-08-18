@@ -39,7 +39,7 @@ public class PersonReadService {
         Person person = personRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new PersonNotFoundException(publicId));
 
-        String key = person.getProfileImageUrl();
+        String key = person.getProfileImageKey();
         String publicUrl = (key == null || key.isBlank()) ? null : storageService.toPublicUrl(key);
 
         return ProfileResponse.from(person, publicUrl);
@@ -140,7 +140,7 @@ public class PersonReadService {
         Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
-        person.changeProfileImageUrl(key);
+        person.changeProfileImageKey(key);
     }
 
     @Transactional
@@ -192,9 +192,8 @@ public class PersonReadService {
         String title = (request == null || request.title() == null || request.title().isBlank())
                 ? "새 스토리보드"
                 : request.title().trim();
-        StoryboardProject project = new StoryboardProject(title);
-        project.attachPerson(person);
-        person.getStoryboardProjects().add(project);
+        StoryboardProject project = StoryboardProject.create(title);
+        person.addStoryboardProject(project);
         return project;
     }
 
@@ -222,7 +221,7 @@ public class PersonReadService {
                 if (key != null && !key.isBlank()) storageService.delete(key);
             }
         }
-        person.getStoryboardProjects().remove(project);
+        person.removeStoryboardProject(project);
     }
 
     @Transactional
@@ -353,7 +352,7 @@ public class PersonReadService {
         Long personId = findCurrentPersonId();
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
-        person.changeProfileImageUrl(null);
+        person.changeProfileImageKey(null);
     }
 
     @Transactional

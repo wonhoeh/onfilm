@@ -19,7 +19,7 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
     """)
     Optional<Person> findByPublicIdWithStoryboards(@Param("publicId") String publicId);
 
-    @Query("select p.profileImageUrl from Person p where p.id = :personId")
+    @Query("select p.profileImageKey from Person p where p.id = :personId")
     Optional<String> findProfileImageKeyById(@Param("personId") Long personId);
 
     @Query("select p.filmographyFileKey from Person p where p.id = :personId")

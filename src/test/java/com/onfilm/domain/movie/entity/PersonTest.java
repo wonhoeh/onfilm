@@ -1,0 +1,197 @@
+package com.onfilm.domain.movie.entity;
+
+import com.onfilm.domain.common.error.exception.InvalidProfileTagException;
+import com.onfilm.domain.user.entity.User;
+import org.junit.jupiter.api.Test;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+class PersonTest {
+
+    @Test
+    void create_normalizesBasicInfoAndCreatesPublicIdImmediately() {
+        Person person = Person.create(
+                "  테스트 배우  ",
+                LocalDate.of(1990, 1, 1),
+                "  서울  ",
+                "  한 줄 소개  ",
+                "  profile/1/avatar.jpg  ",
+                List.of(),
+                List.of()
+        );
+
+        assertThat(person.getName()).isEqualTo("테스트 배우");
+        assertThat(person.getBirthPlace()).isEqualTo("서울");
+        assertThat(person.getOneLineIntro()).isEqualTo("한 줄 소개");
+        assertThat(person.getProfileImageKey()).isEqualTo("profile/1/avatar.jpg");
+        assertThat(person.getPublicId()).isNotBlank();
+    }
+
+    @Test
+    void create_rejectsInvalidBasicInfo() {
+        assertThatThrownBy(() -> createPerson("   ", null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("name is required");
+
+        assertThatThrownBy(() -> createPerson(
+                "테스트 배우",
+                LocalDate.now().plusDays(1)
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("birthDate must not be in the future");
+    }
+
+    @Test
+    void changeBasicInfo_validatesAllValuesBeforeChangingState() {
+        Person person = createPerson();
+
+        assertThatThrownBy(() -> person.changeBasicInfo(
+                "변경된 이름",
+                null,
+                null,
+                "a".repeat(121),
+                null
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("oneLineIntro is too long (max 120)");
+
+        assertThat(person.getName()).isEqualTo("테스트 배우");
+    }
+
+    @Test
+    void profileTag_usesSingleNormalizationPolicyAndRejectsLongText() {
+        Person person = createPerson();
+
+        person.addProfileTag("  #Action  ");
+        person.addProfileTag("action");
+
+        assertThat(person.getProfileTags()).hasSize(1);
+        assertThat(person.getProfileTags().get(0).getRawText()).isEqualTo("Action");
+        assertThat(person.getProfileTags().get(0).getNormalized()).isEqualTo("action");
+
+        assertThatThrownBy(() -> person.addProfileTag("a".repeat(31)))
+                .isInstanceOf(InvalidProfileTagException.class)
+                .hasMessage("tag is too long (max 30)");
+    }
+
+    @Test
+    void sns_attachesBothSidesAndRejectsDuplicateOrReassignment() {
+        Person person = createPerson();
+        Person anotherPerson = createPerson();
+        PersonSns sns = PersonSns.create(
+                SnsType.INSTAGRAM,
+                "  https://instagram.com/onfilm  "
+        );
+
+        person.addSns(sns);
+
+        assertThat(sns.getPerson()).isSameAs(person);
+        assertThat(sns.getUrl()).isEqualTo("https://instagram.com/onfilm");
+        assertThat(person.getSnsList()).containsExactly(sns);
+
+        assertThatThrownBy(() -> person.addSns(PersonSns.create(
+                SnsType.INSTAGRAM,
+                "https://instagram.com/onfilm"
+        )))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("duplicate person sns");
+
+        assertThatThrownBy(() -> anotherPerson.addSns(sns))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("personSns already belongs to another person");
+    }
+
+    @Test
+    void collections_areExposedAsReadOnlyViews() {
+        Person person = createPerson();
+
+        assertThatThrownBy(() -> person.getSnsList().add(
+                PersonSns.create(SnsType.YOUTUBE, "https://youtube.com/onfilm")
+        )).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> person.getProfileTags().clear())
+                .isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> person.getGalleryItems().clear())
+                .isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> person.getStoryboardProjects().clear())
+                .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void storyboardProject_attachesAndDetachesThroughPerson() {
+        Person person = createPerson();
+        StoryboardProject project = StoryboardProject.create("  새 프로젝트  ");
+
+        person.addStoryboardProject(project);
+
+        assertThat(project.getTitle()).isEqualTo("새 프로젝트");
+        assertThat(project.getPerson()).isSameAs(person);
+        assertThat(person.getStoryboardProjects()).containsExactly(project);
+
+        person.removeStoryboardProject(project);
+
+        assertThat(project.getPerson()).isNull();
+        assertThat(person.getStoryboardProjects()).isEmpty();
+    }
+
+    @Test
+    void gallery_enforcesUniqueKeysAndExactReordering() {
+        Person person = createPerson();
+        person.addGalleryImageKey("  gallery/first.jpg  ");
+        person.addGalleryImageKey("gallery/second.jpg");
+
+        assertThatThrownBy(() -> person.addGalleryImageKey("gallery/first.jpg"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("duplicate gallery image key");
+        assertThatThrownBy(() -> person.reorderGallery(List.of("gallery/first.jpg")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("orderedKeys must contain every gallery image exactly once");
+
+        person.reorderGallery(List.of("gallery/second.jpg", "gallery/first.jpg"));
+        person.changeGalleryItemPrivacy("gallery/second.jpg", true);
+
+        assertThat(person.getGalleryItems())
+                .extracting(Person.GalleryItem::getKey)
+                .containsExactly("gallery/second.jpg", "gallery/first.jpg");
+        assertThat(person.getGalleryItems().get(0).isPrivate()).isTrue();
+    }
+
+    @Test
+    void userAssociation_rejectsReassignmentAndDetachesBothSides() {
+        Person person = createPerson();
+        User user = User.create("first@test.com", "password", "first-user");
+        User anotherUser = User.create("second@test.com", "password", "second-user");
+
+        user.attachPerson(person);
+
+        assertThat(user.getPerson()).isSameAs(person);
+        assertThat(person.getUser()).isSameAs(user);
+        assertThatThrownBy(() -> anotherUser.attachPerson(person))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("person already belongs to another user");
+
+        user.detachPerson();
+
+        assertThat(user.getPerson()).isNull();
+        assertThat(person.getUser()).isNull();
+    }
+
+    private static Person createPerson() {
+        return createPerson("테스트 배우", null);
+    }
+
+    private static Person createPerson(String name, LocalDate birthDate) {
+        return Person.create(
+                name,
+                birthDate,
+                null,
+                null,
+                null,
+                List.of(),
+                List.of()
+        );
+    }
+}

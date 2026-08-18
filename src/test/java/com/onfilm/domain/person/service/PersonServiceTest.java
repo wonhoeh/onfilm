@@ -50,15 +50,15 @@ public class PersonServiceTest {
     @DisplayName("getPerson(name): 존재하면 PersonResponse로 매핑해서 반환한다 (snsList, rawTags 포함)")
     void getPerson_success() {
         // given
-        PersonSns sns1 = PersonSns.builder()
-                .type(SnsType.INSTAGRAM)
-                .url("https://instagram.com/leo")
-                .build();
+        PersonSns sns1 = PersonSns.create(
+                SnsType.INSTAGRAM,
+                "https://instagram.com/leo"
+        );
 
-        PersonSns sns2 = PersonSns.builder()
-                .type(SnsType.TWITTER)
-                .url("https://x.com/leo")
-                .build();
+        PersonSns sns2 = PersonSns.create(
+                SnsType.TWITTER,
+                "https://x.com/leo"
+        );
 
         Person person = Person.create(
                 "디카프리오",
@@ -71,7 +71,8 @@ public class PersonServiceTest {
         );
 
         when(personRepository.findByPublicId(person.getPublicId())).thenReturn(Optional.of(person));
-        when(storageService.toPublicUrl(person.getProfileImageUrl())).thenReturn(person.getProfileImageUrl());
+        when(storageService.toPublicUrl(person.getProfileImageKey()))
+                .thenReturn(person.getProfileImageKey());
 
         // when
         ProfileResponse res = personReadService.findProfileByPublicId(person.getPublicId());
@@ -99,6 +100,6 @@ public class PersonServiceTest {
                 .containsExactlyInAnyOrder("인셉션", "셔터아일랜드");
 
         verify(personRepository, times(1)).findByPublicId(person.getPublicId());
-        verify(storageService, times(1)).toPublicUrl(person.getProfileImageUrl());
+        verify(storageService, times(1)).toPublicUrl(person.getProfileImageKey());
     }
 }

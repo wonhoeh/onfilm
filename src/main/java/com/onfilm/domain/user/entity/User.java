@@ -43,8 +43,18 @@ public class User {
     }
 
     public void attachPerson(Person person) {
+        if (person == null) {
+            throw new IllegalArgumentException("person is required");
+        }
+        if (this.person != null && this.person != person) {
+            throw new IllegalStateException("user already has another person");
+        }
+        if (person.getUser() != null && person.getUser() != this) {
+            throw new IllegalStateException("person already belongs to another user");
+        }
+
         this.person = person;
-        if (person != null && person.getUser() != this) {
+        if (person.getUser() != this) {
             person.attachUser(this);
         }
     }
