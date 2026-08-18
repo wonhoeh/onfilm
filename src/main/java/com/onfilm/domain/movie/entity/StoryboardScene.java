@@ -36,8 +36,22 @@ public class StoryboardScene {
         this.scriptHtml = scriptHtml;
     }
 
-    public void attachProject(StoryboardProject project) {
+    void attachProject(StoryboardProject project) {
+        if (project == null) {
+            throw new IllegalArgumentException("project is required");
+        }
+        if (this.project != null && this.project != project) {
+            throw new IllegalStateException(
+                    "storyboardScene already belongs to another project"
+            );
+        }
         this.project = project;
+    }
+
+    void detachProject(StoryboardProject project) {
+        if (this.project == project) {
+            this.project = null;
+        }
     }
 
     public void changeTitle(String title) {

@@ -29,6 +29,8 @@ import com.onfilm.domain.movie.service.MovieReadService;
 import com.onfilm.domain.movie.service.MovieService;
 import com.onfilm.domain.movie.service.PersonReadService;
 import com.onfilm.domain.movie.service.PersonService;
+import com.onfilm.domain.movie.service.StoryboardCommandService;
+import com.onfilm.domain.movie.service.StoryboardQueryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -49,6 +51,8 @@ public class PersonController {
     private final PersonReadService personReadService;
     private final MovieReadService movieReadService;
     private final MovieService movieService;
+    private final StoryboardQueryService storyboardQueryService;
+    private final StoryboardCommandService storyboardCommandService;
     private final StorageService storageService;
     private final StorageKeyFactory storageKeyFactory;
 
@@ -200,15 +204,15 @@ public class PersonController {
         if (!isOwner(personId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        return ResponseEntity.ok(personReadService.findStoryboardProjectsByPublicId(publicId));
+        return ResponseEntity.ok(storyboardQueryService.findProjectsByPublicId(publicId));
     }
 
     @PostMapping("/{publicId}/storyboard/projects")
     public ResponseEntity<StoryboardProjectResponse> createStoryboardProject(
             @PathVariable String publicId,
-            @RequestBody StoryboardProjectRequest request
+            @Valid @RequestBody StoryboardProjectRequest request
     ) {
-        StoryboardProject project = personReadService.createStoryboardProject(request);
+        StoryboardProject project = storyboardCommandService.createProject(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(toProjectResponse(project));
     }
 
@@ -221,7 +225,7 @@ public class PersonController {
         if (!isOwner(personId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        StoryboardProject project = personReadService.findStoryboardProjectByPublicId(publicId, projectId);
+        StoryboardProject project = storyboardQueryService.findProjectByPublicId(publicId, projectId);
         return ResponseEntity.ok(toProjectResponse(project));
     }
 
@@ -229,9 +233,9 @@ public class PersonController {
     public ResponseEntity<StoryboardProjectResponse> updateStoryboardProject(
             @PathVariable String publicId,
             @PathVariable Long projectId,
-            @RequestBody StoryboardProjectRequest request
+            @Valid @RequestBody StoryboardProjectRequest request
     ) {
-        StoryboardProject project = personReadService.updateStoryboardProject(projectId, request);
+        StoryboardProject project = storyboardCommandService.updateProject(projectId, request);
         return ResponseEntity.ok(toProjectResponse(project));
     }
 
@@ -240,7 +244,7 @@ public class PersonController {
             @PathVariable String publicId,
             @PathVariable Long projectId
     ) {
-        personReadService.deleteStoryboardProject(projectId);
+        storyboardCommandService.deleteProject(projectId);
         return ResponseEntity.noContent().build();
     }
 
@@ -250,7 +254,7 @@ public class PersonController {
             @PathVariable Long projectId,
             @RequestBody StoryboardSceneRequest request
     ) {
-        StoryboardScene scene = personReadService.createStoryboardScene(projectId, request);
+        StoryboardScene scene = storyboardCommandService.createScene(projectId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(toSceneResponse(scene));
     }
 
@@ -261,7 +265,7 @@ public class PersonController {
             @PathVariable Long sceneId,
             @RequestBody StoryboardSceneRequest request
     ) {
-        StoryboardScene scene = personReadService.updateStoryboardScene(projectId, sceneId, request);
+        StoryboardScene scene = storyboardCommandService.updateScene(projectId, sceneId, request);
         return ResponseEntity.ok(toSceneResponse(scene));
     }
 
@@ -269,12 +273,9 @@ public class PersonController {
     public ResponseEntity<Void> reorderStoryboardScenes(
             @PathVariable String publicId,
             @PathVariable Long projectId,
-            @RequestBody StoryboardSceneOrderRequest request
+            @Valid @RequestBody StoryboardSceneOrderRequest request
     ) {
-        List<Long> ordered = (request == null || request.sceneIds() == null)
-                ? List.of()
-                : request.sceneIds();
-        personReadService.reorderStoryboardScenes(projectId, ordered);
+        storyboardCommandService.reorderScenes(projectId, request.sceneIds());
         return ResponseEntity.ok().build();
     }
 
@@ -284,7 +285,7 @@ public class PersonController {
             @PathVariable Long projectId,
             @PathVariable Long sceneId
     ) {
-        personReadService.deleteStoryboardScene(projectId, sceneId);
+        storyboardCommandService.deleteScene(projectId, sceneId);
         return ResponseEntity.noContent().build();
     }
 

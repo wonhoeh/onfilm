@@ -1,0 +1,55 @@
+package com.onfilm.domain.movie.repository;
+
+import com.onfilm.domain.movie.entity.Person;
+import com.onfilm.domain.movie.entity.StoryboardProject;
+import com.onfilm.domain.movie.entity.StoryboardScene;
+import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@DataJpaTest
+class StoryboardProjectPersistenceTest {
+
+    @Autowired
+    private PersonRepository personRepository;
+
+    @Autowired
+    private EntityManager entityManager;
+
+    @Test
+    void 씬_순서를_저장하고_삭제된_씬을_orphanRemoval로_제거한다() {
+        Person person = personRepository.findById(1L).orElseThrow();
+        StoryboardProject project = person.getStoryboardProjects().stream()
+                .filter(candidate -> candidate.getId().equals(1L))
+                .findFirst()
+                .orElseThrow();
+        StoryboardScene first = project.getScenes().get(0);
+        StoryboardScene second = project.getScenes().get(1);
+        StoryboardScene third = project.getScenes().get(2);
+
+        Long personId = person.getId();
+        Long projectId = project.getId();
+        Long removedSceneId = second.getId();
+
+        project.reorderScenes(List.of(third.getId(), first.getId(), second.getId()));
+        project.removeScene(second);
+        personRepository.flush();
+        entityManager.clear();
+
+        Person found = personRepository.findById(personId).orElseThrow();
+        StoryboardProject foundProject = found.getStoryboardProjects().stream()
+                .filter(candidate -> candidate.getId().equals(projectId))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(foundProject.getScenes())
+                .extracting(StoryboardScene::getTitle)
+                .containsExactly("씬 3", "씬 1");
+        assertThat(entityManager.find(StoryboardScene.class, removedSceneId)).isNull();
+    }
+}

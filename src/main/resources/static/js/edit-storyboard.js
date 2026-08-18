@@ -657,11 +657,12 @@
         const allSaved = state.scenes.every(scene => !!scene.sceneId);
         if (!allSaved) return;
         const payload = { sceneIds: state.scenes.map(scene => scene.sceneId) };
-        await authFetch(`/api/people/${encodeURIComponent(state.publicId)}/storyboard/projects/${encodeURIComponent(state.projectId)}/scenes/order`, {
+        const res = await authFetch(`/api/people/${encodeURIComponent(state.publicId)}/storyboard/projects/${encodeURIComponent(state.projectId)}/scenes/order`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
+        if (!res.ok) throw new Error("SCENE_ORDER_SAVE_FAILED");
     }
 
     const fetchPublicIdByUsername = window.OnfilmCommon.fetchPublicIdByUsername;
@@ -799,7 +800,10 @@
         if (ordered.length === state.scenes.length) state.scenes = ordered;
         renderAll();
         setDirty();
-        persistSceneOrder();
+        persistSceneOrder().catch((error) => {
+            console.error(error);
+            alert("씬 순서를 저장하지 못했습니다. 다시 시도해주세요.");
+        });
     }
 
     sceneTabs?.addEventListener("dragstart", (e) => {

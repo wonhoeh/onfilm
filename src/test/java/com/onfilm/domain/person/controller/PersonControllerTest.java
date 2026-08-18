@@ -12,6 +12,8 @@ import com.onfilm.domain.movie.service.MovieReadService;
 import com.onfilm.domain.movie.service.MovieService;
 import com.onfilm.domain.movie.service.PersonReadService;
 import com.onfilm.domain.movie.service.PersonService;
+import com.onfilm.domain.movie.service.StoryboardCommandService;
+import com.onfilm.domain.movie.service.StoryboardQueryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
@@ -63,6 +66,12 @@ class PersonControllerTest {
 
     @MockBean
     private MovieService movieService;
+
+    @MockBean
+    private StoryboardQueryService storyboardQueryService;
+
+    @MockBean
+    private StoryboardCommandService storyboardCommandService;
 
     @Test
     @DisplayName("POST /persons - 생성 성공 시 201과 personId를 반환한다")
@@ -217,5 +226,32 @@ class PersonControllerTest {
                 .andExpect(jsonPath("$.snsList[0].type").value("INSTAGRAM"))
                 .andExpect(jsonPath("$.snsList[0].url").value("https://instagram.com/leo"))
                 .andExpect(jsonPath("$.rawTags[0].rawTag").value("헐리우드"));
+    }
+
+    @Test
+    @DisplayName("POST /storyboard/projects - 제목이 공백이면 422를 반환한다")
+    void createStoryboardProject_rejectsBlankTitle() throws Exception {
+        mockMvc.perform(post("/api/people/{publicId}/storyboard/projects", "public-id")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"   \"}"))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors[0].field").value("title"));
+
+        verifyNoInteractions(storyboardCommandService);
+    }
+
+    @Test
+    @DisplayName("PUT /storyboard/projects/{id}/scenes/order - sceneIds가 null이면 422를 반환한다")
+    void reorderStoryboardScenes_rejectsNullSceneIds() throws Exception {
+        mockMvc.perform(put("/api/people/{publicId}/storyboard/projects/{projectId}/scenes/order",
+                        "public-id", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"sceneIds\":null}"))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors[0].field").value("sceneIds"));
+
+        verifyNoInteractions(storyboardCommandService);
     }
 }
