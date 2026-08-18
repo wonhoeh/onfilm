@@ -6,6 +6,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.text.Normalizer;
+import java.util.Locale;
 import java.util.Objects;
 
 @Getter
@@ -22,7 +24,7 @@ public class ProfileTag {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "person_id", nullable = false)
     private Person person;
 
@@ -32,66 +34,71 @@ public class ProfileTag {
     @Column(nullable = false, length = 30)
     private String normalized;      // 검색/중복 방지용 (공백정리, 소문자 등)
 
-    private ProfileTag(Person person, String rawText, String normalized) {
-        this.person = person;
-        this.rawText = rawText;
-        this.normalized = normalized;
+    private ProfileTag(TagValue value) {
+        this.rawText = value.rawText();
+        this.normalized = value.normalized();
     }
 
-    public static ProfileTag create(Person person, String rawText) {
+    static ProfileTag create(String rawText) {
+        return new ProfileTag(sanitize(rawText));
+    }
+
+    void attachPerson(Person person) {
         if (person == null) {
             throw new IllegalArgumentException("person is required");
         }
-
-        String cleaned = validate(rawText);
-        return new ProfileTag(person, cleaned, normalize(cleaned));
+        if (this.person != null && this.person != person) {
+            throw new IllegalStateException(
+                    "profileTag already belongs to another person"
+            );
+        }
+        this.person = person;
     }
 
-    static String normalize(String input) {
-        if (input == null) return "";
-
-        String t = input.trim();
-        t = t.replaceAll("^#+", "");     // 앞 # 제거
-        t = t.trim();                                     // # 제거 후 남은 공백 제거
-        t = t.replaceAll("\\s+", " ");   // 공백 여러개 -> 1개
-        t = t.toLowerCase();
-        return t;
+    void detachPerson(Person person) {
+        if (this.person == person) {
+            this.person = null;
+        }
     }
 
-    public String getNormalized() {
-        return normalized;
+    static String normalize(String rawText) {
+        return sanitize(rawText).normalized();
     }
 
-    static String validate(String rawText) {
+    void changeRawText(String rawText) {
+        TagValue value = sanitize(rawText);
+        if (!Objects.equals(this.normalized, value.normalized())) {
+            throw new InvalidProfileTagException("normalized mismatch");
+        }
+        this.rawText = value.rawText();
+    }
+
+    private static TagValue sanitize(String rawText) {
         if (rawText == null) {
             throw new InvalidProfileTagException("tag is required");
         }
 
-        String t = rawText.trim();
-        // "#"만 있는 입력 방지
-        t = t.replaceAll("^#+", "").trim();
+        String displayText = Normalizer.normalize(rawText.trim(), Normalizer.Form.NFKC);
+        displayText = displayText.replaceFirst("^#+", "").trim();
+        displayText = displayText.replaceAll("\\s+", " ");
 
-        if (t.isBlank()) {
+        if (displayText.isBlank()) {
             throw new InvalidProfileTagException("tag must not be blank");
         }
-        if (t.length() > MAX_LENGTH) {
+        if (displayText.length() > MAX_LENGTH) {
             throw new InvalidProfileTagException(
                     "tag is too long (max " + MAX_LENGTH + ")"
             );
         }
 
-        return t;
-    }
-
-    public void changeRawTextKeepingNormalized(String rawText) {
-        String cleaned = validate(rawText);
-        String n = normalize(cleaned);
-
-        // 기존 normalized와 다르면 다른 태그로 취급해야 하니 막는 게 안전
-        if (!Objects.equals(this.normalized, n)) {
-            throw new InvalidProfileTagException("normalized mismatch");
+        String normalized = displayText.toLowerCase(Locale.ROOT);
+        if (normalized.length() > MAX_LENGTH) {
+            throw new InvalidProfileTagException(
+                    "normalized tag is too long (max " + MAX_LENGTH + ")"
+            );
         }
-
-        this.rawText = cleaned;
+        return new TagValue(displayText, normalized);
     }
+
+    private record TagValue(String rawText, String normalized) {}
 }

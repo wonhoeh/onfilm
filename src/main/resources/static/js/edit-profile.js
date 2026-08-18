@@ -232,18 +232,58 @@
     /* =========================================================
        5) TAGS: add/remove + drag reorder
     ========================================================= */
+    const PROFILE_TAG_MAX_LENGTH = 30;
+    const PROFILE_TAG_MAX_COUNT = 20;
     let draggedChip = null;
     function handleTagDragStart(e) { draggedChip = e.target; draggedChip.classList.add("dragging"); }
     function handleTagDragEnd() { if (draggedChip) draggedChip.classList.remove("dragging"); draggedChip = null; }
 
-    function addTag(text) {
-        const trimmed = String(text || "").trim();
-        if (!trimmed) return;
+    function sanitizeTagText(text) {
+        return String(text || "")
+            .trim()
+            .normalize("NFKC")
+            .replace(/^#+/, "")
+            .trim()
+            .replace(/\s+/g, " ");
+    }
 
-        const label = trimmed.startsWith("#") ? trimmed : `#${trimmed}`;
+    function normalizedTagKey(text) {
+        return sanitizeTagText(text).toLowerCase();
+    }
+
+    function showTagError(message, enabled = true) {
+        if (!tagInput || !enabled) return;
+        tagInput.setCustomValidity(message);
+        if (message) tagInput.reportValidity();
+    }
+
+    function addTag(text, { showError = true } = {}) {
+        const cleaned = sanitizeTagText(text);
+        if (!cleaned) {
+            showTagError("프로필 태그를 입력해 주세요.", showError);
+            return false;
+        }
+        if (cleaned.length > PROFILE_TAG_MAX_LENGTH) {
+            showTagError(`프로필 태그는 ${PROFILE_TAG_MAX_LENGTH}자 이하여야 합니다.`, showError);
+            return false;
+        }
+        if (tagListEl.children.length >= PROFILE_TAG_MAX_COUNT) {
+            showTagError(`프로필 태그는 최대 ${PROFILE_TAG_MAX_COUNT}개까지 등록할 수 있습니다.`, showError);
+            return false;
+        }
+
+        const normalized = normalizedTagKey(cleaned);
+        const duplicated = Array.from(tagListEl.querySelectorAll(".tag-chip"))
+            .some(chip => chip.dataset.normalized === normalized);
+        if (duplicated) {
+            showTagError("이미 등록된 프로필 태그입니다.", showError);
+            return false;
+        }
+
         const chip = document.createElement("span");
         chip.className = "tag-chip";
-        chip.textContent = label;
+        chip.textContent = `#${cleaned}`;
+        chip.dataset.normalized = normalized;
 
         chip.draggable = true;
         chip.addEventListener("dragstart", handleTagDragStart);
@@ -255,20 +295,22 @@
         });
 
         tagListEl.appendChild(chip);
+        showTagError("", showError);
+        return true;
     }
 
     addTagBtn?.addEventListener("click", () => {
-        addTag(tagInput.value);
-        tagInput.value = "";
+        if (addTag(tagInput.value)) tagInput.value = "";
         tagInput.focus();
     });
+
+    tagInput?.addEventListener("input", () => showTagError(""));
 
     tagInput?.addEventListener("keydown", (e) => {
         if (e.isComposing || e.keyCode === 229) return;
         if (e.key === "Enter") {
             e.preventDefault();
-            addTag(tagInput.value);
-            tagInput.value = "";
+            if (addTag(tagInput.value)) tagInput.value = "";
         }
     });
 
@@ -605,7 +647,7 @@
 
         // Tags: 초기화 후 저장값만
         tagListEl.innerHTML = "";
-        normalizeRawTags(p?.rawTags).forEach(t => addTag(t));
+        normalizeRawTags(p?.rawTags).forEach(t => addTag(t, { showError: false }));
     }
 
     /* =========================================================

@@ -66,16 +66,58 @@ class PersonTest {
     void profileTag_usesSingleNormalizationPolicyAndRejectsLongText() {
         Person person = createPerson();
 
-        person.addProfileTag("  #Action  ");
+        person.addProfileTag("  #Action   Film  ");
+        person.addProfileTag("Ａｃｔｉｏｎ Film");
+        person.addProfileTag("\u1100\u1161");
+        person.addProfileTag("가");
+        person.addProfileTag("b".repeat(30));
         person.addProfileTag("action");
 
-        assertThat(person.getProfileTags()).hasSize(1);
-        assertThat(person.getProfileTags().get(0).getRawText()).isEqualTo("Action");
-        assertThat(person.getProfileTags().get(0).getNormalized()).isEqualTo("action");
+        assertThat(person.getProfileTags()).hasSize(4);
+        assertThat(person.getProfileTags().get(0).getRawText()).isEqualTo("Action Film");
+        assertThat(person.getProfileTags().get(0).getNormalized()).isEqualTo("action film");
+        assertThat(person.getProfileTags().get(1).getRawText()).isEqualTo("가");
+        assertThat(person.getProfileTags().get(2).getRawText()).hasSize(30);
 
         assertThatThrownBy(() -> person.addProfileTag("a".repeat(31)))
                 .isInstanceOf(InvalidProfileTagException.class)
                 .hasMessage("tag is too long (max 30)");
+    }
+
+    @Test
+    void profileTag_reusesExistingEntityAndAppliesRequestedOrder() {
+        Person person = createPerson();
+        person.addProfileTag("Action");
+        person.addProfileTag("Drama");
+        ProfileTag action = person.getProfileTags().get(0);
+        ProfileTag drama = person.getProfileTags().get(1);
+
+        person.replaceProfileTags(List.of("New Tag", "ACTION", "new   tag"));
+
+        assertThat(person.getProfileTags())
+                .extracting(ProfileTag::getRawText)
+                .containsExactly("New Tag", "ACTION");
+        assertThat(person.getProfileTags().get(1)).isSameAs(action);
+        assertThat(action.getPerson()).isSameAs(person);
+        assertThat(drama.getPerson()).isNull();
+    }
+
+    @Test
+    void profileTag_rejectsMoreThanTwentyUniqueTagsWithoutChangingState() {
+        Person person = createPerson();
+        person.addProfileTag("existing");
+
+        List<String> tooManyTags = new java.util.ArrayList<>();
+        for (int i = 0; i < 21; i++) {
+            tooManyTags.add("tag-" + i);
+        }
+
+        assertThatThrownBy(() -> person.replaceProfileTags(tooManyTags))
+                .isInstanceOf(InvalidProfileTagException.class)
+                .hasMessage("too many tags (max 20)");
+        assertThat(person.getProfileTags())
+                .extracting(ProfileTag::getRawText)
+                .containsExactly("existing");
     }
 
     @Test

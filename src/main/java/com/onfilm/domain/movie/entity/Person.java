@@ -1,5 +1,6 @@
 package com.onfilm.domain.movie.entity;
 
+import com.onfilm.domain.common.error.exception.InvalidProfileTagException;
 import com.onfilm.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -17,6 +18,7 @@ public class Person {
     private static final int BIRTH_PLACE_MAX_LENGTH = 80;
     private static final int ONE_LINE_INTRO_MAX_LENGTH = 120;
     private static final int STORAGE_KEY_MAX_LENGTH = 512;
+    private static final int PROFILE_TAG_MAX_COUNT = 20;
 
     // ======================================================================
     // ======= 식별자 / 기본 컬럼 =======
@@ -63,6 +65,7 @@ public class Person {
     // ======================================================================
 
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderColumn(name = "sort_order")
     private List<ProfileTag> profileTags = new ArrayList<>();
 
     // ======================================================================
@@ -227,59 +230,74 @@ public class Person {
     // ======================================================================
 
     public void addProfileTag(String rawText) {
-        ProfileTag tag = ProfileTag.create(this, rawText);
+        ProfileTag tag = ProfileTag.create(rawText);
 
         boolean duplicated = profileTags.stream()
                 .anyMatch(t -> t.getNormalized().equals(tag.getNormalized()));
         if (duplicated) return;
+        if (profileTags.size() >= PROFILE_TAG_MAX_COUNT) {
+            throw new InvalidProfileTagException(
+                    "too many tags (max " + PROFILE_TAG_MAX_COUNT + ")"
+            );
+        }
 
+        tag.attachPerson(this);
         profileTags.add(tag);
     }
 
     public void removeProfileTag(String rawText) {
-        String cleaned = ProfileTag.validate(rawText);
-        String normalized = ProfileTag.normalize(cleaned);
-        profileTags.removeIf(t -> t.getNormalized().equals(normalized));
+        String normalized = ProfileTag.normalize(rawText);
+        Iterator<ProfileTag> iterator = profileTags.iterator();
+        while (iterator.hasNext()) {
+            ProfileTag tag = iterator.next();
+            if (tag.getNormalized().equals(normalized)) {
+                iterator.remove();
+                tag.detachPerson(this);
+                return;
+            }
+        }
     }
 
     public void clearProfileTags() {
+        profileTags.forEach(tag -> tag.detachPerson(this));
         profileTags.clear();
     }
 
     public void replaceProfileTags(List<String> rawTags) {
         List<String> input = (rawTags == null) ? List.of() : rawTags;
 
-        // 1) 요청 태그를 "정규화 기준으로" 중복 제거
-        // (같은 normalized면 최초 입력(rawText)만 유지)
-        Map<String, String> normToRaw = new LinkedHashMap<>();
+        Map<String, ProfileTag> requestedByNormalized = new LinkedHashMap<>();
         for (String raw : input) {
-            String cleaned = ProfileTag.validate(raw);
-            String normalized = ProfileTag.normalize(cleaned);
-
-            normToRaw.putIfAbsent(normalized, cleaned);
+            ProfileTag candidate = ProfileTag.create(raw);
+            requestedByNormalized.putIfAbsent(candidate.getNormalized(), candidate);
+        }
+        if (requestedByNormalized.size() > PROFILE_TAG_MAX_COUNT) {
+            throw new InvalidProfileTagException(
+                    "too many tags (max " + PROFILE_TAG_MAX_COUNT + ")"
+            );
         }
 
-        // 2) 기존 태그를 normalized로 인덱싱
-        Map<String, ProfileTag> existing = new LinkedHashMap<>();
+        Map<String, ProfileTag> existingByNormalized = new LinkedHashMap<>();
         for (ProfileTag tag : this.profileTags) {
-            existing.putIfAbsent(tag.getNormalized(), tag);
+            existingByNormalized.putIfAbsent(tag.getNormalized(), tag);
         }
 
-        // 3) 삭제: 요청에 없는 기존 태그 제거 (orphanRemoval이면 DB delete로 나감)
-        this.profileTags.removeIf(tag -> !normToRaw.containsKey(tag.getNormalized()));
-
-        // 4) 추가/유지: 없는 것만 새로 추가, 있는 건 rawText만 갱신(선택)
-        for (Map.Entry<String, String> e : normToRaw.entrySet()) {
-            String normalized = e.getKey();
-            String cleanedRaw = e.getValue();
-
-            ProfileTag tag = existing.get(normalized);
-            if (tag == null) {
-                this.profileTags.add(ProfileTag.create(this, cleanedRaw));
-            } else {
-                tag.changeRawTextKeepingNormalized(cleanedRaw);
+        List<ProfileTag> resolved = new ArrayList<>();
+        for (ProfileTag candidate : requestedByNormalized.values()) {
+            ProfileTag existing = existingByNormalized.remove(candidate.getNormalized());
+            if (existing != null) {
+                existing.changeRawText(candidate.getRawText());
+                resolved.add(existing);
+                continue;
             }
+
+            candidate.attachPerson(this);
+            resolved.add(candidate);
         }
+
+        existingByNormalized.values().forEach(tag -> tag.detachPerson(this));
+        profileTags.clear();
+        profileTags.addAll(resolved);
     }
 
     // ======================================================================

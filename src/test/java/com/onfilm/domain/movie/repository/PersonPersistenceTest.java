@@ -2,6 +2,7 @@ package com.onfilm.domain.movie.repository;
 
 import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.movie.entity.PersonSns;
+import com.onfilm.domain.movie.entity.ProfileTag;
 import com.onfilm.domain.movie.entity.SnsType;
 import com.onfilm.domain.movie.entity.StoryboardProject;
 import jakarta.persistence.EntityManager;
@@ -34,7 +35,7 @@ class PersonPersistenceTest {
                         SnsType.INSTAGRAM,
                         "https://instagram.com/onfilm"
                 )),
-                List.of("#독립영화")
+                List.of("Action")
         );
         person.addGalleryImageKey("gallery/first.jpg");
         person.addStoryboardProject(StoryboardProject.create("첫 프로젝트"));
@@ -55,10 +56,12 @@ class PersonPersistenceTest {
                 .contains("profile/avatar.jpg");
 
         Long originalSnsId = found.getSnsList().get(0).getId();
+        Long originalTagId = found.getProfileTags().get(0).getId();
         found.replaceSns(List.of(PersonSns.create(
                 SnsType.ETC,
                 "https://instagram.com/onfilm"
         )));
+        found.replaceProfileTags(List.of("새 태그", "ACTION"));
         found.removeStoryboardProject(found.getStoryboardProjects().get(0));
         personRepository.flush();
         entityManager.clear();
@@ -68,6 +71,11 @@ class PersonPersistenceTest {
             assertThat(sns.getId()).isEqualTo(originalSnsId);
             assertThat(sns.getType()).isEqualTo(SnsType.ETC);
         });
+        assertThat(replaced.getProfileTags())
+                .extracting(ProfileTag::getRawText)
+                .containsExactly("새 태그", "ACTION");
+        assertThat(replaced.getProfileTags().get(1).getId())
+                .isEqualTo(originalTagId);
         assertThat(replaced.getStoryboardProjects()).isEmpty();
 
         replaced.replaceSns(List.of(PersonSns.create(

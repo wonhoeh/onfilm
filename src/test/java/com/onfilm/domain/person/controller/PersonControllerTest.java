@@ -148,6 +148,33 @@ class PersonControllerTest {
     }
 
     @Test
+    @DisplayName("POST /persons - 프로필 태그가 20개를 넘으면 422를 반환한다")
+    void createPerson_rejectsMoreThanTwentyProfileTags() throws Exception {
+        CreatePersonRequest request = new CreatePersonRequest(
+                "테스트 인물",
+                LocalDate.of(2000, 1, 1),
+                "서울",
+                "한 줄 소개",
+                null,
+                List.of(),
+                java.util.stream.IntStream.range(0, 21)
+                        .mapToObj(i -> "tag-" + i)
+                        .toList()
+        );
+
+        mockMvc.perform(
+                        post("/api/people")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                )
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors[0].field").value("rawTags"));
+
+        verifyNoInteractions(personService);
+    }
+
+    @Test
     @DisplayName("GET /api/people/{publicId} -> 200 OK + ProfileResponse JSON 반환")
     void getPerson_returnsOkAndBody() throws Exception {
         // given

@@ -37,9 +37,9 @@ INSERT INTO person_sns (type, url, person_id) VALUES ('INSTAGRAM', 'https://inst
 INSERT INTO person_sns (type, url, person_id) VALUES ('YOUTUBE', 'https://youtube.com/testactor', 1);
 
 -- 5. 프로필 태그 (3개)
-INSERT INTO profile_tag (id, person_id, raw_text, normalized) VALUES (1, 1, '연기', '연기');
-INSERT INTO profile_tag (id, person_id, raw_text, normalized) VALUES (2, 1, '독립영화', '독립영화');
-INSERT INTO profile_tag (id, person_id, raw_text, normalized) VALUES (3, 1, '단편영화', '단편영화');
+INSERT INTO profile_tag (person_id, raw_text, normalized, sort_order) VALUES (1, '연기', '연기', 0);
+INSERT INTO profile_tag (person_id, raw_text, normalized, sort_order) VALUES (1, '독립영화', '독립영화', 1);
+INSERT INTO profile_tag (person_id, raw_text, normalized, sort_order) VALUES (1, '단편영화', '단편영화', 2);
 
 -- 6. 갤러리 (3개)
 INSERT INTO person_gallery (person_id, image_key, is_private, sort_order) VALUES (1, 'gallery/1/img1.jpg', FALSE, 0);
