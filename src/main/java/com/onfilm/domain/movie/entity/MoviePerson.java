@@ -56,18 +56,13 @@ public class MoviePerson {
         applyRole(role, castType, characterName);
     }
 
-    public static MoviePerson create(
-            Movie movie,
+    static MoviePerson create(
             Person person,
             PersonRole role,
             CastType castType,
             String characterName) {
 
-        Movie requiredMovie = require(movie, "movie");
-        MoviePerson moviePerson = new MoviePerson(person, role, castType, characterName);
-        requiredMovie.addMoviePerson(moviePerson);
-
-        return moviePerson;
+        return new MoviePerson(person, role, castType, characterName);
     }
 
     void attachMovie(Movie movie) {
@@ -76,6 +71,12 @@ public class MoviePerson {
             throw new IllegalStateException("moviePerson already belongs to another movie");
         }
         this.movie = requiredMovie;
+    }
+
+    void detachMovie(Movie movie) {
+        if (this.movie == movie) {
+            this.movie = null;
+        }
     }
 
     public void changeRole(

@@ -124,29 +124,26 @@ class PersonTest {
     void sns_attachesBothSidesAndRejectsDuplicateOrReassignment() {
         Person person = createPerson();
         Person anotherPerson = createPerson();
-        PersonSns sns = PersonSns.create(
+        PersonSns sns = person.addSns(
                 SnsType.INSTAGRAM,
                 "  INSTAGRAM.COM/onfilm/  "
         );
-
-        person.addSns(sns);
 
         assertThat(sns.getPerson()).isSameAs(person);
         assertThat(sns.getUrl()).isEqualTo("https://instagram.com/onfilm");
         assertThat(person.getSnsList()).containsExactly(sns);
 
-        assertThatThrownBy(() -> person.addSns(PersonSns.create(
+        assertThatThrownBy(() -> person.addSns(
                 SnsType.ETC,
                 "https://INSTAGRAM.COM:443/onfilm/"
-        )))
+        ))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("duplicate person sns");
 
-        PersonSns anotherInstagram = PersonSns.create(
+        PersonSns anotherInstagram = person.addSns(
                 SnsType.INSTAGRAM,
                 "https://instagram.com/onfilm-official"
         );
-        person.addSns(anotherInstagram);
         assertThat(person.getSnsList()).containsExactly(sns, anotherInstagram);
 
         assertThatThrownBy(() -> anotherPerson.addSns(sns))
@@ -189,9 +186,7 @@ class PersonTest {
     @Test
     void storyboardProject_attachesAndDetachesThroughPerson() {
         Person person = createPerson();
-        StoryboardProject project = StoryboardProject.create("  새 프로젝트  ");
-
-        person.addStoryboardProject(project);
+        StoryboardProject project = person.addStoryboardProject("  새 프로젝트  ");
 
         assertThat(project.getTitle()).isEqualTo("새 프로젝트");
         assertThat(project.getPerson()).isSameAs(person);

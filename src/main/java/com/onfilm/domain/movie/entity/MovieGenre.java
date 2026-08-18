@@ -22,6 +22,8 @@ import lombok.NoArgsConstructor;
         })
 public class MovieGenre {
 
+    private static final int TEXT_MAX_LENGTH = 60;
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -35,11 +37,11 @@ public class MovieGenre {
     private Genre genre;
 
     // 표준 장르면 Genre.name, 사용자 장르면 직접 입력한 표시명
-    @Column(name = "raw_text", nullable = false, length = 60)
+    @Column(name = "raw_text", nullable = false, length = TEXT_MAX_LENGTH)
     private String rawText;
 
     // 중복 제거/검색용 정규화 텍스트
-    @Column(name = "normalized_text", nullable = false, length = 60)
+    @Column(name = "normalized_text", nullable = false, length = TEXT_MAX_LENGTH)
     private String normalizedText;
 
     private MovieGenre(Genre genre, String rawText, String normalizedText) {
@@ -48,8 +50,7 @@ public class MovieGenre {
         this.normalizedText = normalizedText;
     }
 
-    public static MovieGenre createStandard(Movie movie, Genre genre) {
-        Movie requiredMovie = require(movie, "movie");
+    static MovieGenre createStandard(Genre genre) {
         Genre requiredGenre = require(genre, "genre");
         String genreName = requireText(requiredGenre.getName(), "genre.name");
         String normalized = requireText(
@@ -57,33 +58,27 @@ public class MovieGenre {
                 "genre.normalized"
         );
 
-        MovieGenre movieGenre = new MovieGenre(
+        return new MovieGenre(
                 requiredGenre,
                 genreName,
                 normalized
         );
-        requiredMovie.addMovieGenre(movieGenre);
-
-        return movieGenre;
     }
 
-    public static MovieGenre createCustom(Movie movie, String customText) {
-        Movie requiredMovie = require(movie, "movie");
+    static MovieGenre createCustom(String customText) {
         String rawText = requireText(customText, "customText");
         String normalized = TextNormalizer.textNormalizer(rawText);
 
         if (normalized.isBlank()) {
             throw new IllegalArgumentException("normalizedText is blank");
         }
+        validateLength(normalized, "normalizedText");
 
-        MovieGenre movieGenre = new MovieGenre(
+        return new MovieGenre(
                 null,
                 rawText,
                 normalized
         );
-        requiredMovie.addMovieGenre(movieGenre);
-
-        return movieGenre;
     }
 
     void attachMovie(Movie movie) {
@@ -92,6 +87,12 @@ public class MovieGenre {
             throw new IllegalStateException("movieGenre already belongs to another movie");
         }
         this.movie = requiredMovie;
+    }
+
+    void detachMovie(Movie movie) {
+        if (this.movie == movie) {
+            this.movie = null;
+        }
     }
 
     private static <T> T require(T value, String fieldName) {
@@ -105,7 +106,17 @@ public class MovieGenre {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(fieldName + " is required");
         }
-        return value.trim();
+        String trimmed = value.trim();
+        validateLength(trimmed, fieldName);
+        return trimmed;
+    }
+
+    private static void validateLength(String value, String fieldName) {
+        if (value.length() > TEXT_MAX_LENGTH) {
+            throw new IllegalArgumentException(
+                    fieldName + " is too long (max " + TEXT_MAX_LENGTH + ")"
+            );
+        }
     }
 
     // 나중에 표준 장르 매핑할 때 사용

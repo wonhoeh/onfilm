@@ -32,7 +32,7 @@ class MovieGenrePersistenceTest {
     @Test
     void customGenre_isStoredOnlyInMovieGenreTable() {
         Movie movie = createMovie();
-        MovieGenre.createCustom(movie, "  화려한 액션  ");
+        movie.addCustomGenre("  화려한 액션  ");
 
         movieRepository.saveAndFlush(movie);
         entityManager.clear();
@@ -53,7 +53,7 @@ class MovieGenrePersistenceTest {
                 Genre.create("Action")
         );
         Movie movie = createMovie();
-        MovieGenre.createStandard(movie, standardGenre);
+        movie.addStandardGenre(standardGenre);
 
         movieRepository.saveAndFlush(movie);
         entityManager.clear();

@@ -4,7 +4,6 @@ package com.onfilm.domain.person.service;
 import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.movie.dto.ProfileResponse;
 import com.onfilm.domain.movie.entity.Person;
-import com.onfilm.domain.movie.entity.PersonSns;
 import com.onfilm.domain.movie.entity.SnsType;
 import com.onfilm.domain.movie.repository.MovieRepository;
 import com.onfilm.domain.movie.repository.PersonRepository;
@@ -50,12 +49,12 @@ public class PersonServiceTest {
     @DisplayName("getPerson(name): 존재하면 PersonResponse로 매핑해서 반환한다 (snsList, rawTags 포함)")
     void getPerson_success() {
         // given
-        PersonSns sns1 = PersonSns.create(
+        Person.SnsRegistration sns1 = new Person.SnsRegistration(
                 SnsType.INSTAGRAM,
                 "https://instagram.com/leo"
         );
 
-        PersonSns sns2 = PersonSns.create(
+        Person.SnsRegistration sns2 = new Person.SnsRegistration(
                 SnsType.TIKTOK,
                 "https://tiktok.com/@leo"
         );

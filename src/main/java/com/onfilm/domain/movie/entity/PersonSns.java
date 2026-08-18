@@ -42,7 +42,7 @@ public class PersonSns {
         this.url = url;
     }
 
-    public static PersonSns create(SnsType type, String url) {
+    static PersonSns create(SnsType type, String url) {
         requireType(type);
         return new PersonSns(type, normalizeUrl(url));
     }

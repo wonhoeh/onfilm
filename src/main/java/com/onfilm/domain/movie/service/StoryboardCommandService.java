@@ -39,9 +39,7 @@ public class StoryboardCommandService {
     public StoryboardProject createProject(StoryboardProjectRequest request) {
         StoryboardProjectRequest requiredRequest = require(request, "request");
         Person person = findCurrentPerson();
-        StoryboardProject project = StoryboardProject.create(requiredRequest.title());
-        person.addStoryboardProject(project);
-        return project;
+        return person.addStoryboardProject(requiredRequest.title());
     }
 
     public StoryboardProject updateProject(Long projectId, StoryboardProjectRequest request) {

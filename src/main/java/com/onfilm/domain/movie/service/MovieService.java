@@ -56,8 +56,7 @@ public class MovieService {
             throw new PersonNotFoundException(userId);
         }
 
-        MoviePerson moviePerson = MoviePerson.create(
-                movie,
+        MoviePerson moviePerson = movie.addMoviePerson(
                 person,
                 request.getRole(),
                 request.getCastType(),
@@ -127,8 +126,7 @@ public class MovieService {
                     item.ageRating()
             );
 
-            MoviePerson createdMoviePerson = MoviePerson.create(
-                    movie,
+            MoviePerson createdMoviePerson = movie.addMoviePerson(
                     person,
                     item.role(),
                     item.castType(),
@@ -149,8 +147,8 @@ public class MovieService {
         List<MoviePerson> toDelete = existing.stream()
                 .filter(mp -> !keepMovieIds.contains(mp.getMovie().getId()))
                 .toList();
-        if (!toDelete.isEmpty()) {
-            moviePersonRepository.deleteAll(toDelete);
+        for (MoviePerson moviePerson : toDelete) {
+            moviePerson.getMovie().removeMoviePerson(moviePerson);
         }
 
         return new FilmographyUpsertResponse(results);

@@ -4,7 +4,6 @@ import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.movie.entity.PersonSns;
 import com.onfilm.domain.movie.entity.ProfileTag;
 import com.onfilm.domain.movie.entity.SnsType;
-import com.onfilm.domain.movie.entity.StoryboardProject;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,14 +30,14 @@ class PersonPersistenceTest {
                 null,
                 null,
                 "profile/avatar.jpg",
-                List.of(PersonSns.create(
+                List.of(new Person.SnsRegistration(
                         SnsType.INSTAGRAM,
                         "https://instagram.com/onfilm"
                 )),
                 List.of("Action")
         );
         person.addGalleryImageKey("gallery/first.jpg");
-        person.addStoryboardProject(StoryboardProject.create("첫 프로젝트"));
+        person.addStoryboardProject("첫 프로젝트");
 
         Person saved = personRepository.saveAndFlush(person);
         Long personId = saved.getId();
@@ -57,7 +56,7 @@ class PersonPersistenceTest {
 
         Long originalSnsId = found.getSnsList().get(0).getId();
         Long originalTagId = found.getProfileTags().get(0).getId();
-        found.replaceSns(List.of(PersonSns.create(
+        found.replaceSns(List.of(new Person.SnsRegistration(
                 SnsType.ETC,
                 "https://instagram.com/onfilm"
         )));
@@ -78,7 +77,7 @@ class PersonPersistenceTest {
                 .isEqualTo(originalTagId);
         assertThat(replaced.getStoryboardProjects()).isEmpty();
 
-        replaced.replaceSns(List.of(PersonSns.create(
+        replaced.replaceSns(List.of(new Person.SnsRegistration(
                 SnsType.YOUTUBE,
                 "https://youtube.com/onfilm"
         )));

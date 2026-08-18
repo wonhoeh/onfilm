@@ -5,7 +5,6 @@ import com.onfilm.domain.genre.entity.Genre;
 import com.onfilm.domain.genre.repository.GenreRepository;
 import com.onfilm.domain.movie.dto.MovieGenreRequest;
 import com.onfilm.domain.movie.entity.Movie;
-import com.onfilm.domain.movie.entity.MovieGenre;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -140,11 +139,11 @@ public class MovieGenreNormalizer {
             ResolvedGenre resolved
     ) {
         if (resolved.genre() != null) {
-            MovieGenre.createStandard(movie, resolved.genre());
+            movie.addStandardGenre(resolved.genre());
             return;
         }
 
-        MovieGenre.createCustom(movie, resolved.customText());
+        movie.addCustomGenre(resolved.customText());
     }
 
     private record ResolvedGenre(

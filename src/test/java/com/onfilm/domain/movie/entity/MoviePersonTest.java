@@ -14,8 +14,7 @@ class MoviePersonTest {
         Movie movie = createMovie();
         Person person = createPerson();
 
-        MoviePerson moviePerson = MoviePerson.create(
-                movie,
+        MoviePerson moviePerson = movie.addMoviePerson(
                 person,
                 PersonRole.ACTOR,
                 CastType.LEAD,
@@ -29,8 +28,7 @@ class MoviePersonTest {
 
     @Test
     void create_nonActor_clearsCastTypeAndCharacterName() {
-        MoviePerson moviePerson = MoviePerson.create(
-                createMovie(),
+        MoviePerson moviePerson = createMovie().addMoviePerson(
                 createPerson(),
                 PersonRole.DIRECTOR,
                 CastType.LEAD,
@@ -43,8 +41,7 @@ class MoviePersonTest {
 
     @Test
     void create_actor_requiresCastType() {
-        assertThatThrownBy(() -> MoviePerson.create(
-                createMovie(),
+        assertThatThrownBy(() -> createMovie().addMoviePerson(
                 createPerson(),
                 PersonRole.ACTOR,
                 null,
@@ -56,8 +53,7 @@ class MoviePersonTest {
 
     @Test
     void changeSortOrder_rejectsNegativeValue() {
-        MoviePerson moviePerson = MoviePerson.create(
-                createMovie(),
+        MoviePerson moviePerson = createMovie().addMoviePerson(
                 createPerson(),
                 PersonRole.ACTOR,
                 CastType.SUPPORTING,
@@ -73,10 +69,9 @@ class MoviePersonTest {
     void create_rejectsDuplicateCreditInSameMovie() {
         Movie movie = createMovie();
         Person person = createPerson();
-        MoviePerson.create(movie, person, PersonRole.ACTOR, CastType.CAMEO, "행인");
+        movie.addMoviePerson(person, PersonRole.ACTOR, CastType.CAMEO, "행인");
 
-        assertThatThrownBy(() -> MoviePerson.create(
-                movie,
+        assertThatThrownBy(() -> movie.addMoviePerson(
                 person,
                 PersonRole.ACTOR,
                 CastType.CAMEO,
@@ -84,6 +79,25 @@ class MoviePersonTest {
         ))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("duplicate movie credit");
+    }
+
+    @Test
+    void remove_detachesBothSidesAndCollectionIsReadOnly() {
+        Movie movie = createMovie();
+        MoviePerson moviePerson = movie.addMoviePerson(
+                createPerson(),
+                PersonRole.DIRECTOR,
+                null,
+                null
+        );
+
+        assertThatThrownBy(() -> movie.getMoviePeople().clear())
+                .isInstanceOf(UnsupportedOperationException.class);
+
+        movie.removeMoviePerson(moviePerson);
+
+        assertThat(movie.getMoviePeople()).isEmpty();
+        assertThat(moviePerson.getMovie()).isNull();
     }
 
     private static Movie createMovie() {

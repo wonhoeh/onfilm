@@ -28,10 +28,10 @@ public class ProfileTag {
     @JoinColumn(name = "person_id", nullable = false)
     private Person person;
 
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, length = MAX_LENGTH)
     private String rawText;         // 사용자가 입력한 원문 (표시용)
 
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, length = MAX_LENGTH)
     private String normalized;      // 검색/중복 방지용 (공백정리, 소문자 등)
 
     private ProfileTag(TagValue value) {

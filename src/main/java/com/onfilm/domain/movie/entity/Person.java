@@ -18,6 +18,7 @@ public class Person {
     private static final int BIRTH_PLACE_MAX_LENGTH = 80;
     private static final int ONE_LINE_INTRO_MAX_LENGTH = 120;
     private static final int STORAGE_KEY_MAX_LENGTH = 512;
+    private static final int PUBLIC_ID_LENGTH = 36;
     private static final int PROFILE_TAG_MAX_COUNT = 20;
 
     // ======================================================================
@@ -27,24 +28,24 @@ public class Person {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 60)
+    @Column(nullable = false, length = NAME_MAX_LENGTH)
     private String name;
 
     private LocalDate birthDate;
 
-    @Column(length = 80)
+    @Column(length = BIRTH_PLACE_MAX_LENGTH)
     private String birthPlace;
 
-    @Column(length = 120)
+    @Column(length = ONE_LINE_INTRO_MAX_LENGTH)
     private String oneLineIntro;
 
-    @Column(name = "profile_image_url", length = 512)
+    @Column(name = "profile_image_url", length = STORAGE_KEY_MAX_LENGTH)
     private String profileImageKey;
 
-    @Column(length = 512)
+    @Column(length = STORAGE_KEY_MAX_LENGTH)
     private String filmographyFileKey;
 
-    @Column(nullable = false, unique = true, updatable = false, length = 36)
+    @Column(nullable = false, unique = true, updatable = false, length = PUBLIC_ID_LENGTH)
     private String publicId;  // UUID
 
     @Column(nullable = false)
@@ -154,7 +155,7 @@ public class Person {
             String birthPlace,
             String oneLineIntro,
             String profileImageKey,
-            List<PersonSns> snsList,
+            List<SnsRegistration> snsList,
             List<String> rawTags
     ) {
         Person person = new Person(
@@ -165,7 +166,18 @@ public class Person {
                 profileImageKey
         );
 
-        if (snsList != null) snsList.forEach(person::addSns);
+        if (snsList != null) {
+            snsList.forEach(registration -> {
+                SnsRegistration requiredRegistration = require(
+                        registration,
+                        "snsRegistration"
+                );
+                person.addSns(
+                        requiredRegistration.type(),
+                        requiredRegistration.url()
+                );
+            });
+        }
         if (rawTags != null) rawTags.forEach(person::addProfileTag);
 
         return person;
@@ -175,7 +187,13 @@ public class Person {
     // ======= 연관관계 편의 메서드: SNS =======
     // ======================================================================
 
-    public void addSns(PersonSns sns) {
+    public PersonSns addSns(SnsType type, String url) {
+        PersonSns sns = PersonSns.create(type, url);
+        addSns(sns);
+        return sns;
+    }
+
+    void addSns(PersonSns sns) {
         PersonSns requiredSns = require(sns, "sns");
 
         // 플랫폼이 달라도 동일한 canonical URL은 한 번만 등록한다.
@@ -198,8 +216,21 @@ public class Person {
         snsList.clear();
     }
 
-    public void replaceSns(List<PersonSns> newList) {
-        List<PersonSns> replacements = (newList == null) ? List.of() : newList;
+    public void replaceSns(List<SnsRegistration> registrations) {
+        List<PersonSns> replacements = Optional.ofNullable(registrations)
+                .orElseGet(List::of)
+                .stream()
+                .map(registration -> {
+                    SnsRegistration requiredRegistration = require(
+                            registration,
+                            "snsRegistration"
+                    );
+                    return PersonSns.create(
+                            requiredRegistration.type(),
+                            requiredRegistration.url()
+                    );
+                })
+                .toList();
         validateSnsReplacements(replacements);
 
         Map<String, PersonSns> existingByUrl = new LinkedHashMap<>();
@@ -349,7 +380,13 @@ public class Person {
     // ======= 연관관계 편의 메서드: Storyboard =======
     // ======================================================================
 
-    public void addStoryboardProject(StoryboardProject project) {
+    public StoryboardProject addStoryboardProject(String title) {
+        StoryboardProject project = StoryboardProject.create(title);
+        addStoryboardProject(project);
+        return project;
+    }
+
+    void addStoryboardProject(StoryboardProject project) {
         StoryboardProject requiredProject = require(project, "storyboardProject");
         if (storyboardProjects.contains(requiredProject)) {
             throw new IllegalArgumentException("duplicate storyboard project");
@@ -454,7 +491,7 @@ public class Person {
 
     @Embeddable
     public static class GalleryItem {
-        @Column(name = "image_key", nullable = false, length = 512)
+        @Column(name = "image_key", nullable = false, length = STORAGE_KEY_MAX_LENGTH)
         private String key;
 
         @Column(name = "is_private", nullable = false)
@@ -490,6 +527,9 @@ public class Person {
 
     public List<StoryboardProject> getStoryboardProjects() {
         return Collections.unmodifiableList(storyboardProjects);
+    }
+
+    public record SnsRegistration(SnsType type, String url) {
     }
 
     private void validateSnsReplacements(List<PersonSns> replacements) {

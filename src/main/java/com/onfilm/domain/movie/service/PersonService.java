@@ -7,7 +7,6 @@ import com.onfilm.domain.movie.dto.CreatePersonRequest;
 import com.onfilm.domain.movie.dto.CreatePersonSnsRequest;
 import com.onfilm.domain.movie.dto.UpdatePersonRequest;
 import com.onfilm.domain.movie.entity.Person;
-import com.onfilm.domain.movie.entity.PersonSns;
 import com.onfilm.domain.movie.repository.PersonRepository;
 import com.onfilm.domain.user.entity.User;
 import com.onfilm.domain.user.repository.UserRepository;
@@ -35,7 +34,7 @@ public class PersonService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
-        List<PersonSns> snsList = toSnsEntities(request.getSnsList());
+        List<Person.SnsRegistration> snsList = toSnsRegistrations(request.getSnsList());
 
         Person person = Person.create(
                 request.getName(),
@@ -83,7 +82,7 @@ public class PersonService {
                 imageValue
         );
 
-        person.replaceSns(toSnsEntities(request.getSnsList()));
+        person.replaceSns(toSnsRegistrations(request.getSnsList()));
 
         // ✅ TAG 전체 교체 (null-safe로 넘기는 게 안전)
         person.replaceProfileTags(
@@ -91,7 +90,9 @@ public class PersonService {
         );
     }
 
-    private List<PersonSns> toSnsEntities(List<CreatePersonSnsRequest> requests) {
+    private List<Person.SnsRegistration> toSnsRegistrations(
+            List<CreatePersonSnsRequest> requests
+    ) {
         return Optional.ofNullable(requests)
                 .orElseGet(List::of)
                 .stream()
@@ -99,7 +100,10 @@ public class PersonService {
                     if (request == null) {
                         throw new IllegalArgumentException("sns request is required");
                     }
-                    return PersonSns.create(request.getType(), request.getUrl());
+                    return new Person.SnsRegistration(
+                            request.getType(),
+                            request.getUrl()
+                    );
                 })
                 .toList();
     }

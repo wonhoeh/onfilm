@@ -1,5 +1,6 @@
 package com.onfilm.domain.movie.entity;
 
+import com.onfilm.domain.genre.entity.Genre;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -8,6 +9,7 @@ import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -94,7 +96,19 @@ public class Movie {
     // ======= 연관관계 편의 메서드: MovieGenre =======
     // ======================================================================
 
-    public void addMovieGenre(MovieGenre movieGenre) {
+    public MovieGenre addStandardGenre(Genre genre) {
+        MovieGenre movieGenre = MovieGenre.createStandard(genre);
+        addMovieGenre(movieGenre);
+        return movieGenre;
+    }
+
+    public MovieGenre addCustomGenre(String customText) {
+        MovieGenre movieGenre = MovieGenre.createCustom(customText);
+        addMovieGenre(movieGenre);
+        return movieGenre;
+    }
+
+    void addMovieGenre(MovieGenre movieGenre) {
         MovieGenre requiredMovieGenre = require(movieGenre, "movieGenre");
 
         if (hasGenre(requiredMovieGenre.getNormalizedText())) {
@@ -103,6 +117,14 @@ public class Movie {
 
         requiredMovieGenre.attachMovie(this);
         genres.add(requiredMovieGenre);
+    }
+
+    public void removeMovieGenre(MovieGenre movieGenre) {
+        MovieGenre requiredMovieGenre = require(movieGenre, "movieGenre");
+        if (!genres.remove(requiredMovieGenre)) {
+            throw new IllegalArgumentException("movieGenre does not belong to movie");
+        }
+        requiredMovieGenre.detachMovie(this);
     }
 
     private boolean hasGenre(String normalizedText) {
@@ -116,17 +138,39 @@ public class Movie {
     // ======= 연관관계 편의 메서드: MoviePerson =======
     // ======================================================================
 
-    public void addMoviePerson(MoviePerson moviePerson) {
-        if (moviePerson == null) {
-            throw new IllegalArgumentException("moviePerson is required");
-        }
+    public MoviePerson addMoviePerson(
+            Person person,
+            PersonRole role,
+            CastType castType,
+            String characterName
+    ) {
+        MoviePerson moviePerson = MoviePerson.create(
+                person,
+                role,
+                castType,
+                characterName
+        );
+        addMoviePerson(moviePerson);
+        return moviePerson;
+    }
 
-        if (hasSameCredit(moviePerson)) {
+    void addMoviePerson(MoviePerson moviePerson) {
+        MoviePerson requiredMoviePerson = require(moviePerson, "moviePerson");
+
+        if (hasSameCredit(requiredMoviePerson)) {
             throw new IllegalArgumentException("duplicate movie credit");
         }
 
-        moviePerson.attachMovie(this);
-        moviePeople.add(moviePerson);
+        requiredMoviePerson.attachMovie(this);
+        moviePeople.add(requiredMoviePerson);
+    }
+
+    public void removeMoviePerson(MoviePerson moviePerson) {
+        MoviePerson requiredMoviePerson = require(moviePerson, "moviePerson");
+        if (!moviePeople.remove(requiredMoviePerson)) {
+            throw new IllegalArgumentException("moviePerson does not belong to movie");
+        }
+        requiredMoviePerson.detachMovie(this);
     }
 
     private boolean hasSameCredit(MoviePerson candidate) {
@@ -192,7 +236,25 @@ public class Movie {
     }
 
     public void clearGenres() {
-        this.genres.clear();
+        for (MovieGenre genre : new ArrayList<>(genres)) {
+            removeMovieGenre(genre);
+        }
+    }
+
+    public List<MoviePerson> getMoviePeople() {
+        return Collections.unmodifiableList(moviePeople);
+    }
+
+    public List<Trailer> getTrailers() {
+        return Collections.unmodifiableList(trailers);
+    }
+
+    public List<MovieGenre> getGenres() {
+        return Collections.unmodifiableList(genres);
+    }
+
+    public List<String> getLikes() {
+        return Collections.unmodifiableList(likes);
     }
 
     private void applyBasicInfo(

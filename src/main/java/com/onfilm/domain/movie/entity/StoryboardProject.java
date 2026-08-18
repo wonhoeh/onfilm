@@ -40,7 +40,7 @@ public class StoryboardProject {
         this.title = requireTitle(title);
     }
 
-    public static StoryboardProject create(String title) {
+    static StoryboardProject create(String title) {
         return new StoryboardProject(title);
     }
 

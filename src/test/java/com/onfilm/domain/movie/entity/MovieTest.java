@@ -78,7 +78,7 @@ class MovieTest {
     void createCustomMovieGenre_attachesBothSides() {
         Movie movie = createMovie(120, 2020, AgeRating.ALL);
 
-        MovieGenre movieGenre = MovieGenre.createCustom(movie, "  Action  ");
+        MovieGenre movieGenre = movie.addCustomGenre("  Action  ");
 
         assertThat(movieGenre.getMovie()).isSameAs(movie);
         assertThat(movie.getGenres()).containsExactly(movieGenre);
@@ -89,9 +89,9 @@ class MovieTest {
     @Test
     void createCustomMovieGenre_rejectsDuplicateNormalizedText() {
         Movie movie = createMovie(120, 2020, AgeRating.ALL);
-        MovieGenre.createCustom(movie, "Action");
+        movie.addCustomGenre("Action");
 
-        assertThatThrownBy(() -> MovieGenre.createCustom(movie, "  action  "))
+        assertThatThrownBy(() -> movie.addCustomGenre("  action  "))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("duplicate movie genre");
 
@@ -102,7 +102,7 @@ class MovieTest {
     void addMovieGenre_rejectsReassignmentToAnotherMovie() {
         Movie firstMovie = createMovie(120, 2020, AgeRating.ALL);
         Movie secondMovie = createMovie(120, 2021, AgeRating.ALL);
-        MovieGenre movieGenre = MovieGenre.createCustom(firstMovie, "Action");
+        MovieGenre movieGenre = firstMovie.addCustomGenre("Action");
 
         assertThatThrownBy(() -> secondMovie.addMovieGenre(movieGenre))
                 .isInstanceOf(IllegalStateException.class)
@@ -116,7 +116,7 @@ class MovieTest {
         Movie movie = createMovie(120, 2020, AgeRating.ALL);
         Genre genre = Genre.create("  Action  ");
 
-        MovieGenre movieGenre = MovieGenre.createStandard(movie, genre);
+        MovieGenre movieGenre = movie.addStandardGenre(genre);
 
         assertThat(movieGenre.getGenre()).isSameAs(genre);
         assertThat(movieGenre.getRawText()).isEqualTo("Action");
@@ -128,9 +128,27 @@ class MovieTest {
     void createStandardMovieGenre_requiresGenre() {
         Movie movie = createMovie(120, 2020, AgeRating.ALL);
 
-        assertThatThrownBy(() -> MovieGenre.createStandard(movie, null))
+        assertThatThrownBy(() -> movie.addStandardGenre(null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("genre is required");
+    }
+
+    @Test
+    void removeMovieGenre_detachesBothSidesAndCollectionsAreReadOnly() {
+        Movie movie = createMovie(120, 2020, AgeRating.ALL);
+        MovieGenre movieGenre = movie.addCustomGenre("Action");
+
+        assertThatThrownBy(() -> movie.getGenres().clear())
+                .isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> movie.getTrailers().clear())
+                .isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> movie.getLikes().clear())
+                .isInstanceOf(UnsupportedOperationException.class);
+
+        movie.removeMovieGenre(movieGenre);
+
+        assertThat(movie.getGenres()).isEmpty();
+        assertThat(movieGenre.getMovie()).isNull();
     }
 
     private static Movie createMovie(int runtime, Integer releaseYear, AgeRating ageRating) {
