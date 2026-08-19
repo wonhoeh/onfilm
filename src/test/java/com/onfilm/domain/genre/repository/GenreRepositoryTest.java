@@ -5,10 +5,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest(properties = "spring.sql.init.mode=never")
 class GenreRepositoryTest {
@@ -62,5 +64,50 @@ class GenreRepositoryTest {
 
         assertThat(result).extracting(Genre::getName)
                 .containsExactlyInAnyOrder("Action", "Drama");
+    }
+
+    @Test
+    void activeQueries_excludeInactiveGenres() {
+        Genre action = genreRepository.save(Genre.create("Action"));
+        Genre drama = genreRepository.save(Genre.create("Drama"));
+        drama.deactivate();
+        genreRepository.flush();
+
+        assertThat(genreRepository.findActiveByPrefix(
+                "",
+                PageRequest.of(0, 10)
+        )).contains(action).doesNotContain(drama);
+        assertThat(genreRepository.findActiveByIds(
+                List.of(action.getId(), drama.getId())
+        )).containsExactly(action);
+        assertThat(genreRepository.findActiveByNormalizedValues(
+                List.of("action", "drama")
+        )).containsExactly(action);
+    }
+
+    @Test
+    void findActiveByPrefix_treatsLikeWildcardsAsLiteralCharacters() {
+        genreRepository.save(Genre.create("100% Drama"));
+        genreRepository.save(Genre.create("100 Percent"));
+        genreRepository.save(Genre.create("Sci_Fi"));
+        genreRepository.save(Genre.create("Sci Fi"));
+
+        assertThat(genreRepository.findActiveByPrefix(
+                "100%",
+                PageRequest.of(0, 10)
+        )).extracting(Genre::getName).containsExactly("100% Drama");
+        assertThat(genreRepository.findActiveByPrefix(
+                "sci_",
+                PageRequest.of(0, 10)
+        )).extracting(Genre::getName).containsExactly("Sci_Fi");
+    }
+
+    @Test
+    void normalizedValueMustBeUnique() {
+        genreRepository.saveAndFlush(Genre.create("Action"));
+
+        assertThatThrownBy(() ->
+                genreRepository.saveAndFlush(Genre.create("  #ACTION  "))
+        ).isInstanceOf(DataIntegrityViolationException.class);
     }
 }

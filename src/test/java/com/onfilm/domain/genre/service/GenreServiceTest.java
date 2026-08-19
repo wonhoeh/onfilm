@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
@@ -38,7 +39,7 @@ class GenreServiceTest {
                 any(Pageable.class)
         )).willReturn(List.of(action));
 
-        List<GenreAutocompleteResponse> result = genreService.autocomplete("  #ACTION  ");
+        List<GenreAutocompleteResponse> result = genreService.autocomplete("  # ACTION  ");
 
         verify(genreRepository)
                 .findActiveByPrefix(
@@ -54,6 +55,15 @@ class GenreServiceTest {
     void autocomplete_returnsEmptyResultForBlankQuery() {
         assertThat(genreService.autocomplete("   ")).isEmpty();
         assertThat(genreService.autocomplete(null)).isEmpty();
+
+        verifyNoInteractions(genreRepository);
+    }
+
+    @Test
+    void autocomplete_rejectsTooLongQuery() {
+        assertThatThrownBy(() -> genreService.autocomplete("a".repeat(61)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("genre name is too long (max 60)");
 
         verifyNoInteractions(genreRepository);
     }

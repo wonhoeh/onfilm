@@ -1,7 +1,7 @@
 package com.onfilm.domain.movie.service;
 
-import com.onfilm.domain.common.util.TextNormalizer;
 import com.onfilm.domain.genre.entity.Genre;
+import com.onfilm.domain.genre.entity.GenreName;
 import com.onfilm.domain.genre.repository.GenreRepository;
 import com.onfilm.domain.movie.dto.MovieGenreRequest;
 import com.onfilm.domain.movie.entity.Movie;
@@ -79,7 +79,7 @@ public class MovieGenreNormalizer {
         List<String> normalizedValues = requests.stream()
                 .filter(MovieGenreRequest::hasCustomText)
                 .map(MovieGenreRequest::customText)
-                .map(TextNormalizer::textNormalizer)
+                .map(GenreName::normalize)
                 .filter(normalized -> !normalized.isBlank())
                 .distinct()
                 .toList();
@@ -119,9 +119,8 @@ public class MovieGenreNormalizer {
             String customText,
             Map<String, Genre> genreByNormalized
     ) {
-        String rawText = customText.trim();
-        String normalized = TextNormalizer.textNormalizer(rawText);
-        Genre matchedGenre = genreByNormalized.get(normalized);
+        GenreName value = GenreName.from(customText);
+        Genre matchedGenre = genreByNormalized.get(value.normalized());
 
         if (matchedGenre != null) {
             return new ResolvedGenre(
@@ -131,7 +130,11 @@ public class MovieGenreNormalizer {
             );
         }
 
-        return new ResolvedGenre(null, rawText, normalized);
+        return new ResolvedGenre(
+                null,
+                value.displayName(),
+                value.normalized()
+        );
     }
 
     private static void attachResolvedGenre(

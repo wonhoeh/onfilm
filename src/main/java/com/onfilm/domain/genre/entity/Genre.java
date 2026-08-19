@@ -1,9 +1,7 @@
 package com.onfilm.domain.genre.entity;
 
-import com.onfilm.domain.common.util.TextNormalizer;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -17,24 +15,31 @@ public class Genre {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 50)
-    private String name;              // 장르 이름
+    @Column(nullable = false, length = GenreName.MAX_LENGTH)
+    private String name;
 
-    @Column(nullable = false, length = 60)
+    @Column(nullable = false, length = GenreName.MAX_LENGTH)
     private String normalized;
 
     @Column(nullable = false)
-    private boolean isActive = true;  // 사용하지 않는 장르는 delete 대신 deactivate
+    private boolean isActive = true;
 
-    @Builder(access = AccessLevel.PRIVATE)
     private Genre(String name) {
-        this.name = name.trim();
-        this.normalized = TextNormalizer.textNormalizer(name);
+        GenreName value = GenreName.from(name);
+        this.name = value.displayName();
+        this.normalized = value.normalized();
         this.isActive = true;
     }
 
     public static Genre create(String name) {
-        if (name == null || name.isBlank()) throw new IllegalArgumentException("genre name is required");
-        return Genre.builder().name(name).build();
+        return new Genre(name);
+    }
+
+    public void activate() {
+        this.isActive = true;
+    }
+
+    public void deactivate() {
+        this.isActive = false;
     }
 }

@@ -1,7 +1,7 @@
 package com.onfilm.domain.movie.entity;
 
-import com.onfilm.domain.common.util.TextNormalizer;
 import com.onfilm.domain.genre.entity.Genre;
+import com.onfilm.domain.genre.entity.GenreName;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -22,8 +22,6 @@ import lombok.NoArgsConstructor;
         })
 public class MovieGenre {
 
-    private static final int TEXT_MAX_LENGTH = 60;
-
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -37,11 +35,11 @@ public class MovieGenre {
     private Genre genre;
 
     // 표준 장르면 Genre.name, 사용자 장르면 직접 입력한 표시명
-    @Column(name = "raw_text", nullable = false, length = TEXT_MAX_LENGTH)
+    @Column(name = "raw_text", nullable = false, length = GenreName.MAX_LENGTH)
     private String rawText;
 
     // 중복 제거/검색용 정규화 텍스트
-    @Column(name = "normalized_text", nullable = false, length = TEXT_MAX_LENGTH)
+    @Column(name = "normalized_text", nullable = false, length = GenreName.MAX_LENGTH)
     private String normalizedText;
 
     private MovieGenre(Genre genre, String rawText, String normalizedText) {
@@ -52,32 +50,30 @@ public class MovieGenre {
 
     static MovieGenre createStandard(Genre genre) {
         Genre requiredGenre = require(genre, "genre");
-        String genreName = requireText(requiredGenre.getName(), "genre.name");
-        String normalized = requireText(
-                requiredGenre.getNormalized(),
-                "genre.normalized"
-        );
+        if (!requiredGenre.isActive()) {
+            throw new IllegalArgumentException("genre is inactive");
+        }
+        GenreName value = GenreName.from(requiredGenre.getName());
+        if (!value.normalized().equals(requiredGenre.getNormalized())) {
+            throw new IllegalArgumentException(
+                    "genre normalized value is inconsistent"
+            );
+        }
 
         return new MovieGenre(
                 requiredGenre,
-                genreName,
-                normalized
+                value.displayName(),
+                value.normalized()
         );
     }
 
     static MovieGenre createCustom(String customText) {
-        String rawText = requireText(customText, "customText");
-        String normalized = TextNormalizer.textNormalizer(rawText);
-
-        if (normalized.isBlank()) {
-            throw new IllegalArgumentException("normalizedText is blank");
-        }
-        validateLength(normalized, "normalizedText");
+        GenreName value = GenreName.from(customText);
 
         return new MovieGenre(
                 null,
-                rawText,
-                normalized
+                value.displayName(),
+                value.normalized()
         );
     }
 
@@ -102,25 +98,23 @@ public class MovieGenre {
         return value;
     }
 
-    private static String requireText(String value, String fieldName) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(fieldName + " is required");
-        }
-        String trimmed = value.trim();
-        validateLength(trimmed, fieldName);
-        return trimmed;
-    }
-
-    private static void validateLength(String value, String fieldName) {
-        if (value.length() > TEXT_MAX_LENGTH) {
-            throw new IllegalArgumentException(
-                    fieldName + " is too long (max " + TEXT_MAX_LENGTH + ")"
-            );
-        }
-    }
-
     // 나중에 표준 장르 매핑할 때 사용
     public void mapToGenre(Genre genre) {
-        this.genre = genre;
+        Genre requiredGenre = require(genre, "genre");
+        if (!requiredGenre.isActive()) {
+            throw new IllegalArgumentException("genre is inactive");
+        }
+
+        GenreName value = GenreName.from(requiredGenre.getName());
+        if (!value.normalized().equals(requiredGenre.getNormalized())
+                || !value.normalized().equals(this.normalizedText)) {
+            throw new IllegalArgumentException(
+                    "genre normalized value is inconsistent"
+            );
+        }
+
+        this.genre = requiredGenre;
+        this.rawText = value.displayName();
+        this.normalizedText = value.normalized();
     }
 }

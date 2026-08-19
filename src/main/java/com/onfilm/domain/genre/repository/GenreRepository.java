@@ -7,16 +7,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface GenreRepository extends JpaRepository<Genre, Long> {
-    Optional<Genre> findByName(String name);
-
     @Query("""
             SELECT g
             FROM Genre g
             WHERE g.isActive = true
-              AND g.normalized LIKE CONCAT(:prefix, '%')
+              AND LOCATE(:prefix, g.normalized) = 1
             ORDER BY
                 CASE WHEN g.normalized = :prefix THEN 0 ELSE 1 END,
                 g.normalized ASC

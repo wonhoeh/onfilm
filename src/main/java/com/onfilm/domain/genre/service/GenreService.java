@@ -1,7 +1,7 @@
 package com.onfilm.domain.genre.service;
 
-import com.onfilm.domain.common.util.TextNormalizer;
 import com.onfilm.domain.genre.dto.GenreAutocompleteResponse;
+import com.onfilm.domain.genre.entity.GenreName;
 import com.onfilm.domain.genre.repository.GenreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -21,7 +21,7 @@ public class GenreService {
     private final GenreRepository genreRepository;
 
     public List<GenreAutocompleteResponse> autocomplete(String query) {
-        String normalized = TextNormalizer.textNormalizer(query);
+        String normalized = GenreName.normalize(query);
         if (normalized.isBlank()) {
             return List.of();
         }

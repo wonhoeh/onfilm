@@ -199,6 +199,39 @@ class MovieTest {
     }
 
     @Test
+    void createStandardMovieGenre_rejectsInactiveGenre() {
+        Movie movie = createMovie(120, 2020, AgeRating.ALL);
+        Genre genre = Genre.create("Action");
+        genre.deactivate();
+
+        assertThatThrownBy(() -> movie.addStandardGenre(genre))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("genre is inactive");
+    }
+
+    @Test
+    void mapToGenre_requiresActiveGenreWithSameNormalizedValue() {
+        Movie movie = createMovie(120, 2020, AgeRating.ALL);
+        MovieGenre movieGenre = movie.addCustomGenre("action");
+        Genre action = Genre.create("Action");
+
+        movieGenre.mapToGenre(action);
+
+        assertThat(movieGenre.getGenre()).isSameAs(action);
+        assertThat(movieGenre.getRawText()).isEqualTo("Action");
+
+        Genre inactiveAction = Genre.create("Action");
+        inactiveAction.deactivate();
+        assertThatThrownBy(() -> movieGenre.mapToGenre(inactiveAction))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("genre is inactive");
+
+        assertThatThrownBy(() -> movieGenre.mapToGenre(Genre.create("Drama")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("genre normalized value is inconsistent");
+    }
+
+    @Test
     void removeMovieGenre_detachesBothSidesAndCollectionsAreReadOnly() {
         Movie movie = createMovie(120, 2020, AgeRating.ALL);
         MovieGenre movieGenre = movie.addCustomGenre("Action");

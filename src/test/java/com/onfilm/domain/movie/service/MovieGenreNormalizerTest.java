@@ -132,6 +132,7 @@ class MovieGenreNormalizerTest {
         }
         given(genre.getName()).willReturn(name);
         given(genre.getNormalized()).willReturn(normalized);
+        given(genre.isActive()).willReturn(true);
         return genre;
     }
 
