@@ -43,7 +43,6 @@ public class MovieService {
                 request.getReleaseYear(),
                 request.getMovieUrl(),
                 request.getThumbnailUrl(),
-                request.getTrailerUrls(),
                 request.getAgeRating()
         );
 
@@ -122,7 +121,6 @@ public class MovieService {
                     item.releaseYear(),
                     "pending",
                     null,
-                    List.of(),
                     item.ageRating()
             );
 

@@ -49,7 +49,6 @@ public class MovieServiceTest {
         given(request.getReleaseYear()).willReturn(2010);
         given(request.getMovieUrl()).willReturn("s3://movie.mp4");
         given(request.getThumbnailUrl()).willReturn("s3://thumb.png");
-        given(request.getTrailerUrls()).willReturn(List.of("https://trailer1", "https://trailer2"));
         given(request.getAgeRating()).willReturn(AgeRating.ALL);
 
         given(request.getRole()).willReturn(PersonRole.ACTOR);
@@ -121,7 +120,6 @@ public class MovieServiceTest {
         given(request.getReleaseYear()).willReturn(2010);
         given(request.getMovieUrl()).willReturn("url");
         given(request.getThumbnailUrl()).willReturn(null);
-        given(request.getTrailerUrls()).willReturn(List.of());
         given(request.getAgeRating()).willReturn(AgeRating.ALL);
 
         long userId = 1L;
@@ -145,7 +143,6 @@ public class MovieServiceTest {
         given(request.getReleaseYear()).willReturn(2010);
         given(request.getMovieUrl()).willReturn("url");
         given(request.getThumbnailUrl()).willReturn(null);
-        given(request.getTrailerUrls()).willReturn(List.of());
         given(request.getAgeRating()).willReturn(AgeRating.ALL);
 
         long userId = 1L;

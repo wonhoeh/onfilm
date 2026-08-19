@@ -2,6 +2,7 @@ package com.onfilm.domain.kafka.service;
 
 import com.onfilm.domain.common.error.exception.MediaEncodeJobNotFoundException;
 import com.onfilm.domain.common.error.exception.MovieNotFoundException;
+import com.onfilm.domain.file.service.StorageKeyPolicy;
 import com.onfilm.domain.kafka.dto.MediaJobStatusUpdateRequest;
 import com.onfilm.domain.kafka.dto.MovieMediaUpdateRequest;
 import com.onfilm.domain.kafka.dto.TrailerMediaUpdateRequest;
@@ -20,6 +21,7 @@ public class MediaEncodeJobInternalService {
 
     private final MediaEncodeJobRepository mediaEncodeJobRepository;
     private final MovieRepository movieRepository;
+    private final StorageKeyPolicy storageKeyPolicy;
 
     @Transactional
     public void updateJobStatus(String jobId, MediaJobStatusUpdateRequest request) {
@@ -81,8 +83,8 @@ public class MediaEncodeJobInternalService {
 
     @Transactional
     public void updateTrailerMedia(String jobId, TrailerMediaUpdateRequest request) {
-        if (request == null || request.trailerUrl() == null || request.trailerUrl().isBlank()) {
-            throw new IllegalArgumentException("trailerUrl is required");
+        if (request == null || request.trailerKey() == null || request.trailerKey().isBlank()) {
+            throw new IllegalArgumentException("trailerKey is required");
         }
 
         MediaEncodeJob job = mediaEncodeJobRepository.findById(jobId)
@@ -93,6 +95,12 @@ public class MediaEncodeJobInternalService {
 
         Movie movie = movieRepository.findById(job.getMovieId())
                 .orElseThrow(() -> new MovieNotFoundException(job.getMovieId()));
-        movie.addTrailer(request.trailerUrl().trim());
+        String trailerKey = request.trailerKey();
+        storageKeyPolicy.validateMovieTrailerKey(job.getMovieId(), trailerKey);
+        boolean alreadyRegistered = movie.getTrailers().stream()
+                .anyMatch(trailer -> trailer.getStorageKey().equals(trailerKey));
+        if (!alreadyRegistered) {
+            movie.addTrailer(trailerKey);
+        }
     }
 }

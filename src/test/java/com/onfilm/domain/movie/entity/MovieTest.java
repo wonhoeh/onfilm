@@ -3,12 +3,13 @@ package com.onfilm.domain.movie.entity;
 import com.onfilm.domain.genre.entity.Genre;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class MovieTest {
+
+    private static final String TRAILER_KEY =
+            "movie/1/trailer/550e8400-e29b-41d4-a716-446655440000.mp4";
 
     @Test
     void create_validatesAndNormalizesFields() {
@@ -18,7 +19,6 @@ class MovieTest {
                 2010,
                 "  movie-key  ",
                 "   ",
-                List.of("  trailer-key  "),
                 AgeRating.ALL
         );
 
@@ -27,8 +27,7 @@ class MovieTest {
         assertThat(movie.getReleaseYear()).isEqualTo(2010);
         assertThat(movie.getMovieUrl()).isEqualTo("movie-key");
         assertThat(movie.getThumbnailUrl()).isNull();
-        assertThat(movie.getTrailers()).extracting(Trailer::getUrl)
-                .containsExactly("trailer-key");
+        assertThat(movie.getTrailers()).isEmpty();
     }
 
     @Test
@@ -65,13 +64,79 @@ class MovieTest {
     }
 
     @Test
-    void addTrailer_ignoresDuplicateAfterNormalization() {
+    void addTrailer_normalizesUrlAndAttachesBothSides() {
         Movie movie = createMovie(120, 2020, AgeRating.ALL);
 
-        movie.addTrailer("trailer-key");
-        movie.addTrailer("  trailer-key  ");
+        Trailer trailer = movie.addTrailer("  " + TRAILER_KEY + "  ");
 
-        assertThat(movie.getTrailers()).hasSize(1);
+        assertThat(trailer.getStorageKey()).isEqualTo(TRAILER_KEY);
+        assertThat(trailer.getMovie()).isSameAs(movie);
+        assertThat(movie.getTrailers()).containsExactly(trailer);
+    }
+
+    @Test
+    void addTrailer_rejectsBlankTooLongAndDuplicateUrl() {
+        Movie movie = createMovie(120, 2020, AgeRating.ALL);
+
+        assertThatThrownBy(() -> movie.addTrailer((String) null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("trailerStorageKey is required");
+        assertThatThrownBy(() -> movie.addTrailer("   "))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("trailerStorageKey is required");
+        assertThat(movie.addTrailer("a".repeat(Trailer.STORAGE_KEY_MAX_LENGTH)).getStorageKey())
+                .hasSize(Trailer.STORAGE_KEY_MAX_LENGTH);
+        assertThatThrownBy(() -> movie.addTrailer("a".repeat(Trailer.STORAGE_KEY_MAX_LENGTH + 1)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("trailerStorageKey is too long (max 512)");
+
+        movie.addTrailer(TRAILER_KEY);
+
+        assertThatThrownBy(() -> movie.addTrailer("  " + TRAILER_KEY + "  "))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("duplicate trailer");
+    }
+
+    @Test
+    void addTrailer_rejectsReassignmentToAnotherMovie() {
+        Movie firstMovie = createMovie(120, 2020, AgeRating.ALL);
+        Movie secondMovie = createMovie(120, 2021, AgeRating.ALL);
+        Trailer trailer = firstMovie.addTrailer(TRAILER_KEY);
+
+        assertThatThrownBy(() -> secondMovie.addTrailer(trailer))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("trailer already belongs to another movie");
+
+        assertThat(secondMovie.getTrailers()).isEmpty();
+    }
+
+    @Test
+    void removeTrailer_detachesBothSides() {
+        Movie movie = createMovie(120, 2020, AgeRating.ALL);
+        Trailer trailer = movie.addTrailer(TRAILER_KEY);
+
+        movie.removeTrailer(trailer);
+
+        assertThat(movie.getTrailers()).isEmpty();
+        assertThat(trailer.getMovie()).isNull();
+        assertThatThrownBy(() -> movie.removeTrailer(trailer))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("trailer does not belong to movie");
+    }
+
+    @Test
+    void clearTrailers_detachesEveryTrailer() {
+        Movie movie = createMovie(120, 2020, AgeRating.ALL);
+        Trailer first = movie.addTrailer(TRAILER_KEY);
+        Trailer second = movie.addTrailer(
+                "movie/1/trailer/6ba7b810-9dad-41d1-80b4-00c04fd430c8.mp4"
+        );
+
+        movie.clearTrailers();
+
+        assertThat(movie.getTrailers()).isEmpty();
+        assertThat(first.getMovie()).isNull();
+        assertThat(second.getMovie()).isNull();
     }
 
     @Test
@@ -158,7 +223,6 @@ class MovieTest {
                 releaseYear,
                 "movie-key",
                 null,
-                List.of(),
                 ageRating
         );
     }

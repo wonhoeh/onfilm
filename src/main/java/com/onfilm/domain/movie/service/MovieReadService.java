@@ -1,6 +1,7 @@
 package com.onfilm.domain.movie.service;
 
 import com.onfilm.domain.common.error.exception.PersonNotFoundException;
+import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.movie.dto.MovieCardResponse;
 import com.onfilm.domain.movie.dto.MovieGenreResponse;
 import com.onfilm.domain.movie.entity.*;
@@ -25,6 +26,7 @@ public class MovieReadService {
     private final MovieGenreRepository movieGenreRepository;
     private final TrailerRepository trailerRepository;
     private final PersonRepository personRepository;
+    private final StorageService storageService;
 
     public List<MovieCardResponse> getFilmographyByPublicId(String publicId) {
         // 0) publicId -> Person 찾기
@@ -94,14 +96,15 @@ public class MovieReadService {
         // (Trailer에 type 필드가 있다면)
         // return trailers.stream()
         //         .sorted(Comparator.comparing(t -> t.getType() == MovieTrailerType.MAIN ? 0 : 1))
-        //         .map(Trailer::getUrl)
+        //         .map(Trailer::getStorageKey)
         //         .filter(u -> u != null && !u.isBlank())
         //         .findFirst()
         //         .orElse("");
 
         return trailers.stream()
-                .map(Trailer::getUrl)
-                .filter(u -> u != null && !u.isBlank())
+                .map(Trailer::getStorageKey)
+                .filter(key -> key != null && !key.isBlank())
+                .map(storageService::toPublicUrl)
                 .findFirst()
                 .orElse("");
     }

@@ -142,7 +142,6 @@ class MovieGenreNormalizerTest {
                 2020,
                 "movie-key",
                 null,
-                List.of(),
                 AgeRating.ALL
         );
     }

@@ -45,6 +45,7 @@ public class Movie {
     private List<MoviePerson> moviePeople = new ArrayList<>();
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderColumn(name = "sort_order")
     @BatchSize(size = 100)
     private List<Trailer> trailers = new ArrayList<>();
 
@@ -73,7 +74,6 @@ public class Movie {
             Integer releaseYear,
             String movieUrl,
             String thumbnailUrl,
-            List<String> trailerUrls,
             AgeRating ageRating) {
 
         Movie movie = new Movie(
@@ -84,10 +84,6 @@ public class Movie {
                 thumbnailUrl,
                 ageRating
         );
-
-        if (trailerUrls != null) {
-            trailerUrls.forEach(movie::addTrailer);
-        }
 
         return movie;
     }
@@ -196,18 +192,33 @@ public class Movie {
     // ======= 연관관계 편의 메서드: MovieTrailer =======
     // ======================================================================
 
-    public void addTrailer(String trailerUrl) {
-        String normalizedUrl = requireText(trailerUrl, "trailerUrl");
+    public Trailer addTrailer(String storageKey) {
+        Trailer trailer = Trailer.create(storageKey);
+        addTrailer(trailer);
+        return trailer;
+    }
 
-        boolean duplicated = trailers.stream()
-                .anyMatch(trailer -> trailer.getUrl().equals(normalizedUrl));
-        if (duplicated) return;
+    void addTrailer(Trailer trailer) {
+        Trailer requiredTrailer = require(trailer, "trailer");
+        if (hasTrailer(requiredTrailer.getStorageKey())) {
+            throw new IllegalArgumentException("duplicate trailer");
+        }
 
-        Trailer trailer = Trailer.builder()
-                .movie(this)
-                .url(normalizedUrl)
-                .build();
-        trailers.add(trailer);
+        requiredTrailer.attachMovie(this);
+        trailers.add(requiredTrailer);
+    }
+
+    public void removeTrailer(Trailer trailer) {
+        Trailer requiredTrailer = require(trailer, "trailer");
+        if (!trailers.remove(requiredTrailer)) {
+            throw new IllegalArgumentException("trailer does not belong to movie");
+        }
+        requiredTrailer.detachMovie(this);
+    }
+
+    private boolean hasTrailer(String storageKey) {
+        return trailers.stream()
+                .anyMatch(trailer -> trailer.getStorageKey().equals(storageKey));
     }
 
     // ======================================================================
@@ -224,7 +235,11 @@ public class Movie {
 
     public void clearThumbnailUrl() { this.thumbnailUrl = null; }
     public void clearMovieUrl() { this.movieUrl = null; }
-    public void clearTrailers() { this.trailers.clear(); }
+    public void clearTrailers() {
+        for (Trailer trailer : new ArrayList<>(trailers)) {
+            removeTrailer(trailer);
+        }
+    }
 
     public void changeBasicInfo(
             String title,

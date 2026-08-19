@@ -894,7 +894,6 @@
         characterName,
         genres: [...(card._genres || [])].map(toGenreRequest),
         thumbnailUrl: card._thumbnailUrl || null,
-        trailerUrls: card._trailerUrls || [],
         movieUrl: card._movieUrl || ""
       };
     }

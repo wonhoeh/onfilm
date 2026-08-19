@@ -1,5 +1,6 @@
 package com.onfilm.domain.movie.dto;
 
+import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.movie.entity.*;
 
 import java.util.List;
@@ -20,7 +21,10 @@ public record MovieCardResponse(
         String characterName,
         boolean isPrivate) {
 
-    public static MovieCardResponse from(MoviePerson mp) {
+    public static MovieCardResponse from(
+            MoviePerson mp,
+            StorageService storageService
+    ) {
         Movie m = mp.getMovie();
 
         List<MovieGenreResponse> genres = (m.getGenres() == null)
@@ -32,8 +36,9 @@ public record MovieCardResponse(
         String trailer = (m.getTrailers() == null || m.getTrailers().isEmpty())
                 ? null
                 : m.getTrailers().stream()
-                .map(Trailer::getUrl)
-                .filter(s -> s != null && !s.isBlank())
+                .map(Trailer::getStorageKey)
+                .filter(key -> key != null && !key.isBlank())
+                .map(storageService::toPublicUrl)
                 .findFirst()
                 .orElse(null);
 

@@ -18,7 +18,6 @@ public class CreateMovieRequest {
     private Integer releaseYear;
     private String movieUrl;
     private String thumbnailUrl;
-    private List<String> trailerUrls;
     private List<@NotNull @Valid MovieGenreRequest> genres;
     private AgeRating ageRating;
 

@@ -1,6 +1,7 @@
 package com.onfilm.domain.movie.service;
 
 import com.onfilm.domain.genre.entity.Genre;
+import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.movie.dto.MovieCardResponse;
 import com.onfilm.domain.movie.dto.MovieGenreResponse;
 import com.onfilm.domain.movie.entity.AgeRating;
@@ -8,6 +9,7 @@ import com.onfilm.domain.movie.entity.Movie;
 import com.onfilm.domain.movie.entity.MovieGenre;
 import com.onfilm.domain.movie.entity.MoviePerson;
 import com.onfilm.domain.movie.entity.Person;
+import com.onfilm.domain.movie.entity.Trailer;
 import com.onfilm.domain.movie.repository.MovieGenreRepository;
 import com.onfilm.domain.movie.repository.MoviePersonRepository;
 import com.onfilm.domain.movie.repository.PersonRepository;
@@ -40,6 +42,9 @@ class MovieReadServiceTest {
     @Mock
     private PersonRepository personRepository;
 
+    @Mock
+    private StorageService storageService;
+
     @InjectMocks
     private MovieReadService movieReadService;
 
@@ -50,6 +55,9 @@ class MovieReadServiceTest {
         MoviePerson moviePerson = moviePerson(movie);
         MovieGenre standardMovieGenre = standardMovieGenre(movie);
         MovieGenre customMovieGenre = customMovieGenre(movie);
+        Trailer trailer = mock(Trailer.class);
+        String trailerKey =
+                "movie/10/trailer/550e8400-e29b-41d4-a716-446655440000/index.m3u8";
 
         given(personRepository.findByPublicId("person-public-id"))
                 .willReturn(Optional.of(person));
@@ -59,7 +67,11 @@ class MovieReadServiceTest {
         given(movieGenreRepository.findAllByMovieIds(List.of(10L)))
                 .willReturn(List.of(standardMovieGenre, customMovieGenre));
         given(trailerRepository.findAllByMovieIds(List.of(10L)))
-                .willReturn(List.of());
+                .willReturn(List.of(trailer));
+        given(trailer.getMovie()).willReturn(movie);
+        given(trailer.getStorageKey()).willReturn(trailerKey);
+        given(storageService.toPublicUrl(trailerKey))
+                .willReturn("https://cdn.example.com/" + trailerKey);
 
         List<MovieCardResponse> result = movieReadService
                 .getFilmographyByPublicId("person-public-id");
@@ -80,6 +92,8 @@ class MovieReadServiceTest {
                         )
                 )
         );
+        assertThat(result.get(0).trailerUrl())
+                .isEqualTo("https://cdn.example.com/" + trailerKey);
     }
 
     private static Movie movie() {

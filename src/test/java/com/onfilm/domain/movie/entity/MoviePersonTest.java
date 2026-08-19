@@ -107,7 +107,6 @@ class MoviePersonTest {
                 2010,
                 "movie-key",
                 null,
-                List.of(),
                 AgeRating.ALL
         );
     }

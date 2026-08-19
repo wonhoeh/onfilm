@@ -126,7 +126,7 @@
 
 ```json
 {
-  "trailerUrl": "movie/10/trailer/abc123/index.m3u8"
+  "trailerKey": "movie/10/trailer/550e8400-e29b-41d4-a716-446655440000/index.m3u8"
 }
 ```
 
@@ -134,7 +134,8 @@
 
 - `jobId`로 `MediaEncodeJob`을 찾음
 - 해당 job의 `jobType`이 `TRAILER`인지 확인
-- `job.movieId`를 사용해 movie에 trailer URL 추가
+- `movie/{movieId}/trailer/{UUID}/index.m3u8` 형식과 Movie 소유권 검증
+- `job.movieId`를 사용해 Movie에 Trailer storageKey 추가
 
 응답:
 
@@ -142,7 +143,8 @@
 - 실패:
   - 없는 jobId: `404`
   - job type이 `TRAILER`가 아님: `400`
-  - `trailerUrl` 누락: `400`
+  - `trailerKey` 누락 또는 잘못된 형식: `400`
+  - 키에 포함된 movieId와 job의 movieId가 다름: `400`
 
 ## 4. 권장 호출 순서
 
@@ -164,7 +166,7 @@
 
 1. `PATCH /internal/api/media-jobs/{jobId}` with `PROCESSING`
 2. 워커 인코딩 수행
-3. `PATCH /internal/api/trailers/{jobId}/media` with `trailerUrl`
+3. `PATCH /internal/api/trailers/{jobId}/media` with `trailerKey`
 4. `PATCH /internal/api/media-jobs/{jobId}` with `DONE`
 
 ### 실패

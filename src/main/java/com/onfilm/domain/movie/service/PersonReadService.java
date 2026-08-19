@@ -3,6 +3,8 @@ package com.onfilm.domain.movie.service;
 import com.onfilm.domain.common.error.exception.MovieNotFoundException;
 import com.onfilm.domain.common.error.exception.PersonNotFoundException;
 import com.onfilm.domain.common.util.SecurityUtil;
+import com.onfilm.domain.file.event.StorageFilesDeleteEvent;
+import com.onfilm.domain.file.service.StorageKeyPolicy;
 import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.movie.dto.*;
 import com.onfilm.domain.movie.entity.Movie;
@@ -14,6 +16,7 @@ import com.onfilm.domain.movie.repository.PersonRepository;
 import com.onfilm.domain.user.entity.User;
 import com.onfilm.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +32,8 @@ public class PersonReadService {
     private final MoviePersonRepository moviePersonRepository;
     private final UserRepository userRepository;
     private final StorageService storageService;
+    private final StorageKeyPolicy storageKeyPolicy;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ProfileResponse findProfileByPublicId(String publicId) {
         Person person = personRepository.findByPublicId(publicId)
@@ -137,10 +142,11 @@ public class PersonReadService {
     }
 
     @Transactional
-    public void addMovieTrailer(Long movieId, String key) {
+    public void addMovieTrailer(Long movieId, String storageKey) {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new MovieNotFoundException(movieId));
-        movie.addTrailer(key);
+        storageKeyPolicy.validateMovieTrailerKey(movieId, storageKey);
+        movie.addTrailer(storageKey);
     }
 
     public boolean canEditMovie(Long personId, Long movieId) {
@@ -172,19 +178,22 @@ public class PersonReadService {
         String movieKey = movie.getMovieUrl();
 
         List<String> trailerKeys = movie.getTrailers().stream()
-                .map(Trailer::getUrl)
+                .map(Trailer::getStorageKey)
                 .filter(k -> k != null && !k.isBlank())
                 .toList();
+        trailerKeys.forEach(
+                key -> storageKeyPolicy.validateMovieTrailerKey(movieId, key)
+        );
 
         movie.clearThumbnailUrl();
         movie.clearMovieUrl();
         movie.clearTrailers();
 
-        if (thumbnailKey != null && !thumbnailKey.isBlank()) storageService.delete(thumbnailKey);
-        if (movieKey != null && !movieKey.isBlank()) storageService.delete(movieKey);
-        for (String key : trailerKeys) {
-            storageService.delete(key);
-        }
+        List<String> keys = new ArrayList<>();
+        keys.add(thumbnailKey);
+        keys.add(movieKey);
+        keys.addAll(trailerKeys);
+        publishFilesDeleteEvent(keys);
     }
 
     @Transactional
@@ -193,7 +202,7 @@ public class PersonReadService {
                 .orElseThrow(() -> new MovieNotFoundException(movieId));
         String key = movie.getThumbnailUrl();
         movie.clearThumbnailUrl();
-        if (key != null && !key.isBlank()) storageService.delete(key);
+        publishFilesDeleteEvent(Collections.singletonList(key));
     }
 
     @Transactional
@@ -202,7 +211,7 @@ public class PersonReadService {
                 .orElseThrow(() -> new MovieNotFoundException(movieId));
         String key = movie.getMovieUrl();
         movie.clearMovieUrl();
-        if (key != null && !key.isBlank()) storageService.delete(key);
+        publishFilesDeleteEvent(Collections.singletonList(key));
     }
 
     @Transactional
@@ -210,13 +219,12 @@ public class PersonReadService {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new MovieNotFoundException(movieId));
         List<String> keys = movie.getTrailers().stream()
-                .map(Trailer::getUrl)
+                .map(Trailer::getStorageKey)
                 .filter(k -> k != null && !k.isBlank())
                 .toList();
+        keys.forEach(key -> storageKeyPolicy.validateMovieTrailerKey(movieId, key));
         movie.clearTrailers();
-        for (String key : keys) {
-            storageService.delete(key);
-        }
+        publishFilesDeleteEvent(keys);
     }
 
     @Transactional
@@ -257,6 +265,17 @@ public class PersonReadService {
         Person person = personRepository.findById(personId)
                 .orElseThrow(() -> new PersonNotFoundException(personId));
         person.changeGalleryItemPrivacy(key, isPrivate);
+    }
+
+    private void publishFilesDeleteEvent(List<String> keys) {
+        List<String> keysToDelete = keys.stream()
+                .filter(Objects::nonNull)
+                .filter(key -> !key.isBlank())
+                .distinct()
+                .toList();
+        if (!keysToDelete.isEmpty()) {
+            eventPublisher.publishEvent(new StorageFilesDeleteEvent(keysToDelete));
+        }
     }
 
 }

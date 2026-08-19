@@ -12,6 +12,7 @@ public interface TrailerRepository extends JpaRepository<Trailer, Long> {
         select t
         from Trailer t
         where t.movie.id in :movieIds
+        order by t.movie.id asc, t.id asc
     """)
     List<Trailer> findAllByMovieIds(@Param("movieIds") List<Long> movieIds);
 }
