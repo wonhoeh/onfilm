@@ -46,7 +46,7 @@ public class StoryboardCard {
         }
     }
 
-    public void changeImageKey(String imageKey) {
+    void changeImageKey(String imageKey) {
         this.imageKey = normalizeImageKey(imageKey);
     }
 

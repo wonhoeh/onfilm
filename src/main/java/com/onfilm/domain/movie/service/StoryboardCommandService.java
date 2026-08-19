@@ -4,7 +4,8 @@ import com.onfilm.domain.common.error.exception.PersonNotFoundException;
 import com.onfilm.domain.common.error.exception.StoryboardProjectNotFoundException;
 import com.onfilm.domain.common.error.exception.StoryboardSceneNotFoundException;
 import com.onfilm.domain.common.util.SecurityUtil;
-import com.onfilm.domain.file.service.StorageService;
+import com.onfilm.domain.file.event.StorageFilesDeleteEvent;
+import com.onfilm.domain.file.service.StorageKeyPolicy;
 import com.onfilm.domain.movie.dto.StoryboardCardRequest;
 import com.onfilm.domain.movie.dto.StoryboardProjectRequest;
 import com.onfilm.domain.movie.dto.StoryboardSceneRequest;
@@ -16,6 +17,7 @@ import com.onfilm.domain.movie.repository.PersonRepository;
 import com.onfilm.domain.user.entity.User;
 import com.onfilm.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +31,8 @@ public class StoryboardCommandService {
 
     private final PersonRepository personRepository;
     private final UserRepository userRepository;
-    private final StorageService storageService;
+    private final StorageKeyPolicy storageKeyPolicy;
+    private final ApplicationEventPublisher eventPublisher;
 
     public StoryboardProject createProject(StoryboardProjectRequest request) {
         StoryboardProjectRequest requiredRequest = require(request, "request");
@@ -47,7 +50,7 @@ public class StoryboardCommandService {
     public void deleteProject(Long projectId) {
         Person person = findCurrentPerson();
         StoryboardProject project = findProject(person, projectId);
-        deleteCardFiles(project);
+        deleteCardFiles(person.getId(), project);
         person.removeStoryboardProject(project);
     }
 
@@ -55,14 +58,18 @@ public class StoryboardCommandService {
         StoryboardSceneRequest requiredRequest = require(request, "request");
         Person person = findCurrentPerson();
         StoryboardProject project = findProject(person, projectId);
+        List<StoryboardScene.CardChange> cardChanges = toCardChanges(
+                person.getId(),
+                requiredRequest.cards()
+        );
         StoryboardScene scene = project.addScene(
                 requiredRequest.title(),
                 requiredRequest.scriptHtml()
         );
         StoryboardScene.CardReplacementResult result = scene.replaceCards(
-                toCardChanges(requiredRequest.cards())
+                cardChanges
         );
-        deleteFiles(result.obsoleteImageKeys());
+        deleteFiles(person.getId(), result.obsoleteImageKeys());
         return scene;
     }
 
@@ -72,20 +79,26 @@ public class StoryboardCommandService {
             StoryboardSceneRequest request
     ) {
         StoryboardSceneRequest requiredRequest = require(request, "request");
-        StoryboardProject project = findProject(findCurrentPerson(), projectId);
+        Person person = findCurrentPerson();
+        StoryboardProject project = findProject(person, projectId);
         StoryboardScene scene = findScene(project, sceneId);
+        List<StoryboardScene.CardChange> cardChanges = toCardChanges(
+                person.getId(),
+                requiredRequest.cards()
+        );
         scene.changeContent(requiredRequest.title(), requiredRequest.scriptHtml());
         StoryboardScene.CardReplacementResult result = scene.replaceCards(
-                toCardChanges(requiredRequest.cards())
+                cardChanges
         );
-        deleteFiles(result.obsoleteImageKeys());
+        deleteFiles(person.getId(), result.obsoleteImageKeys());
         return scene;
     }
 
     public void deleteScene(Long projectId, Long sceneId) {
-        StoryboardProject project = findProject(findCurrentPerson(), projectId);
+        Person person = findCurrentPerson();
+        StoryboardProject project = findProject(person, projectId);
         StoryboardScene scene = findScene(project, sceneId);
-        deleteCardFiles(scene);
+        deleteCardFiles(person.getId(), scene);
         project.removeScene(scene);
     }
 
@@ -95,6 +108,7 @@ public class StoryboardCommandService {
     }
 
     private List<StoryboardScene.CardChange> toCardChanges(
+            Long personId,
             List<StoryboardCardRequest> cardRequests
     ) {
         List<StoryboardCardRequest> requiredRequests = require(
@@ -106,6 +120,10 @@ public class StoryboardCommandService {
                     StoryboardCardRequest requiredCardRequest = require(
                             cardRequest,
                             "cardRequest"
+                    );
+                    storageKeyPolicy.validateStoryboardCardKey(
+                            personId,
+                            requiredCardRequest.imageKey()
                     );
                     return new StoryboardScene.CardChange(
                             requiredCardRequest.cardId(),
@@ -149,26 +167,33 @@ public class StoryboardCommandService {
                 .orElseThrow(() -> new StoryboardSceneNotFoundException(sceneId));
     }
 
-    private void deleteCardFiles(StoryboardProject project) {
-        for (StoryboardScene scene : project.getScenes()) {
-            deleteCardFiles(scene);
-        }
+    private void deleteCardFiles(Long personId, StoryboardProject project) {
+        List<String> imageKeys = project.getScenes().stream()
+                .flatMap(scene -> scene.getCards().stream())
+                .map(StoryboardCard::getImageKey)
+                .toList();
+        deleteFiles(personId, imageKeys);
     }
 
-    private void deleteCardFiles(StoryboardScene scene) {
-        for (StoryboardCard card : scene.getCards()) {
-            deleteFile(card.getImageKey());
-        }
+    private void deleteCardFiles(Long personId, StoryboardScene scene) {
+        List<String> imageKeys = scene.getCards().stream()
+                .map(StoryboardCard::getImageKey)
+                .toList();
+        deleteFiles(personId, imageKeys);
     }
 
-    private void deleteFile(String key) {
-        if (key != null && !key.isBlank()) {
-            storageService.delete(key);
+    private void deleteFiles(Long personId, List<String> keys) {
+        List<String> keysToDelete = keys.stream()
+                .filter(Objects::nonNull)
+                .filter(key -> !key.isBlank())
+                .distinct()
+                .toList();
+        keysToDelete.forEach(
+                key -> storageKeyPolicy.validateStoryboardCardKey(personId, key)
+        );
+        if (!keysToDelete.isEmpty()) {
+            eventPublisher.publishEvent(new StorageFilesDeleteEvent(keysToDelete));
         }
-    }
-
-    private void deleteFiles(List<String> keys) {
-        keys.forEach(this::deleteFile);
     }
 
     private static <T> T require(T value, String fieldName) {
