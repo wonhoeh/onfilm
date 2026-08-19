@@ -1,6 +1,7 @@
 package com.onfilm.domain.movie.repository;
 
 import com.onfilm.domain.movie.entity.Person;
+import com.onfilm.domain.movie.entity.StoryboardCard;
 import com.onfilm.domain.movie.entity.StoryboardProject;
 import com.onfilm.domain.movie.entity.StoryboardScene;
 import jakarta.persistence.EntityManager;
@@ -51,5 +52,29 @@ class StoryboardProjectPersistenceTest {
                 .extracting(StoryboardScene::getTitle)
                 .containsExactly("씬 3", "씬 1");
         assertThat(entityManager.find(StoryboardScene.class, removedSceneId)).isNull();
+    }
+
+    @Test
+    void 카드_순서를_저장하고_삭제된_카드를_orphanRemoval로_제거한다() {
+        Person person = personRepository.findById(1L).orElseThrow();
+        StoryboardScene scene = person.getStoryboardProjects().get(0).getScenes().get(0);
+        StoryboardCard first = scene.addCard("first.jpg");
+        StoryboardCard second = scene.addCard(null);
+        StoryboardCard third = scene.addCard("third.jpg");
+        personRepository.flush();
+
+        Long sceneId = scene.getId();
+        Long removedCardId = first.getId();
+        scene.replaceCards(List.of(
+                new StoryboardScene.CardChange(third.getId(), "third.jpg"),
+                new StoryboardScene.CardChange(second.getId(), null)
+        ));
+        personRepository.flush();
+        entityManager.clear();
+
+        StoryboardScene foundScene = entityManager.find(StoryboardScene.class, sceneId);
+        assertThat(foundScene.getCards()).extracting(StoryboardCard::getImageKey)
+                .containsExactly("third.jpg", null);
+        assertThat(entityManager.find(StoryboardCard.class, removedCardId)).isNull();
     }
 }

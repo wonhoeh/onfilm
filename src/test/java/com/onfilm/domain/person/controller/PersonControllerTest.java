@@ -254,4 +254,67 @@ class PersonControllerTest {
 
         verifyNoInteractions(storyboardCommandService);
     }
+
+    @Test
+    @DisplayName("POST /storyboard/projects/{id}/scenes - 제목이 120자를 넘으면 422를 반환한다")
+    void createStoryboardScene_rejectsLongTitle() throws Exception {
+        StoryboardSceneRequest request = new StoryboardSceneRequest(
+                null,
+                "a".repeat(121),
+                null,
+                List.of()
+        );
+
+        mockMvc.perform(post("/api/people/{publicId}/storyboard/projects/{projectId}/scenes",
+                        "public-id", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors[0].field").value("title"));
+
+        verifyNoInteractions(storyboardCommandService);
+    }
+
+    @Test
+    @DisplayName("PUT /storyboard/projects/{id}/scenes/{id} - cards가 null이면 422를 반환한다")
+    void updateStoryboardScene_rejectsNullCards() throws Exception {
+        StoryboardSceneRequest request = new StoryboardSceneRequest(
+                1L,
+                "씬",
+                null,
+                null
+        );
+
+        mockMvc.perform(put("/api/people/{publicId}/storyboard/projects/{projectId}/scenes/{sceneId}",
+                        "public-id", 1L, 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors[0].field").value("cards"));
+
+        verifyNoInteractions(storyboardCommandService);
+    }
+
+    @Test
+    @DisplayName("POST /storyboard/projects/{id}/scenes - 이미지 키가 512자를 넘으면 422를 반환한다")
+    void createStoryboardScene_rejectsLongImageKey() throws Exception {
+        StoryboardSceneRequest request = new StoryboardSceneRequest(
+                null,
+                "씬",
+                null,
+                List.of(new StoryboardCardRequest(null, "a".repeat(513)))
+        );
+
+        mockMvc.perform(post("/api/people/{publicId}/storyboard/projects/{projectId}/scenes",
+                        "public-id", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors[0].field").value("cards[0].imageKey"));
+
+        verifyNoInteractions(storyboardCommandService);
+    }
 }

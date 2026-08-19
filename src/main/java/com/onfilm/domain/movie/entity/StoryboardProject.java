@@ -66,7 +66,13 @@ public class StoryboardProject {
         this.title = requireTitle(title);
     }
 
-    public void addScene(StoryboardScene scene) {
+    public StoryboardScene addScene(String title, String scriptHtml) {
+        StoryboardScene scene = StoryboardScene.create(title, scriptHtml);
+        addScene(scene);
+        return scene;
+    }
+
+    void addScene(StoryboardScene scene) {
         StoryboardScene requiredScene = require(scene, "scene");
         if (scenes.contains(requiredScene)) {
             throw new IllegalArgumentException("duplicate storyboard scene");

@@ -252,7 +252,7 @@ public class PersonController {
     public ResponseEntity<StoryboardSceneResponse> createStoryboardScene(
             @PathVariable String publicId,
             @PathVariable Long projectId,
-            @RequestBody StoryboardSceneRequest request
+            @Valid @RequestBody StoryboardSceneRequest request
     ) {
         StoryboardScene scene = storyboardCommandService.createScene(projectId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(toSceneResponse(scene));
@@ -263,7 +263,7 @@ public class PersonController {
             @PathVariable String publicId,
             @PathVariable Long projectId,
             @PathVariable Long sceneId,
-            @RequestBody StoryboardSceneRequest request
+            @Valid @RequestBody StoryboardSceneRequest request
     ) {
         StoryboardScene scene = storyboardCommandService.updateScene(projectId, sceneId, request);
         return ResponseEntity.ok(toSceneResponse(scene));

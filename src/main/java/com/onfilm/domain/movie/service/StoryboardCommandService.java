@@ -19,13 +19,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -57,26 +52,17 @@ public class StoryboardCommandService {
     }
 
     public StoryboardScene createScene(Long projectId, StoryboardSceneRequest request) {
+        StoryboardSceneRequest requiredRequest = require(request, "request");
         Person person = findCurrentPerson();
         StoryboardProject project = findProject(person, projectId);
-        String title = request == null ? null : request.title();
-        String script = request == null ? null : request.scriptHtml();
-        StoryboardScene scene = new StoryboardScene(title, script);
-
-        List<StoryboardCardRequest> cards = request == null || request.cards() == null
-                ? List.of()
-                : request.cards();
-        for (StoryboardCardRequest cardRequest : cards) {
-            if (cardRequest.imageKey() == null || cardRequest.imageKey().isBlank()) {
-                continue;
-            }
-
-            StoryboardCard card = new StoryboardCard(cardRequest.imageKey());
-            card.attachScene(scene);
-            scene.getCards().add(card);
-        }
-
-        project.addScene(scene);
+        StoryboardScene scene = project.addScene(
+                requiredRequest.title(),
+                requiredRequest.scriptHtml()
+        );
+        StoryboardScene.CardReplacementResult result = scene.replaceCards(
+                toCardChanges(requiredRequest.cards())
+        );
+        deleteFiles(result.obsoleteImageKeys());
         return scene;
     }
 
@@ -85,14 +71,14 @@ public class StoryboardCommandService {
             Long sceneId,
             StoryboardSceneRequest request
     ) {
+        StoryboardSceneRequest requiredRequest = require(request, "request");
         StoryboardProject project = findProject(findCurrentPerson(), projectId);
         StoryboardScene scene = findScene(project, sceneId);
-        if (request != null) {
-            scene.changeTitle(request.title());
-            scene.changeScriptHtml(request.scriptHtml());
-        }
-
-        replaceCards(scene, request == null ? null : request.cards());
+        scene.changeContent(requiredRequest.title(), requiredRequest.scriptHtml());
+        StoryboardScene.CardReplacementResult result = scene.replaceCards(
+                toCardChanges(requiredRequest.cards())
+        );
+        deleteFiles(result.obsoleteImageKeys());
         return scene;
     }
 
@@ -108,51 +94,25 @@ public class StoryboardCommandService {
         project.reorderScenes(sceneIds);
     }
 
-    private void replaceCards(StoryboardScene scene, List<StoryboardCardRequest> cardRequests) {
-        Map<Long, StoryboardCard> existing = new LinkedHashMap<>();
-        for (StoryboardCard card : scene.getCards()) {
-            existing.put(card.getId(), card);
-        }
-
-        List<StoryboardCard> next = new ArrayList<>();
-        Set<Long> kept = new HashSet<>();
-        if (cardRequests != null) {
-            for (StoryboardCardRequest cardRequest : cardRequests) {
-                StoryboardCard card = cardRequest.cardId() == null
-                        ? null
-                        : existing.get(cardRequest.cardId());
-                if (card == null) {
-                    card = new StoryboardCard(cardRequest.imageKey());
-                    card.attachScene(scene);
-                } else {
-                    changeCardImage(card, cardRequest.imageKey());
-                    kept.add(card.getId());
-                }
-                next.add(card);
-            }
-        }
-
-        for (StoryboardCard card : scene.getCards()) {
-            if (card.getId() == null || !kept.contains(card.getId())) {
-                deleteFile(card.getImageKey());
-            }
-        }
-
-        scene.getCards().clear();
-        scene.getCards().addAll(next);
-    }
-
-    private void changeCardImage(StoryboardCard card, String newKey) {
-        String oldKey = card.getImageKey();
-        if (newKey == null || newKey.isBlank()) {
-            deleteFile(oldKey);
-            card.changeImageKey(null);
-            return;
-        }
-        if (!newKey.equals(oldKey)) {
-            card.changeImageKey(newKey);
-            deleteFile(oldKey);
-        }
+    private List<StoryboardScene.CardChange> toCardChanges(
+            List<StoryboardCardRequest> cardRequests
+    ) {
+        List<StoryboardCardRequest> requiredRequests = require(
+                cardRequests,
+                "cards"
+        );
+        return requiredRequests.stream()
+                .map(cardRequest -> {
+                    StoryboardCardRequest requiredCardRequest = require(
+                            cardRequest,
+                            "cardRequest"
+                    );
+                    return new StoryboardScene.CardChange(
+                            requiredCardRequest.cardId(),
+                            requiredCardRequest.imageKey()
+                    );
+                })
+                .toList();
     }
 
     private Person findCurrentPerson() {
@@ -205,6 +165,10 @@ public class StoryboardCommandService {
         if (key != null && !key.isBlank()) {
             storageService.delete(key);
         }
+    }
+
+    private void deleteFiles(List<String> keys) {
+        keys.forEach(this::deleteFile);
     }
 
     private static <T> T require(T value, String fieldName) {

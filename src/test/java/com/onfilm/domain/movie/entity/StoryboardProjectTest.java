@@ -31,9 +31,7 @@ class StoryboardProjectTest {
     @Test
     void 씬을_추가하고_삭제할_때_양방향_연관관계를_동기화한다() {
         StoryboardProject project = StoryboardProject.create("프로젝트");
-        StoryboardScene scene = new StoryboardScene("씬", "대본");
-
-        project.addScene(scene);
+        StoryboardScene scene = project.addScene("씬", "대본");
 
         assertThat(project.getScenes()).containsExactly(scene);
         assertThat(scene.getProject()).isSameAs(project);
@@ -54,8 +52,7 @@ class StoryboardProjectTest {
     void 이미_다른_프로젝트에_속한_씬은_재할당할_수_없다() {
         StoryboardProject first = StoryboardProject.create("첫 프로젝트");
         StoryboardProject second = StoryboardProject.create("두 번째 프로젝트");
-        StoryboardScene scene = new StoryboardScene("씬", null);
-        first.addScene(scene);
+        StoryboardScene scene = first.addScene("씬", null);
 
         assertThatThrownBy(() -> second.addScene(scene))
                 .isInstanceOf(IllegalStateException.class);
@@ -88,7 +85,7 @@ class StoryboardProjectTest {
     @Test
     void 저장되지_않은_씬은_ID로_재정렬할_수_없다() {
         StoryboardProject project = StoryboardProject.create("프로젝트");
-        project.addScene(new StoryboardScene("씬", null));
+        project.addScene("씬", null);
 
         assertThatThrownBy(() -> project.reorderScenes(List.of()))
                 .isInstanceOf(IllegalStateException.class);
@@ -97,9 +94,8 @@ class StoryboardProjectTest {
     private static StoryboardProject projectWithSavedScenes() {
         StoryboardProject project = StoryboardProject.create("프로젝트");
         for (long id = 1; id <= 3; id++) {
-            StoryboardScene scene = new StoryboardScene("씬 " + id, null);
+            StoryboardScene scene = project.addScene("씬 " + id, null);
             setId(scene, id);
-            project.addScene(scene);
         }
         return project;
     }
