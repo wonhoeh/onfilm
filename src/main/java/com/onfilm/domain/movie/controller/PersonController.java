@@ -67,7 +67,7 @@ public class PersonController {
 
     @PostMapping()
     public ResponseEntity<Long> createPerson(@Valid @RequestBody CreatePersonRequest request) {
-        Long personId = personService.createPerson(request);
+        Long personId = personService.initializePersonProfile(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(personId);
     }
 

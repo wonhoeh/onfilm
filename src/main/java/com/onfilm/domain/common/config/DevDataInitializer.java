@@ -1,6 +1,8 @@
 package com.onfilm.domain.common.config;
 
 import com.onfilm.domain.user.entity.User;
+import com.onfilm.domain.user.entity.UserEmail;
+import com.onfilm.domain.user.entity.Username;
 import com.onfilm.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +39,11 @@ public class DevDataInitializer implements ApplicationRunner {
             return;
         }
 
-        User user = User.create("test@test.com", passwordEncoder.encode("test1234"), "testactor");
+        User user = User.create(
+                UserEmail.from("test@test.com"),
+                passwordEncoder.encode("test1234"),
+                Username.from("testactor")
+        );
         user.attachPerson(person);
         userRepository.save(user);
 

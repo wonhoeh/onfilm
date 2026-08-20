@@ -50,13 +50,17 @@ class AuthIntegrationTest {
     @DisplayName("회원가입 후 로그인 성공 및 access token 쿠키 발급 확인")
     @Test
     void signupThenLoginSucceeds() throws Exception {
-        SignupRequest signup = new SignupRequest("user@example.com", "password123!", "qwer");
+        SignupRequest signup = new SignupRequest(
+                "  User@Example.COM  ",
+                "password123!",
+                "  TestUser  "
+        );
         mockMvc.perform(post("/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(signup)))
                 .andExpect(status().isCreated());
 
-        LoginRequest login = new LoginRequest("user@example.com", "password123!");
+        LoginRequest login = new LoginRequest("USER@example.com", "password123!");
         var result = mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(login)))
@@ -67,6 +71,55 @@ class AuthIntegrationTest {
                 result.getResponse().getHeaders(HttpHeaders.SET_COOKIE),
                 "access_token"
         )).isNotBlank();
+        assertThat(userRepository.findByEmail("user@example.com"))
+                .get()
+                .extracting(user -> user.getPerson())
+                .isNotNull();
+    }
+
+    @Test
+    void signupRejectsEmailAndUsernameDuplicatesWithConflictCodes() throws Exception {
+        mockMvc.perform(post("/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new SignupRequest(
+                                "first@example.com",
+                                "password123!",
+                                "TestUser"
+                        ))))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new SignupRequest(
+                                "FIRST@example.com",
+                                "password123!",
+                                "another-user"
+                        ))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("DUPLICATE_EMAIL"));
+
+        mockMvc.perform(post("/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new SignupRequest(
+                                "second@example.com",
+                                "password123!",
+                                "testuser"
+                        ))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("DUPLICATE_USERNAME"));
+    }
+
+    @Test
+    void signupRejectsPasswordOverBcryptUtf8ByteLimit() throws Exception {
+        mockMvc.perform(post("/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new SignupRequest(
+                                "user@example.com",
+                                "가".repeat(25),
+                                "testuser"
+                        ))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
     }
 
 

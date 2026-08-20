@@ -364,18 +364,6 @@ public class Person {
         }
     }
 
-    public void detachUser() {
-        if (this.user == null) {
-            return;
-        }
-
-        User oldUser = this.user;
-        this.user = null;
-        if (oldUser.getPerson() == this) {
-            oldUser.detachPerson();
-        }
-    }
-
     // ======================================================================
     // ======= 연관관계 편의 메서드: Storyboard =======
     // ======================================================================

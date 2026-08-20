@@ -3,6 +3,7 @@ package com.onfilm.domain.auth.controller;
 import com.onfilm.domain.auth.dto.*;
 import com.onfilm.domain.auth.infrastructure.AuthCookieFactory;
 import com.onfilm.domain.auth.service.AuthService;
+import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.user.entity.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final AuthCookieFactory authCookieFactory;
+    private final StorageService storageService;
 
     @PostMapping("/signup")
     public ResponseEntity<Void> signup(@Valid @RequestBody SignupRequest request) {
@@ -82,7 +84,7 @@ public class AuthController {
                 user.getId(),
                 user.getEmail(),
                 user.getUsername(),
-                user.getAvatarUrl()
+                storageService.toPublicUrl(user.getAvatarImageKey())
         ));
     }
 

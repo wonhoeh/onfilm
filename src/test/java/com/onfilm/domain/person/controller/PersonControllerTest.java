@@ -77,7 +77,7 @@ class PersonControllerTest {
     @DisplayName("POST /persons - 생성 성공 시 201과 personId를 반환한다")
     void createPerson_success() throws Exception {
         // given
-        given(personService.createPerson(any(CreatePersonRequest.class)))
+        given(personService.initializePersonProfile(any(CreatePersonRequest.class)))
                 .willReturn(1L);
 
         CreatePersonRequest request = new CreatePersonRequest(
@@ -108,7 +108,7 @@ class PersonControllerTest {
     @DisplayName("POST /persons - snsList가 null이어도 201을 반환한다")
     void createPerson_success_whenSnsListNull() throws Exception {
         // given
-        given(personService.createPerson(any(CreatePersonRequest.class)))
+        given(personService.initializePersonProfile(any(CreatePersonRequest.class)))
                 .willReturn(2L);
 
         CreatePersonRequest request = new CreatePersonRequest(

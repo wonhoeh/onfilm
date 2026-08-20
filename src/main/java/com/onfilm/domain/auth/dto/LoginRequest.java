@@ -1,11 +1,12 @@
 package com.onfilm.domain.auth.dto;
 
-import jakarta.validation.constraints.Email;
+import com.onfilm.domain.user.entity.UserEmail;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public record LoginRequest(
-        @Email
         @NotBlank
+        @Size(max = UserEmail.MAX_LENGTH)
         String email,
         @NotBlank
         String password

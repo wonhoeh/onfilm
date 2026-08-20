@@ -1,5 +1,7 @@
 package com.onfilm.domain.common.error;
 
+import com.onfilm.domain.common.error.exception.DuplicateEmailException;
+import com.onfilm.domain.common.error.exception.DuplicateUsernameException;
 import com.onfilm.domain.common.error.exception.InvalidProfileTagException;
 import com.onfilm.domain.common.error.exception.MediaEncodeJobNotFoundException;
 import com.onfilm.domain.common.error.exception.MovieNotFoundException;
@@ -72,6 +74,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleInvalidProfileTag(InvalidProfileTagException e) {
         return ResponseEntity.status(BAD_REQUEST)
                 .body(ErrorResponse.of("INVALID_PROFILE_TAG", e.getMessage()));
+    }
+
+    @ExceptionHandler(DuplicateEmailException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateEmail(DuplicateEmailException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErrorResponse.of("DUPLICATE_EMAIL", e.getMessage()));
+    }
+
+    @ExceptionHandler(DuplicateUsernameException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateUsername(DuplicateUsernameException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErrorResponse.of("DUPLICATE_USERNAME", e.getMessage()));
     }
 
     @ExceptionHandler(MediaEncodeJobNotFoundException.class)

@@ -2,6 +2,8 @@ package com.onfilm.domain.movie.entity;
 
 import com.onfilm.domain.common.error.exception.InvalidProfileTagException;
 import com.onfilm.domain.user.entity.User;
+import com.onfilm.domain.user.entity.UserEmail;
+import com.onfilm.domain.user.entity.Username;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -221,10 +223,18 @@ class PersonTest {
     }
 
     @Test
-    void userAssociation_rejectsReassignmentAndDetachesBothSides() {
+    void userAssociation_rejectsReassignmentAndKeepsRequiredAssociation() {
         Person person = createPerson();
-        User user = User.create("first@test.com", "password", "first-user");
-        User anotherUser = User.create("second@test.com", "password", "second-user");
+        User user = User.create(
+                UserEmail.from("first@test.com"),
+                "encoded-password",
+                Username.from("first-user")
+        );
+        User anotherUser = User.create(
+                UserEmail.from("second@test.com"),
+                "encoded-password",
+                Username.from("second-user")
+        );
 
         user.attachPerson(person);
 
@@ -234,10 +244,6 @@ class PersonTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("person already belongs to another user");
 
-        user.detachPerson();
-
-        assertThat(user.getPerson()).isNull();
-        assertThat(person.getUser()).isNull();
     }
 
     private static Person createPerson() {

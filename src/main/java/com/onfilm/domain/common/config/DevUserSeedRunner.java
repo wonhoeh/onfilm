@@ -1,7 +1,8 @@
 package com.onfilm.domain.common.config;
 
-import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.user.entity.User;
+import com.onfilm.domain.user.entity.UserEmail;
+import com.onfilm.domain.user.entity.Username;
 import com.onfilm.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
@@ -28,9 +29,12 @@ public class DevUserSeedRunner implements ApplicationRunner {
         if (userRepository.existsByEmail(email)) return;
 
         String hashed = passwordEncoder.encode(password);
-        User user = User.create(email, hashed, username);
-        Person person = Person.create(username, null, null, null, null, null, null);
-        user.attachPerson(person);
+        User user = User.create(
+                UserEmail.from(email),
+                hashed,
+                Username.from(username)
+        );
+        user.createPerson(username);
         userRepository.save(user);
         // TEMP_USER_SEED_END
     }

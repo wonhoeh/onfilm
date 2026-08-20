@@ -28,7 +28,7 @@ public class PersonService {
     private final UserRepository userRepository;
 
     @Transactional
-    public Long createPerson(CreatePersonRequest request) {
+    public Long initializePersonProfile(CreatePersonRequest request) {
         Long userId = SecurityUtil.currentUserId();
 
         User user = userRepository.findById(userId)
@@ -36,18 +36,22 @@ public class PersonService {
 
         List<Person.SnsRegistration> snsList = toSnsRegistrations(request.getSnsList());
 
-        Person person = Person.create(
+        Person person = user.getPerson();
+        if (person == null) {
+            throw new IllegalStateException("USER_PERSON_REQUIRED");
+        }
+
+        person.changeBasicInfo(
                 request.getName(),
                 request.getBirthDate(),
                 request.getBirthPlace(),
                 request.getOneLineIntro(),
-                request.getProfileImageUrl(),
-                snsList,
-                request.getRawTags() == null ? List.of() : request.getRawTags());
-
-        user.attachPerson(person);
-
-        userRepository.save(user);
+                request.getProfileImageUrl()
+        );
+        person.replaceSns(snsList);
+        person.replaceProfileTags(
+                request.getRawTags() == null ? List.of() : request.getRawTags()
+        );
 
         return person.getId();
     }
