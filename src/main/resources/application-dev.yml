@@ -28,6 +28,8 @@ spring:
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
 auth:
+  refresh-token-retention: 30d
+  refresh-token-cleanup-cron: "0 0 4 * * *"
   access-cookie-secure: false
   csrf-cookie-secure: false
   refresh-cookie-secure: false

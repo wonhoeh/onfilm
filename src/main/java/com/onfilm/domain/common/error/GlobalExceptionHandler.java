@@ -3,12 +3,14 @@ package com.onfilm.domain.common.error;
 import com.onfilm.domain.common.error.exception.DuplicateEmailException;
 import com.onfilm.domain.common.error.exception.DuplicateUsernameException;
 import com.onfilm.domain.common.error.exception.InvalidProfileTagException;
+import com.onfilm.domain.common.error.exception.InvalidRefreshTokenException;
 import com.onfilm.domain.common.error.exception.MediaEncodeJobNotFoundException;
 import com.onfilm.domain.common.error.exception.MovieNotFoundException;
 import com.onfilm.domain.common.error.exception.PersonNotFoundException;
 import com.onfilm.domain.common.error.exception.StoryboardProjectNotFoundException;
 import com.onfilm.domain.common.error.exception.StoryboardSceneNotFoundException;
 import com.onfilm.domain.common.error.exception.UserNotFoundException;
+import com.onfilm.domain.common.error.exception.RefreshTokenReuseDetectedException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -86,6 +88,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleDuplicateUsername(DuplicateUsernameException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ErrorResponse.of("DUPLICATE_USERNAME", e.getMessage()));
+    }
+
+    @ExceptionHandler({
+            InvalidRefreshTokenException.class,
+            RefreshTokenReuseDetectedException.class
+    })
+    public ResponseEntity<ErrorResponse> handleInvalidRefreshToken(RuntimeException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ErrorResponse.of(
+                        "INVALID_REFRESH_TOKEN",
+                        "Invalid refresh token"
+                ));
     }
 
     @ExceptionHandler(MediaEncodeJobNotFoundException.class)

@@ -1,76 +1,88 @@
 package com.onfilm.domain.token.service;
 
 import com.onfilm.domain.auth.security.JwtProvider;
+import com.onfilm.domain.common.error.exception.InvalidRefreshTokenException;
+import com.onfilm.domain.common.error.exception.RefreshTokenReuseDetectedException;
 import com.onfilm.domain.token.entity.RefreshToken;
 import com.onfilm.domain.token.entity.TokenHashing;
 import com.onfilm.domain.token.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.web.server.ResponseStatusException;
 
-import jakarta.persistence.OptimisticLockException;
-
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RefreshTokenService {
+    public static final Duration MAX_TTL = Duration.ofDays(90);
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final TokenHashing tokenHashing;
     private final JwtProvider jwtProvider;
-    private final PlatformTransactionManager transactionManager;
+    private final RefreshTokenSecurityTransactionService securityTransactionService;
+    private final Clock clock;
 
     @Transactional
     public String issue(Long userId, Duration ttl) {
+        Long requiredUserId = requirePositiveUserId(userId);
+        Duration requiredTtl = requireTtl(ttl);
+        Instant now = clock.instant();
         String rawToken = jwtProvider.createRefreshToken();
-        Instant expiresAt = Instant.now().plus(ttl);
-        RefreshToken refreshToken = RefreshToken.issue(userId, tokenHashing.sha256(rawToken), expiresAt);
+        RefreshToken refreshToken = RefreshToken.issue(
+                requiredUserId,
+                tokenHashing.sha256(requireRawToken(rawToken)),
+                now,
+                now.plus(requiredTtl)
+        );
         refreshTokenRepository.save(refreshToken);
         return rawToken;
     }
 
     @Transactional
     public RotationResult rotate(String rawToken, Duration ttl) {
-        String hash = tokenHashing.sha256(rawToken);
+        String requiredRawToken = requireRawToken(rawToken);
+        Duration requiredTtl = requireTtl(ttl);
+        Instant now = clock.instant();
+        String hash = tokenHashing.sha256(requiredRawToken);
 
         RefreshToken existing = refreshTokenRepository.findByTokenHash(hash)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token"));
+                .orElseThrow(InvalidRefreshTokenException::new);
 
-        // 이미 revoked된 토큰으로 재요청 → 탈취 의심 → 해당 유저 전체 토큰 삭제
         if (existing.isRevoked()) {
-            // 별도 트랜잭션으로 삭제 → 이후 예외 롤백과 무관하게 즉시 커밋
-            TransactionTemplate tx = new TransactionTemplate(transactionManager);
-            tx.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
             Long userId = existing.getUserId();
-            tx.execute(status -> { refreshTokenRepository.deleteAllByUserId(userId); return null; });
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token reuse detected");
+            log.warn(
+                    "Refresh token reuse detected; deleting all sessions for userId={}",
+                    userId
+            );
+            securityTransactionService.deleteAllSessionsForReuse(userId);
+            throw new RefreshTokenReuseDetectedException();
         }
 
-        existing.markUsed();
-
-        if (existing.isExpired()) {
-            existing.revoke();
-            refreshTokenRepository.save(existing);
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token expired");
+        if (existing.isExpiredAt(now)) {
+            securityTransactionService.recordExpiredUse(existing.getId(), now);
+            throw new InvalidRefreshTokenException();
         }
 
-        existing.revoke();
         try {
+            existing.consume(now);
             refreshTokenRepository.saveAndFlush(existing);
-        } catch (OptimisticLockException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Concurrent refresh token rotation detected");
+        } catch (OptimisticLockingFailureException exception) {
+            throw new InvalidRefreshTokenException(exception);
         }
 
-        String newRawToken = jwtProvider.createRefreshToken();
-        Instant expiresAt = Instant.now().plus(ttl);
-        RefreshToken newToken = RefreshToken.issue(existing.getUserId(), tokenHashing.sha256(newRawToken), expiresAt);
+        String newRawToken = requireRawToken(jwtProvider.createRefreshToken());
+        RefreshToken newToken = RefreshToken.issue(
+                existing.getUserId(),
+                tokenHashing.sha256(newRawToken),
+                now,
+                now.plus(requiredTtl)
+        );
         refreshTokenRepository.save(newToken);
 
         return new RotationResult(existing.getUserId(), newRawToken);
@@ -82,12 +94,41 @@ public class RefreshTokenService {
             return;
         }
 
-        refreshTokenRepository.findByTokenHashAndRevokedAtIsNull(tokenHashing.sha256(rawToken))
-                .ifPresent(token -> {
-                    token.markUsed();
-                    token.revoke();
-                    refreshTokenRepository.save(token);
-                });
+        refreshTokenRepository.revokeActiveByTokenHash(
+                tokenHashing.sha256(rawToken),
+                clock.instant()
+        );
+    }
+
+    @Transactional
+    public void deleteAllForUser(Long userId) {
+        refreshTokenRepository.deleteAllByUserId(requirePositiveUserId(userId));
+    }
+
+    private static String requireRawToken(String rawToken) {
+        if (rawToken == null || rawToken.isBlank()) {
+            throw new InvalidRefreshTokenException();
+        }
+        return rawToken;
+    }
+
+    private static Long requirePositiveUserId(Long userId) {
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("userId must be positive");
+        }
+        return userId;
+    }
+
+    private static Duration requireTtl(Duration ttl) {
+        if (ttl == null || ttl.isZero() || ttl.isNegative()) {
+            throw new IllegalArgumentException("refresh token ttl must be positive");
+        }
+        if (ttl.compareTo(MAX_TTL) > 0) {
+            throw new IllegalArgumentException(
+                    "refresh token ttl must not exceed " + MAX_TTL.toDays() + " days"
+            );
+        }
+        return ttl;
     }
 
     public record RotationResult(Long userId, String refreshToken) {

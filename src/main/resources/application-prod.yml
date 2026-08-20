@@ -33,6 +33,8 @@ file:
   public-base-url: ${S3_PUBLIC_BASE_URL:}
 
 auth:
+  refresh-token-retention: ${REFRESH_TOKEN_RETENTION:30d}
+  refresh-token-cleanup-cron: "${REFRESH_TOKEN_CLEANUP_CRON:0 0 4 * * *}"
   # Secure 플래그가 붙은 쿠키는 HTTPS에서만 저장/전송되서 k6 테스트 환경일 때는 false, 배포할 때 true
   access-cookie-secure: false
   csrf-cookie-secure: false

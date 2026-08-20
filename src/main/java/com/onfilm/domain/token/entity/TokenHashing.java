@@ -10,6 +10,9 @@ import java.util.Base64;
 @Component
 public class TokenHashing {
     public String sha256(String raw) {
+        if (raw == null || raw.isBlank()) {
+            throw new IllegalArgumentException("raw token is required");
+        }
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] digest = md.digest(raw.getBytes(StandardCharsets.UTF_8));

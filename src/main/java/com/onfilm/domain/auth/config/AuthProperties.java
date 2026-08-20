@@ -8,6 +8,7 @@ import java.time.Duration;
 public record AuthProperties(
         Duration accessTokenTtl,
         Duration refreshTokenTtl,
+        Duration refreshTokenRetention,
         boolean accessCookieSecure,
         String accessCookieName,
         String accessCookiePath,

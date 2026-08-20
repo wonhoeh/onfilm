@@ -22,7 +22,9 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -53,41 +55,34 @@ class RefreshTokenConcurrencyTest {
         int threadCount = 2;
         CountDownLatch ready = new CountDownLatch(threadCount); // 두 스레드가 준비될 때까지 대기
         CountDownLatch start = new CountDownLatch(1);           // 동시 출발 신호
-        AtomicInteger successCount = new AtomicInteger(0);
-        AtomicInteger failCount = new AtomicInteger(0);
-
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        List<Future<Integer>> responses = new ArrayList<>();
 
         for (int i = 0; i < threadCount; i++) {
-            executor.submit(() -> {
-                try {
-                    ready.countDown();  // 준비 완료 신호
-                    start.await();      // 동시 출발 대기
-
-                    mockMvc.perform(post("/auth/refresh")
-                                    .cookie(new Cookie("refresh_token", refreshToken)))
-                            .andDo(result -> {
-                                if (result.getResponse().getStatus() == 200) {
-                                    successCount.incrementAndGet();
-                                } else {
-                                    failCount.incrementAndGet();
-                                }
-                            });
-                } catch (Exception e) {
-                    failCount.incrementAndGet();
-                }
-            });
+            responses.add(executor.submit(() -> {
+                ready.countDown();
+                start.await();
+                return mockMvc.perform(post("/auth/refresh")
+                                .cookie(new Cookie("refresh_token", refreshToken)))
+                        .andReturn()
+                        .getResponse()
+                        .getStatus();
+            }));
         }
 
-        ready.await(); // 두 스레드 모두 준비될 때까지 대기
-        start.countDown(); // 동시 출발
+        ready.await();
+        start.countDown();
+
+        List<Integer> statuses = new ArrayList<>();
+        for (Future<Integer> response : responses) {
+            statuses.add(response.get(10, TimeUnit.SECONDS));
+        }
 
         executor.shutdown();
-        executor.awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS);
+        assertThat(executor.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
 
-        // then
-        assertThat(successCount.get()).isEqualTo(1);
-        assertThat(failCount.get()).isEqualTo(1);
+        assertThat(statuses).containsExactlyInAnyOrder(200, 401);
+        assertThat(statuses).doesNotContain(500);
         // 유효한 refresh token은 정확히 1개만 존재해야 함
         assertThat(refreshTokenRepository.findAll().stream()
                 .filter(t -> t.getRevokedAt() == null).count()).isEqualTo(1);

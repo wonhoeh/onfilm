@@ -4,6 +4,8 @@ jwt:
 auth:
   access-token-ttl: 15m
   refresh-token-ttl: 14d
+  refresh-token-retention: 30d
+  refresh-token-cleanup-cron: "0 0 4 * * *"
   access-cookie-secure: false
   access-cookie-name: access_token
   access-cookie-path: /
