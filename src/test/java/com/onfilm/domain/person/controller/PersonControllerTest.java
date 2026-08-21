@@ -105,12 +105,8 @@ class PersonControllerTest {
     }
 
     @Test
-    @DisplayName("POST /persons - snsList가 null이어도 201을 반환한다")
-    void createPerson_success_whenSnsListNull() throws Exception {
-        // given
-        given(personService.initializePersonProfile(any(CreatePersonRequest.class)))
-                .willReturn(2L);
-
+    @DisplayName("POST /persons - snsList가 null이면 422를 반환한다")
+    void createPerson_rejectsNullSnsList() throws Exception {
         CreatePersonRequest request = new CreatePersonRequest(
                 "테스트 인물",
                 LocalDate.of(2000, 1, 1),
@@ -127,8 +123,11 @@ class PersonControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request))
                 )
-                .andExpect(status().isCreated())
-                .andExpect(content().string("2"));
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors[0].field").value("snsList"));
+
+        verifyNoInteractions(personService);
     }
 
     @Test
@@ -189,26 +188,27 @@ class PersonControllerTest {
         // given
         String name = "디카프리오";
 
-        PersonSnsResponse sns1 = PersonSnsResponse.builder()
-                        .type(SnsType.INSTAGRAM)
-                        .url("https://instagram.com/leo")
-                        .build();
+        PersonSnsResponse sns1 = new PersonSnsResponse(
+                SnsType.INSTAGRAM,
+                "https://instagram.com/leo"
+        );
 
-        ProfileTagResponse tag1 = ProfileTagResponse.builder()
-                        .rawTag("헐리우드")
-                        .build();
+        ProfileTagResponse tag1 = new ProfileTagResponse("헐리우드");
 
         String publicId = UUID.randomUUID().toString();
-        ProfileResponse response = ProfileResponse.builder()
-                .publicId(publicId)
-                .name(name)
-                .birthDate(LocalDate.of(1974, 11, 11))
-                .birthPlace("Los Angeles")
-                .oneLineIntro("actor")
-                .profileImageUrl("https://img.test/profile.png")
-                .snsList(List.of(sns1))
-                .rawTags(List.of(tag1))
-                .build();
+        ProfileResponse response = new ProfileResponse(
+                publicId,
+                name,
+                LocalDate.of(1974, 11, 11),
+                "Los Angeles",
+                "actor",
+                "profile/key.png",
+                "https://img.test/profile.png",
+                false,
+                false,
+                List.of(sns1),
+                List.of(tag1)
+        );
 
         when(personReadService.findProfileByPublicId(publicId)).thenReturn(response);
 
@@ -259,7 +259,6 @@ class PersonControllerTest {
     @DisplayName("POST /storyboard/projects/{id}/scenes - 제목이 120자를 넘으면 422를 반환한다")
     void createStoryboardScene_rejectsLongTitle() throws Exception {
         StoryboardSceneRequest request = new StoryboardSceneRequest(
-                null,
                 "a".repeat(121),
                 null,
                 List.of()
@@ -280,7 +279,6 @@ class PersonControllerTest {
     @DisplayName("PUT /storyboard/projects/{id}/scenes/{id} - cards가 null이면 422를 반환한다")
     void updateStoryboardScene_rejectsNullCards() throws Exception {
         StoryboardSceneRequest request = new StoryboardSceneRequest(
-                1L,
                 "씬",
                 null,
                 null
@@ -301,7 +299,6 @@ class PersonControllerTest {
     @DisplayName("POST /storyboard/projects/{id}/scenes - 이미지 키가 512자를 넘으면 422를 반환한다")
     void createStoryboardScene_rejectsLongImageKey() throws Exception {
         StoryboardSceneRequest request = new StoryboardSceneRequest(
-                null,
                 "씬",
                 null,
                 List.of(new StoryboardCardRequest(null, "a".repeat(513)))

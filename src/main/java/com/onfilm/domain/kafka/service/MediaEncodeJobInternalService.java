@@ -70,27 +70,6 @@ public class MediaEncodeJobInternalService {
         jobRepository.saveAndFlush(job);
     }
 
-    /**
-     * 구형 Worker의 상태 API 호환용이다. DONE은 결과 반영과 같은 트랜잭션이어야 하므로 허용하지 않는다.
-     */
-    @Transactional
-    public void updateJobStatus(String jobId, MediaJobStatusUpdateRequest request) {
-        if (request == null || request.status() == null) throw new IllegalArgumentException("status is required");
-        switch (request.status()) {
-            case PROCESSING -> {
-                if (request.startedAt() == null) throw new IllegalArgumentException("startedAt is required");
-                markProcessing(jobId, new MediaEncodeProcessingRequest(request.startedAt()));
-            }
-            case FAILED -> {
-                if (request.completedAt() == null) throw new IllegalArgumentException("completedAt is required");
-                fail(jobId, new MediaEncodeFailureRequest(
-                        request.failureCode(), request.failureReason(), request.completedAt()));
-            }
-            case DONE -> throw new IllegalArgumentException("DONE must use the job completion callback");
-            case REQUESTED -> throw new IllegalArgumentException("REQUESTED is not updatable via callback");
-        }
-    }
-
     private MediaEncodeJob findJob(String jobId) {
         return jobRepository.findById(jobId)
                 .orElseThrow(() -> new MediaEncodeJobNotFoundException(jobId));

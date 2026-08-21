@@ -120,12 +120,9 @@ public class PersonController {
 
     @PutMapping("/{publicId}/gallery")
     public ResponseEntity<Void> reorderGallery(@PathVariable String publicId,
-                                               @RequestBody GalleryReorderRequest request) {
-        List<String> ordered = (request == null || request.keys() == null)
-                ? List.of()
-                : request.keys().stream()
+                                               @Valid @RequestBody GalleryReorderRequest request) {
+        List<String> ordered = request.keys().stream()
                 .map(this::toStorageKey)
-                .filter(k -> k != null && !k.isBlank())
                 .toList();
 
         personReadService.reorderGallery(ordered);
@@ -157,7 +154,7 @@ public class PersonController {
     @PutMapping("/{publicId}/filmography/item/privacy")
     public ResponseEntity<Void> updateFilmographyItemPrivacy(
             @PathVariable String publicId,
-            @RequestBody FilmographyItemPrivacyRequest request
+            @Valid @RequestBody FilmographyItemPrivacyRequest request
     ) {
         movieService.updateFilmographyItemPrivacy(request.movieId(), request.isPrivate());
         return ResponseEntity.ok().build();
@@ -184,7 +181,7 @@ public class PersonController {
     @PutMapping("/{publicId}/gallery/item/privacy")
     public ResponseEntity<Void> updateGalleryItemPrivacy(
             @PathVariable String publicId,
-            @RequestBody GalleryItemPrivacyRequest request
+            @Valid @RequestBody GalleryItemPrivacyRequest request
     ) {
         String storageKey = toStorageKey(request.key());
         if (storageKey == null || storageKey.isBlank()) {

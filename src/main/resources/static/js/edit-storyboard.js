@@ -629,7 +629,6 @@
 
     function toScenePayload(scene){
         return {
-            sceneId: scene.sceneId,
             title: scene.title,
             scriptHtml: scene.script || "",
             cards: scene.items.map((it) => ({

@@ -36,11 +36,4 @@ public class InternalMediaCallbackController {
                      @Valid @RequestBody MediaEncodeFailureRequest request) {
         service.fail(jobId, request);
     }
-
-    @PatchMapping("/{jobId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void legacyStatus(@PathVariable @Pattern(regexp = "^[0-9a-f-]{36}$") String jobId,
-                             @Valid @RequestBody MediaJobStatusUpdateRequest request) {
-        service.updateJobStatus(jobId, request);
-    }
 }

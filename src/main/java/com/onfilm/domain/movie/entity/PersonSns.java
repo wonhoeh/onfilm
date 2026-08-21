@@ -20,7 +20,7 @@ import java.util.Locale;
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PersonSns {
-    private static final int URL_MAX_LENGTH = 512;
+    public static final int URL_MAX_LENGTH = 512;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

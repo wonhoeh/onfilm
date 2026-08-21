@@ -9,7 +9,6 @@ import java.util.List;
 import static com.onfilm.domain.movie.entity.StoryboardScene.TITLE_MAX_LENGTH;
 
 public record StoryboardSceneRequest(
-        Long sceneId,
         @Size(max = TITLE_MAX_LENGTH, message = "씬 제목은 120자 이하여야 합니다.")
         String title,
         String scriptHtml,

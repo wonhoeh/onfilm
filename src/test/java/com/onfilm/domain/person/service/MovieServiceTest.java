@@ -44,23 +44,23 @@ public class MovieServiceTest {
     void createMovie_success_savesMovie_attachesGenre_and_createsMoviePerson() throws Exception {
         // given
         CreateMovieRequest request = mock(CreateMovieRequest.class);
-        given(request.getTitle()).willReturn("인셉션");
-        given(request.getRuntime()).willReturn(120);
-        given(request.getReleaseYear()).willReturn(2010);
-        given(request.getMovieUrl()).willReturn("s3://movie.mp4");
-        given(request.getThumbnailUrl()).willReturn("s3://thumb.png");
-        given(request.getAgeRating()).willReturn(AgeRating.ALL);
+        given(request.title()).willReturn("인셉션");
+        given(request.runtime()).willReturn(120);
+        given(request.releaseYear()).willReturn(2010);
+        given(request.movieUrl()).willReturn("s3://movie.mp4");
+        given(request.thumbnailUrl()).willReturn("s3://thumb.png");
+        given(request.ageRating()).willReturn(AgeRating.ALL);
 
-        given(request.getRole()).willReturn(PersonRole.ACTOR);
-        given(request.getCastType()).willReturn(CastType.LEAD);
-        given(request.getCharacterName()).willReturn("코브");
+        given(request.role()).willReturn(PersonRole.ACTOR);
+        given(request.castType()).willReturn(CastType.LEAD);
+        given(request.characterName()).willReturn("코브");
 
         List<MovieGenreRequest> genres = List.of(
                 new MovieGenreRequest(null, "드라마"),
                 new MovieGenreRequest(null, " 스릴러 "),
                 new MovieGenreRequest(null, "드라마")
         );
-        given(request.getGenres()).willReturn(genres);
+        given(request.genres()).willReturn(genres);
 
         long userId = 1L;
         User user = mock(User.class);
@@ -115,12 +115,12 @@ public class MovieServiceTest {
         CreateMovieRequest request = mock(CreateMovieRequest.class);
 
         // ✅ Movie.create() 통과용 최소 스텁
-        given(request.getTitle()).willReturn("인셉션");
-        given(request.getRuntime()).willReturn(120);
-        given(request.getReleaseYear()).willReturn(2010);
-        given(request.getMovieUrl()).willReturn("url");
-        given(request.getThumbnailUrl()).willReturn(null);
-        given(request.getAgeRating()).willReturn(AgeRating.ALL);
+        given(request.title()).willReturn("인셉션");
+        given(request.runtime()).willReturn(120);
+        given(request.releaseYear()).willReturn(2010);
+        given(request.movieUrl()).willReturn("url");
+        given(request.thumbnailUrl()).willReturn(null);
+        given(request.ageRating()).willReturn(AgeRating.ALL);
 
         long userId = 1L;
         given(userRepository.findById(userId)).willReturn(Optional.empty());
@@ -138,12 +138,12 @@ public class MovieServiceTest {
     void createMovie_throws_when_personIsNull() {
         // given
         CreateMovieRequest request = mock(CreateMovieRequest.class);
-        given(request.getTitle()).willReturn("인셉션");
-        given(request.getRuntime()).willReturn(120);
-        given(request.getReleaseYear()).willReturn(2010);
-        given(request.getMovieUrl()).willReturn("url");
-        given(request.getThumbnailUrl()).willReturn(null);
-        given(request.getAgeRating()).willReturn(AgeRating.ALL);
+        given(request.title()).willReturn("인셉션");
+        given(request.runtime()).willReturn(120);
+        given(request.releaseYear()).willReturn(2010);
+        given(request.movieUrl()).willReturn("url");
+        given(request.thumbnailUrl()).willReturn(null);
+        given(request.ageRating()).willReturn(AgeRating.ALL);
 
         long userId = 1L;
         User user = mock(User.class);

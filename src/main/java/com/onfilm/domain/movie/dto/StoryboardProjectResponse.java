@@ -7,4 +7,7 @@ public record StoryboardProjectResponse(
         String title,
         List<StoryboardSceneResponse> scenes
 ) {
+    public StoryboardProjectResponse {
+        scenes = List.copyOf(scenes);
+    }
 }

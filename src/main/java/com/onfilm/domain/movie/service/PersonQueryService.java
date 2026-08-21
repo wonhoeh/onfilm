@@ -24,9 +24,6 @@ public class PersonQueryService {
         Person person = user.getPerson();
         if (person == null) throw new PersonNotFoundException(username);
 
-        return PublicIdByUsernameResponse.builder()
-                .username(user.getUsername())
-                .publicId(person.getPublicId())
-                .build();
+        return new PublicIdByUsernameResponse(user.getUsername(), person.getPublicId());
     }
 }

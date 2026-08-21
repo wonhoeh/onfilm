@@ -84,26 +84,26 @@ public class PersonServiceTest {
 
         // then
         assertThat(res).isNotNull();
-        assertThat(res.getName()).isEqualTo(person.getName());
-        assertThat(res.getBirthDate()).isEqualTo(LocalDate.of(1974, 11, 11));
-        assertThat(res.getBirthPlace()).isEqualTo("Los Angeles");
-        assertThat(res.getOneLineIntro()).isEqualTo("actor");
-        assertThat(res.getProfileImageUrl()).isEqualTo("https://img.test/profile.png");
+        assertThat(res.name()).isEqualTo(person.getName());
+        assertThat(res.birthDate()).isEqualTo(LocalDate.of(1974, 11, 11));
+        assertThat(res.birthPlace()).isEqualTo("Los Angeles");
+        assertThat(res.oneLineIntro()).isEqualTo("actor");
+        assertThat(res.profileImageUrl()).isEqualTo("https://img.test/profile.png");
 
-        assertThat(res.getSnsList()).hasSize(2);
-        assertThat(res.getSnsList())
+        assertThat(res.snsList()).hasSize(2);
+        assertThat(res.snsList())
                 .extracting("type")
                 .containsExactlyInAnyOrder(SnsType.INSTAGRAM, SnsType.TIKTOK);
 
-        assertThat(res.getSnsList())
+        assertThat(res.snsList())
                 .extracting("url")
                 .containsExactlyInAnyOrder(
                         "https://instagram.com/leo",
                         "https://tiktok.com/@leo"
                 );
 
-        assertThat(res.getRawTags()).hasSize(2);
-        assertThat(res.getRawTags())
+        assertThat(res.rawTags()).hasSize(2);
+        assertThat(res.rawTags())
                 .extracting("rawTag")
                 .containsExactlyInAnyOrder("인셉션", "셔터아일랜드");
 

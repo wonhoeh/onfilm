@@ -52,6 +52,27 @@ class MovieTest {
     }
 
     @Test
+    void storageKeys_acceptMaximumLengthAndRejectTooLongValues() {
+        Movie movie = Movie.create(
+                "테스트 영화",
+                120,
+                2020,
+                "a".repeat(Movie.STORAGE_KEY_MAX_LENGTH),
+                "b".repeat(Movie.STORAGE_KEY_MAX_LENGTH),
+                AgeRating.ALL
+        );
+
+        assertThat(movie.getMovieUrl()).hasSize(Movie.STORAGE_KEY_MAX_LENGTH);
+        assertThat(movie.getThumbnailUrl()).hasSize(Movie.STORAGE_KEY_MAX_LENGTH);
+        assertThatThrownBy(() -> movie.changeMovieUrl(
+                "a".repeat(Movie.STORAGE_KEY_MAX_LENGTH + 1)
+        )).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> movie.changeThumbnailUrl(
+                "b".repeat(Movie.STORAGE_KEY_MAX_LENGTH + 1)
+        )).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void changeBasicInfo_usesSameValidationAndNormalization() {
         Movie movie = createMovie(120, 2020, AgeRating.ALL);
 

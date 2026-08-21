@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +33,7 @@ public class PersonService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
-        List<Person.SnsRegistration> snsList = toSnsRegistrations(request.getSnsList());
+        List<Person.SnsRegistration> snsList = toSnsRegistrations(request.snsList());
 
         Person person = user.getPerson();
         if (person == null) {
@@ -42,16 +41,14 @@ public class PersonService {
         }
 
         person.changeBasicInfo(
-                request.getName(),
-                request.getBirthDate(),
-                request.getBirthPlace(),
-                request.getOneLineIntro(),
-                request.getProfileImageUrl()
+                request.name(),
+                request.birthDate(),
+                request.birthPlace(),
+                request.oneLineIntro(),
+                request.profileImageKey()
         );
         person.replaceSns(snsList);
-        person.replaceProfileTags(
-                request.getRawTags() == null ? List.of() : request.getRawTags()
-        );
+        person.replaceProfileTags(request.rawTags());
 
         return person.getId();
     }
@@ -66,49 +63,32 @@ public class PersonService {
         Person person = personRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new PersonNotFoundException(publicId));
 
-        // ✅ 권한 체크: 내 Person만 수정 (publicId 기준)
+        // 내 Person만 수정할 수 있다.
         if (user.getPerson() == null || !Objects.equals(user.getPerson().getPublicId(), publicId)) {
-            // 보통 403 매핑 추천 (AccessDeniedException 쓰면 더 깔끔)
             throw new IllegalStateException("FORBIDDEN");
         }
 
-        // ✅ 기본 필드 업데이트
-        String imageValue = request.getProfileImageKey();
-        if (imageValue == null || imageValue.isBlank()) {
-            imageValue = request.getProfileImageUrl();
-        }
-
         person.changeBasicInfo(
-                request.getName(),
-                request.getBirthDate(),
-                request.getBirthPlace(),
-                request.getOneLineIntro(),
-                imageValue
+                request.name(),
+                request.birthDate(),
+                request.birthPlace(),
+                request.oneLineIntro(),
+                request.profileImageKey()
         );
 
-        person.replaceSns(toSnsRegistrations(request.getSnsList()));
+        person.replaceSns(toSnsRegistrations(request.snsList()));
 
-        // ✅ TAG 전체 교체 (null-safe로 넘기는 게 안전)
-        person.replaceProfileTags(
-                Optional.ofNullable(request.getRawTags()).orElseGet(List::of)
-        );
+        person.replaceProfileTags(request.rawTags());
     }
 
     private List<Person.SnsRegistration> toSnsRegistrations(
             List<CreatePersonSnsRequest> requests
     ) {
-        return Optional.ofNullable(requests)
-                .orElseGet(List::of)
-                .stream()
-                .map(request -> {
-                    if (request == null) {
-                        throw new IllegalArgumentException("sns request is required");
-                    }
-                    return new Person.SnsRegistration(
-                            request.getType(),
-                            request.getUrl()
-                    );
-                })
+        return requests.stream()
+                .map(request -> new Person.SnsRegistration(
+                        request.type(),
+                        request.url()
+                ))
                 .toList();
     }
 }

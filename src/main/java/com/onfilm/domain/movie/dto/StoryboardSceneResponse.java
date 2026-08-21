@@ -9,4 +9,7 @@ public record StoryboardSceneResponse(
         int sortOrder,
         List<StoryboardCardResponse> cards
 ) {
+    public StoryboardSceneResponse {
+        cards = List.copyOf(cards);
+    }
 }

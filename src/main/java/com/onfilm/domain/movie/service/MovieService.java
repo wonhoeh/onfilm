@@ -38,12 +38,12 @@ public class MovieService {
     @Transactional
     public Long createMovie(CreateMovieRequest request) {
         Movie movie = Movie.create(
-                request.getTitle(),
-                request.getRuntime(),
-                request.getReleaseYear(),
-                request.getMovieUrl(),
-                request.getThumbnailUrl(),
-                request.getAgeRating()
+                request.title(),
+                request.runtime(),
+                request.releaseYear(),
+                request.movieUrl(),
+                request.thumbnailUrl(),
+                request.ageRating()
         );
 
         Long userId = SecurityUtil.currentUserId();
@@ -57,16 +57,16 @@ public class MovieService {
 
         MoviePerson moviePerson = movie.addMoviePerson(
                 person,
-                request.getRole(),
-                request.getCastType(),
-                request.getCharacterName()
+                request.role(),
+                request.castType(),
+                request.characterName()
         );
 
         Integer max = moviePersonRepository.findMaxSortOrderByPersonId(person.getId());
         moviePerson.changeSortOrder(max == null ? 0 : max + 1);
 
         // 장르는 도메인 서비스(팩토리)로만 부착
-        movieGenreNormalizer.attachGenre(movie, request.getGenres());
+        movieGenreNormalizer.attachGenre(movie, request.genres());
 
         Movie saved = movieRepository.save(movie);
         return saved.getId();
@@ -77,8 +77,7 @@ public class MovieService {
         Person person = personRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new PersonNotFoundException(publicId));
 
-        List<FilmographyUpsertRequest.Item> items =
-                request == null || request.items() == null ? List.of() : request.items();
+        List<FilmographyUpsertRequest.Item> items = request.items();
 
         List<MoviePerson> existing = moviePersonRepository.findFilmographyByPersonId(person.getId());
         var mpByMovieId = existing.stream()
@@ -89,8 +88,6 @@ public class MovieService {
 
         for (int i = 0; i < items.size(); i++) {
             FilmographyUpsertRequest.Item item = items.get(i);
-            if (item == null) continue;
-
             Long movieId = item.movieId();
             if (movieId != null && mpByMovieId.containsKey(movieId)) {
                 MoviePerson mp = mpByMovieId.get(movieId);

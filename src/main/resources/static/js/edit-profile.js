@@ -466,7 +466,7 @@
             // 입력값 그대로 저장 (자동 보정 없음)
             snsData.push({ type: type.toUpperCase(), url: raw });
         });
-        return snsData.length ? snsData : null;
+        return snsData;
     }
 
     function collectTagsPayload() {
@@ -474,7 +474,7 @@
         tagListEl.querySelectorAll(".tag-chip").forEach(chip => {
             rawTags.push(chip.textContent.replace(/^#/, "").trim());
         });
-        return rawTags.length ? rawTags : null;
+        return rawTags;
     }
 
     form?.addEventListener("submit", async (e) => {
@@ -498,10 +498,8 @@
 
             const birthDate = buildBirthDateOrThrow();
 
-            // ✅ 서버가 key 기반인지 url 기반인지에 따라 보존 필드 결정
-            const imgField = (window.__SERVER_PROFILE_IMAGE_FIELD__ || "profileImageUrl").toString();
+            // 서버 요청은 스토리지 키를 기준으로 통일한다.
             const existingKey = (window.__EXISTING_PROFILE_IMAGE_KEY__ || "").toString().trim() || null;
-            const existingUrl = (window.__EXISTING_PROFILE_IMAGE_URL__ || "").toString().trim() || null;
 
             const payload = {
                 name,
@@ -512,13 +510,8 @@
                 rawTags: collectTagsPayload(),
             };
 
-            // ✅ 기존 이미지 값 유지(새 업로드가 없을 때 지워지는 사고 방지)
-            // - 서버가 key 기반이면 key를, 아니면 url을 보존값으로 포함
-            if (imgField === "profileImageKey") {
-                if (existingKey) payload.profileImageKey = existingKey;
-            } else {
-                if (existingUrl) payload.profileImageUrl = existingUrl;
-            }
+            // 기존 이미지 값 유지(새 업로드가 없을 때 지워지는 사고 방지)
+            if (existingKey) payload.profileImageKey = existingKey;
 
             setSaving(true);
 

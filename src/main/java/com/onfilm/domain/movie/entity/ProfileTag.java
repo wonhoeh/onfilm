@@ -18,7 +18,7 @@ import java.util.Objects;
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProfileTag {
-    static final int MAX_LENGTH = 30;
+    public static final int MAX_LENGTH = 30;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -17,6 +17,8 @@ import java.util.Objects;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Movie {
+    public static final int STORAGE_KEY_MAX_LENGTH = 512;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "movie_id", nullable = false)
@@ -31,10 +33,10 @@ public class Movie {
     @Column(nullable = false)
     private int releaseYear;
 
-    @Column
+    @Column(length = STORAGE_KEY_MAX_LENGTH)
     private String movieUrl;
 
-    @Column
+    @Column(length = STORAGE_KEY_MAX_LENGTH)
     private String thumbnailUrl;
 
     @Enumerated(EnumType.STRING)
@@ -64,8 +66,8 @@ public class Movie {
             AgeRating ageRating
     ) {
         applyBasicInfo(title, runtime, releaseYear, ageRating);
-        this.movieUrl = requireText(movieUrl, "movieUrl");
-        this.thumbnailUrl = normalizeOptionalText(thumbnailUrl);
+        this.movieUrl = requireText(movieUrl, "movieUrl", STORAGE_KEY_MAX_LENGTH);
+        this.thumbnailUrl = normalizeOptionalText(thumbnailUrl, "thumbnailUrl", STORAGE_KEY_MAX_LENGTH);
     }
 
     public static Movie create(
@@ -226,11 +228,11 @@ public class Movie {
     // ======================================================================
 
     public void changeThumbnailUrl(String key) {
-        this.thumbnailUrl = normalizeOptionalText(key);
+        this.thumbnailUrl = normalizeOptionalText(key, "thumbnailUrl", STORAGE_KEY_MAX_LENGTH);
     }
 
     public void changeMovieUrl(String key) {
-        this.movieUrl = requireText(key, "movieUrl");
+        this.movieUrl = requireText(key, "movieUrl", STORAGE_KEY_MAX_LENGTH);
     }
 
     public void clearThumbnailUrl() { this.thumbnailUrl = null; }
@@ -298,12 +300,28 @@ public class Movie {
         return value.trim();
     }
 
+    private static String requireText(String value, String fieldName, int maxLength) {
+        String normalized = requireText(value, fieldName);
+        if (normalized.length() > maxLength) {
+            throw new IllegalArgumentException(fieldName + " is too long (max " + maxLength + ")");
+        }
+        return normalized;
+    }
+
     private static String normalizeOptionalText(String value) {
         if (value == null) {
             return null;
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private static String normalizeOptionalText(String value, String fieldName, int maxLength) {
+        String normalized = normalizeOptionalText(value);
+        if (normalized != null && normalized.length() > maxLength) {
+            throw new IllegalArgumentException(fieldName + " is too long (max " + maxLength + ")");
+        }
+        return normalized;
     }
 
     private static int validateRuntime(int runtime) {

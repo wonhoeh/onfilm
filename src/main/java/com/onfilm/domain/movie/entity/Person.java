@@ -14,12 +14,12 @@ import java.util.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Person {
-    private static final int NAME_MAX_LENGTH = 60;
-    private static final int BIRTH_PLACE_MAX_LENGTH = 80;
-    private static final int ONE_LINE_INTRO_MAX_LENGTH = 120;
-    private static final int STORAGE_KEY_MAX_LENGTH = 512;
+    public static final int NAME_MAX_LENGTH = 60;
+    public static final int BIRTH_PLACE_MAX_LENGTH = 80;
+    public static final int ONE_LINE_INTRO_MAX_LENGTH = 120;
+    public static final int STORAGE_KEY_MAX_LENGTH = 512;
     private static final int PUBLIC_ID_LENGTH = 36;
-    private static final int PROFILE_TAG_MAX_COUNT = 20;
+    public static final int PROFILE_TAG_MAX_COUNT = 20;
 
     // ======================================================================
     // ======= 식별자 / 기본 컬럼 =======
