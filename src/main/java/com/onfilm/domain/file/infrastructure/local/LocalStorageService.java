@@ -79,6 +79,13 @@ public class LocalStorageService implements StorageService {
     }
 
     @Override
+    public boolean exists(String key) {
+        Path target = rootPath.resolve(key).normalize();
+        if (!target.startsWith(rootPath)) throw new SecurityException("INVALID_PATH");
+        return Files.isRegularFile(target);
+    }
+
+    @Override
     public String toPublicUrl(String key) {
         if (key == null || key.isBlank()) return null;
 

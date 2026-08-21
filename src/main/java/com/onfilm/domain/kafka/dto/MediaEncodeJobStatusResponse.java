@@ -12,13 +12,11 @@ public record MediaEncodeJobStatusResponse(
         Long movieId,
         EncodeJobType jobType,
         EncodeJobPreset preset,
-        String sourceKey,
-        String targetKey,
         MediaEncodeJobStatus status,
         Instant requestedAt,
         Instant startedAt,
         Instant completedAt,
-        String failureReason
+        String failureCode
 ) {
     public static MediaEncodeJobStatusResponse from(MediaEncodeJob job) {
         return new MediaEncodeJobStatusResponse(
@@ -26,13 +24,11 @@ public record MediaEncodeJobStatusResponse(
                 job.getMovieId(),
                 job.getJobType(),
                 job.getPreset(),
-                job.getSourceKey(),
-                job.getTargetKey(),
                 job.getStatus(),
                 job.getRequestedAt(),
                 job.getStartedAt(),
                 job.getCompletedAt(),
-                job.getFailureReason()
+                job.getFailureCode()
         );
     }
 }

@@ -19,6 +19,8 @@ public interface StorageService {
 
     void delete(String key);
 
+    boolean exists(String key);
+
     /**
      * key -> 접근 가능한 URL로 변환
      * local: http://localhost:8080/files/{key}

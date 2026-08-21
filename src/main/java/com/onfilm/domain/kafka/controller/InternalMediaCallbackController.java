@@ -1,43 +1,46 @@
 package com.onfilm.domain.kafka.controller;
 
-import com.onfilm.domain.kafka.dto.MediaJobStatusUpdateRequest;
-import com.onfilm.domain.kafka.dto.MovieMediaUpdateRequest;
-import com.onfilm.domain.kafka.dto.TrailerMediaUpdateRequest;
+import com.onfilm.domain.kafka.dto.*;
 import com.onfilm.domain.kafka.service.MediaEncodeJobInternalService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.annotation.Validated;
+import jakarta.validation.constraints.Pattern;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/internal/api")
+@Validated
+@RequestMapping("/internal/api/media-jobs")
 public class InternalMediaCallbackController {
+    private final MediaEncodeJobInternalService service;
 
-    private final MediaEncodeJobInternalService mediaEncodeJobInternalService;
-
-    @PatchMapping("/media-jobs/{jobId}")
+    @PostMapping("/{jobId}/processing")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateMediaJobStatus(@PathVariable String jobId,
-                                     @RequestBody MediaJobStatusUpdateRequest request) {
-        mediaEncodeJobInternalService.updateJobStatus(jobId, request);
+    public void processing(@PathVariable @Pattern(regexp = "^[0-9a-f-]{36}$") String jobId,
+                           @Valid @RequestBody MediaEncodeProcessingRequest request) {
+        service.markProcessing(jobId, request);
     }
 
-    @PatchMapping("/movies/{movieId}/media")
+    @PostMapping("/{jobId}/complete")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateMovieMedia(@PathVariable Long movieId,
-                                 @RequestBody MovieMediaUpdateRequest request) {
-        mediaEncodeJobInternalService.updateMovieMedia(movieId, request);
+    public void complete(@PathVariable @Pattern(regexp = "^[0-9a-f-]{36}$") String jobId,
+                         @Valid @RequestBody MediaEncodeCompletionRequest request) {
+        service.complete(jobId, request);
     }
 
-    @PatchMapping("/trailers/{jobId}/media")
+    @PostMapping("/{jobId}/fail")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateTrailerMedia(@PathVariable String jobId,
-                                   @RequestBody TrailerMediaUpdateRequest request) {
-        mediaEncodeJobInternalService.updateTrailerMedia(jobId, request);
+    public void fail(@PathVariable @Pattern(regexp = "^[0-9a-f-]{36}$") String jobId,
+                     @Valid @RequestBody MediaEncodeFailureRequest request) {
+        service.fail(jobId, request);
+    }
+
+    @PatchMapping("/{jobId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void legacyStatus(@PathVariable @Pattern(regexp = "^[0-9a-f-]{36}$") String jobId,
+                             @Valid @RequestBody MediaJobStatusUpdateRequest request) {
+        service.updateJobStatus(jobId, request);
     }
 }

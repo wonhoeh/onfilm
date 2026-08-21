@@ -6,7 +6,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Component
@@ -19,9 +21,11 @@ public class KafkaMediaEncodeJobProducer implements MediaEncodeJobProducer {
     private final KafkaTopicProperties topicProperties;
 
     @Override
-    public void send(MediaEncodeRequestedMessage message) {
+    public CompletableFuture<SendResult<String, MediaEncodeRequestedMessage>> send(MediaEncodeRequestedMessage message) {
         // jobId 를 메시지 키로 사용해 같은 작업의 추적 기준을 맞춘다.
-        kafkaTemplate.send(topicProperties.mediaEncodeRequested(), message.jobId(), message)
+        CompletableFuture<SendResult<String, MediaEncodeRequestedMessage>> future =
+                kafkaTemplate.send(topicProperties.mediaEncodeRequested(), message.jobId(), message);
+        future
                 .whenComplete((result, ex) -> {
                     if (ex != null) {
                         log.error("Failed to publish media encode job. jobId={}", message.jobId(), ex);
@@ -35,5 +39,6 @@ public class KafkaMediaEncodeJobProducer implements MediaEncodeJobProducer {
                             message.jobId()
                     );
                 });
+        return future;
     }
 }

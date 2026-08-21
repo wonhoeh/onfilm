@@ -3,6 +3,7 @@ package com.onfilm.domain.auth.config;
 import com.onfilm.domain.auth.security.AuthPageBlockFilter;
 import com.onfilm.domain.auth.security.CsrfProtectionFilter;
 import com.onfilm.domain.auth.security.JwtAuthFilter;
+import com.onfilm.domain.auth.security.InternalCallbackHmacFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -30,6 +31,7 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final AuthPageBlockFilter authPageBlockFilter;
     private final CsrfProtectionFilter csrfProtectionFilter;
+    private final InternalCallbackHmacFilter internalCallbackHmacFilter;
     private final HandlerMappingIntrospector handlerMappingIntrospector;
 
     private static final String USERNAME_PATTERN = "[a-zA-Z0-9_-]{3,20}";
@@ -51,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh", "/auth/logout",
                                          "/auth/check-email", "/auth/check-username").permitAll()
                         .requestMatchers("/auth/me").authenticated()
+                        .requestMatchers("/internal/api/**").hasRole("MEDIA_WORKER")
                         .requestMatchers("/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/person/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/people/*",
@@ -62,6 +65,7 @@ public class SecurityConfig {
                 )
                 .addFilterBefore(authPageBlockFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(csrfProtectionFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(internalCallbackHmacFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -83,6 +87,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh", "/auth/logout",
                                          "/auth/check-email", "/auth/check-username").permitAll()
                         .requestMatchers("/auth/me").authenticated()
+                        .requestMatchers("/internal/api/**").hasRole("MEDIA_WORKER")
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/person/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/people/*",
@@ -94,6 +99,7 @@ public class SecurityConfig {
                 )
                 .addFilterBefore(authPageBlockFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(csrfProtectionFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(internalCallbackHmacFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -132,8 +138,7 @@ public class SecurityConfig {
                 new AntPathRequestMatcher("/videos/**"),
                 new AntPathRequestMatcher("/vendor/**"),
                 new AntPathRequestMatcher("/favicon.ico"),
-                new AntPathRequestMatcher("/files/**"),
-                new AntPathRequestMatcher("/internal/api/**"),
+                new AntPathRequestMatcher("/files/**")
         };
     }
 

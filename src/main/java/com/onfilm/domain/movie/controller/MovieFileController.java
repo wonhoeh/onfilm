@@ -7,13 +7,13 @@ import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.kafka.dto.PresignUploadRequest;
 import com.onfilm.domain.kafka.dto.PresignedUploadUrlResponse;
 import com.onfilm.domain.kafka.service.MediaEncodeJobCommandService;
-import com.onfilm.domain.kafka.service.MediaPresignedUploadService;
+import com.onfilm.domain.kafka.service.MediaUploadRequestService;
+import com.onfilm.domain.kafka.message.EncodeJobType;
 import com.onfilm.domain.movie.dto.MediaEncodeJobResponse;
 import com.onfilm.domain.movie.dto.MediaUploadCompleteRequest;
 import com.onfilm.domain.movie.dto.UploadResultResponse;
 import com.onfilm.domain.movie.service.PersonReadService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +29,6 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -39,8 +39,8 @@ public class MovieFileController {
     private final StorageKeyFactory keyFactory;
     private final PersonReadService personReadService;
     private final MediaEncodingService mediaEncodingService;
-    private final ObjectProvider<MediaEncodeJobCommandService> mediaEncodeJobCommandServiceProvider;
-    private final ObjectProvider<MediaPresignedUploadService> mediaPresignedUploadServiceProvider;
+    private final MediaEncodeJobCommandService mediaEncodeJobCommandService;
+    private final MediaUploadRequestService mediaUploadRequestService;
 
     @Value("${file.storage.bucket:}")
     private String storageBucket;
@@ -76,16 +76,18 @@ public class MovieFileController {
     // 클라이언트가 S3에 직접 업로드할 수 있도록 presigned URL 을 발급한다.
     @PostMapping("/{movieId}/thumbnail/presign")
     public ResponseEntity<PresignedUploadUrlResponse> presignThumbnailUpload(@PathVariable Long movieId,
-                                                                             @RequestBody PresignUploadRequest request) {
+                                                                             @Valid @RequestBody PresignUploadRequest request) {
         validateMovieUploadPermission(movieId);
-        String sourceKey = rawSourceKey(movieId, "thumbnail", extensionForImage(request.contentType()));
-        return ResponseEntity.ok(requiredPresignedUploadService().createUploadUrl(sourceKey, request.contentType()));
+        String requestId = mediaUploadRequestService.newRequestId();
+        String sourceKey = rawSourceKey(movieId, "thumbnail", requestId, extensionForImage(request.contentType()));
+        return ResponseEntity.ok(mediaUploadRequestService.issue(
+                SecurityUtil.currentUserId(), movieId, EncodeJobType.THUMBNAIL, sourceKey, request.contentType()));
     }
 
     // S3 업로드 완료 후 인코딩 작업만 Kafka에 위임한다.
     @PostMapping("/{movieId}/thumbnail/complete")
     public ResponseEntity<MediaEncodeJobResponse> completeThumbnailUpload(@PathVariable Long movieId,
-                                                                          @RequestBody MediaUploadCompleteRequest request) {
+                                                                          @Valid @RequestBody MediaUploadCompleteRequest request) {
         String targetKey = keyFactory.movieThumbnail(movieId, ".jpg");
         String jobId = enqueueThumbnailJob(movieId, request, targetKey);
         return ResponseEntity.status(HttpStatus.ACCEPTED)
@@ -123,16 +125,18 @@ public class MovieFileController {
     // 클라이언트가 S3에 직접 업로드할 수 있도록 presigned URL 을 발급한다.
     @PostMapping("/{movieId}/trailer/presign")
     public ResponseEntity<PresignedUploadUrlResponse> presignTrailerUpload(@PathVariable Long movieId,
-                                                                           @RequestBody PresignUploadRequest request) {
+                                                                           @Valid @RequestBody PresignUploadRequest request) {
         validateMovieUploadPermission(movieId);
-        String sourceKey = rawSourceKey(movieId, "trailer", extensionForVideo(request.contentType()));
-        return ResponseEntity.ok(requiredPresignedUploadService().createUploadUrl(sourceKey, request.contentType()));
+        String requestId = mediaUploadRequestService.newRequestId();
+        String sourceKey = rawSourceKey(movieId, "trailer", requestId, extensionForVideo(request.contentType()));
+        return ResponseEntity.ok(mediaUploadRequestService.issue(
+                SecurityUtil.currentUserId(), movieId, EncodeJobType.TRAILER, sourceKey, request.contentType()));
     }
 
     // S3 업로드 완료 후 인코딩 작업만 Kafka에 위임한다.
     @PostMapping("/{movieId}/trailer/complete")
     public ResponseEntity<MediaEncodeJobResponse> completeTrailerUpload(@PathVariable Long movieId,
-                                                                        @RequestBody MediaUploadCompleteRequest request) {
+                                                                        @Valid @RequestBody MediaUploadCompleteRequest request) {
         String targetKey = keyFactory.movieTrailerHlsTarget(movieId);
         String jobId = enqueueTrailerJob(movieId, request, targetKey);
         return ResponseEntity.status(HttpStatus.ACCEPTED)
@@ -170,16 +174,18 @@ public class MovieFileController {
     // 클라이언트가 S3에 직접 업로드할 수 있도록 presigned URL 을 발급한다.
     @PostMapping("/{movieId}/file/presign")
     public ResponseEntity<PresignedUploadUrlResponse> presignMovieFileUpload(@PathVariable Long movieId,
-                                                                             @RequestBody PresignUploadRequest request) {
+                                                                             @Valid @RequestBody PresignUploadRequest request) {
         validateMovieUploadPermission(movieId);
-        String sourceKey = rawSourceKey(movieId, "file", extensionForVideo(request.contentType()));
-        return ResponseEntity.ok(requiredPresignedUploadService().createUploadUrl(sourceKey, request.contentType()));
+        String requestId = mediaUploadRequestService.newRequestId();
+        String sourceKey = rawSourceKey(movieId, "file", requestId, extensionForVideo(request.contentType()));
+        return ResponseEntity.ok(mediaUploadRequestService.issue(
+                SecurityUtil.currentUserId(), movieId, EncodeJobType.MOVIE, sourceKey, request.contentType()));
     }
 
     // S3 업로드 완료 후 인코딩 작업만 Kafka에 위임한다.
     @PostMapping("/{movieId}/file/complete")
     public ResponseEntity<MediaEncodeJobResponse> completeMovieFileUpload(@PathVariable Long movieId,
-                                                                          @RequestBody MediaUploadCompleteRequest request) {
+                                                                          @Valid @RequestBody MediaUploadCompleteRequest request) {
         String targetKey = keyFactory.movieFileHlsTarget(movieId);
         String jobId = enqueueMovieJob(movieId, request, targetKey);
         return ResponseEntity.status(HttpStatus.ACCEPTED)
@@ -201,6 +207,7 @@ public class MovieFileController {
         if (!sourceKey.startsWith("movie/") || !sourceKey.contains("/raw/")) {
             return ResponseEntity.badRequest().build();
         }
+        mediaUploadRequestService.authorizeRawUpload(SecurityUtil.currentUserId(), sourceKey);
 
         Path temp = null;
         try {
@@ -243,7 +250,8 @@ public class MovieFileController {
 
     private String enqueueThumbnailJob(Long movieId, MediaUploadCompleteRequest request, String targetKey) {
         validateMovieUploadRequest(movieId, request);
-        return requiredJobCommandService().requestThumbnailEncoding(
+        return mediaEncodeJobCommandService.requestThumbnailEncoding(
+                request.requestId(),
                 movieId,
                 SecurityUtil.currentUserId(),
                 storageBucket,
@@ -256,7 +264,8 @@ public class MovieFileController {
 
     private String enqueueTrailerJob(Long movieId, MediaUploadCompleteRequest request, String targetKey) {
         validateMovieUploadRequest(movieId, request);
-        return requiredJobCommandService().requestTrailerEncoding(
+        return mediaEncodeJobCommandService.requestTrailerEncoding(
+                request.requestId(),
                 movieId,
                 SecurityUtil.currentUserId(),
                 storageBucket,
@@ -269,7 +278,8 @@ public class MovieFileController {
 
     private String enqueueMovieJob(Long movieId, MediaUploadCompleteRequest request, String targetKey) {
         validateMovieUploadRequest(movieId, request);
-        return requiredJobCommandService().requestMovieEncoding(
+        return mediaEncodeJobCommandService.requestMovieEncoding(
+                request.requestId(),
                 movieId,
                 SecurityUtil.currentUserId(),
                 storageBucket,
@@ -297,25 +307,9 @@ public class MovieFileController {
         }
     }
 
-    private MediaEncodeJobCommandService requiredJobCommandService() {
-        MediaEncodeJobCommandService service = mediaEncodeJobCommandServiceProvider.getIfAvailable();
-        if (service == null) {
-            throw new IllegalStateException("MEDIA_ENCODE_PRODUCER_NOT_CONFIGURED");
-        }
-        return service;
-    }
-
-    private MediaPresignedUploadService requiredPresignedUploadService() {
-        MediaPresignedUploadService service = mediaPresignedUploadServiceProvider.getIfAvailable();
-        if (service == null) {
-            throw new IllegalStateException("PRESIGNED_UPLOAD_NOT_CONFIGURED");
-        }
-        return service;
-    }
-
     // 원본 파일은 raw 경로에 먼저 저장하고, 인코딩 결과는 별도 targetKey 로 분리한다.
-    private String rawSourceKey(Long movieId, String mediaType, String extension) {
-        return "movie/" + movieId + "/raw/" + mediaType + "/" + UUID.randomUUID() + extension;
+    private String rawSourceKey(Long movieId, String mediaType, String requestId, String extension) {
+        return "movie/" + movieId + "/raw/" + mediaType + "/" + requestId + extension;
     }
 
     private String extensionForVideo(String contentType) {
@@ -328,7 +322,7 @@ public class MovieFileController {
             case "video/x-msvideo" -> ".avi";
             case "video/x-matroska" -> ".mkv";
             case "video/webm" -> ".webm";
-            default -> ".bin";
+            default -> throw new IllegalArgumentException("unsupported video contentType");
         };
     }
 
@@ -340,7 +334,7 @@ public class MovieFileController {
             case "image/jpeg" -> ".jpg";
             case "image/png" -> ".png";
             case "image/webp" -> ".webp";
-            default -> ".bin";
+            default -> throw new IllegalArgumentException("unsupported image contentType");
         };
     }
 }

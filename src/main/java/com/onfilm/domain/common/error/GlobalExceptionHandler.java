@@ -12,11 +12,13 @@ import com.onfilm.domain.common.error.exception.StoryboardSceneNotFoundException
 import com.onfilm.domain.common.error.exception.UserNotFoundException;
 import com.onfilm.domain.common.error.exception.RefreshTokenReuseDetectedException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import jakarta.validation.ConstraintViolationException;
 
 import java.util.List;
 
@@ -40,6 +42,12 @@ public class GlobalExceptionHandler {
                         "요청 값이 올바르지 않습니다.",
                         errors
                 ));
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException e) {
+        return ResponseEntity.unprocessableEntity()
+                .body(ErrorResponse.of("VALIDATION_FAILED", "요청 값이 올바르지 않습니다."));
     }
 
     @ExceptionHandler(PersonNotFoundException.class)
@@ -125,12 +133,22 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponse> handleOptimisticLock(OptimisticLockingFailureException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErrorResponse.of(
+                        "CONCURRENT_MEDIA_JOB_UPDATE",
+                        "작업 상태가 동시에 변경되었습니다. 현재 상태를 다시 확인해 주세요."
+                ));
+    }
+
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException e) {
         HttpStatus status = switch (e.getMessage()) {
-            case "FORBIDDEN_MOVIE_ACCESS", "FORBIDDEN_MEDIA_JOB_ACCESS" -> HttpStatus.FORBIDDEN;
-            case "MEDIA_ENCODE_PRODUCER_NOT_CONFIGURED", "PRESIGNED_UPLOAD_NOT_CONFIGURED" -> HttpStatus.SERVICE_UNAVAILABLE;
-            case "INVALID_MEDIA_JOB_STATUS_TRANSITION" -> HttpStatus.CONFLICT;
+            case "FORBIDDEN_MOVIE_ACCESS", "FORBIDDEN_MEDIA_JOB_ACCESS",
+                 "FORBIDDEN_MEDIA_UPLOAD_ACCESS" -> HttpStatus.FORBIDDEN;
+            case "INVALID_MEDIA_JOB_STATUS_TRANSITION", "MEDIA_UPLOAD_ALREADY_COMPLETED" -> HttpStatus.CONFLICT;
+            case "MEDIA_UPLOAD_REQUEST_EXPIRED" -> HttpStatus.GONE;
             default -> BAD_REQUEST;
         };
         return ResponseEntity.status(status)

@@ -9,6 +9,8 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -79,6 +81,20 @@ public class S3StorageService implements StorageService {
                 .key(normalized)
                 .build();
         s3Client.deleteObject(request);
+    }
+
+    @Override
+    public boolean exists(String key) {
+        try {
+            s3Client.headObject(HeadObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(normalizeKey(key))
+                    .build());
+            return true;
+        } catch (S3Exception exception) {
+            if (exception.statusCode() == 404) return false;
+            throw exception;
+        }
     }
 
     @Override

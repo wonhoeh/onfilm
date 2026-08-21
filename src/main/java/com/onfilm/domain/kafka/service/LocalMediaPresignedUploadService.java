@@ -7,31 +7,35 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.Duration;
-import java.time.Instant;
+import java.time.Clock;
 
 @Service
 @ConditionalOnProperty(name = "file.storage.type", havingValue = "local", matchIfMissing = true)
 public class LocalMediaPresignedUploadService implements MediaPresignedUploadService {
 
     private final Duration signatureDuration;
+    private final Clock clock;
 
     public LocalMediaPresignedUploadService(
+            Clock clock,
             @Value("${file.storage.presign-expiration-minutes:10}") long expirationMinutes
     ) {
+        this.clock = clock;
         this.signatureDuration = Duration.ofMinutes(expirationMinutes);
     }
 
     @Override
-    public PresignedUploadUrlResponse createUploadUrl(String sourceKey, String contentType) {
+    public PresignedUploadUrlResponse createUploadUrl(String requestId, String sourceKey, String contentType) {
         String uploadUrl = UriComponentsBuilder.fromPath("/api/files/movie/raw-upload")
                 .queryParam("sourceKey", sourceKey)
                 .build()
                 .toUriString();
 
         return new PresignedUploadUrlResponse(
+                requestId,
                 sourceKey,
                 uploadUrl,
-                Instant.now().plus(signatureDuration)
+                clock.instant().plus(signatureDuration)
         );
     }
 }

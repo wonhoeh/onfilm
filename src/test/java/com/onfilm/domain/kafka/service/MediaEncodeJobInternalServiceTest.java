@@ -1,8 +1,12 @@
 package com.onfilm.domain.kafka.service;
 
-import com.onfilm.domain.kafka.dto.TrailerMediaUpdateRequest;
 import com.onfilm.domain.file.service.StorageKeyPolicy;
+import com.onfilm.domain.file.service.StorageService;
+import com.onfilm.domain.kafka.dto.MediaEncodeCompletionRequest;
+import com.onfilm.domain.kafka.dto.MediaEncodeFailureRequest;
 import com.onfilm.domain.kafka.entity.MediaEncodeJob;
+import com.onfilm.domain.kafka.entity.MediaEncodeJobStatus;
+import com.onfilm.domain.kafka.message.EncodeJobPreset;
 import com.onfilm.domain.kafka.message.EncodeJobType;
 import com.onfilm.domain.kafka.repository.MediaEncodeJobRepository;
 import com.onfilm.domain.movie.entity.AgeRating;
@@ -10,59 +14,80 @@ import com.onfilm.domain.movie.entity.Movie;
 import com.onfilm.domain.movie.repository.MovieRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class MediaEncodeJobInternalServiceTest {
-
-    @Mock
-    private MediaEncodeJobRepository mediaEncodeJobRepository;
-
-    @Mock
-    private MovieRepository movieRepository;
-
-    @Mock
-    private StorageKeyPolicy storageKeyPolicy;
-
-    @InjectMocks
-    private MediaEncodeJobInternalService service;
+    @Mock MediaEncodeJobRepository jobRepository;
+    @Mock MovieRepository movieRepository;
+    @Mock StorageKeyPolicy storageKeyPolicy;
+    @Mock StorageService storageService;
+    @InjectMocks MediaEncodeJobInternalService service;
 
     @Test
-    void updateTrailerMedia_isIdempotentForRepeatedCallback() {
-        MediaEncodeJob job = mock(MediaEncodeJob.class);
-        Movie movie = Movie.create(
-                "Test Movie",
-                120,
-                2020,
-                "movie-key",
-                null,
-                AgeRating.ALL
-        );
-        given(job.getJobType()).willReturn(EncodeJobType.TRAILER);
-        given(job.getMovieId()).willReturn(1L);
-        given(mediaEncodeJobRepository.findById("job-id"))
-                .willReturn(Optional.of(job));
+    void completionAppliesTrailerAndDoneAtomicallyAndIsIdempotent() {
+        Instant requestedAt = Instant.parse("2026-01-01T00:00:00Z");
+        String target = "movie/1/trailer/550e8400-e29b-41d4-a716-446655440000/index.m3u8";
+        MediaEncodeJob job = trailerJob(target, requestedAt);
+        Movie movie = Movie.create("Test Movie", 120, 2020, "movie-key", null, AgeRating.ALL);
+        given(jobRepository.findById(job.getId())).willReturn(Optional.of(job));
         given(movieRepository.findById(1L)).willReturn(Optional.of(movie));
-        String trailerKey =
-                "movie/1/trailer/550e8400-e29b-41d4-a716-446655440000/index.m3u8";
-        TrailerMediaUpdateRequest request = new TrailerMediaUpdateRequest(trailerKey);
+        given(storageService.exists(target)).willReturn(true);
+        MediaEncodeCompletionRequest request = new MediaEncodeCompletionRequest(
+                "bucket", target, "application/vnd.apple.mpegurl", requestedAt.plusSeconds(30));
 
-        service.updateTrailerMedia("job-id", request);
-        service.updateTrailerMedia("job-id", request);
+        service.complete(job.getId(), request);
+        service.complete(job.getId(), request);
 
-        assertThat(movie.getTrailers())
-                .extracting(trailer -> trailer.getStorageKey())
-                .containsExactly(trailerKey);
-        verify(storageKeyPolicy, org.mockito.Mockito.times(2))
-                .validateMovieTrailerKey(1L, trailerKey);
+        assertThat(job.getStatus()).isEqualTo(MediaEncodeJobStatus.DONE);
+        assertThat(movie.getTrailers()).extracting(trailer -> trailer.getStorageKey()).containsExactly(target);
+        verify(jobRepository).saveAndFlush(job);
+    }
+
+    @Test
+    void rejectsCompletionWhoseOutputDoesNotMatchJob() {
+        MediaEncodeJob job = trailerJob(
+                "movie/1/trailer/550e8400-e29b-41d4-a716-446655440000/index.m3u8",
+                Instant.parse("2026-01-01T00:00:00Z"));
+        given(jobRepository.findById(job.getId())).willReturn(Optional.of(job));
+
+        assertThatThrownBy(() -> service.complete(job.getId(), new MediaEncodeCompletionRequest(
+                "bucket", "movie/2/trailer/other/index.m3u8",
+                "application/vnd.apple.mpegurl", job.getRequestedAt().plusSeconds(1))))
+                .hasMessage("callback output does not match media encode job");
+        verifyNoInteractions(movieRepository);
+    }
+
+    @Test
+    void terminalStateConflictIsRejected() {
+        MediaEncodeJob job = trailerJob(
+                "movie/1/trailer/550e8400-e29b-41d4-a716-446655440000/index.m3u8",
+                Instant.parse("2026-01-01T00:00:00Z"));
+        given(jobRepository.findById(job.getId())).willReturn(Optional.of(job));
+        service.fail(job.getId(), new MediaEncodeFailureRequest(
+                "ENCODE_FAILED", "codec failed", job.getRequestedAt().plusSeconds(1)));
+
+        assertThatThrownBy(() -> service.complete(job.getId(), new MediaEncodeCompletionRequest(
+                job.getTargetBucket(), job.getTargetKey(), job.getTargetContentType(),
+                job.getRequestedAt().plusSeconds(2))))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    private MediaEncodeJob trailerJob(String target, Instant requestedAt) {
+        String requestId = UUID.randomUUID().toString();
+        return MediaEncodeJob.requested(
+                UUID.randomUUID().toString(), requestId, 1L, 2L,
+                EncodeJobType.TRAILER, EncodeJobPreset.VIDEO_HLS_720P_2500K_AAC_96K,
+                "bucket", "movie/1/raw/trailer/" + requestId + ".mp4",
+                "bucket", target, "video/mp4", "application/vnd.apple.mpegurl", requestedAt);
     }
 }

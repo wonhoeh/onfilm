@@ -8,9 +8,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import jakarta.validation.constraints.Pattern;
 
 @RestController
 @RequiredArgsConstructor
+@Validated
 @RequestMapping("/api/media-jobs")
 public class MediaEncodeJobController {
 
@@ -18,7 +21,10 @@ public class MediaEncodeJobController {
 
     // 클라이언트가 jobId 로 현재 인코딩 상태를 polling 하는 API.
     @GetMapping("/{jobId}")
-    public ResponseEntity<MediaEncodeJobStatusResponse> getJobStatus(@PathVariable String jobId) {
+    public ResponseEntity<MediaEncodeJobStatusResponse> getJobStatus(
+            @PathVariable
+            @Pattern(regexp = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+            String jobId) {
         return ResponseEntity.ok(mediaEncodeJobQueryService.getJobStatus(jobId));
     }
 }

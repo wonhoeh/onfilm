@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequ
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.time.Duration;
+import java.time.Clock;
 import java.time.Instant;
 
 @Service
@@ -19,19 +20,22 @@ public class S3MediaPresignedUploadService implements MediaPresignedUploadServic
     private final S3Presigner s3Presigner;
     private final String bucket;
     private final Duration signatureDuration;
+    private final Clock clock;
 
     public S3MediaPresignedUploadService(
             S3Presigner s3Presigner,
+            Clock clock,
             @Value("${file.storage.bucket}") String bucket,
             @Value("${file.storage.presign-expiration-minutes:10}") long expirationMinutes
     ) {
         this.s3Presigner = s3Presigner;
+        this.clock = clock;
         this.bucket = bucket;
         this.signatureDuration = Duration.ofMinutes(expirationMinutes);
     }
 
     @Override
-    public PresignedUploadUrlResponse createUploadUrl(String sourceKey, String contentType) {
+    public PresignedUploadUrlResponse createUploadUrl(String requestId, String sourceKey, String contentType) {
         PutObjectRequest objectRequest = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(sourceKey)
@@ -45,9 +49,10 @@ public class S3MediaPresignedUploadService implements MediaPresignedUploadServic
 
         PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
         return new PresignedUploadUrlResponse(
+                requestId,
                 sourceKey,
                 presignedRequest.url().toString(),
-                Instant.now().plus(signatureDuration)
+                clock.instant().plus(signatureDuration)
         );
     }
 }

@@ -51,3 +51,9 @@ app:
   kafka:
     topic:
       media-encode-requested: media.encode.requested
+
+media-encode:
+  callback-secret: test-media-encode-callback-secret-32-bytes
+  job-timeout: PT2H
+  outbox-retention: P7D
+  job-retention: P30D
