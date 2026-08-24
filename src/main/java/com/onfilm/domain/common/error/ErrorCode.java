@@ -1,0 +1,40 @@
+package com.onfilm.domain.common.error;
+
+import org.springframework.http.HttpStatus;
+
+/**
+ * API에 노출되는 오류 코드와 기본 응답 정책을 정의한다.
+ *
+ * <p>코드 이름은 클라이언트가 분기에 사용하는 안정적인 계약이므로,
+ * 기존 코드의 의미를 변경하지 않고 새 코드를 추가하는 방식으로 관리한다.</p>
+ */
+public enum ErrorCode {
+
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
+    PERSON_NOT_FOUND(HttpStatus.NOT_FOUND, "인물 정보를 찾을 수 없습니다."),
+    MOVIE_NOT_FOUND(HttpStatus.NOT_FOUND, "영화를 찾을 수 없습니다."),
+    STORYBOARD_PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "스토리보드 프로젝트를 찾을 수 없습니다."),
+    STORYBOARD_SCENE_NOT_FOUND(HttpStatus.NOT_FOUND, "스토리보드 장면을 찾을 수 없습니다."),
+    MEDIA_ENCODE_JOB_NOT_FOUND(HttpStatus.NOT_FOUND, "미디어 인코딩 작업을 찾을 수 없습니다."),
+
+    INVALID_PROFILE_TAG(HttpStatus.BAD_REQUEST, "프로필 태그가 올바르지 않습니다."),
+    DUPLICATE_EMAIL(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
+    DUPLICATE_USERNAME(HttpStatus.CONFLICT, "이미 사용 중인 사용자 이름입니다."),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 리프레시 토큰입니다.");
+
+    private final HttpStatus httpStatus;
+    private final String message;
+
+    ErrorCode(HttpStatus httpStatus, String message) {
+        this.httpStatus = httpStatus;
+        this.message = message;
+    }
+
+    public HttpStatus httpStatus() {
+        return httpStatus;
+    }
+
+    public String message() {
+        return message;
+    }
+}
