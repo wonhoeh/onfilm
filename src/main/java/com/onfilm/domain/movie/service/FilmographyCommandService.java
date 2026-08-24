@@ -1,5 +1,6 @@
 package com.onfilm.domain.movie.service;
 
+import com.onfilm.domain.common.error.exception.FilmographyItemNotFoundException;
 import com.onfilm.domain.movie.dto.FilmographyUpsertRequest;
 import com.onfilm.domain.movie.dto.FilmographyUpsertResponse;
 import com.onfilm.domain.movie.entity.Movie;
@@ -61,7 +62,7 @@ public class FilmographyCommandService {
         Person person = currentPersonProvider.getRequired(publicId);
         MoviePerson moviePerson = moviePersonRepository.findByPersonIdAndMovieId(person.getId(), movieId);
         if (moviePerson == null) {
-            throw new IllegalArgumentException("filmography item not found");
+            throw new FilmographyItemNotFoundException(movieId);
         }
         moviePerson.changePrivacy(isPrivate);
     }

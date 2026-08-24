@@ -16,6 +16,8 @@ public enum ErrorCode {
     STORYBOARD_PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "스토리보드 프로젝트를 찾을 수 없습니다."),
     STORYBOARD_SCENE_NOT_FOUND(HttpStatus.NOT_FOUND, "스토리보드 장면을 찾을 수 없습니다."),
     MEDIA_ENCODE_JOB_NOT_FOUND(HttpStatus.NOT_FOUND, "미디어 인코딩 작업을 찾을 수 없습니다."),
+    MEDIA_UPLOAD_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "미디어 업로드 요청을 찾을 수 없습니다."),
+    FILMOGRAPHY_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "필모그래피 항목을 찾을 수 없습니다."),
 
     INVALID_PROFILE_TAG(HttpStatus.BAD_REQUEST, "프로필 태그가 올바르지 않습니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),

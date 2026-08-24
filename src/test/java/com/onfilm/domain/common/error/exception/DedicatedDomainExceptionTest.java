@@ -17,6 +17,8 @@ class DedicatedDomainExceptionTest {
                 expected(new InvalidProfileTagException("invalid tag"), ErrorCode.INVALID_PROFILE_TAG),
                 expected(new InvalidRefreshTokenException(), ErrorCode.INVALID_REFRESH_TOKEN),
                 expected(new MediaEncodeJobNotFoundException("job-id"), ErrorCode.MEDIA_ENCODE_JOB_NOT_FOUND),
+                expected(new MediaUploadRequestNotFoundException("request-id"), ErrorCode.MEDIA_UPLOAD_REQUEST_NOT_FOUND),
+                expected(new FilmographyItemNotFoundException(1L), ErrorCode.FILMOGRAPHY_ITEM_NOT_FOUND),
                 expected(new MovieNotFoundException(1L), ErrorCode.MOVIE_NOT_FOUND),
                 expected(new PersonNotFoundException(1L), ErrorCode.PERSON_NOT_FOUND),
                 expected(new RefreshTokenReuseDetectedException(), ErrorCode.INVALID_REFRESH_TOKEN),

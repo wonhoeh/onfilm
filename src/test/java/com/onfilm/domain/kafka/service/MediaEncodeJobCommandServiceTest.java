@@ -1,6 +1,9 @@
 package com.onfilm.domain.kafka.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.onfilm.domain.common.error.ErrorCode;
+import com.onfilm.domain.common.error.exception.MediaEncodeJobNotFoundException;
+import com.onfilm.domain.common.error.exception.MediaUploadRequestNotFoundException;
 import com.onfilm.domain.file.service.StorageKeyPolicy;
 import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.kafka.entity.*;
@@ -85,6 +88,38 @@ class MediaEncodeJobCommandServiceTest {
         assertThatThrownBy(() -> requestMovie(requestId, source))
                 .hasMessage("uploaded source object does not exist");
         verifyNoInteractions(jobRepository, outboxRepository);
+    }
+
+    @Test
+    void missingUploadRequestThrowsNotFoundException() {
+        String requestId = UUID.randomUUID().toString();
+        String source = "movie/1/raw/file/" + requestId + ".mp4";
+        given(uploadRepository.findByIdForUpdate(requestId)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> requestMovie(requestId, source))
+                .isInstanceOfSatisfying(MediaUploadRequestNotFoundException.class, exception ->
+                        assertThat(exception.getErrorCode())
+                                .isEqualTo(ErrorCode.MEDIA_UPLOAD_REQUEST_NOT_FOUND));
+        verifyNoInteractions(jobRepository, outboxRepository, storageService);
+    }
+
+    @Test
+    void completedUploadWithMissingJobThrowsEncodeJobNotFoundException() {
+        String requestId = UUID.randomUUID().toString();
+        String source = "movie/1/raw/file/" + requestId + ".mp4";
+        MediaUploadRequest upload = upload(requestId, source);
+        given(uploadRepository.findByIdForUpdate(requestId)).willReturn(Optional.of(upload));
+        given(storageService.exists(source)).willReturn(true);
+        String jobId = requestMovie(requestId, source);
+        clearInvocations(jobRepository, outboxRepository, storageService);
+        given(jobRepository.findById(jobId)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> requestMovie(requestId, source))
+                .isInstanceOfSatisfying(MediaEncodeJobNotFoundException.class, exception ->
+                        assertThat(exception.getErrorCode())
+                                .isEqualTo(ErrorCode.MEDIA_ENCODE_JOB_NOT_FOUND));
+        verify(jobRepository, never()).save(any());
+        verify(outboxRepository, never()).save(any());
     }
 
     private String requestMovie(String requestId, String source) {

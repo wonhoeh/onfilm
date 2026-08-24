@@ -1,5 +1,6 @@
 package com.onfilm.domain.kafka.service;
 
+import com.onfilm.domain.common.error.exception.MediaUploadRequestNotFoundException;
 import com.onfilm.domain.kafka.dto.PresignedUploadUrlResponse;
 import com.onfilm.domain.kafka.entity.MediaUploadRequest;
 import com.onfilm.domain.kafka.message.EncodeJobType;
@@ -46,7 +47,7 @@ public class MediaUploadRequestService {
     public void authorizeRawUpload(Long userId, String sourceKey) {
         String requestId = extractRequestId(sourceKey);
         MediaUploadRequest request = repository.findByIdForUpdate(requestId)
-                .orElseThrow(() -> new IllegalArgumentException("media upload request not found"));
+                .orElseThrow(() -> new MediaUploadRequestNotFoundException(requestId));
         request.validateUpload(userId, sourceKey, clock.instant());
     }
 

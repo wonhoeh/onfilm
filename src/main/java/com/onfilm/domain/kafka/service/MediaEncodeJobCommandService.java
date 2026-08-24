@@ -2,6 +2,8 @@ package com.onfilm.domain.kafka.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.onfilm.domain.common.error.exception.MediaEncodeJobNotFoundException;
+import com.onfilm.domain.common.error.exception.MediaUploadRequestNotFoundException;
 import com.onfilm.domain.file.service.StorageKeyPolicy;
 import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.kafka.entity.*;
@@ -62,13 +64,13 @@ public class MediaEncodeJobCommandService {
                            String targetBucket, String targetKey,
                            String sourceContentType, String targetContentType) {
         MediaUploadRequest upload = uploadRequestRepository.findByIdForUpdate(requestId)
-                .orElseThrow(() -> new IllegalArgumentException("media upload request not found"));
+                .orElseThrow(() -> new MediaUploadRequestNotFoundException(requestId));
         Instant now = clock.instant();
         upload.validateCompletion(userId, movieId, jobType, sourceKey, sourceContentType, now);
 
         if (upload.getJobId() != null) {
             return jobRepository.findById(upload.getJobId())
-                    .orElseThrow(() -> new IllegalStateException("MEDIA_UPLOAD_JOB_NOT_FOUND"))
+                    .orElseThrow(() -> new MediaEncodeJobNotFoundException(upload.getJobId()))
                     .getId();
         }
 

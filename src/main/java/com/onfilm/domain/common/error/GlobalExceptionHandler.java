@@ -2,9 +2,11 @@ package com.onfilm.domain.common.error;
 
 import com.onfilm.domain.common.error.exception.DuplicateEmailException;
 import com.onfilm.domain.common.error.exception.DuplicateUsernameException;
+import com.onfilm.domain.common.error.exception.FilmographyItemNotFoundException;
 import com.onfilm.domain.common.error.exception.InvalidProfileTagException;
 import com.onfilm.domain.common.error.exception.InvalidRefreshTokenException;
 import com.onfilm.domain.common.error.exception.MediaEncodeJobNotFoundException;
+import com.onfilm.domain.common.error.exception.MediaUploadRequestNotFoundException;
 import com.onfilm.domain.common.error.exception.MovieNotFoundException;
 import com.onfilm.domain.common.error.exception.PersonNotFoundException;
 import com.onfilm.domain.common.error.exception.StoryboardProjectNotFoundException;
@@ -114,6 +116,22 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMediaEncodeJobNotFound(MediaEncodeJobNotFoundException e) {
         return ResponseEntity.status(NOT_FOUND)
                 .body(ErrorResponse.of("MEDIA_ENCODE_JOB_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(MediaUploadRequestNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleMediaUploadRequestNotFound(
+            MediaUploadRequestNotFoundException e
+    ) {
+        return ResponseEntity.status(NOT_FOUND)
+                .body(ErrorResponse.of("MEDIA_UPLOAD_REQUEST_NOT_FOUND", e.getMessage()));
+    }
+
+    @ExceptionHandler(FilmographyItemNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleFilmographyItemNotFound(
+            FilmographyItemNotFoundException e
+    ) {
+        return ResponseEntity.status(NOT_FOUND)
+                .body(ErrorResponse.of("FILMOGRAPHY_ITEM_NOT_FOUND", e.getMessage()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
