@@ -21,11 +21,21 @@ public abstract class DomainException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
+    protected DomainException(ErrorCode errorCode, String message) {
+        super(requireMessage(errorCode, message));
+        this.errorCode = errorCode;
+    }
+
     public ErrorCode getErrorCode() {
         return errorCode;
     }
 
     private static ErrorCode requireErrorCode(ErrorCode errorCode) {
         return Objects.requireNonNull(errorCode, "errorCode must not be null");
+    }
+
+    private static String requireMessage(ErrorCode errorCode, String message) {
+        requireErrorCode(errorCode);
+        return Objects.requireNonNull(message, "message must not be null");
     }
 }

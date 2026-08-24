@@ -1,8 +1,10 @@
 package com.onfilm.domain.common.error.exception;
 
-public class MediaEncodeJobNotFoundException extends RuntimeException {
+import com.onfilm.domain.common.error.ErrorCode;
+
+public class MediaEncodeJobNotFoundException extends DomainException {
 
     public MediaEncodeJobNotFoundException(String jobId) {
-        super("Media encode job not found: " + jobId);
+        super(ErrorCode.MEDIA_ENCODE_JOB_NOT_FOUND);
     }
 }

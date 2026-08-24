@@ -1,7 +1,9 @@
 package com.onfilm.domain.common.error.exception;
 
-public class InvalidProfileTagException extends RuntimeException {
+import com.onfilm.domain.common.error.ErrorCode;
+
+public class InvalidProfileTagException extends DomainException {
     public InvalidProfileTagException(String message) {
-        super(message);
+        super(ErrorCode.INVALID_PROFILE_TAG, message);
     }
 }

@@ -1,7 +1,9 @@
 package com.onfilm.domain.common.error.exception;
 
-public class MovieNotFoundException extends RuntimeException{
+import com.onfilm.domain.common.error.ErrorCode;
+
+public class MovieNotFoundException extends DomainException {
     public MovieNotFoundException (Long id) {
-        super("MOVIE NOT FOUND: " + id);
+        super(ErrorCode.MOVIE_NOT_FOUND);
     }
 }

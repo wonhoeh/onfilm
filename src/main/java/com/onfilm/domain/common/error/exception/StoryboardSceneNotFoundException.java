@@ -1,7 +1,9 @@
 package com.onfilm.domain.common.error.exception;
 
-public class StoryboardSceneNotFoundException extends RuntimeException {
+import com.onfilm.domain.common.error.ErrorCode;
+
+public class StoryboardSceneNotFoundException extends DomainException {
     public StoryboardSceneNotFoundException(Long sceneId) {
-        super("STORYBOARD_SCENE_NOT_FOUND: " + sceneId);
+        super(ErrorCode.STORYBOARD_SCENE_NOT_FOUND);
     }
 }

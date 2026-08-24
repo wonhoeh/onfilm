@@ -1,12 +1,13 @@
 package com.onfilm.domain.common.error.exception;
 
+import com.onfilm.domain.common.error.ErrorCode;
 
-public class PersonNotFoundException extends RuntimeException {
+public class PersonNotFoundException extends DomainException {
     public PersonNotFoundException(String name) {
-        super("PERSON NOT FOUND: " + name);
+        super(ErrorCode.PERSON_NOT_FOUND);
     }
 
     public PersonNotFoundException(Long id) {
-        super("PERSON NOT FOUND: " + id);
+        super(ErrorCode.PERSON_NOT_FOUND);
     }
 }

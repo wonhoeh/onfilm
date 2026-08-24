@@ -1,7 +1,9 @@
 package com.onfilm.domain.common.error.exception;
 
-public class DuplicateUsernameException extends RuntimeException {
+import com.onfilm.domain.common.error.ErrorCode;
+
+public class DuplicateUsernameException extends DomainException {
     public DuplicateUsernameException() {
-        super("username already exists");
+        super(ErrorCode.DUPLICATE_USERNAME);
     }
 }

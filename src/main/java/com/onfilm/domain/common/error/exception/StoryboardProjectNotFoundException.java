@@ -1,7 +1,9 @@
 package com.onfilm.domain.common.error.exception;
 
-public class StoryboardProjectNotFoundException extends RuntimeException {
+import com.onfilm.domain.common.error.ErrorCode;
+
+public class StoryboardProjectNotFoundException extends DomainException {
     public StoryboardProjectNotFoundException(Long projectId) {
-        super("STORYBOARD PROJECT NOT FOUND: " + projectId);
+        super(ErrorCode.STORYBOARD_PROJECT_NOT_FOUND);
     }
 }

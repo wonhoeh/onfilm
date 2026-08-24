@@ -1,7 +1,9 @@
 package com.onfilm.domain.common.error.exception;
 
-public class RefreshTokenReuseDetectedException extends RuntimeException {
+import com.onfilm.domain.common.error.ErrorCode;
+
+public class RefreshTokenReuseDetectedException extends DomainException {
     public RefreshTokenReuseDetectedException() {
-        super("Invalid refresh token");
+        super(ErrorCode.INVALID_REFRESH_TOKEN);
     }
 }

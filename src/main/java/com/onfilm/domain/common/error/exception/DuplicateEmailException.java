@@ -1,7 +1,9 @@
 package com.onfilm.domain.common.error.exception;
 
-public class DuplicateEmailException extends RuntimeException {
+import com.onfilm.domain.common.error.ErrorCode;
+
+public class DuplicateEmailException extends DomainException {
     public DuplicateEmailException() {
-        super("email already exists");
+        super(ErrorCode.DUPLICATE_EMAIL);
     }
 }
