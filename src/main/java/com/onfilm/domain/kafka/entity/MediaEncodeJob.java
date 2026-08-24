@@ -1,5 +1,6 @@
 package com.onfilm.domain.kafka.entity;
 
+import com.onfilm.domain.common.error.exception.InvalidMediaJobStatusTransitionException;
 import com.onfilm.domain.kafka.message.EncodeJobPreset;
 import com.onfilm.domain.kafka.message.EncodeJobType;
 import jakarta.persistence.*;
@@ -159,8 +160,8 @@ public class MediaEncodeJob {
         if (status != expected) throw invalidTransition();
     }
 
-    private static IllegalStateException invalidTransition() {
-        return new IllegalStateException("INVALID_MEDIA_JOB_STATUS_TRANSITION");
+    private static InvalidMediaJobStatusTransitionException invalidTransition() {
+        return new InvalidMediaJobStatusTransitionException();
     }
 
     private static EncodeJobPreset validatePreset(EncodeJobType type, EncodeJobPreset preset) {

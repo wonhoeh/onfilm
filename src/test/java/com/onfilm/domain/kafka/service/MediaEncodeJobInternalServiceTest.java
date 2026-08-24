@@ -1,5 +1,7 @@
 package com.onfilm.domain.kafka.service;
 
+import com.onfilm.domain.common.error.ErrorCode;
+import com.onfilm.domain.common.error.exception.InvalidMediaJobStatusTransitionException;
 import com.onfilm.domain.file.service.StorageKeyPolicy;
 import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.kafka.dto.MediaEncodeCompletionRequest;
@@ -79,7 +81,9 @@ class MediaEncodeJobInternalServiceTest {
         assertThatThrownBy(() -> service.complete(job.getId(), new MediaEncodeCompletionRequest(
                 job.getTargetBucket(), job.getTargetKey(), job.getTargetContentType(),
                 job.getRequestedAt().plusSeconds(2))))
-                .isInstanceOf(IllegalStateException.class);
+                .isInstanceOfSatisfying(InvalidMediaJobStatusTransitionException.class, exception ->
+                        assertThat(exception.getErrorCode())
+                                .isEqualTo(ErrorCode.INVALID_MEDIA_JOB_STATUS_TRANSITION));
     }
 
     private MediaEncodeJob trailerJob(String target, Instant requestedAt) {

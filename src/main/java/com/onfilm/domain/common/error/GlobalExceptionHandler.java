@@ -9,9 +9,12 @@ import com.onfilm.domain.common.error.exception.ForbiddenMediaUploadAccessExcept
 import com.onfilm.domain.common.error.exception.ForbiddenMovieAccessException;
 import com.onfilm.domain.common.error.exception.ForbiddenPersonAccessException;
 import com.onfilm.domain.common.error.exception.InvalidCredentialsException;
+import com.onfilm.domain.common.error.exception.InvalidMediaJobStatusTransitionException;
 import com.onfilm.domain.common.error.exception.InvalidProfileTagException;
 import com.onfilm.domain.common.error.exception.InvalidRefreshTokenException;
 import com.onfilm.domain.common.error.exception.MediaEncodeJobNotFoundException;
+import com.onfilm.domain.common.error.exception.MediaUploadAlreadyCompletedException;
+import com.onfilm.domain.common.error.exception.MediaUploadRequestExpiredException;
 import com.onfilm.domain.common.error.exception.MediaUploadRequestNotFoundException;
 import com.onfilm.domain.common.error.exception.MovieNotFoundException;
 import com.onfilm.domain.common.error.exception.PersonNotFoundException;
@@ -135,6 +138,17 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of(errorCode.name(), errorCode.message()));
     }
 
+    @ExceptionHandler({
+            InvalidMediaJobStatusTransitionException.class,
+            MediaUploadAlreadyCompletedException.class,
+            MediaUploadRequestExpiredException.class
+    })
+    public ResponseEntity<ErrorResponse> handleMediaState(DomainException exception) {
+        ErrorCode errorCode = exception.getErrorCode();
+        return ResponseEntity.status(errorCode.httpStatus())
+                .body(ErrorResponse.of(errorCode.name(), errorCode.message()));
+    }
+
     @ExceptionHandler(MediaEncodeJobNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleMediaEncodeJobNotFound(MediaEncodeJobNotFoundException e) {
         return ResponseEntity.status(NOT_FOUND)
@@ -187,8 +201,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException e) {
         HttpStatus status = switch (e.getMessage()) {
             case "FORBIDDEN_MEDIA_JOB_ACCESS" -> HttpStatus.FORBIDDEN;
-            case "INVALID_MEDIA_JOB_STATUS_TRANSITION", "MEDIA_UPLOAD_ALREADY_COMPLETED" -> HttpStatus.CONFLICT;
-            case "MEDIA_UPLOAD_REQUEST_EXPIRED" -> HttpStatus.GONE;
             default -> BAD_REQUEST;
         };
         return ResponseEntity.status(status)

@@ -30,7 +30,10 @@ public enum ErrorCode {
     FORBIDDEN_MOVIE_ACCESS(HttpStatus.FORBIDDEN, "해당 영화에 접근할 권한이 없습니다."),
     FORBIDDEN_MEDIA_UPLOAD_ACCESS(HttpStatus.FORBIDDEN, "해당 미디어 업로드 요청에 접근할 권한이 없습니다."),
 
-    PERSON_NOT_LINKED(HttpStatus.CONFLICT, "사용자에게 인물 정보가 연결되어 있지 않습니다.");
+    PERSON_NOT_LINKED(HttpStatus.CONFLICT, "사용자에게 인물 정보가 연결되어 있지 않습니다."),
+    INVALID_MEDIA_JOB_STATUS_TRANSITION(HttpStatus.CONFLICT, "미디어 인코딩 작업의 상태를 변경할 수 없습니다."),
+    MEDIA_UPLOAD_ALREADY_COMPLETED(HttpStatus.CONFLICT, "미디어 업로드 요청이 이미 다른 작업으로 완료되었습니다."),
+    MEDIA_UPLOAD_REQUEST_EXPIRED(HttpStatus.GONE, "미디어 업로드 요청이 만료되었습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

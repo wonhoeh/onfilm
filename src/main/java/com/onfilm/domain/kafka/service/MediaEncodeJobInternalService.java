@@ -1,5 +1,6 @@
 package com.onfilm.domain.kafka.service;
 
+import com.onfilm.domain.common.error.exception.InvalidMediaJobStatusTransitionException;
 import com.onfilm.domain.common.error.exception.MediaEncodeJobNotFoundException;
 import com.onfilm.domain.common.error.exception.MovieNotFoundException;
 import com.onfilm.domain.file.service.StorageKeyPolicy;
@@ -41,7 +42,7 @@ public class MediaEncodeJobInternalService {
             return;
         }
         if (job.getStatus() == com.onfilm.domain.kafka.entity.MediaEncodeJobStatus.FAILED) {
-            throw new IllegalStateException("INVALID_MEDIA_JOB_STATUS_TRANSITION");
+            throw new InvalidMediaJobStatusTransitionException();
         }
         storageKeyPolicy.validateMediaTargetKey(job.getMovieId(), job.getJobType(), key);
         if (!storageService.exists(key)) {

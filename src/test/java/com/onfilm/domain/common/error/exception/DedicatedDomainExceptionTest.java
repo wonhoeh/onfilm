@@ -30,7 +30,10 @@ class DedicatedDomainExceptionTest {
                 expected(new ForbiddenPersonAccessException(), ErrorCode.FORBIDDEN_PERSON_ACCESS),
                 expected(new ForbiddenMovieAccessException(), ErrorCode.FORBIDDEN_MOVIE_ACCESS),
                 expected(new ForbiddenMediaUploadAccessException(), ErrorCode.FORBIDDEN_MEDIA_UPLOAD_ACCESS),
-                expected(new PersonNotLinkedException(), ErrorCode.PERSON_NOT_LINKED)
+                expected(new PersonNotLinkedException(), ErrorCode.PERSON_NOT_LINKED),
+                expected(new InvalidMediaJobStatusTransitionException(), ErrorCode.INVALID_MEDIA_JOB_STATUS_TRANSITION),
+                expected(new MediaUploadAlreadyCompletedException(), ErrorCode.MEDIA_UPLOAD_ALREADY_COMPLETED),
+                expected(new MediaUploadRequestExpiredException(), ErrorCode.MEDIA_UPLOAD_REQUEST_EXPIRED)
         );
 
         assertThat(exceptions).allSatisfy(expected -> {

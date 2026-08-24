@@ -1,6 +1,8 @@
 package com.onfilm.domain.kafka.entity;
 
 import com.onfilm.domain.common.error.exception.ForbiddenMediaUploadAccessException;
+import com.onfilm.domain.common.error.exception.MediaUploadAlreadyCompletedException;
+import com.onfilm.domain.common.error.exception.MediaUploadRequestExpiredException;
 import com.onfilm.domain.kafka.message.EncodeJobType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -95,7 +97,7 @@ public class MediaUploadRequest {
         if (status == MediaUploadRequestStatus.COMPLETED) return;
         if (status == MediaUploadRequestStatus.EXPIRED || !now.isBefore(expiresAt)) {
             status = MediaUploadRequestStatus.EXPIRED;
-            throw new IllegalStateException("MEDIA_UPLOAD_REQUEST_EXPIRED");
+            throw new MediaUploadRequestExpiredException();
         }
     }
 
@@ -104,16 +106,16 @@ public class MediaUploadRequest {
         if (!this.sourceKey.equals(sourceKey)) throw new IllegalArgumentException("sourceKey does not match upload request");
         if (status != MediaUploadRequestStatus.ISSUED || !now.isBefore(expiresAt)) {
             if (status == MediaUploadRequestStatus.ISSUED) status = MediaUploadRequestStatus.EXPIRED;
-            throw new IllegalStateException("MEDIA_UPLOAD_REQUEST_EXPIRED");
+            throw new MediaUploadRequestExpiredException();
         }
     }
 
     public void complete(String jobId, Instant completedAt) {
         if (status == MediaUploadRequestStatus.COMPLETED) {
-            if (!this.jobId.equals(jobId)) throw new IllegalStateException("MEDIA_UPLOAD_ALREADY_COMPLETED");
+            if (!this.jobId.equals(jobId)) throw new MediaUploadAlreadyCompletedException();
             return;
         }
-        if (status != MediaUploadRequestStatus.ISSUED) throw new IllegalStateException("MEDIA_UPLOAD_REQUEST_EXPIRED");
+        if (status != MediaUploadRequestStatus.ISSUED) throw new MediaUploadRequestExpiredException();
         this.jobId = requireUuid(jobId);
         this.completedAt = require(completedAt, "completedAt");
         this.status = MediaUploadRequestStatus.COMPLETED;

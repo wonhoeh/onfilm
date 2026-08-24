@@ -57,6 +57,22 @@ class GlobalExceptionHandlerTest {
         );
     }
 
+    @Test
+    void mediaStateExceptionsUseTheirErrorCodePolicy() {
+        assertDomainError(
+                handler.handleMediaState(new InvalidMediaJobStatusTransitionException()),
+                ErrorCode.INVALID_MEDIA_JOB_STATUS_TRANSITION
+        );
+        assertDomainError(
+                handler.handleMediaState(new MediaUploadAlreadyCompletedException()),
+                ErrorCode.MEDIA_UPLOAD_ALREADY_COMPLETED
+        );
+        assertDomainError(
+                handler.handleMediaState(new MediaUploadRequestExpiredException()),
+                ErrorCode.MEDIA_UPLOAD_REQUEST_EXPIRED
+        );
+    }
+
     private static void assertNotFound(
             ResponseEntity<ErrorResponse> response,
             ErrorCode errorCode

@@ -1,5 +1,7 @@
 package com.onfilm.domain.kafka.entity;
 
+import com.onfilm.domain.common.error.ErrorCode;
+import com.onfilm.domain.common.error.exception.InvalidMediaJobStatusTransitionException;
 import com.onfilm.domain.kafka.message.EncodeJobPreset;
 import com.onfilm.domain.kafka.message.EncodeJobType;
 import org.junit.jupiter.api.Test;
@@ -47,8 +49,9 @@ class MediaEncodeJobTest {
         job.markDone(REQUESTED_AT.plusSeconds(10));
 
         assertThatThrownBy(() -> job.markFailed("FAILED", "reason", REQUESTED_AT.plusSeconds(20)))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("INVALID_MEDIA_JOB_STATUS_TRANSITION");
+                .isInstanceOfSatisfying(InvalidMediaJobStatusTransitionException.class, exception ->
+                        assertThat(exception.getErrorCode())
+                                .isEqualTo(ErrorCode.INVALID_MEDIA_JOB_STATUS_TRANSITION));
     }
 
     @Test
