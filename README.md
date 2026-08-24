@@ -204,6 +204,7 @@ Movie와 Person의 관계에는 역할, 배역, 정렬 순서와 공개 범위�
 ### 문제 해결과 기술 선택
 
 - [문제 해결 사례 인덱스](docs/problem-solving/README.md)
+- [도메인 예외와 API 오류 응답 표준화](docs/problem-solving/08-domain-exception-and-api-error-standardization.md)
 - [Transactional Outbox 정책](docs/decisions/media-encode-job-outbox-policy.md)
 - [Refresh Token 재사용 대응 정책](docs/decisions/refresh-token-reuse-policy.md)
 - [Trailer storage key 정책](docs/decisions/trailer-storage-key-policy.md)
@@ -214,6 +215,7 @@ Movie와 Person의 관계에는 역할, 배역, 정렬 순서와 공개 범위�
 - [엔티티 메서드 네이밍](docs/convention/entity-method-naming-convention.md)
 - [DTO 스타일](docs/convention/dto-style-convention.md)
 - [검증 흐름](docs/convention/validation-flow-convention.md)
+- [예외 정책과 오류 코드](docs/convention/exception-and-error-code-convention.md)
 
 ### 구현과 검증 자료
 

@@ -23,6 +23,7 @@ DB: 동시성까지 포함한 최종 데이터 무결성
 - [Onfilm DTO 스타일 컨벤션](dto-style-convention.md)
 - [Onfilm 엔티티 설계·리팩토링 가이드](entity-refactoring-style-guide.md)
 - [Entity 메서드 네이밍 컨벤션](entity-method-naming-convention.md)
+- [Onfilm 예외 정책과 오류 코드 컨벤션](exception-and-error-code-convention.md)
 
 ---
 
@@ -478,6 +479,8 @@ DB
 ---
 
 ## 11. 예외 처리 스타일
+
+API에 공개되는 예외 타입, 오류 코드, HTTP 상태와 응답 형식의 상세 기준은 [Onfilm 예외 정책과 오류 코드 컨벤션](exception-and-error-code-convention.md)을 따른다.
 
 | 상황 | 기본 예외 |
 |---|---|
