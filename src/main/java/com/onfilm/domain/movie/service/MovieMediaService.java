@@ -1,5 +1,6 @@
 package com.onfilm.domain.movie.service;
 
+import com.onfilm.domain.common.error.exception.ForbiddenMovieAccessException;
 import com.onfilm.domain.common.error.exception.MovieNotFoundException;
 import com.onfilm.domain.file.event.StorageFileDeletionPublisher;
 import com.onfilm.domain.file.service.MediaEncodingService;
@@ -98,7 +99,7 @@ public class MovieMediaService {
     private Movie editableMovie(Long movieId) {
         Person person = currentPersonProvider.getRequired();
         if (moviePersonRepository.findByPersonIdAndMovieId(person.getId(), movieId) == null) {
-            throw new IllegalStateException("FORBIDDEN_MOVIE_ACCESS");
+            throw new ForbiddenMovieAccessException();
         }
         return movieRepository.findById(movieId)
                 .orElseThrow(() -> new MovieNotFoundException(movieId));

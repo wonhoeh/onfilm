@@ -1,18 +1,25 @@
 package com.onfilm.domain.common.error;
 
+import com.onfilm.domain.common.error.exception.AuthenticationRequiredException;
+import com.onfilm.domain.common.error.exception.DomainException;
 import com.onfilm.domain.common.error.exception.DuplicateEmailException;
 import com.onfilm.domain.common.error.exception.DuplicateUsernameException;
 import com.onfilm.domain.common.error.exception.FilmographyItemNotFoundException;
+import com.onfilm.domain.common.error.exception.ForbiddenMediaUploadAccessException;
+import com.onfilm.domain.common.error.exception.ForbiddenMovieAccessException;
+import com.onfilm.domain.common.error.exception.ForbiddenPersonAccessException;
+import com.onfilm.domain.common.error.exception.InvalidCredentialsException;
 import com.onfilm.domain.common.error.exception.InvalidProfileTagException;
 import com.onfilm.domain.common.error.exception.InvalidRefreshTokenException;
 import com.onfilm.domain.common.error.exception.MediaEncodeJobNotFoundException;
 import com.onfilm.domain.common.error.exception.MediaUploadRequestNotFoundException;
 import com.onfilm.domain.common.error.exception.MovieNotFoundException;
 import com.onfilm.domain.common.error.exception.PersonNotFoundException;
+import com.onfilm.domain.common.error.exception.PersonNotLinkedException;
+import com.onfilm.domain.common.error.exception.RefreshTokenReuseDetectedException;
 import com.onfilm.domain.common.error.exception.StoryboardProjectNotFoundException;
 import com.onfilm.domain.common.error.exception.StoryboardSceneNotFoundException;
 import com.onfilm.domain.common.error.exception.UserNotFoundException;
-import com.onfilm.domain.common.error.exception.RefreshTokenReuseDetectedException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
@@ -112,6 +119,22 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+    @ExceptionHandler({
+            AuthenticationRequiredException.class,
+            InvalidCredentialsException.class,
+            ForbiddenPersonAccessException.class,
+            ForbiddenMovieAccessException.class,
+            ForbiddenMediaUploadAccessException.class,
+            PersonNotLinkedException.class
+    })
+    public ResponseEntity<ErrorResponse> handleAuthenticationAndAuthorization(
+            DomainException exception
+    ) {
+        ErrorCode errorCode = exception.getErrorCode();
+        return ResponseEntity.status(errorCode.httpStatus())
+                .body(ErrorResponse.of(errorCode.name(), errorCode.message()));
+    }
+
     @ExceptionHandler(MediaEncodeJobNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleMediaEncodeJobNotFound(MediaEncodeJobNotFoundException e) {
         return ResponseEntity.status(NOT_FOUND)
@@ -163,8 +186,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException e) {
         HttpStatus status = switch (e.getMessage()) {
-            case "FORBIDDEN_PERSON_ACCESS", "FORBIDDEN_MOVIE_ACCESS", "FORBIDDEN_MEDIA_JOB_ACCESS",
-                 "FORBIDDEN_MEDIA_UPLOAD_ACCESS" -> HttpStatus.FORBIDDEN;
+            case "FORBIDDEN_MEDIA_JOB_ACCESS" -> HttpStatus.FORBIDDEN;
             case "INVALID_MEDIA_JOB_STATUS_TRANSITION", "MEDIA_UPLOAD_ALREADY_COMPLETED" -> HttpStatus.CONFLICT;
             case "MEDIA_UPLOAD_REQUEST_EXPIRED" -> HttpStatus.GONE;
             default -> BAD_REQUEST;

@@ -1,5 +1,8 @@
 package com.onfilm.domain.movie.service;
 
+import com.onfilm.domain.common.error.exception.AuthenticationRequiredException;
+import com.onfilm.domain.common.error.exception.ForbiddenPersonAccessException;
+import com.onfilm.domain.common.error.exception.PersonNotLinkedException;
 import com.onfilm.domain.common.error.exception.UserNotFoundException;
 import com.onfilm.domain.common.util.SecurityUtil;
 import com.onfilm.domain.movie.entity.Person;
@@ -22,7 +25,7 @@ public class CurrentPersonProvider {
                 .orElseThrow(() -> new UserNotFoundException(userId));
         Person person = user.getPerson();
         if (person == null) {
-            throw new IllegalStateException("PERSON_NOT_LINKED");
+            throw new PersonNotLinkedException();
         }
         return person;
     }
@@ -30,7 +33,7 @@ public class CurrentPersonProvider {
     public Person getRequired(String publicId) {
         Person person = getRequired();
         if (!Objects.equals(person.getPublicId(), publicId)) {
-            throw new IllegalStateException("FORBIDDEN_PERSON_ACCESS");
+            throw new ForbiddenPersonAccessException();
         }
         return person;
     }
@@ -42,7 +45,7 @@ public class CurrentPersonProvider {
     public boolean isCurrentPerson(Long personId) {
         try {
             return Objects.equals(getRequiredId(), personId);
-        } catch (RuntimeException exception) {
+        } catch (AuthenticationRequiredException | UserNotFoundException | PersonNotLinkedException exception) {
             return false;
         }
     }

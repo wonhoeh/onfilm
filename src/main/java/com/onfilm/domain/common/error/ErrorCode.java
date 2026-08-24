@@ -22,7 +22,15 @@ public enum ErrorCode {
     INVALID_PROFILE_TAG(HttpStatus.BAD_REQUEST, "프로필 태그가 올바르지 않습니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다."),
     DUPLICATE_USERNAME(HttpStatus.CONFLICT, "이미 사용 중인 사용자 이름입니다."),
-    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 리프레시 토큰입니다.");
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 리프레시 토큰입니다."),
+    AUTHENTICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다."),
+
+    FORBIDDEN_PERSON_ACCESS(HttpStatus.FORBIDDEN, "해당 인물 정보에 접근할 권한이 없습니다."),
+    FORBIDDEN_MOVIE_ACCESS(HttpStatus.FORBIDDEN, "해당 영화에 접근할 권한이 없습니다."),
+    FORBIDDEN_MEDIA_UPLOAD_ACCESS(HttpStatus.FORBIDDEN, "해당 미디어 업로드 요청에 접근할 권한이 없습니다."),
+
+    PERSON_NOT_LINKED(HttpStatus.CONFLICT, "사용자에게 인물 정보가 연결되어 있지 않습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

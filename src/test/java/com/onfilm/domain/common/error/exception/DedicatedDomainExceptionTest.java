@@ -24,7 +24,13 @@ class DedicatedDomainExceptionTest {
                 expected(new RefreshTokenReuseDetectedException(), ErrorCode.INVALID_REFRESH_TOKEN),
                 expected(new StoryboardProjectNotFoundException(1L), ErrorCode.STORYBOARD_PROJECT_NOT_FOUND),
                 expected(new StoryboardSceneNotFoundException(1L), ErrorCode.STORYBOARD_SCENE_NOT_FOUND),
-                expected(new UserNotFoundException(1L), ErrorCode.USER_NOT_FOUND)
+                expected(new UserNotFoundException(1L), ErrorCode.USER_NOT_FOUND),
+                expected(new AuthenticationRequiredException(), ErrorCode.AUTHENTICATION_REQUIRED),
+                expected(new InvalidCredentialsException(), ErrorCode.INVALID_CREDENTIALS),
+                expected(new ForbiddenPersonAccessException(), ErrorCode.FORBIDDEN_PERSON_ACCESS),
+                expected(new ForbiddenMovieAccessException(), ErrorCode.FORBIDDEN_MOVIE_ACCESS),
+                expected(new ForbiddenMediaUploadAccessException(), ErrorCode.FORBIDDEN_MEDIA_UPLOAD_ACCESS),
+                expected(new PersonNotLinkedException(), ErrorCode.PERSON_NOT_LINKED)
         );
 
         assertThat(exceptions).allSatisfy(expected -> {

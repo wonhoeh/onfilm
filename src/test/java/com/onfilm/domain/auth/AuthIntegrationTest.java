@@ -122,6 +122,25 @@ class AuthIntegrationTest {
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
     }
 
+    @Test
+    void loginFailureUsesStableUnauthorizedErrorCode() throws Exception {
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new LoginRequest(
+                                "missing@example.com",
+                                "password123!"
+                        ))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"));
+    }
+
+    @Test
+    void refreshWithoutCookieUsesInvalidRefreshTokenErrorCode() throws Exception {
+        mockMvc.perform(post("/auth/refresh"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("INVALID_REFRESH_TOKEN"));
+    }
+
 
     @DisplayName("로그인 시 access_token과 refresh_token 쿠키가 내려오는지 확인")
     @Test

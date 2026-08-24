@@ -7,6 +7,7 @@ import com.onfilm.domain.auth.dto.SignupRequest;
 import com.onfilm.domain.auth.security.JwtProvider;
 import com.onfilm.domain.common.error.exception.DuplicateEmailException;
 import com.onfilm.domain.common.error.exception.DuplicateUsernameException;
+import com.onfilm.domain.common.error.exception.InvalidCredentialsException;
 import com.onfilm.domain.token.service.RefreshTokenService;
 import com.onfilm.domain.user.entity.RawPasswordPolicy;
 import com.onfilm.domain.user.entity.User;
@@ -15,11 +16,9 @@ import com.onfilm.domain.user.entity.Username;
 import com.onfilm.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Locale;
 
@@ -131,10 +130,7 @@ public class AuthService {
                 && actual.toUpperCase(Locale.ROOT).contains(expected);
     }
 
-    private ResponseStatusException invalidCredentials() {
-        return new ResponseStatusException(
-                HttpStatus.UNAUTHORIZED,
-                "Invalid credentials"
-        );
+    private InvalidCredentialsException invalidCredentials() {
+        return new InvalidCredentialsException();
     }
 }

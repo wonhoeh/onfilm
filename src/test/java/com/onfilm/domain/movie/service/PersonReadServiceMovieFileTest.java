@@ -1,5 +1,7 @@
 package com.onfilm.domain.movie.service;
 
+import com.onfilm.domain.common.error.ErrorCode;
+import com.onfilm.domain.common.error.exception.ForbiddenMovieAccessException;
 import com.onfilm.domain.file.event.StorageFileDeletionPublisher;
 import com.onfilm.domain.file.service.MediaEncodingService;
 import com.onfilm.domain.file.service.StorageKeyFactory;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -54,5 +57,19 @@ class MovieMediaServiceTest {
         verify(storageKeyPolicy).validateMovieTrailerKey(1L, TRAILER_KEY);
         verify(deletionPublisher).publish(List.of("thumbnail-key", "movie-key", TRAILER_KEY));
         verify(storageService, never()).delete(anyString());
+    }
+
+    @Test
+    void editValidationRejectsMovieThatDoesNotBelongToCurrentPerson() {
+        Person person = mock(Person.class);
+        given(person.getId()).willReturn(7L);
+        given(currentPersonProvider.getRequired()).willReturn(person);
+        given(moviePersonRepository.findByPersonIdAndMovieId(7L, 1L)).willReturn(null);
+
+        assertThatThrownBy(() -> movieMediaService.validateCanEdit(1L))
+                .isInstanceOfSatisfying(ForbiddenMovieAccessException.class, exception ->
+                        assertThat(exception.getErrorCode())
+                                .isEqualTo(ErrorCode.FORBIDDEN_MOVIE_ACCESS));
+        verifyNoInteractions(movieRepository);
     }
 }

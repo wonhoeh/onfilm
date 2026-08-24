@@ -1,5 +1,6 @@
 package com.onfilm.domain.common.util;
 
+import com.onfilm.domain.common.error.exception.AuthenticationRequiredException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,7 +34,7 @@ public final class SecurityUtil {
     public static Authentication currentAuth() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
-            throw new IllegalStateException("UNAUTHENTICATED");
+            throw new AuthenticationRequiredException();
         }
         return auth;
     }

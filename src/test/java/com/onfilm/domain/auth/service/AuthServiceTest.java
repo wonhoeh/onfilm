@@ -1,12 +1,16 @@
 package com.onfilm.domain.auth.service;
 
 import com.onfilm.domain.auth.config.AuthProperties;
+import com.onfilm.domain.auth.dto.LoginRequest;
 import com.onfilm.domain.auth.dto.SignupRequest;
 import com.onfilm.domain.auth.security.JwtProvider;
 import com.onfilm.domain.common.error.exception.DuplicateEmailException;
 import com.onfilm.domain.common.error.exception.DuplicateUsernameException;
+import com.onfilm.domain.common.error.exception.InvalidCredentialsException;
 import com.onfilm.domain.token.service.RefreshTokenService;
 import com.onfilm.domain.user.entity.User;
+import com.onfilm.domain.user.entity.UserEmail;
+import com.onfilm.domain.user.entity.Username;
 import com.onfilm.domain.user.repository.UserRepository;
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +23,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.sql.SQLException;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -115,6 +120,28 @@ class AuthServiceTest {
                 "password123",
                 "testuser"
         ))).isInstanceOf(DuplicateUsernameException.class);
+    }
+
+    @Test
+    void loginHidesWhetherEmailOrPasswordWasInvalid() {
+        LoginRequest request = new LoginRequest("user@example.com", "password123");
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(InvalidCredentialsException.class)
+                .hasMessage("이메일 또는 비밀번호가 올바르지 않습니다.");
+
+        User user = User.create(
+                UserEmail.from("user@example.com"),
+                "encoded-password",
+                Username.from("testuser")
+        );
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(false);
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(InvalidCredentialsException.class)
+                .hasMessage("이메일 또는 비밀번호가 올바르지 않습니다.");
     }
 
     private static DataIntegrityViolationException uniqueViolation(

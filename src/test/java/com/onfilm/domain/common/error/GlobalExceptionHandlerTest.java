@@ -1,7 +1,6 @@
 package com.onfilm.domain.common.error;
 
-import com.onfilm.domain.common.error.exception.FilmographyItemNotFoundException;
-import com.onfilm.domain.common.error.exception.MediaUploadRequestNotFoundException;
+import com.onfilm.domain.common.error.exception.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,11 +29,47 @@ class GlobalExceptionHandlerTest {
         assertNotFound(response, ErrorCode.FILMOGRAPHY_ITEM_NOT_FOUND);
     }
 
+    @Test
+    void authenticationAndAuthorizationExceptionsUseTheirErrorCodePolicy() {
+        assertDomainError(
+                handler.handleAuthenticationAndAuthorization(new AuthenticationRequiredException()),
+                ErrorCode.AUTHENTICATION_REQUIRED
+        );
+        assertDomainError(
+                handler.handleAuthenticationAndAuthorization(new InvalidCredentialsException()),
+                ErrorCode.INVALID_CREDENTIALS
+        );
+        assertDomainError(
+                handler.handleAuthenticationAndAuthorization(new ForbiddenPersonAccessException()),
+                ErrorCode.FORBIDDEN_PERSON_ACCESS
+        );
+        assertDomainError(
+                handler.handleAuthenticationAndAuthorization(new ForbiddenMovieAccessException()),
+                ErrorCode.FORBIDDEN_MOVIE_ACCESS
+        );
+        assertDomainError(
+                handler.handleAuthenticationAndAuthorization(new ForbiddenMediaUploadAccessException()),
+                ErrorCode.FORBIDDEN_MEDIA_UPLOAD_ACCESS
+        );
+        assertDomainError(
+                handler.handleAuthenticationAndAuthorization(new PersonNotLinkedException()),
+                ErrorCode.PERSON_NOT_LINKED
+        );
+    }
+
     private static void assertNotFound(
             ResponseEntity<ErrorResponse> response,
             ErrorCode errorCode
     ) {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertDomainError(response, errorCode);
+    }
+
+    private static void assertDomainError(
+            ResponseEntity<ErrorResponse> response,
+            ErrorCode errorCode
+    ) {
+        assertThat(response.getStatusCode()).isEqualTo(errorCode.httpStatus());
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().code()).isEqualTo(errorCode.name());
         assertThat(response.getBody().message()).isEqualTo(errorCode.message());

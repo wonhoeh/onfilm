@@ -1,5 +1,7 @@
 package com.onfilm.domain.movie.controller;
 
+import com.onfilm.domain.common.error.exception.AuthenticationRequiredException;
+import com.onfilm.domain.common.error.exception.ForbiddenPersonAccessException;
 import com.onfilm.domain.common.util.SecurityUtil;
 import com.onfilm.domain.user.entity.User;
 import com.onfilm.domain.user.repository.UserRepository;
@@ -56,7 +58,7 @@ public class UserPrivatePageController {
             return "redirect:" + buildLoginRedirect(request);
         }
         if (current != null && !current.equals(username)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "FORBIDDEN");
+            throw new ForbiddenPersonAccessException();
         }
         String path = request.getRequestURI();
         if (path.endsWith("/edit-profile")) return "forward:/edit-profile.html";
@@ -77,7 +79,7 @@ public class UserPrivatePageController {
             String username = user.getUsername();
             if (username == null || username.isBlank()) return null;
             return username.trim();
-        } catch (Exception e) {
+        } catch (AuthenticationRequiredException e) {
             return null;
         }
     }

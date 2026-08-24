@@ -3,6 +3,8 @@ package com.onfilm.domain.auth.controller;
 import com.onfilm.domain.auth.dto.*;
 import com.onfilm.domain.auth.infrastructure.AuthCookieFactory;
 import com.onfilm.domain.auth.service.AuthService;
+import com.onfilm.domain.common.error.exception.AuthenticationRequiredException;
+import com.onfilm.domain.common.error.exception.InvalidRefreshTokenException;
 import com.onfilm.domain.user.service.UserQueryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +14,6 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/auth")
@@ -46,7 +47,7 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(@CookieValue(name = "refresh_token", required = false) String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing refresh token");
+            throw new InvalidRefreshTokenException();
         }
         AuthTokens tokens = authService.refresh(refreshToken);
         ResponseCookie accessCookie = authCookieFactory.createAccessCookie(tokens.accessToken());
@@ -75,7 +76,7 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<MeResponse> me(Authentication authentication) {
         if (authentication == null || authentication.getName() == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+            throw new AuthenticationRequiredException();
         }
         Long userId = Long.valueOf(authentication.getName());
         return ResponseEntity.ok(userQueryService.findMe(userId));

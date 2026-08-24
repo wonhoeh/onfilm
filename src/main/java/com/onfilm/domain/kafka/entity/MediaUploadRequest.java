@@ -1,5 +1,6 @@
 package com.onfilm.domain.kafka.entity;
 
+import com.onfilm.domain.common.error.exception.ForbiddenMediaUploadAccessException;
 import com.onfilm.domain.kafka.message.EncodeJobType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -86,7 +87,7 @@ public class MediaUploadRequest {
     public void validateCompletion(Long userId, Long movieId, EncodeJobType jobType,
                                    String sourceKey, String contentType, Instant now) {
         if (!requestedByUserId.equals(userId) || !this.movieId.equals(movieId)) {
-            throw new IllegalStateException("FORBIDDEN_MEDIA_UPLOAD_ACCESS");
+            throw new ForbiddenMediaUploadAccessException();
         }
         if (this.jobType != jobType || !this.sourceKey.equals(sourceKey) || !this.contentType.equals(contentType)) {
             throw new IllegalArgumentException("upload completion does not match presign request");
@@ -99,7 +100,7 @@ public class MediaUploadRequest {
     }
 
     public void validateUpload(Long userId, String sourceKey, Instant now) {
-        if (!requestedByUserId.equals(userId)) throw new IllegalStateException("FORBIDDEN_MEDIA_UPLOAD_ACCESS");
+        if (!requestedByUserId.equals(userId)) throw new ForbiddenMediaUploadAccessException();
         if (!this.sourceKey.equals(sourceKey)) throw new IllegalArgumentException("sourceKey does not match upload request");
         if (status != MediaUploadRequestStatus.ISSUED || !now.isBefore(expiresAt)) {
             if (status == MediaUploadRequestStatus.ISSUED) status = MediaUploadRequestStatus.EXPIRED;
