@@ -3,8 +3,7 @@ package com.onfilm.domain.auth.controller;
 import com.onfilm.domain.auth.dto.*;
 import com.onfilm.domain.auth.infrastructure.AuthCookieFactory;
 import com.onfilm.domain.auth.service.AuthService;
-import com.onfilm.domain.file.service.StorageService;
-import com.onfilm.domain.user.entity.User;
+import com.onfilm.domain.user.service.UserQueryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -22,7 +21,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final AuthCookieFactory authCookieFactory;
-    private final StorageService storageService;
+    private final UserQueryService userQueryService;
 
     @PostMapping("/signup")
     public ResponseEntity<Void> signup(@Valid @RequestBody SignupRequest request) {
@@ -79,24 +78,18 @@ public class AuthController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
         }
         Long userId = Long.valueOf(authentication.getName());
-        User user = authService.getUser(userId);
-        return ResponseEntity.ok(new MeResponse(
-                user.getId(),
-                user.getEmail(),
-                user.getUsername(),
-                storageService.toPublicUrl(user.getAvatarImageKey())
-        ));
+        return ResponseEntity.ok(userQueryService.findMe(userId));
     }
 
     @GetMapping("/check-username")
     public ResponseEntity<UsernameCheckResponse> checkUsername(@RequestParam String username) {
-        boolean available = authService.isUsernameAvailable(username);
+        boolean available = userQueryService.isUsernameAvailable(username);
         return ResponseEntity.ok(new UsernameCheckResponse(available));
     }
 
     @GetMapping("/check-email")
     public ResponseEntity<EmailCheckResponse> checkEmail(@RequestParam String email) {
-        boolean available = authService.isEmailAvailable(email);
+        boolean available = userQueryService.isEmailAvailable(email);
         return ResponseEntity.ok(new EmailCheckResponse(available));
     }
 }

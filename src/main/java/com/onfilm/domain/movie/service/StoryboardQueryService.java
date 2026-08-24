@@ -3,6 +3,7 @@ package com.onfilm.domain.movie.service;
 import com.onfilm.domain.common.error.exception.PersonNotFoundException;
 import com.onfilm.domain.common.error.exception.StoryboardProjectNotFoundException;
 import com.onfilm.domain.movie.dto.StoryboardProjectSummaryResponse;
+import com.onfilm.domain.movie.dto.StoryboardProjectResponse;
 import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.movie.entity.StoryboardProject;
 import com.onfilm.domain.movie.entity.StoryboardScene;
@@ -21,8 +22,11 @@ import java.util.Objects;
 public class StoryboardQueryService {
 
     private final PersonRepository personRepository;
+    private final CurrentPersonProvider currentPersonProvider;
+    private final StoryboardResponseMapper responseMapper;
 
     public List<StoryboardProjectSummaryResponse> findProjectsByPublicId(String publicId) {
+        currentPersonProvider.getRequired(publicId);
         Person person = personRepository.findByPublicIdWithStoryboards(publicId)
                 .orElseThrow(() -> new PersonNotFoundException(publicId));
 
@@ -38,7 +42,8 @@ public class StoryboardQueryService {
         return responses;
     }
 
-    public StoryboardProject findProjectByPublicId(String publicId, Long projectId) {
+    public StoryboardProjectResponse findProjectByPublicId(String publicId, Long projectId) {
+        currentPersonProvider.getRequired(publicId);
         Person person = personRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new PersonNotFoundException(publicId));
 
@@ -48,7 +53,7 @@ public class StoryboardQueryService {
                 .orElseThrow(() -> new StoryboardProjectNotFoundException(projectId));
 
         initializeProject(project);
-        return project;
+        return responseMapper.toProjectResponse(project);
     }
 
     private String extractPreview(StoryboardProject project) {

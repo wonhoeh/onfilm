@@ -1,7 +1,7 @@
 package com.onfilm.domain.movie.controller;
 
 import com.onfilm.domain.movie.dto.*;
-import com.onfilm.domain.movie.service.MovieService;
+import com.onfilm.domain.movie.service.MovieCommandService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,11 +15,11 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class MovieController {
 
-    private final MovieService movieService;
+    private final MovieCommandService movieCommandService;
 
     @PostMapping()
     public ResponseEntity<Long> createMovie(@RequestBody @Valid CreateMovieRequest request) {
-        Long movieId = movieService.createMovie(request);
+        Long movieId = movieCommandService.createMovie(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(movieId);
     }
 }

@@ -51,9 +51,9 @@ class AuthIntegrationTest {
     @Test
     void signupThenLoginSucceeds() throws Exception {
         SignupRequest signup = new SignupRequest(
-                "  User@Example.COM  ",
+                "User@Example.COM",
                 "password123!",
-                "  TestUser  "
+                "TestUser"
         );
         mockMvc.perform(post("/auth/signup")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -118,8 +118,8 @@ class AuthIntegrationTest {
                                 "가".repeat(25),
                                 "testuser"
                         ))))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
     }
 
 

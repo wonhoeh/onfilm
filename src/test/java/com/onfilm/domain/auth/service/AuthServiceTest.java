@@ -117,15 +117,6 @@ class AuthServiceTest {
         ))).isInstanceOf(DuplicateUsernameException.class);
     }
 
-    @Test
-    void availability_reusesValuePoliciesAndRejectsInvalidValues() {
-        assertThat(authService.isEmailAvailable("invalid")).isFalse();
-        assertThat(authService.isUsernameAvailable("ab")).isFalse();
-
-        verify(userRepository, never()).existsByEmail(any());
-        verify(userRepository, never()).existsByUsernameNormalized(any());
-    }
-
     private static DataIntegrityViolationException uniqueViolation(
             String constraintName
     ) {

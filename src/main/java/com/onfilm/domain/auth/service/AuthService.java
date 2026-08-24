@@ -102,35 +102,6 @@ public class AuthService {
         refreshTokenService.revoke(rawRefreshToken);
     }
 
-    @Transactional(readOnly = true)
-    public User getUser(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "User not found"
-                ));
-    }
-
-    @Transactional(readOnly = true)
-    public boolean isUsernameAvailable(String rawUsername) {
-        try {
-            Username username = Username.from(rawUsername);
-            return !userRepository.existsByUsernameNormalized(username.normalized());
-        } catch (IllegalArgumentException exception) {
-            return false;
-        }
-    }
-
-    @Transactional(readOnly = true)
-    public boolean isEmailAvailable(String rawEmail) {
-        try {
-            UserEmail email = UserEmail.from(rawEmail);
-            return !userRepository.existsByEmail(email.value());
-        } catch (IllegalArgumentException exception) {
-            return false;
-        }
-    }
-
     private RuntimeException translateDuplicateUserException(
             DataIntegrityViolationException exception
     ) {

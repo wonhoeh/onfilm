@@ -1,7 +1,6 @@
 package com.onfilm.domain.movie.controller;
 
 import com.onfilm.domain.common.util.SecurityUtil;
-import com.onfilm.domain.file.service.MediaEncodingService;
 import com.onfilm.domain.file.service.StorageKeyFactory;
 import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.kafka.dto.PresignUploadRequest;
@@ -12,7 +11,7 @@ import com.onfilm.domain.kafka.message.EncodeJobType;
 import com.onfilm.domain.movie.dto.MediaEncodeJobResponse;
 import com.onfilm.domain.movie.dto.MediaUploadCompleteRequest;
 import com.onfilm.domain.movie.dto.UploadResultResponse;
-import com.onfilm.domain.movie.service.PersonReadService;
+import com.onfilm.domain.movie.service.MovieMediaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -37,8 +36,7 @@ public class MovieFileController {
 
     private final StorageService storage;
     private final StorageKeyFactory keyFactory;
-    private final PersonReadService personReadService;
-    private final MediaEncodingService mediaEncodingService;
+    private final MovieMediaService movieMediaService;
     private final MediaEncodeJobCommandService mediaEncodeJobCommandService;
     private final MediaUploadRequestService mediaUploadRequestService;
 
@@ -48,28 +46,12 @@ public class MovieFileController {
     @PostMapping("/{movieId}/thumbnail")
     public UploadResultResponse uploadThumbnail(@PathVariable Long movieId,
                                                 @RequestParam("file") MultipartFile file) {
-        String key = keyFactory.movieThumbnail(movieId, ".jpg");
-        Path source = toTempFile(file);
-        Path encoded = null;
-        try {
-            encoded = mediaEncodingService.encodeImage(source, 1280, 720);
-            storage.save(key, encoded);
-            try {
-                personReadService.updateMovieThumbnail(movieId, key);
-            } catch (RuntimeException e) {
-                storage.delete(key);
-                throw e;
-            }
-            return new UploadResultResponse(key, storage.toPublicUrl(key));
-        } finally {
-            deleteTemp(source);
-            deleteTemp(encoded);
-        }
+        return movieMediaService.replaceThumbnail(movieId, file);
     }
 
     @DeleteMapping("/{movieId}/thumbnail")
     public ResponseEntity<Void> deleteThumbnail(@PathVariable Long movieId) {
-        personReadService.deleteMovieThumbnail(movieId);
+        movieMediaService.deleteThumbnail(movieId);
         return ResponseEntity.noContent().build();
     }
 
@@ -97,28 +79,12 @@ public class MovieFileController {
     @PostMapping("/{movieId}/trailer")
     public UploadResultResponse uploadTrailer(@PathVariable Long movieId,
                                               @RequestParam("file") MultipartFile file) {
-        String key = keyFactory.movieTrailer(movieId, ".mp4");
-        Path source = toTempFile(file);
-        Path encoded = null;
-        try {
-            encoded = mediaEncodingService.encodeVideo(source, 720, 3000);
-            storage.save(key, encoded);
-            try {
-                personReadService.addMovieTrailer(movieId, key);
-            } catch (RuntimeException e) {
-                storage.delete(key);
-                throw e;
-            }
-            return new UploadResultResponse(key, storage.toPublicUrl(key));
-        } finally {
-            deleteTemp(source);
-            deleteTemp(encoded);
-        }
+        return movieMediaService.addTrailer(movieId, file);
     }
 
     @DeleteMapping("/{movieId}/trailer")
     public ResponseEntity<Void> deleteTrailer(@PathVariable Long movieId) {
-        personReadService.deleteMovieTrailers(movieId);
+        movieMediaService.deleteTrailers(movieId);
         return ResponseEntity.noContent().build();
     }
 
@@ -146,28 +112,12 @@ public class MovieFileController {
     @PostMapping("/{movieId}/file")
     public UploadResultResponse uploadMovieFile(@PathVariable Long movieId,
                                                 @RequestParam("file") MultipartFile file) {
-        String key = keyFactory.movieFile(movieId, ".mp4");
-        Path source = toTempFile(file);
-        Path encoded = null;
-        try {
-            encoded = mediaEncodingService.encodeVideo(source, 720, 3000);
-            storage.save(key, encoded);
-            try {
-                personReadService.updateMovieFile(movieId, key);
-            } catch (RuntimeException e) {
-                storage.delete(key);
-                throw e;
-            }
-            return new UploadResultResponse(key, storage.toPublicUrl(key));
-        } finally {
-            deleteTemp(source);
-            deleteTemp(encoded);
-        }
+        return movieMediaService.replaceMovieFile(movieId, file);
     }
 
     @DeleteMapping("/{movieId}/file")
     public ResponseEntity<Void> deleteMovieFile(@PathVariable Long movieId) {
-        personReadService.deleteMovieFile(movieId);
+        movieMediaService.deleteMovieFile(movieId);
         return ResponseEntity.noContent().build();
     }
 
@@ -194,7 +144,7 @@ public class MovieFileController {
 
     @DeleteMapping("/{movieId}")
     public ResponseEntity<Void> deleteMovieFiles(@PathVariable Long movieId) {
-        personReadService.deleteMovieFiles(movieId);
+        movieMediaService.deleteAll(movieId);
         return ResponseEntity.noContent().build();
     }
 
@@ -224,18 +174,6 @@ public class MovieFileController {
             throw new UncheckedIOException(e);
         } finally {
             deleteTemp(temp);
-        }
-    }
-
-    private Path toTempFile(MultipartFile file) {
-        try {
-            Path temp = Files.createTempFile("onfilm-upload-", ".tmp");
-            try (InputStream in = file.getInputStream()) {
-                Files.copy(in, temp, StandardCopyOption.REPLACE_EXISTING);
-            }
-            return temp;
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         }
     }
 
@@ -301,10 +239,7 @@ public class MovieFileController {
     }
 
     private void validateMovieUploadPermission(Long movieId) {
-        Long personId = personReadService.findCurrentPersonId();
-        if (!personReadService.canEditMovie(personId, movieId)) {
-            throw new IllegalStateException("FORBIDDEN_MOVIE_ACCESS");
-        }
+        movieMediaService.validateCanEdit(movieId);
     }
 
     // 원본 파일은 raw 경로에 먼저 저장하고, 인코딩 결과는 별도 targetKey 로 분리한다.

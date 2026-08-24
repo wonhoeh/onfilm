@@ -145,7 +145,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException e) {
         HttpStatus status = switch (e.getMessage()) {
-            case "FORBIDDEN_MOVIE_ACCESS", "FORBIDDEN_MEDIA_JOB_ACCESS",
+            case "FORBIDDEN_PERSON_ACCESS", "FORBIDDEN_MOVIE_ACCESS", "FORBIDDEN_MEDIA_JOB_ACCESS",
                  "FORBIDDEN_MEDIA_UPLOAD_ACCESS" -> HttpStatus.FORBIDDEN;
             case "INVALID_MEDIA_JOB_STATUS_TRANSITION", "MEDIA_UPLOAD_ALREADY_COMPLETED" -> HttpStatus.CONFLICT;
             case "MEDIA_UPLOAD_REQUEST_EXPIRED" -> HttpStatus.GONE;

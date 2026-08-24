@@ -1,10 +1,8 @@
 package com.onfilm.domain.movie.service;
 
-import com.onfilm.domain.common.error.exception.PersonNotFoundException;
 import com.onfilm.domain.common.error.exception.StoryboardProjectNotFoundException;
 import com.onfilm.domain.common.error.exception.StoryboardSceneNotFoundException;
-import com.onfilm.domain.common.util.SecurityUtil;
-import com.onfilm.domain.file.event.StorageFilesDeleteEvent;
+import com.onfilm.domain.file.event.StorageFileDeletionPublisher;
 import com.onfilm.domain.file.service.StorageKeyPolicy;
 import com.onfilm.domain.movie.dto.StoryboardCardRequest;
 import com.onfilm.domain.movie.dto.StoryboardProjectRequest;
@@ -13,11 +11,7 @@ import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.movie.entity.StoryboardCard;
 import com.onfilm.domain.movie.entity.StoryboardProject;
 import com.onfilm.domain.movie.entity.StoryboardScene;
-import com.onfilm.domain.movie.repository.PersonRepository;
-import com.onfilm.domain.user.entity.User;
-import com.onfilm.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,34 +23,33 @@ import java.util.Objects;
 @Transactional
 public class StoryboardCommandService {
 
-    private final PersonRepository personRepository;
-    private final UserRepository userRepository;
+    private final CurrentPersonProvider currentPersonProvider;
     private final StorageKeyPolicy storageKeyPolicy;
-    private final ApplicationEventPublisher eventPublisher;
+    private final StorageFileDeletionPublisher deletionPublisher;
 
-    public StoryboardProject createProject(StoryboardProjectRequest request) {
+    public StoryboardProject createProject(String publicId, StoryboardProjectRequest request) {
         StoryboardProjectRequest requiredRequest = require(request, "request");
-        Person person = findCurrentPerson();
+        Person person = currentPersonProvider.getRequired(publicId);
         return person.addStoryboardProject(requiredRequest.title());
     }
 
-    public StoryboardProject updateProject(Long projectId, StoryboardProjectRequest request) {
+    public StoryboardProject updateProject(String publicId, Long projectId, StoryboardProjectRequest request) {
         StoryboardProjectRequest requiredRequest = require(request, "request");
-        StoryboardProject project = findProject(findCurrentPerson(), projectId);
+        StoryboardProject project = findProject(currentPersonProvider.getRequired(publicId), projectId);
         project.changeTitle(requiredRequest.title());
         return project;
     }
 
-    public void deleteProject(Long projectId) {
-        Person person = findCurrentPerson();
+    public void deleteProject(String publicId, Long projectId) {
+        Person person = currentPersonProvider.getRequired(publicId);
         StoryboardProject project = findProject(person, projectId);
         deleteCardFiles(person.getId(), project);
         person.removeStoryboardProject(project);
     }
 
-    public StoryboardScene createScene(Long projectId, StoryboardSceneRequest request) {
+    public StoryboardScene createScene(String publicId, Long projectId, StoryboardSceneRequest request) {
         StoryboardSceneRequest requiredRequest = require(request, "request");
-        Person person = findCurrentPerson();
+        Person person = currentPersonProvider.getRequired(publicId);
         StoryboardProject project = findProject(person, projectId);
         List<StoryboardScene.CardChange> cardChanges = toCardChanges(
                 person.getId(),
@@ -74,12 +67,13 @@ public class StoryboardCommandService {
     }
 
     public StoryboardScene updateScene(
+            String publicId,
             Long projectId,
             Long sceneId,
             StoryboardSceneRequest request
     ) {
         StoryboardSceneRequest requiredRequest = require(request, "request");
-        Person person = findCurrentPerson();
+        Person person = currentPersonProvider.getRequired(publicId);
         StoryboardProject project = findProject(person, projectId);
         StoryboardScene scene = findScene(project, sceneId);
         List<StoryboardScene.CardChange> cardChanges = toCardChanges(
@@ -94,16 +88,16 @@ public class StoryboardCommandService {
         return scene;
     }
 
-    public void deleteScene(Long projectId, Long sceneId) {
-        Person person = findCurrentPerson();
+    public void deleteScene(String publicId, Long projectId, Long sceneId) {
+        Person person = currentPersonProvider.getRequired(publicId);
         StoryboardProject project = findProject(person, projectId);
         StoryboardScene scene = findScene(project, sceneId);
         deleteCardFiles(person.getId(), scene);
         project.removeScene(scene);
     }
 
-    public void reorderScenes(Long projectId, List<Long> sceneIds) {
-        StoryboardProject project = findProject(findCurrentPerson(), projectId);
+    public void reorderScenes(String publicId, Long projectId, List<Long> sceneIds) {
+        StoryboardProject project = findProject(currentPersonProvider.getRequired(publicId), projectId);
         project.reorderScenes(sceneIds);
     }
 
@@ -131,26 +125,6 @@ public class StoryboardCommandService {
                     );
                 })
                 .toList();
-    }
-
-    private Person findCurrentPerson() {
-        String principal = SecurityUtil.currentPrincipal();
-        Long userId;
-        try {
-            userId = Long.valueOf(principal);
-        } catch (NumberFormatException e) {
-            throw new IllegalStateException("INVALID_PRINCIPAL");
-        }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("USER_NOT_FOUND"));
-        if (user.getPerson() == null) {
-            throw new IllegalStateException("PERSON_NOT_LINKED");
-        }
-
-        Long personId = user.getPerson().getId();
-        return personRepository.findById(personId)
-                .orElseThrow(() -> new PersonNotFoundException(personId));
     }
 
     private StoryboardProject findProject(Person person, Long projectId) {
@@ -192,7 +166,7 @@ public class StoryboardCommandService {
                 key -> storageKeyPolicy.validateStoryboardCardKey(personId, key)
         );
         if (!keysToDelete.isEmpty()) {
-            eventPublisher.publishEvent(new StorageFilesDeleteEvent(keysToDelete));
+            deletionPublisher.publish(keysToDelete);
         }
     }
 

@@ -3,17 +3,10 @@ package com.onfilm.domain.person.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onfilm.domain.auth.config.AuthProperties;
 import com.onfilm.domain.auth.security.JwtProvider;
-import com.onfilm.domain.file.service.StorageKeyFactory;
-import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.movie.controller.PersonController;
 import com.onfilm.domain.movie.dto.*;
 import com.onfilm.domain.movie.entity.SnsType;
-import com.onfilm.domain.movie.service.MovieReadService;
-import com.onfilm.domain.movie.service.MovieService;
-import com.onfilm.domain.movie.service.PersonReadService;
-import com.onfilm.domain.movie.service.PersonService;
-import com.onfilm.domain.movie.service.StoryboardCommandService;
-import com.onfilm.domain.movie.service.StoryboardQueryService;
+import com.onfilm.domain.movie.service.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,10 +37,10 @@ class PersonControllerTest {
     @Autowired private ObjectMapper objectMapper;
 
     @MockBean
-    private PersonService personService;
+    private PersonCommandService personCommandService;
 
     @MockBean
-    private PersonReadService personReadService;
+    private PersonQueryService personQueryService;
 
     @MockBean
     private JwtProvider jwtProvider;
@@ -56,16 +49,22 @@ class PersonControllerTest {
     private AuthProperties authProperties;
 
     @MockBean
-    private MovieReadService movieReadService;
+    private FilmographyQueryService filmographyQueryService;
 
     @MockBean
-    private StorageService storageService;
+    private GalleryQueryService galleryQueryService;
 
     @MockBean
-    private StorageKeyFactory storageKeyFactory;
+    private GalleryCommandService galleryCommandService;
 
     @MockBean
-    private MovieService movieService;
+    private FilmographyCommandService filmographyCommandService;
+
+    @MockBean
+    private PersonMediaService personMediaService;
+
+    @MockBean
+    private StoryboardResponseMapper storyboardResponseMapper;
 
     @MockBean
     private StoryboardQueryService storyboardQueryService;
@@ -77,7 +76,7 @@ class PersonControllerTest {
     @DisplayName("POST /persons - 생성 성공 시 201과 personId를 반환한다")
     void createPerson_success() throws Exception {
         // given
-        given(personService.initializePersonProfile(any(CreatePersonRequest.class)))
+        given(personCommandService.initializeProfile(any(CreatePersonRequest.class)))
                 .willReturn(1L);
 
         CreatePersonRequest request = new CreatePersonRequest(
@@ -127,7 +126,7 @@ class PersonControllerTest {
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
                 .andExpect(jsonPath("$.errors[0].field").value("snsList"));
 
-        verifyNoInteractions(personService);
+        verifyNoInteractions(personCommandService);
     }
 
     @Test
@@ -152,7 +151,7 @@ class PersonControllerTest {
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
                 .andExpect(jsonPath("$.errors.length()").value(2));
 
-        verifyNoInteractions(personService);
+        verifyNoInteractions(personCommandService);
     }
 
     @Test
@@ -179,7 +178,7 @@ class PersonControllerTest {
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
                 .andExpect(jsonPath("$.errors[0].field").value("rawTags"));
 
-        verifyNoInteractions(personService);
+        verifyNoInteractions(personCommandService);
     }
 
     @Test
@@ -210,7 +209,7 @@ class PersonControllerTest {
                 List.of(tag1)
         );
 
-        when(personReadService.findProfileByPublicId(publicId)).thenReturn(response);
+        when(personQueryService.findProfileByPublicId(publicId)).thenReturn(response);
 
         // when & then
         mockMvc.perform(get("/api/people/{publicId}", publicId)

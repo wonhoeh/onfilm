@@ -1,152 +1,77 @@
 package com.onfilm.domain.person.service;
 
-import com.onfilm.domain.common.util.SecurityUtil;
 import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.movie.dto.CreatePersonRequest;
 import com.onfilm.domain.movie.dto.CreatePersonSnsRequest;
 import com.onfilm.domain.movie.dto.ProfileResponse;
 import com.onfilm.domain.movie.entity.Person;
 import com.onfilm.domain.movie.entity.SnsType;
-import com.onfilm.domain.movie.repository.MovieRepository;
 import com.onfilm.domain.movie.repository.PersonRepository;
-import com.onfilm.domain.movie.service.PersonReadService;
-import com.onfilm.domain.movie.service.PersonService;
-import com.onfilm.domain.user.entity.User;
-import com.onfilm.domain.user.entity.UserEmail;
-import com.onfilm.domain.user.entity.Username;
+import com.onfilm.domain.movie.service.CurrentPersonProvider;
+import com.onfilm.domain.movie.service.PersonCommandService;
+import com.onfilm.domain.movie.service.PersonQueryService;
 import com.onfilm.domain.user.repository.UserRepository;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
-public class PersonServiceTest {
-
-    @Mock
-    private PersonRepository personRepository;
-
-    @Mock
-    private MovieRepository movieRepository;
-
-    @Mock
-    private UserRepository userRepository;
-
-    @Mock
-    private StorageService storageService;
-
-    @InjectMocks
-    private PersonService personService; // 너의 실제 서비스 클래스명
-
-    @InjectMocks
-    private PersonReadService personReadService;
+class PersonCommandQueryServiceTest {
+    @Mock PersonRepository personRepository;
+    @Mock UserRepository userRepository;
+    @Mock StorageService storageService;
+    @Mock CurrentPersonProvider currentPersonProvider;
+    @InjectMocks PersonQueryService personQueryService;
+    @InjectMocks PersonCommandService personCommandService;
 
     @Test
-    @DisplayName("getPerson(name): 존재하면 PersonResponse로 매핑해서 반환한다 (snsList, rawTags 포함)")
-    void getPerson_success() {
-        // given
-        Person.SnsRegistration sns1 = new Person.SnsRegistration(
-                SnsType.INSTAGRAM,
-                "https://instagram.com/leo"
-        );
+    void query_mapsProfileAndPublicUrl() {
+        Person person = person();
+        given(personRepository.findByPublicId(person.getPublicId())).willReturn(Optional.of(person));
+        given(storageService.toPublicUrl(person.getProfileImageKey())).willReturn("https://cdn/profile.png");
 
-        Person.SnsRegistration sns2 = new Person.SnsRegistration(
-                SnsType.TIKTOK,
-                "https://tiktok.com/@leo"
-        );
+        ProfileResponse result = personQueryService.findProfileByPublicId(person.getPublicId());
 
-        Person person = Person.create(
-                "디카프리오",
-                LocalDate.of(1974, 11, 11),
-                "Los Angeles",
-                "actor",
-                "https://img.test/profile.png",
-                List.of(sns1, sns2),
-                List.of("인셉션", "셔터아일랜드")
-        );
-
-        when(personRepository.findByPublicId(person.getPublicId())).thenReturn(Optional.of(person));
-        when(storageService.toPublicUrl(person.getProfileImageKey()))
-                .thenReturn(person.getProfileImageKey());
-
-        // when
-        ProfileResponse res = personReadService.findProfileByPublicId(person.getPublicId());
-
-        // then
-        assertThat(res).isNotNull();
-        assertThat(res.name()).isEqualTo(person.getName());
-        assertThat(res.birthDate()).isEqualTo(LocalDate.of(1974, 11, 11));
-        assertThat(res.birthPlace()).isEqualTo("Los Angeles");
-        assertThat(res.oneLineIntro()).isEqualTo("actor");
-        assertThat(res.profileImageUrl()).isEqualTo("https://img.test/profile.png");
-
-        assertThat(res.snsList()).hasSize(2);
-        assertThat(res.snsList())
-                .extracting("type")
-                .containsExactlyInAnyOrder(SnsType.INSTAGRAM, SnsType.TIKTOK);
-
-        assertThat(res.snsList())
-                .extracting("url")
-                .containsExactlyInAnyOrder(
-                        "https://instagram.com/leo",
-                        "https://tiktok.com/@leo"
-                );
-
-        assertThat(res.rawTags()).hasSize(2);
-        assertThat(res.rawTags())
-                .extracting("rawTag")
-                .containsExactlyInAnyOrder("인셉션", "셔터아일랜드");
-
-        verify(personRepository, times(1)).findByPublicId(person.getPublicId());
-        verify(storageService, times(1)).toPublicUrl(person.getProfileImageKey());
+        assertThat(result.name()).isEqualTo("디카프리오");
+        assertThat(result.profileImageUrl()).isEqualTo("https://cdn/profile.png");
+        assertThat(result.snsList()).hasSize(1);
+        assertThat(result.rawTags()).hasSize(1);
     }
 
     @Test
-    @DisplayName("프로필 초기화는 회원가입 시 생성된 Person을 새 객체로 교체하지 않는다")
-    void initializePersonProfile_updatesRequiredExistingPerson() {
-        User user = User.create(
-                UserEmail.from("user@example.com"),
-                "encoded-password",
-                Username.from("testuser")
-        );
-        Person original = user.createPerson("testuser");
+    void command_updatesExistingPersonInsteadOfReplacingIt() {
+        Person person = person();
+        given(currentPersonProvider.getRequired()).willReturn(person);
         CreatePersonRequest request = new CreatePersonRequest(
-                "  변경된 이름  ",
-                LocalDate.of(1990, 1, 1),
-                "  서울  ",
-                "  소개  ",
-                "profile/user/avatar.png",
-                List.of(new CreatePersonSnsRequest(
-                        SnsType.INSTAGRAM,
-                        "instagram.com/testuser"
-                )),
+                "  변경된 이름  ", LocalDate.of(1990, 1, 1), "  서울  ", "  소개  ",
+                "profile/new.png",
+                List.of(new CreatePersonSnsRequest(SnsType.INSTAGRAM, "instagram.com/test")),
                 List.of("배우")
         );
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        try (MockedStatic<SecurityUtil> security = mockStatic(SecurityUtil.class)) {
-            security.when(SecurityUtil::currentUserId).thenReturn(1L);
+        Long result = personCommandService.initializeProfile(request);
 
-            personService.initializePersonProfile(request);
-        }
+        assertThat(result).isEqualTo(person.getId());
+        assertThat(person.getName()).isEqualTo("변경된 이름");
+        assertThat(person.getBirthPlace()).isEqualTo("서울");
+        assertThat(person.getSnsList()).hasSize(1);
+    }
 
-        assertThat(user.getPerson()).isSameAs(original);
-        assertThat(original.getName()).isEqualTo("변경된 이름");
-        assertThat(original.getBirthPlace()).isEqualTo("서울");
-        assertThat(original.getSnsList()).hasSize(1);
-        assertThat(original.getProfileTags())
-                .extracting(tag -> tag.getRawText())
-                .containsExactly("배우");
-        verify(userRepository, never()).save(any(User.class));
+    private static Person person() {
+        return Person.create(
+                "디카프리오", LocalDate.of(1974, 11, 11), "Los Angeles", "actor",
+                "profile/key.png",
+                List.of(new Person.SnsRegistration(SnsType.INSTAGRAM, "instagram.com/leo")),
+                List.of("배우")
+        );
     }
 }

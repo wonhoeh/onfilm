@@ -1,19 +1,9 @@
 package com.onfilm.domain.movie.service;
 
-import com.onfilm.domain.genre.entity.Genre;
 import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.movie.dto.MovieCardResponse;
-import com.onfilm.domain.movie.dto.MovieGenreResponse;
-import com.onfilm.domain.movie.entity.AgeRating;
-import com.onfilm.domain.movie.entity.Movie;
-import com.onfilm.domain.movie.entity.MovieGenre;
-import com.onfilm.domain.movie.entity.MoviePerson;
-import com.onfilm.domain.movie.entity.Person;
-import com.onfilm.domain.movie.entity.Trailer;
-import com.onfilm.domain.movie.repository.MovieGenreRepository;
-import com.onfilm.domain.movie.repository.MoviePersonRepository;
-import com.onfilm.domain.movie.repository.PersonRepository;
-import com.onfilm.domain.movie.repository.TrailerRepository;
+import com.onfilm.domain.movie.entity.*;
+import com.onfilm.domain.movie.repository.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,107 +18,32 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
-class MovieReadServiceTest {
-
-    @Mock
-    private MoviePersonRepository moviePersonRepository;
-
-    @Mock
-    private MovieGenreRepository movieGenreRepository;
-
-    @Mock
-    private TrailerRepository trailerRepository;
-
-    @Mock
-    private PersonRepository personRepository;
-
-    @Mock
-    private StorageService storageService;
-
-    @InjectMocks
-    private MovieReadService movieReadService;
+class FilmographyQueryServiceTest {
+    @Mock MoviePersonRepository moviePersonRepository;
+    @Mock MovieGenreRepository movieGenreRepository;
+    @Mock TrailerRepository trailerRepository;
+    @Mock PersonRepository personRepository;
+    @Mock StorageService storageService;
+    @Mock CurrentPersonProvider currentPersonProvider;
+    @InjectMocks FilmographyQueryService queryService;
 
     @Test
-    void getFilmography_returnsStructuredStandardAndCustomGenres() {
+    void queryHidesPrivateItemFromVisitor() {
         Person person = mock(Person.class);
-        Movie movie = movie();
-        MoviePerson moviePerson = moviePerson(movie);
-        MovieGenre standardMovieGenre = standardMovieGenre(movie);
-        MovieGenre customMovieGenre = customMovieGenre(movie);
-        Trailer trailer = mock(Trailer.class);
-        String trailerKey =
-                "movie/10/trailer/550e8400-e29b-41d4-a716-446655440000/index.m3u8";
-
-        given(personRepository.findByPublicId("person-public-id"))
-                .willReturn(Optional.of(person));
-        given(person.getId()).willReturn(1L);
-        given(moviePersonRepository.findFilmographyByPersonId(1L))
-                .willReturn(List.of(moviePerson));
-        given(movieGenreRepository.findAllByMovieIds(List.of(10L)))
-                .willReturn(List.of(standardMovieGenre, customMovieGenre));
-        given(trailerRepository.findAllByMovieIds(List.of(10L)))
-                .willReturn(List.of(trailer));
-        given(trailer.getMovie()).willReturn(movie);
-        given(trailer.getStorageKey()).willReturn(trailerKey);
-        given(storageService.toPublicUrl(trailerKey))
-                .willReturn("https://cdn.example.com/" + trailerKey);
-
-        List<MovieCardResponse> result = movieReadService
-                .getFilmographyByPublicId("person-public-id");
-
-        assertThat(result).singleElement().satisfies(movieResponse ->
-                assertThat(movieResponse.genres()).containsExactly(
-                        new MovieGenreResponse(
-                                100L,
-                                2L,
-                                "Action",
-                                false
-                        ),
-                        new MovieGenreResponse(
-                                101L,
-                                null,
-                                "화려한 액션",
-                                true
-                        )
-                )
-        );
-        assertThat(result.get(0).trailerUrl())
-                .isEqualTo("https://cdn.example.com/" + trailerKey);
-    }
-
-    private static Movie movie() {
         Movie movie = mock(Movie.class);
+        MoviePerson credit = mock(MoviePerson.class);
+        given(personRepository.findByPublicId("person-id")).willReturn(Optional.of(person));
+        given(person.getId()).willReturn(1L);
+        given(currentPersonProvider.isCurrentPerson(1L)).willReturn(false);
+        given(moviePersonRepository.findFilmographyByPersonId(1L)).willReturn(List.of(credit));
+        given(credit.getMovie()).willReturn(movie);
         given(movie.getId()).willReturn(10L);
-        given(movie.getTitle()).willReturn("Test Movie");
-        given(movie.getRuntime()).willReturn(120);
-        given(movie.getReleaseYear()).willReturn(2020);
-        given(movie.getAgeRating()).willReturn(AgeRating.ALL);
-        given(movie.getMovieUrl()).willReturn("movie-key");
-        return movie;
-    }
+        given(credit.isPrivate()).willReturn(true);
+        given(movieGenreRepository.findAllByMovieIds(List.of(10L))).willReturn(List.of());
+        given(trailerRepository.findAllByMovieIds(List.of(10L))).willReturn(List.of());
 
-    private static MoviePerson moviePerson(Movie movie) {
-        MoviePerson moviePerson = mock(MoviePerson.class);
-        given(moviePerson.getMovie()).willReturn(movie);
-        return moviePerson;
-    }
+        List<MovieCardResponse> result = queryService.findVisibleFilmography("person-id");
 
-    private static MovieGenre standardMovieGenre(Movie movie) {
-        Genre genre = mock(Genre.class);
-        MovieGenre movieGenre = mock(MovieGenre.class);
-        given(genre.getId()).willReturn(2L);
-        given(movieGenre.getId()).willReturn(100L);
-        given(movieGenre.getMovie()).willReturn(movie);
-        given(movieGenre.getGenre()).willReturn(genre);
-        given(movieGenre.getRawText()).willReturn("Action");
-        return movieGenre;
-    }
-
-    private static MovieGenre customMovieGenre(Movie movie) {
-        MovieGenre movieGenre = mock(MovieGenre.class);
-        given(movieGenre.getId()).willReturn(101L);
-        given(movieGenre.getMovie()).willReturn(movie);
-        given(movieGenre.getRawText()).willReturn("화려한 액션");
-        return movieGenre;
+        assertThat(result).isEmpty();
     }
 }
