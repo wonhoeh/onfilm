@@ -4,6 +4,7 @@ import com.onfilm.domain.common.error.exception.AuthenticationRequiredException;
 import com.onfilm.domain.common.error.exception.DomainException;
 import com.onfilm.domain.common.error.exception.DuplicateEmailException;
 import com.onfilm.domain.common.error.exception.DuplicateUsernameException;
+import com.onfilm.domain.common.error.exception.EmptyFileException;
 import com.onfilm.domain.common.error.exception.FilmographyItemNotFoundException;
 import com.onfilm.domain.common.error.exception.ForbiddenMediaUploadAccessException;
 import com.onfilm.domain.common.error.exception.ForbiddenMovieAccessException;
@@ -12,8 +13,12 @@ import com.onfilm.domain.common.error.exception.InvalidCredentialsException;
 import com.onfilm.domain.common.error.exception.InvalidMediaJobStatusTransitionException;
 import com.onfilm.domain.common.error.exception.InvalidProfileTagException;
 import com.onfilm.domain.common.error.exception.InvalidRefreshTokenException;
+import com.onfilm.domain.common.error.exception.InvalidStorageKeyException;
 import com.onfilm.domain.common.error.exception.MediaEncodeJobNotFoundException;
+import com.onfilm.domain.common.error.exception.MediaOutputFileNotFoundException;
+import com.onfilm.domain.common.error.exception.MediaSourceFileNotFoundException;
 import com.onfilm.domain.common.error.exception.MediaUploadAlreadyCompletedException;
+import com.onfilm.domain.common.error.exception.MediaUploadRequestMismatchException;
 import com.onfilm.domain.common.error.exception.MediaUploadRequestExpiredException;
 import com.onfilm.domain.common.error.exception.MediaUploadRequestNotFoundException;
 import com.onfilm.domain.common.error.exception.MovieNotFoundException;
@@ -22,6 +27,8 @@ import com.onfilm.domain.common.error.exception.PersonNotLinkedException;
 import com.onfilm.domain.common.error.exception.RefreshTokenReuseDetectedException;
 import com.onfilm.domain.common.error.exception.StoryboardProjectNotFoundException;
 import com.onfilm.domain.common.error.exception.StoryboardSceneNotFoundException;
+import com.onfilm.domain.common.error.exception.StorageKeyNotOwnedException;
+import com.onfilm.domain.common.error.exception.UnsupportedMediaTypeException;
 import com.onfilm.domain.common.error.exception.UserNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -144,6 +151,21 @@ public class GlobalExceptionHandler {
             MediaUploadRequestExpiredException.class
     })
     public ResponseEntity<ErrorResponse> handleMediaState(DomainException exception) {
+        ErrorCode errorCode = exception.getErrorCode();
+        return ResponseEntity.status(errorCode.httpStatus())
+                .body(ErrorResponse.of(errorCode.name(), errorCode.message()));
+    }
+
+    @ExceptionHandler({
+            InvalidStorageKeyException.class,
+            StorageKeyNotOwnedException.class,
+            MediaUploadRequestMismatchException.class,
+            MediaSourceFileNotFoundException.class,
+            MediaOutputFileNotFoundException.class,
+            UnsupportedMediaTypeException.class,
+            EmptyFileException.class
+    })
+    public ResponseEntity<ErrorResponse> handleStorageAndUpload(DomainException exception) {
         ErrorCode errorCode = exception.getErrorCode();
         return ResponseEntity.status(errorCode.httpStatus())
                 .body(ErrorResponse.of(errorCode.name(), errorCode.message()));

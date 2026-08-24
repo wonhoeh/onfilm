@@ -1,5 +1,7 @@
 package com.onfilm.domain.file.infrastructure.s3;
 
+import com.onfilm.domain.common.error.exception.EmptyFileException;
+import com.onfilm.domain.common.error.exception.InvalidStorageKeyException;
 import com.onfilm.domain.file.service.StorageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -41,7 +43,7 @@ public class S3StorageService implements StorageService {
 
     @Override
     public String save(String key, MultipartFile file) {
-        if (file == null || file.isEmpty()) throw new IllegalArgumentException("EMPTY_FILE");
+        if (file == null || file.isEmpty()) throw new EmptyFileException();
 
         String normalized = normalizeKey(key);
         PutObjectRequest request = PutObjectRequest.builder()
@@ -61,7 +63,7 @@ public class S3StorageService implements StorageService {
 
     @Override
     public String save(String key, Path source) {
-        if (source == null) throw new IllegalArgumentException("EMPTY_FILE");
+        if (source == null) throw new EmptyFileException();
 
         String normalized = normalizeKey(key);
         PutObjectRequest request = PutObjectRequest.builder()
@@ -120,9 +122,10 @@ public class S3StorageService implements StorageService {
     }
 
     private String normalizeKey(String key) {
-        if (key == null || key.isBlank()) throw new IllegalArgumentException("EMPTY_KEY");
-        String normalized = key.replace("\\", "/");
-        while (normalized.startsWith("/")) normalized = normalized.substring(1);
-        return normalized;
+        if (key == null || key.isBlank() || !key.equals(key.trim())
+                || key.startsWith("/") || key.contains("\\") || key.contains("..")) {
+            throw new InvalidStorageKeyException();
+        }
+        return key;
     }
 }

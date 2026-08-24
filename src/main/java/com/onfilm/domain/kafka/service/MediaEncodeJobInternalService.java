@@ -2,6 +2,7 @@ package com.onfilm.domain.kafka.service;
 
 import com.onfilm.domain.common.error.exception.InvalidMediaJobStatusTransitionException;
 import com.onfilm.domain.common.error.exception.MediaEncodeJobNotFoundException;
+import com.onfilm.domain.common.error.exception.MediaOutputFileNotFoundException;
 import com.onfilm.domain.common.error.exception.MovieNotFoundException;
 import com.onfilm.domain.file.service.StorageKeyPolicy;
 import com.onfilm.domain.file.service.StorageService;
@@ -46,7 +47,7 @@ public class MediaEncodeJobInternalService {
         }
         storageKeyPolicy.validateMediaTargetKey(job.getMovieId(), job.getJobType(), key);
         if (!storageService.exists(key)) {
-            throw new IllegalArgumentException("encoded output object does not exist");
+            throw new MediaOutputFileNotFoundException();
         }
 
         Movie movie = movieRepository.findById(job.getMovieId())

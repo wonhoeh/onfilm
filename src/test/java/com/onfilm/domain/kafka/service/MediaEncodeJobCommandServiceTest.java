@@ -3,6 +3,7 @@ package com.onfilm.domain.kafka.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onfilm.domain.common.error.ErrorCode;
 import com.onfilm.domain.common.error.exception.MediaEncodeJobNotFoundException;
+import com.onfilm.domain.common.error.exception.MediaSourceFileNotFoundException;
 import com.onfilm.domain.common.error.exception.MediaUploadRequestNotFoundException;
 import com.onfilm.domain.file.service.StorageKeyPolicy;
 import com.onfilm.domain.file.service.StorageService;
@@ -86,7 +87,9 @@ class MediaEncodeJobCommandServiceTest {
         given(storageService.exists(source)).willReturn(false);
 
         assertThatThrownBy(() -> requestMovie(requestId, source))
-                .hasMessage("uploaded source object does not exist");
+                .isInstanceOfSatisfying(MediaSourceFileNotFoundException.class, exception ->
+                        assertThat(exception.getErrorCode())
+                                .isEqualTo(ErrorCode.MEDIA_SOURCE_FILE_NOT_FOUND));
         verifyNoInteractions(jobRepository, outboxRepository);
     }
 

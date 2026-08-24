@@ -33,7 +33,15 @@ public enum ErrorCode {
     PERSON_NOT_LINKED(HttpStatus.CONFLICT, "사용자에게 인물 정보가 연결되어 있지 않습니다."),
     INVALID_MEDIA_JOB_STATUS_TRANSITION(HttpStatus.CONFLICT, "미디어 인코딩 작업의 상태를 변경할 수 없습니다."),
     MEDIA_UPLOAD_ALREADY_COMPLETED(HttpStatus.CONFLICT, "미디어 업로드 요청이 이미 다른 작업으로 완료되었습니다."),
-    MEDIA_UPLOAD_REQUEST_EXPIRED(HttpStatus.GONE, "미디어 업로드 요청이 만료되었습니다.");
+    MEDIA_UPLOAD_REQUEST_EXPIRED(HttpStatus.GONE, "미디어 업로드 요청이 만료되었습니다."),
+
+    INVALID_STORAGE_KEY(HttpStatus.BAD_REQUEST, "스토리지 키가 올바르지 않습니다."),
+    STORAGE_KEY_NOT_OWNED(HttpStatus.FORBIDDEN, "해당 스토리지 키에 접근할 권한이 없습니다."),
+    MEDIA_UPLOAD_REQUEST_MISMATCH(HttpStatus.BAD_REQUEST, "업로드 완료 정보가 발급된 요청과 일치하지 않습니다."),
+    MEDIA_SOURCE_FILE_NOT_FOUND(HttpStatus.BAD_REQUEST, "업로드된 원본 파일을 찾을 수 없습니다."),
+    MEDIA_OUTPUT_FILE_NOT_FOUND(HttpStatus.BAD_REQUEST, "인코딩 결과 파일을 찾을 수 없습니다."),
+    UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "지원하지 않는 미디어 형식입니다."),
+    EMPTY_FILE(HttpStatus.BAD_REQUEST, "파일이 비어 있습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

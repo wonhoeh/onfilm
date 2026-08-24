@@ -2,6 +2,7 @@ package com.onfilm.domain.kafka.service;
 
 import com.onfilm.domain.common.error.ErrorCode;
 import com.onfilm.domain.common.error.exception.InvalidMediaJobStatusTransitionException;
+import com.onfilm.domain.common.error.exception.MediaOutputFileNotFoundException;
 import com.onfilm.domain.file.service.StorageKeyPolicy;
 import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.kafka.dto.MediaEncodeCompletionRequest;
@@ -84,6 +85,25 @@ class MediaEncodeJobInternalServiceTest {
                 .isInstanceOfSatisfying(InvalidMediaJobStatusTransitionException.class, exception ->
                         assertThat(exception.getErrorCode())
                                 .isEqualTo(ErrorCode.INVALID_MEDIA_JOB_STATUS_TRANSITION));
+    }
+
+    @Test
+    void completionRejectsMissingEncodedOutputObject() {
+        MediaEncodeJob job = trailerJob(
+                "movie/1/trailer/550e8400-e29b-41d4-a716-446655440000/index.m3u8",
+                Instant.parse("2026-01-01T00:00:00Z"));
+        given(jobRepository.findById(job.getId())).willReturn(Optional.of(job));
+        given(storageService.exists(job.getTargetKey())).willReturn(false);
+
+        assertThatThrownBy(() -> service.complete(job.getId(), new MediaEncodeCompletionRequest(
+                job.getTargetBucket(),
+                job.getTargetKey(),
+                job.getTargetContentType(),
+                job.getRequestedAt().plusSeconds(1)
+        ))).isInstanceOfSatisfying(MediaOutputFileNotFoundException.class, exception ->
+                assertThat(exception.getErrorCode())
+                        .isEqualTo(ErrorCode.MEDIA_OUTPUT_FILE_NOT_FOUND));
+        verifyNoInteractions(movieRepository);
     }
 
     private MediaEncodeJob trailerJob(String target, Instant requestedAt) {

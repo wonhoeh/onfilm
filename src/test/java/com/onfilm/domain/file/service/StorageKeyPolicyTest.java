@@ -1,7 +1,11 @@
 package com.onfilm.domain.file.service;
 
+import com.onfilm.domain.common.error.ErrorCode;
+import com.onfilm.domain.common.error.exception.InvalidStorageKeyException;
+import com.onfilm.domain.common.error.exception.StorageKeyNotOwnedException;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -27,8 +31,9 @@ class StorageKeyPolicyTest {
         String key = storageKeyFactory.storyboardCard(1L, ".jpg");
 
         assertThatThrownBy(() -> storageKeyPolicy.validateStoryboardCardKey(2L, key))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("storyboard image does not belong to current person");
+                .isInstanceOfSatisfying(StorageKeyNotOwnedException.class, exception ->
+                        assertThat(exception.getErrorCode())
+                                .isEqualTo(ErrorCode.STORAGE_KEY_NOT_OWNED));
     }
 
     @Test
@@ -67,8 +72,9 @@ class StorageKeyPolicyTest {
         String key = storageKeyFactory.movieTrailer(1L, ".mp4");
 
         assertThatThrownBy(() -> storageKeyPolicy.validateMovieTrailerKey(2L, key))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("trailer storage key does not belong to movie");
+                .isInstanceOfSatisfying(StorageKeyNotOwnedException.class, exception ->
+                        assertThat(exception.getErrorCode())
+                                .isEqualTo(ErrorCode.STORAGE_KEY_NOT_OWNED));
     }
 
     @Test
@@ -87,13 +93,15 @@ class StorageKeyPolicyTest {
 
     private void assertInvalid(String key) {
         assertThatThrownBy(() -> storageKeyPolicy.validateStoryboardCardKey(2L, key))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("invalid storyboard image key");
+                .isInstanceOfSatisfying(InvalidStorageKeyException.class, exception ->
+                        assertThat(exception.getErrorCode())
+                                .isEqualTo(ErrorCode.INVALID_STORAGE_KEY));
     }
 
     private void assertInvalidMovieTrailerKey(String key) {
         assertThatThrownBy(() -> storageKeyPolicy.validateMovieTrailerKey(2L, key))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("invalid movie trailer storage key");
+                .isInstanceOfSatisfying(InvalidStorageKeyException.class, exception ->
+                        assertThat(exception.getErrorCode())
+                                .isEqualTo(ErrorCode.INVALID_STORAGE_KEY));
     }
 }

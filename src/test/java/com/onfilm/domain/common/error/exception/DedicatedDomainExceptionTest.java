@@ -33,7 +33,14 @@ class DedicatedDomainExceptionTest {
                 expected(new PersonNotLinkedException(), ErrorCode.PERSON_NOT_LINKED),
                 expected(new InvalidMediaJobStatusTransitionException(), ErrorCode.INVALID_MEDIA_JOB_STATUS_TRANSITION),
                 expected(new MediaUploadAlreadyCompletedException(), ErrorCode.MEDIA_UPLOAD_ALREADY_COMPLETED),
-                expected(new MediaUploadRequestExpiredException(), ErrorCode.MEDIA_UPLOAD_REQUEST_EXPIRED)
+                expected(new MediaUploadRequestExpiredException(), ErrorCode.MEDIA_UPLOAD_REQUEST_EXPIRED),
+                expected(new InvalidStorageKeyException(), ErrorCode.INVALID_STORAGE_KEY),
+                expected(new StorageKeyNotOwnedException(), ErrorCode.STORAGE_KEY_NOT_OWNED),
+                expected(new MediaUploadRequestMismatchException(), ErrorCode.MEDIA_UPLOAD_REQUEST_MISMATCH),
+                expected(new MediaSourceFileNotFoundException(), ErrorCode.MEDIA_SOURCE_FILE_NOT_FOUND),
+                expected(new MediaOutputFileNotFoundException(), ErrorCode.MEDIA_OUTPUT_FILE_NOT_FOUND),
+                expected(new UnsupportedMediaTypeException(), ErrorCode.UNSUPPORTED_MEDIA_TYPE),
+                expected(new EmptyFileException(), ErrorCode.EMPTY_FILE)
         );
 
         assertThat(exceptions).allSatisfy(expected -> {

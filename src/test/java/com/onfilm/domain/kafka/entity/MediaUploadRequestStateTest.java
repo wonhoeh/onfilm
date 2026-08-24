@@ -2,6 +2,7 @@ package com.onfilm.domain.kafka.entity;
 
 import com.onfilm.domain.common.error.ErrorCode;
 import com.onfilm.domain.common.error.exception.MediaUploadAlreadyCompletedException;
+import com.onfilm.domain.common.error.exception.MediaUploadRequestMismatchException;
 import com.onfilm.domain.common.error.exception.MediaUploadRequestExpiredException;
 import com.onfilm.domain.kafka.message.EncodeJobType;
 import org.junit.jupiter.api.Test;
@@ -46,6 +47,22 @@ class MediaUploadRequestStateTest {
                                 .isEqualTo(ErrorCode.MEDIA_UPLOAD_ALREADY_COMPLETED));
         assertThat(request.getJobId()).isEqualTo(FIRST_JOB_ID);
         assertThat(request.getCompletedAt()).isEqualTo(ISSUED_AT.plusSeconds(1));
+    }
+
+    @Test
+    void completionRejectsValuesThatDifferFromIssuedRequest() {
+        MediaUploadRequest request = issue();
+
+        assertThatThrownBy(() -> request.validateCompletion(
+                1L,
+                1L,
+                EncodeJobType.MOVIE,
+                SOURCE_KEY,
+                "video/quicktime",
+                ISSUED_AT.plusSeconds(1)
+        )).isInstanceOfSatisfying(MediaUploadRequestMismatchException.class, exception ->
+                assertThat(exception.getErrorCode())
+                        .isEqualTo(ErrorCode.MEDIA_UPLOAD_REQUEST_MISMATCH));
     }
 
     private static MediaUploadRequest issue() {

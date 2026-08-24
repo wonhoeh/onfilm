@@ -1,6 +1,7 @@
 package com.onfilm.domain.movie.service;
 
 import com.onfilm.domain.common.error.ErrorCode;
+import com.onfilm.domain.common.error.exception.EmptyFileException;
 import com.onfilm.domain.common.error.exception.ForbiddenMovieAccessException;
 import com.onfilm.domain.file.event.StorageFileDeletionPublisher;
 import com.onfilm.domain.file.service.MediaEncodingService;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -71,5 +73,23 @@ class MovieMediaServiceTest {
                         assertThat(exception.getErrorCode())
                                 .isEqualTo(ErrorCode.FORBIDDEN_MOVIE_ACCESS));
         verifyNoInteractions(movieRepository);
+    }
+
+    @Test
+    void synchronousUploadRejectsEmptyFileBeforeEncoding() {
+        Person person = mock(Person.class);
+        given(person.getId()).willReturn(7L);
+        given(currentPersonProvider.getRequired()).willReturn(person);
+        given(moviePersonRepository.findByPersonIdAndMovieId(7L, 1L)).willReturn(mock(MoviePerson.class));
+        given(movieRepository.findById(1L)).willReturn(Optional.of(
+                Movie.create("Test", 120, 2020, "movie-key", null, AgeRating.ALL)
+        ));
+
+        assertThatThrownBy(() -> movieMediaService.replaceMovieFile(
+                1L,
+                new MockMultipartFile("file", new byte[0])
+        )).isInstanceOfSatisfying(EmptyFileException.class, exception ->
+                assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.EMPTY_FILE));
+        verifyNoInteractions(mediaEncodingService, storageService);
     }
 }

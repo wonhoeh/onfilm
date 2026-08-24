@@ -1,5 +1,6 @@
 package com.onfilm.domain.file.infrastructure.local;
 
+import com.onfilm.domain.common.error.exception.UnsupportedMediaTypeException;
 import com.onfilm.domain.file.service.MediaEncodingService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -76,7 +77,7 @@ public class LocalMediaEncodingService implements MediaEncodingService {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        if (source == null) throw new IllegalArgumentException("UNSUPPORTED_IMAGE");
+        if (source == null) throw new UnsupportedMediaTypeException();
 
         double scale = Math.min(
                 (double) targetWidth / source.getWidth(),

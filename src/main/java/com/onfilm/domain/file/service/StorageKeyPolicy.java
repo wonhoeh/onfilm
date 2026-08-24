@@ -1,9 +1,11 @@
 package com.onfilm.domain.file.service;
 
+import com.onfilm.domain.common.error.exception.InvalidStorageKeyException;
+import com.onfilm.domain.common.error.exception.StorageKeyNotOwnedException;
+import com.onfilm.domain.kafka.message.EncodeJobType;
 import org.springframework.stereotype.Component;
 
 import java.util.regex.Pattern;
-import com.onfilm.domain.kafka.message.EncodeJobType;
 
 @Component
 public class StorageKeyPolicy {
@@ -41,9 +43,7 @@ public class StorageKeyPolicy {
             throw invalidStoryboardKey();
         }
         if (!segments[1].equals(personId.toString())) {
-            throw new IllegalArgumentException(
-                    "storyboard image does not belong to current person"
-            );
+            throw new StorageKeyNotOwnedException();
         }
     }
 
@@ -52,7 +52,7 @@ public class StorageKeyPolicy {
             throw new IllegalArgumentException("movieId is required");
         }
         if (storageKey == null || storageKey.isBlank()) {
-            throw new IllegalArgumentException("trailerStorageKey is required");
+            throw new InvalidStorageKeyException();
         }
 
         String key = storageKey.trim();
@@ -74,15 +74,13 @@ public class StorageKeyPolicy {
             throw invalidMovieTrailerKey();
         }
         if (!segments[1].equals(movieId.toString())) {
-            throw new IllegalArgumentException(
-                    "trailer storage key does not belong to movie"
-            );
+            throw new StorageKeyNotOwnedException();
         }
     }
 
     public void validateMediaSourceKey(Long movieId, String requestId, EncodeJobType jobType, String storageKey) {
         requireMovieContext(movieId, requestId, jobType);
-        String key = requireCleanKey(storageKey, "sourceKey");
+        String key = requireCleanKey(storageKey);
         String mediaType = switch (jobType) {
             case MOVIE -> "file";
             case TRAILER -> "trailer";
@@ -90,7 +88,7 @@ public class StorageKeyPolicy {
         };
         String prefix = "movie/" + movieId + "/raw/" + mediaType + "/" + requestId;
         if (!key.startsWith(prefix + ".") || key.substring(prefix.length() + 1).contains("/")) {
-            throw new IllegalArgumentException("sourceKey does not belong to upload request");
+            throw new StorageKeyNotOwnedException();
         }
     }
 
@@ -98,18 +96,18 @@ public class StorageKeyPolicy {
         if (movieId == null || movieId <= 0 || jobType == null) {
             throw new IllegalArgumentException("movieId and jobType are required");
         }
-        String key = requireCleanKey(storageKey, "targetKey");
+        String key = requireCleanKey(storageKey);
         String prefix = switch (jobType) {
             case MOVIE -> "movie/" + movieId + "/file/";
             case TRAILER -> "movie/" + movieId + "/trailer/";
             case THUMBNAIL -> "movie/" + movieId + "/thumbnail/";
         };
-        if (!key.startsWith(prefix)) throw new IllegalArgumentException("targetKey does not belong to movie");
+        if (!key.startsWith(prefix)) throw new StorageKeyNotOwnedException();
         if (jobType == EncodeJobType.THUMBNAIL && !key.endsWith(".jpg")) {
-            throw new IllegalArgumentException("thumbnail targetKey must be a jpg");
+            throw new InvalidStorageKeyException();
         }
         if (jobType != EncodeJobType.THUMBNAIL && !key.endsWith("/index.m3u8")) {
-            throw new IllegalArgumentException("video targetKey must be an HLS playlist");
+            throw new InvalidStorageKeyException();
         }
     }
 
@@ -123,11 +121,11 @@ public class StorageKeyPolicy {
         }
     }
 
-    private static String requireCleanKey(String storageKey, String field) {
-        if (storageKey == null || storageKey.isBlank()) throw new IllegalArgumentException(field + " is required");
+    private static String requireCleanKey(String storageKey) {
+        if (storageKey == null || storageKey.isBlank()) throw new InvalidStorageKeyException();
         String key = storageKey.trim();
         if (!key.equals(storageKey) || key.startsWith("/") || key.contains("\\") || key.contains("..")) {
-            throw new IllegalArgumentException("invalid " + field);
+            throw new InvalidStorageKeyException();
         }
         return key;
     }
@@ -139,11 +137,11 @@ public class StorageKeyPolicy {
                 && segments[2].equals("trailer");
     }
 
-    private static IllegalArgumentException invalidStoryboardKey() {
-        return new IllegalArgumentException("invalid storyboard image key");
+    private static InvalidStorageKeyException invalidStoryboardKey() {
+        return new InvalidStorageKeyException();
     }
 
-    private static IllegalArgumentException invalidMovieTrailerKey() {
-        return new IllegalArgumentException("invalid movie trailer storage key");
+    private static InvalidStorageKeyException invalidMovieTrailerKey() {
+        return new InvalidStorageKeyException();
     }
 }

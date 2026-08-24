@@ -1,5 +1,8 @@
 package com.onfilm.domain.movie.controller;
 
+import com.onfilm.domain.common.error.exception.EmptyFileException;
+import com.onfilm.domain.common.error.exception.InvalidStorageKeyException;
+import com.onfilm.domain.common.error.exception.UnsupportedMediaTypeException;
 import com.onfilm.domain.common.util.SecurityUtil;
 import com.onfilm.domain.file.service.StorageKeyFactory;
 import com.onfilm.domain.file.service.StorageService;
@@ -152,10 +155,10 @@ public class MovieFileController {
     public ResponseEntity<Void> uploadRawMovieAsset(@RequestParam("sourceKey") String sourceKey,
                                                     HttpServletRequest request) {
         if (sourceKey == null || sourceKey.isBlank()) {
-            return ResponseEntity.badRequest().build();
+            throw new InvalidStorageKeyException();
         }
         if (!sourceKey.startsWith("movie/") || !sourceKey.contains("/raw/")) {
-            return ResponseEntity.badRequest().build();
+            throw new InvalidStorageKeyException();
         }
         mediaUploadRequestService.authorizeRawUpload(SecurityUtil.currentUserId(), sourceKey);
 
@@ -165,7 +168,7 @@ public class MovieFileController {
             try (InputStream in = request.getInputStream()) {
                 long copied = Files.copy(in, temp, StandardCopyOption.REPLACE_EXISTING);
                 if (copied <= 0) {
-                    return ResponseEntity.badRequest().build();
+                    throw new EmptyFileException();
                 }
             }
             storage.save(sourceKey, temp);
@@ -231,7 +234,7 @@ public class MovieFileController {
     private void validateMovieUploadRequest(Long movieId, MediaUploadCompleteRequest request) {
         validateMovieUploadPermission(movieId);
         if (request == null || request.sourceKey() == null || request.sourceKey().isBlank()) {
-            throw new IllegalArgumentException("sourceKey is required");
+            throw new InvalidStorageKeyException();
         }
         if (storageBucket == null || storageBucket.isBlank()) {
             throw new IllegalStateException("file.storage.bucket is required");
@@ -257,7 +260,7 @@ public class MovieFileController {
             case "video/x-msvideo" -> ".avi";
             case "video/x-matroska" -> ".mkv";
             case "video/webm" -> ".webm";
-            default -> throw new IllegalArgumentException("unsupported video contentType");
+            default -> throw new UnsupportedMediaTypeException();
         };
     }
 
@@ -269,7 +272,7 @@ public class MovieFileController {
             case "image/jpeg" -> ".jpg";
             case "image/png" -> ".png";
             case "image/webp" -> ".webp";
-            default -> throw new IllegalArgumentException("unsupported image contentType");
+            default -> throw new UnsupportedMediaTypeException();
         };
     }
 }

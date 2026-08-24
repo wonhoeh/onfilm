@@ -3,6 +3,8 @@ package com.onfilm.domain.kafka.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onfilm.domain.common.error.exception.MediaEncodeJobNotFoundException;
+import com.onfilm.domain.common.error.exception.MediaSourceFileNotFoundException;
+import com.onfilm.domain.common.error.exception.MediaUploadRequestMismatchException;
 import com.onfilm.domain.common.error.exception.MediaUploadRequestNotFoundException;
 import com.onfilm.domain.file.service.StorageKeyPolicy;
 import com.onfilm.domain.file.service.StorageService;
@@ -75,12 +77,12 @@ public class MediaEncodeJobCommandService {
         }
 
         if (!upload.getBucket().equals(sourceBucket)) {
-            throw new IllegalArgumentException("sourceBucket does not match presign request");
+            throw new MediaUploadRequestMismatchException();
         }
         storageKeyPolicy.validateMediaSourceKey(movieId, requestId, jobType, sourceKey);
         storageKeyPolicy.validateMediaTargetKey(movieId, jobType, targetKey);
         if (!storageService.exists(sourceKey)) {
-            throw new IllegalArgumentException("uploaded source object does not exist");
+            throw new MediaSourceFileNotFoundException();
         }
 
         String jobId = UUID.randomUUID().toString();

@@ -1,5 +1,6 @@
 package com.onfilm.domain.movie.service;
 
+import com.onfilm.domain.common.error.exception.EmptyFileException;
 import com.onfilm.domain.common.error.exception.ForbiddenMovieAccessException;
 import com.onfilm.domain.common.error.exception.MovieNotFoundException;
 import com.onfilm.domain.file.event.StorageFileDeletionPublisher;
@@ -145,6 +146,9 @@ public class MovieMediaService {
     }
 
     private static Path toTempFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new EmptyFileException();
+        }
         try {
             Path temp = Files.createTempFile("onfilm-upload-", ".tmp");
             try (InputStream input = file.getInputStream()) {

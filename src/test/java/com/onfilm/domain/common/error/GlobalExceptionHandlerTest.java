@@ -73,6 +73,17 @@ class GlobalExceptionHandlerTest {
         );
     }
 
+    @Test
+    void storageAndUploadExceptionsUseTheirErrorCodePolicy() {
+        assertStorageError(new InvalidStorageKeyException(), ErrorCode.INVALID_STORAGE_KEY);
+        assertStorageError(new StorageKeyNotOwnedException(), ErrorCode.STORAGE_KEY_NOT_OWNED);
+        assertStorageError(new MediaUploadRequestMismatchException(), ErrorCode.MEDIA_UPLOAD_REQUEST_MISMATCH);
+        assertStorageError(new MediaSourceFileNotFoundException(), ErrorCode.MEDIA_SOURCE_FILE_NOT_FOUND);
+        assertStorageError(new MediaOutputFileNotFoundException(), ErrorCode.MEDIA_OUTPUT_FILE_NOT_FOUND);
+        assertStorageError(new UnsupportedMediaTypeException(), ErrorCode.UNSUPPORTED_MEDIA_TYPE);
+        assertStorageError(new EmptyFileException(), ErrorCode.EMPTY_FILE);
+    }
+
     private static void assertNotFound(
             ResponseEntity<ErrorResponse> response,
             ErrorCode errorCode
@@ -89,5 +100,9 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().code()).isEqualTo(errorCode.name());
         assertThat(response.getBody().message()).isEqualTo(errorCode.message());
+    }
+
+    private void assertStorageError(DomainException exception, ErrorCode errorCode) {
+        assertDomainError(handler.handleStorageAndUpload(exception), errorCode);
     }
 }

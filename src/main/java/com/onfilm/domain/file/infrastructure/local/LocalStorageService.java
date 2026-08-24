@@ -1,5 +1,7 @@
 package com.onfilm.domain.file.infrastructure.local;
 
+import com.onfilm.domain.common.error.exception.EmptyFileException;
+import com.onfilm.domain.common.error.exception.InvalidStorageKeyException;
 import com.onfilm.domain.file.service.StorageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,10 +37,9 @@ public class LocalStorageService implements StorageService {
 
     @Override
     public String save(String key, MultipartFile file) {
-        if (file == null || file.isEmpty()) throw new IllegalArgumentException("EMPTY_FILE");
+        if (file == null || file.isEmpty()) throw new EmptyFileException();
 
-        Path target = rootPath.resolve(key).normalize();
-        if (!target.startsWith(rootPath)) throw new SecurityException("INVALID_PATH");
+        Path target = resolveKey(key);
 
         try {
             Files.createDirectories(target.getParent());
@@ -53,10 +54,9 @@ public class LocalStorageService implements StorageService {
 
     @Override
     public String save(String key, Path source) {
-        if (source == null) throw new IllegalArgumentException("EMPTY_FILE");
+        if (source == null) throw new EmptyFileException();
 
-        Path target = rootPath.resolve(key).normalize();
-        if (!target.startsWith(rootPath)) throw new SecurityException("INVALID_PATH");
+        Path target = resolveKey(key);
 
         try {
             Files.createDirectories(target.getParent());
@@ -69,8 +69,7 @@ public class LocalStorageService implements StorageService {
 
     @Override
     public void delete(String key) {
-        Path target = rootPath.resolve(key).normalize();
-        if (!target.startsWith(rootPath)) throw new SecurityException("INVALID_PATH");
+        Path target = resolveKey(key);
         try {
             Files.deleteIfExists(target);
         } catch (IOException e) {
@@ -80,8 +79,7 @@ public class LocalStorageService implements StorageService {
 
     @Override
     public boolean exists(String key) {
-        Path target = rootPath.resolve(key).normalize();
-        if (!target.startsWith(rootPath)) throw new SecurityException("INVALID_PATH");
+        Path target = resolveKey(key);
         return Files.isRegularFile(target);
     }
 
@@ -103,5 +101,15 @@ public class LocalStorageService implements StorageService {
         while (base.endsWith("/")) base = base.substring(0, base.length() - 1);
 
         return base + "/" + normalized;
+    }
+
+    private Path resolveKey(String key) {
+        if (key == null || key.isBlank() || !key.equals(key.trim())
+                || key.startsWith("/") || key.contains("\\") || key.contains("..")) {
+            throw new InvalidStorageKeyException();
+        }
+        Path target = rootPath.resolve(key).normalize();
+        if (!target.startsWith(rootPath)) throw new InvalidStorageKeyException();
+        return target;
     }
 }
