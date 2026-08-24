@@ -1,35 +1,7 @@
 package com.onfilm.domain.common.error;
 
-import com.onfilm.domain.common.error.exception.AuthenticationRequiredException;
 import com.onfilm.domain.common.error.exception.DomainException;
-import com.onfilm.domain.common.error.exception.DuplicateEmailException;
-import com.onfilm.domain.common.error.exception.DuplicateUsernameException;
-import com.onfilm.domain.common.error.exception.EmptyFileException;
-import com.onfilm.domain.common.error.exception.FilmographyItemNotFoundException;
-import com.onfilm.domain.common.error.exception.ForbiddenMediaUploadAccessException;
-import com.onfilm.domain.common.error.exception.ForbiddenMovieAccessException;
-import com.onfilm.domain.common.error.exception.ForbiddenPersonAccessException;
-import com.onfilm.domain.common.error.exception.InvalidCredentialsException;
-import com.onfilm.domain.common.error.exception.InvalidMediaJobStatusTransitionException;
-import com.onfilm.domain.common.error.exception.InvalidProfileTagException;
-import com.onfilm.domain.common.error.exception.InvalidRefreshTokenException;
-import com.onfilm.domain.common.error.exception.InvalidStorageKeyException;
-import com.onfilm.domain.common.error.exception.MediaEncodeJobNotFoundException;
-import com.onfilm.domain.common.error.exception.MediaOutputFileNotFoundException;
-import com.onfilm.domain.common.error.exception.MediaSourceFileNotFoundException;
-import com.onfilm.domain.common.error.exception.MediaUploadAlreadyCompletedException;
-import com.onfilm.domain.common.error.exception.MediaUploadRequestMismatchException;
-import com.onfilm.domain.common.error.exception.MediaUploadRequestExpiredException;
-import com.onfilm.domain.common.error.exception.MediaUploadRequestNotFoundException;
-import com.onfilm.domain.common.error.exception.MovieNotFoundException;
-import com.onfilm.domain.common.error.exception.PersonNotFoundException;
-import com.onfilm.domain.common.error.exception.PersonNotLinkedException;
-import com.onfilm.domain.common.error.exception.RefreshTokenReuseDetectedException;
-import com.onfilm.domain.common.error.exception.StoryboardProjectNotFoundException;
-import com.onfilm.domain.common.error.exception.StoryboardSceneNotFoundException;
-import com.onfilm.domain.common.error.exception.StorageKeyNotOwnedException;
-import com.onfilm.domain.common.error.exception.UnsupportedMediaTypeException;
-import com.onfilm.domain.common.error.exception.UserNotFoundException;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
@@ -37,12 +9,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import jakarta.validation.ConstraintViolationException;
 
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -69,128 +39,11 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of("VALIDATION_FAILED", "요청 값이 올바르지 않습니다."));
     }
 
-    @ExceptionHandler(PersonNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handlePersonNotFound(PersonNotFoundException e) {
-        return ResponseEntity.status(NOT_FOUND)
-                .body(ErrorResponse.of("PERSON_NOT_FOUND", e.getMessage()));
-    }
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException e) {
-        return ResponseEntity.status(NOT_FOUND)
-                .body(ErrorResponse.of("USER_NOT_FOUND", e.getMessage()));
-    }
-
-    @ExceptionHandler(MovieNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleMovieNotFound(MovieNotFoundException e) {
-        return ResponseEntity.status(NOT_FOUND)
-                .body(ErrorResponse.of("MOVIE_NOT_FOUND", e.getMessage()));
-    }
-
-    @ExceptionHandler(StoryboardSceneNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleStoryboardSceneNotFound(StoryboardSceneNotFoundException e) {
-        return ResponseEntity.status(NOT_FOUND)
-                .body(ErrorResponse.of("STORYBOARD_SCENE_NOT_FOUND", e.getMessage()));
-    }
-
-    @ExceptionHandler(StoryboardProjectNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleStoryboardProjectNotFound(StoryboardProjectNotFoundException e) {
-        return ResponseEntity.status(NOT_FOUND)
-                .body(ErrorResponse.of("STORYBOARD_PROJECT_NOT_FOUND", e.getMessage()));
-    }
-
-    @ExceptionHandler(InvalidProfileTagException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidProfileTag(InvalidProfileTagException e) {
-        return ResponseEntity.status(BAD_REQUEST)
-                .body(ErrorResponse.of("INVALID_PROFILE_TAG", e.getMessage()));
-    }
-
-    @ExceptionHandler(DuplicateEmailException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicateEmail(DuplicateEmailException e) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ErrorResponse.of("DUPLICATE_EMAIL", e.getMessage()));
-    }
-
-    @ExceptionHandler(DuplicateUsernameException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicateUsername(DuplicateUsernameException e) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ErrorResponse.of("DUPLICATE_USERNAME", e.getMessage()));
-    }
-
-    @ExceptionHandler({
-            InvalidRefreshTokenException.class,
-            RefreshTokenReuseDetectedException.class
-    })
-    public ResponseEntity<ErrorResponse> handleInvalidRefreshToken(RuntimeException e) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ErrorResponse.of(
-                        "INVALID_REFRESH_TOKEN",
-                        "Invalid refresh token"
-                ));
-    }
-
-    @ExceptionHandler({
-            AuthenticationRequiredException.class,
-            InvalidCredentialsException.class,
-            ForbiddenPersonAccessException.class,
-            ForbiddenMovieAccessException.class,
-            ForbiddenMediaUploadAccessException.class,
-            PersonNotLinkedException.class
-    })
-    public ResponseEntity<ErrorResponse> handleAuthenticationAndAuthorization(
-            DomainException exception
-    ) {
+    @ExceptionHandler(DomainException.class)
+    public ResponseEntity<ErrorResponse> handleDomainException(DomainException exception) {
         ErrorCode errorCode = exception.getErrorCode();
         return ResponseEntity.status(errorCode.httpStatus())
                 .body(ErrorResponse.of(errorCode.name(), errorCode.message()));
-    }
-
-    @ExceptionHandler({
-            InvalidMediaJobStatusTransitionException.class,
-            MediaUploadAlreadyCompletedException.class,
-            MediaUploadRequestExpiredException.class
-    })
-    public ResponseEntity<ErrorResponse> handleMediaState(DomainException exception) {
-        ErrorCode errorCode = exception.getErrorCode();
-        return ResponseEntity.status(errorCode.httpStatus())
-                .body(ErrorResponse.of(errorCode.name(), errorCode.message()));
-    }
-
-    @ExceptionHandler({
-            InvalidStorageKeyException.class,
-            StorageKeyNotOwnedException.class,
-            MediaUploadRequestMismatchException.class,
-            MediaSourceFileNotFoundException.class,
-            MediaOutputFileNotFoundException.class,
-            UnsupportedMediaTypeException.class,
-            EmptyFileException.class
-    })
-    public ResponseEntity<ErrorResponse> handleStorageAndUpload(DomainException exception) {
-        ErrorCode errorCode = exception.getErrorCode();
-        return ResponseEntity.status(errorCode.httpStatus())
-                .body(ErrorResponse.of(errorCode.name(), errorCode.message()));
-    }
-
-    @ExceptionHandler(MediaEncodeJobNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleMediaEncodeJobNotFound(MediaEncodeJobNotFoundException e) {
-        return ResponseEntity.status(NOT_FOUND)
-                .body(ErrorResponse.of("MEDIA_ENCODE_JOB_NOT_FOUND", e.getMessage()));
-    }
-
-    @ExceptionHandler(MediaUploadRequestNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleMediaUploadRequestNotFound(
-            MediaUploadRequestNotFoundException e
-    ) {
-        return ResponseEntity.status(NOT_FOUND)
-                .body(ErrorResponse.of("MEDIA_UPLOAD_REQUEST_NOT_FOUND", e.getMessage()));
-    }
-
-    @ExceptionHandler(FilmographyItemNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleFilmographyItemNotFound(
-            FilmographyItemNotFoundException e
-    ) {
-        return ResponseEntity.status(NOT_FOUND)
-                .body(ErrorResponse.of("FILMOGRAPHY_ITEM_NOT_FOUND", e.getMessage()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -221,11 +74,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException e) {
-        HttpStatus status = switch (e.getMessage()) {
-            case "FORBIDDEN_MEDIA_JOB_ACCESS" -> HttpStatus.FORBIDDEN;
-            default -> BAD_REQUEST;
-        };
-        return ResponseEntity.status(status)
-                .body(ErrorResponse.of(e.getMessage(), e.getMessage()));
+        return ResponseEntity.status(BAD_REQUEST)
+                .body(ErrorResponse.of("BAD_REQUEST", e.getMessage()));
     }
 }
