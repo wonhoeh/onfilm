@@ -230,7 +230,10 @@ class AuthIntegrationTest {
                 .andExpect(jsonPath("$.email").value("me@example.com"));
 
         mockMvc.perform(get("/auth/me"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"))
+                .andExpect(jsonPath("$.message").value("인증이 필요합니다."))
+                .andExpect(jsonPath("$.errors").isArray());
     }
 
     private void signup(String email) throws Exception {

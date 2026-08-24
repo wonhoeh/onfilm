@@ -3,6 +3,7 @@ package com.onfilm.domain.person.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onfilm.domain.auth.config.AuthProperties;
 import com.onfilm.domain.auth.security.JwtProvider;
+import com.onfilm.domain.common.error.SecurityErrorResponseWriter;
 import com.onfilm.domain.movie.controller.PersonController;
 import com.onfilm.domain.movie.dto.*;
 import com.onfilm.domain.movie.entity.SnsType;
@@ -47,6 +48,9 @@ class PersonControllerTest {
 
     @MockBean
     private AuthProperties authProperties;
+
+    @MockBean
+    private SecurityErrorResponseWriter securityErrorResponseWriter;
 
     @MockBean
     private FilmographyQueryService filmographyQueryService;

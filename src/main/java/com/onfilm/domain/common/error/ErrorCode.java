@@ -25,7 +25,10 @@ public enum ErrorCode {
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 리프레시 토큰입니다."),
     AUTHENTICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다."),
+    INTERNAL_CALLBACK_AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "내부 콜백 인증에 실패했습니다."),
 
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
+    CSRF_VALIDATION_FAILED(HttpStatus.FORBIDDEN, "CSRF 검증에 실패했습니다."),
     FORBIDDEN_PERSON_ACCESS(HttpStatus.FORBIDDEN, "해당 인물 정보에 접근할 권한이 없습니다."),
     FORBIDDEN_MOVIE_ACCESS(HttpStatus.FORBIDDEN, "해당 영화에 접근할 권한이 없습니다."),
     FORBIDDEN_MEDIA_UPLOAD_ACCESS(HttpStatus.FORBIDDEN, "해당 미디어 업로드 요청에 접근할 권한이 없습니다."),

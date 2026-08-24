@@ -1,5 +1,9 @@
 package com.onfilm.domain.auth.security;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.onfilm.domain.common.error.ErrorCode;
+import com.onfilm.domain.common.error.SecurityErrorResponseWriter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -40,7 +44,7 @@ class InternalCallbackHmacFilterTest {
         SecurityContextHolder.clearContext();
         MockHttpServletResponse replayResponse = new MockHttpServletResponse();
         filter.doFilter(request(nonce, body, NOW.getEpochSecond()), replayResponse, new MockFilterChain());
-        assertThat(replayResponse.getStatus()).isEqualTo(401);
+        assertSecurityError(replayResponse);
     }
 
     @Test
@@ -49,20 +53,24 @@ class InternalCallbackHmacFilterTest {
         MockHttpServletResponse expired = new MockHttpServletResponse();
         filter.doFilter(request(UUID.randomUUID().toString(), new byte[0],
                 NOW.minus(Duration.ofMinutes(6)).getEpochSecond()), expired, new MockFilterChain());
-        assertThat(expired.getStatus()).isEqualTo(401);
+        assertSecurityError(expired);
 
         String nonce = UUID.randomUUID().toString();
         MockHttpServletRequest request = request(nonce, "original".getBytes(StandardCharsets.UTF_8), NOW.getEpochSecond());
         request.setContent("tampered".getBytes(StandardCharsets.UTF_8));
         MockHttpServletResponse tampered = new MockHttpServletResponse();
         filter.doFilter(request, tampered, new MockFilterChain());
-        assertThat(tampered.getStatus()).isEqualTo(401);
+        assertSecurityError(tampered);
     }
 
     private InternalCallbackHmacFilter filter() {
         DefaultListableBeanFactory beans = new DefaultListableBeanFactory();
         beans.registerSingleton("clock", Clock.fixed(NOW, ZoneOffset.UTC));
-        return new InternalCallbackHmacFilter(SECRET, beans.getBeanProvider(Clock.class));
+        return new InternalCallbackHmacFilter(
+                SECRET,
+                beans.getBeanProvider(Clock.class),
+                new SecurityErrorResponseWriter(new ObjectMapper())
+        );
     }
 
     private MockHttpServletRequest request(String nonce, byte[] body, long epochSeconds) throws Exception {
@@ -82,5 +90,18 @@ class InternalCallbackHmacFilterTest {
         Mac mac = Mac.getInstance("HmacSHA256");
         mac.init(new SecretKeySpec(SECRET.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
         return HexFormat.of().formatHex(mac.doFinal(canonical.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    private static void assertSecurityError(MockHttpServletResponse response) throws Exception {
+        ErrorCode errorCode = ErrorCode.INTERNAL_CALLBACK_AUTHENTICATION_FAILED;
+        JsonNode body = new ObjectMapper().readTree(response.getContentAsByteArray());
+
+        assertThat(response.getStatus()).isEqualTo(errorCode.httpStatus().value());
+        assertThat(response.getContentType()).startsWith("application/json");
+        assertThat(response.getCharacterEncoding()).isEqualTo(StandardCharsets.UTF_8.name());
+        assertThat(body.get("code").asText()).isEqualTo(errorCode.name());
+        assertThat(body.get("message").asText()).isEqualTo(errorCode.message());
+        assertThat(body.get("errors").isArray()).isTrue();
+        assertThat(body.get("errors").isEmpty()).isTrue();
     }
 }

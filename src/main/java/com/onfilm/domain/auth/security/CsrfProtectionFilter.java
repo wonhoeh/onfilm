@@ -1,6 +1,8 @@
 package com.onfilm.domain.auth.security;
 
 import com.onfilm.domain.auth.config.AuthProperties;
+import com.onfilm.domain.common.error.ErrorCode;
+import com.onfilm.domain.common.error.SecurityErrorResponseWriter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,6 +29,7 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
     );
 
     private final AuthProperties authProperties;
+    private final SecurityErrorResponseWriter errorResponseWriter;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -46,12 +49,12 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
         String referer = request.getHeader("Referer");
         String host = request.getHeader("Host");
         if (host == null || host.isBlank()) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            reject(response);
             return;
         }
 
         if (!isSameOrigin(origin, host) && !isSameOrigin(referer, host)) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            reject(response);
             return;
         }
 
@@ -67,15 +70,19 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
         }
         String csrfHeader = request.getHeader("X-CSRF-TOKEN");
         if (csrfCookieValue == null || csrfCookieValue.isBlank() || csrfHeader == null || csrfHeader.isBlank()) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            reject(response);
             return;
         }
         if (!csrfCookieValue.equals(csrfHeader)) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            reject(response);
             return;
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void reject(HttpServletResponse response) throws IOException {
+        errorResponseWriter.write(response, ErrorCode.CSRF_VALIDATION_FAILED);
     }
 
     private boolean isSameOrigin(String originOrReferer, String host) {

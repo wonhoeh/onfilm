@@ -2,6 +2,7 @@ package com.onfilm.domain.genre.controller;
 
 import com.onfilm.domain.auth.config.AuthProperties;
 import com.onfilm.domain.auth.security.JwtProvider;
+import com.onfilm.domain.common.error.SecurityErrorResponseWriter;
 import com.onfilm.domain.genre.dto.GenreAutocompleteResponse;
 import com.onfilm.domain.genre.service.GenreService;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,9 @@ class GenreControllerTest {
 
     @MockBean
     private AuthProperties authProperties;
+
+    @MockBean
+    private SecurityErrorResponseWriter securityErrorResponseWriter;
 
     @Test
     void autocomplete_returnsStandardGenres() throws Exception {

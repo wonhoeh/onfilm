@@ -1,5 +1,7 @@
 package com.onfilm.domain.auth.security;
 
+import com.onfilm.domain.common.error.ErrorCode;
+import com.onfilm.domain.common.error.SecurityErrorResponseWriter;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,14 +33,17 @@ public class InternalCallbackHmacFilter extends OncePerRequestFilter {
 
     private final byte[] secret;
     private final Clock clock;
+    private final SecurityErrorResponseWriter errorResponseWriter;
     private final Map<String, Instant> usedNonces = new ConcurrentHashMap<>();
 
     public InternalCallbackHmacFilter(
             @Value("${media-encode.callback-secret:}") String secret,
-            ObjectProvider<Clock> clockProvider
+            ObjectProvider<Clock> clockProvider,
+            SecurityErrorResponseWriter errorResponseWriter
     ) {
         this.secret = secret == null ? new byte[0] : secret.getBytes(StandardCharsets.UTF_8);
         this.clock = clockProvider.getIfAvailable(Clock::systemUTC);
+        this.errorResponseWriter = errorResponseWriter;
     }
 
     @Override
@@ -59,7 +64,10 @@ public class InternalCallbackHmacFilter extends OncePerRequestFilter {
             return;
         }
         if (!authenticate(request, body)) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            errorResponseWriter.write(
+                    response,
+                    ErrorCode.INTERNAL_CALLBACK_AUTHENTICATION_FAILED
+            );
             return;
         }
         SecurityContextHolder.getContext().setAuthentication(

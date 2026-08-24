@@ -4,6 +4,8 @@ import com.onfilm.domain.auth.security.AuthPageBlockFilter;
 import com.onfilm.domain.auth.security.CsrfProtectionFilter;
 import com.onfilm.domain.auth.security.JwtAuthFilter;
 import com.onfilm.domain.auth.security.InternalCallbackHmacFilter;
+import com.onfilm.domain.common.error.ErrorCode;
+import com.onfilm.domain.common.error.SecurityErrorResponseWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +35,7 @@ public class SecurityConfig {
     private final CsrfProtectionFilter csrfProtectionFilter;
     private final InternalCallbackHmacFilter internalCallbackHmacFilter;
     private final HandlerMappingIntrospector handlerMappingIntrospector;
+    private final SecurityErrorResponseWriter errorResponseWriter;
 
     private static final String USERNAME_PATTERN = "[a-zA-Z0-9_-]{3,20}";
 
@@ -116,10 +119,12 @@ public class SecurityConfig {
                             if (accept != null && accept.contains("text/html")) {
                                 res.sendRedirect("/login.html");
                             } else {
-                                res.setStatus(401);
+                                errorResponseWriter.write(res, ErrorCode.AUTHENTICATION_REQUIRED);
                             }
                         })
-                        .accessDeniedHandler((req, res, ex) -> res.setStatus(403))
+                        .accessDeniedHandler((req, res, ex) ->
+                                errorResponseWriter.write(res, ErrorCode.ACCESS_DENIED)
+                        )
                 )
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(AbstractHttpConfigurer::disable)
