@@ -32,14 +32,19 @@ class MediaEncodeJobCommandServiceTest {
     @Mock StorageService storageService;
     @Mock StorageKeyPolicy storageKeyPolicy;
     private MediaEncodeJobCommandService service;
+    private MediaEncodeJobTransactionService transactionService;
     private final Instant now = Instant.parse("2026-01-01T00:00:00Z");
 
     @BeforeEach
     void setUp() {
-        service = new MediaEncodeJobCommandService(
+        transactionService = new MediaEncodeJobTransactionService(
                 jobRepository, uploadRepository, outboxRepository,
-                storageService, storageKeyPolicy,
-                new ObjectMapper().findAndRegisterModules(), Clock.fixed(now, ZoneOffset.UTC));
+                new ObjectMapper().findAndRegisterModules()
+        );
+        service = new MediaEncodeJobCommandService(
+                transactionService, storageService, storageKeyPolicy,
+                Clock.fixed(now, ZoneOffset.UTC)
+        );
     }
 
     @Test
@@ -47,6 +52,7 @@ class MediaEncodeJobCommandServiceTest {
         String requestId = UUID.randomUUID().toString();
         String source = "movie/1/raw/file/" + requestId + ".mp4";
         MediaUploadRequest upload = upload(requestId, source);
+        given(uploadRepository.findById(requestId)).willReturn(Optional.of(upload));
         given(uploadRepository.findByIdForUpdate(requestId)).willReturn(Optional.of(upload));
         given(storageService.exists(source)).willReturn(true);
 
@@ -61,6 +67,10 @@ class MediaEncodeJobCommandServiceTest {
                 outbox.getJobId().equals(jobId)
                         && outbox.getPayload().contains(jobId)
                         && outbox.getStatus() == MediaEncodeOutboxStatus.PENDING));
+        InOrder boundary = inOrder(uploadRepository, storageService);
+        boundary.verify(uploadRepository).findById(requestId);
+        boundary.verify(storageService).exists(source);
+        boundary.verify(uploadRepository).findByIdForUpdate(requestId);
     }
 
     @Test
@@ -68,6 +78,7 @@ class MediaEncodeJobCommandServiceTest {
         String requestId = UUID.randomUUID().toString();
         String source = "movie/1/raw/file/" + requestId + ".mp4";
         MediaUploadRequest upload = upload(requestId, source);
+        given(uploadRepository.findById(requestId)).willReturn(Optional.of(upload));
         given(uploadRepository.findByIdForUpdate(requestId)).willReturn(Optional.of(upload));
         given(storageService.exists(source)).willReturn(true);
         String jobId = requestMovie(requestId, source);
@@ -77,13 +88,35 @@ class MediaEncodeJobCommandServiceTest {
         assertThat(requestMovie(requestId, source)).isEqualTo(jobId);
         verify(outboxRepository, times(1)).save(any());
         verify(jobRepository, times(1)).save(any());
+        verify(uploadRepository, times(1)).findByIdForUpdate(requestId);
+        verify(storageService, times(1)).exists(source);
+    }
+
+    @Test
+    void completionWonByConcurrentRequestReturnsExistingJobAfterLockRecheck() {
+        String requestId = UUID.randomUUID().toString();
+        String source = "movie/1/raw/file/" + requestId + ".mp4";
+        MediaUploadRequest inspectedUpload = upload(requestId, source);
+        MediaUploadRequest lockedUpload = upload(requestId, source);
+        String existingJobId = UUID.randomUUID().toString();
+        lockedUpload.complete(existingJobId, now);
+        MediaEncodeJob existingJob = job(existingJobId, requestId, source);
+        given(uploadRepository.findById(requestId)).willReturn(Optional.of(inspectedUpload));
+        given(uploadRepository.findByIdForUpdate(requestId)).willReturn(Optional.of(lockedUpload));
+        given(storageService.exists(source)).willReturn(true);
+        given(jobRepository.findById(existingJobId)).willReturn(Optional.of(existingJob));
+
+        assertThat(requestMovie(requestId, source)).isEqualTo(existingJobId);
+
+        verify(jobRepository, never()).save(any());
+        verify(outboxRepository, never()).save(any());
     }
 
     @Test
     void missingUploadedObjectDoesNotCreateJobOrOutbox() {
         String requestId = UUID.randomUUID().toString();
         String source = "movie/1/raw/file/" + requestId + ".mp4";
-        given(uploadRepository.findByIdForUpdate(requestId)).willReturn(Optional.of(upload(requestId, source)));
+        given(uploadRepository.findById(requestId)).willReturn(Optional.of(upload(requestId, source)));
         given(storageService.exists(source)).willReturn(false);
 
         assertThatThrownBy(() -> requestMovie(requestId, source))
@@ -91,13 +124,14 @@ class MediaEncodeJobCommandServiceTest {
                         assertThat(exception.getErrorCode())
                                 .isEqualTo(ErrorCode.MEDIA_SOURCE_FILE_NOT_FOUND));
         verifyNoInteractions(jobRepository, outboxRepository);
+        verify(uploadRepository, never()).findByIdForUpdate(requestId);
     }
 
     @Test
     void missingUploadRequestThrowsNotFoundException() {
         String requestId = UUID.randomUUID().toString();
         String source = "movie/1/raw/file/" + requestId + ".mp4";
-        given(uploadRepository.findByIdForUpdate(requestId)).willReturn(Optional.empty());
+        given(uploadRepository.findById(requestId)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> requestMovie(requestId, source))
                 .isInstanceOfSatisfying(MediaUploadRequestNotFoundException.class, exception ->
@@ -111,6 +145,7 @@ class MediaEncodeJobCommandServiceTest {
         String requestId = UUID.randomUUID().toString();
         String source = "movie/1/raw/file/" + requestId + ".mp4";
         MediaUploadRequest upload = upload(requestId, source);
+        given(uploadRepository.findById(requestId)).willReturn(Optional.of(upload));
         given(uploadRepository.findByIdForUpdate(requestId)).willReturn(Optional.of(upload));
         given(storageService.exists(source)).willReturn(true);
         String jobId = requestMovie(requestId, source);
@@ -141,5 +176,16 @@ class MediaEncodeJobCommandServiceTest {
         ArgumentCaptor<MediaEncodeJob> captor = ArgumentCaptor.forClass(MediaEncodeJob.class);
         verify(jobRepository).save(captor.capture());
         return captor.getValue();
+    }
+
+    private MediaEncodeJob job(String jobId, String requestId, String source) {
+        return MediaEncodeJob.requested(
+                jobId, requestId, 1L, 2L,
+                EncodeJobType.MOVIE,
+                com.onfilm.domain.kafka.message.EncodeJobPreset.VIDEO_HLS_720P_2500K_AAC_96K,
+                "bucket", source, "bucket",
+                "movie/1/file/550e8400-e29b-41d4-a716-446655440000/index.m3u8",
+                "video/mp4", "application/vnd.apple.mpegurl", now
+        );
     }
 }
