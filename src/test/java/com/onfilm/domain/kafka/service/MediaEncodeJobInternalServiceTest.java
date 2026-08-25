@@ -15,6 +15,7 @@ import com.onfilm.domain.kafka.repository.MediaEncodeJobRepository;
 import com.onfilm.domain.movie.entity.AgeRating;
 import com.onfilm.domain.movie.entity.Movie;
 import com.onfilm.domain.movie.repository.MovieRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -34,7 +35,22 @@ class MediaEncodeJobInternalServiceTest {
     @Mock MovieRepository movieRepository;
     @Mock StorageKeyPolicy storageKeyPolicy;
     @Mock StorageService storageService;
-    @InjectMocks MediaEncodeJobInternalService service;
+    private MediaEncodeJobInternalService service;
+
+    @BeforeEach
+    void setUp() {
+        MediaEncodeJobCompletionTransactionService completionTransactionService =
+                new MediaEncodeJobCompletionTransactionService(
+                        jobRepository,
+                        movieRepository
+                );
+        service = new MediaEncodeJobInternalService(
+                jobRepository,
+                storageKeyPolicy,
+                storageService,
+                completionTransactionService
+        );
+    }
 
     @Test
     void completionAppliesTrailerAndDoneAtomicallyAndIsIdempotent() {
@@ -104,6 +120,29 @@ class MediaEncodeJobInternalServiceTest {
                 assertThat(exception.getErrorCode())
                         .isEqualTo(ErrorCode.MEDIA_OUTPUT_FILE_NOT_FOUND));
         verifyNoInteractions(movieRepository);
+    }
+
+    @Test
+    void concurrentCompletionFoundAfterStorageCheckDoesNotApplyOutputAgain() {
+        Instant requestedAt = Instant.parse("2026-01-01T00:00:00Z");
+        String target = "movie/1/trailer/550e8400-e29b-41d4-a716-446655440000/index.m3u8";
+        MediaEncodeJob inspectedJob = trailerJob(target, requestedAt);
+        MediaEncodeJob completedJob = trailerJob(target, requestedAt);
+        completedJob.markDone(requestedAt.plusSeconds(20));
+        given(jobRepository.findById(inspectedJob.getId())).willReturn(
+                Optional.of(inspectedJob),
+                Optional.of(completedJob)
+        );
+        given(storageService.exists(target)).willReturn(true);
+        MediaEncodeCompletionRequest request = new MediaEncodeCompletionRequest(
+                "bucket", target, "application/vnd.apple.mpegurl",
+                requestedAt.plusSeconds(30)
+        );
+
+        service.complete(inspectedJob.getId(), request);
+
+        verifyNoInteractions(movieRepository);
+        verify(jobRepository, never()).saveAndFlush(any(MediaEncodeJob.class));
     }
 
     private MediaEncodeJob trailerJob(String target, Instant requestedAt) {
