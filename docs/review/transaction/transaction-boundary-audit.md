@@ -3,6 +3,9 @@
 - 감사일: 2026-08-25
 - 기준 커밋: `2e8f23a`
 - 범위: Command·Query 서비스, 인증·Refresh Token, 파일 저장·삭제, 미디어 인코딩 Job·Outbox
+- 상태: 리팩토링 전 감사 기록. 아래 개선 대상은 `aabe3dd`~`5808bdb`에서 완료
+
+> 이 문서는 개선 전 위험을 식별한 당시의 스냅샷이다. 현재 적용된 경계와 설계 원칙은 [Transaction Boundary 설계 가이드](transaction-boundary-guide.md)를 기준으로 한다.
 
 ## 목적
 
@@ -144,4 +147,3 @@ Presigned URL 생성은 S3 Presigner의 로컬 서명 계산으로 원격 API를
 - `MediaEncodeOutboxPersistenceTest`: Job·Outbox 원자적 롤백
 - `MediaEncodeOutboxPublisherTest`: 발행 성공·실패 상태 기록
 - `RefreshTokenExpirationPersistenceTest`: 외부 롤백과 독립된 만료 토큰 폐기 기록
-

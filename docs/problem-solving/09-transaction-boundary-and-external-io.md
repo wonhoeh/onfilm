@@ -35,6 +35,8 @@ Spring의 프록시 방식도 고려해야 했다. 같은 Bean 내부에서 `@Tr
 
 먼저 [트랜잭션 경계 감사](../review/transaction/transaction-boundary-audit.md)를 수행해 현재 경계를 유지할 영역과 개선할 영역을 구분했다.
 
+리팩토링 이후의 현재 경계와 신규 유스케이스 적용 기준은 [Transaction Boundary 설계 가이드](../review/transaction/transaction-boundary-guide.md)에 정리했다.
+
 유지한 경계는 다음과 같다.
 
 - 일반 Query 서비스의 `@Transactional(readOnly = true)`
