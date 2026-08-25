@@ -32,6 +32,8 @@ class ErrorCodeTest {
                 ErrorCode.BAD_REQUEST, HttpStatus.BAD_REQUEST,
                 ErrorCode.DATA_INTEGRITY_VIOLATION, HttpStatus.CONFLICT,
                 ErrorCode.CONCURRENT_MEDIA_JOB_UPDATE, HttpStatus.CONFLICT,
+                ErrorCode.PAYLOAD_TOO_LARGE, HttpStatus.PAYLOAD_TOO_LARGE,
+                ErrorCode.INTERNAL_CALLBACK_UNAVAILABLE, HttpStatus.SERVICE_UNAVAILABLE,
                 ErrorCode.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR
         )).allSatisfy((errorCode, httpStatus) ->
                 assertThat(errorCode.httpStatus()).isEqualTo(httpStatus)

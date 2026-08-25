@@ -44,7 +44,7 @@ class InternalCallbackHmacFilterTest {
         SecurityContextHolder.clearContext();
         MockHttpServletResponse replayResponse = new MockHttpServletResponse();
         filter.doFilter(request(nonce, body, NOW.getEpochSecond()), replayResponse, new MockFilterChain());
-        assertSecurityError(replayResponse);
+        assertErrorResponse(replayResponse, ErrorCode.INTERNAL_CALLBACK_AUTHENTICATION_FAILED);
     }
 
     @Test
@@ -53,21 +53,54 @@ class InternalCallbackHmacFilterTest {
         MockHttpServletResponse expired = new MockHttpServletResponse();
         filter.doFilter(request(UUID.randomUUID().toString(), new byte[0],
                 NOW.minus(Duration.ofMinutes(6)).getEpochSecond()), expired, new MockFilterChain());
-        assertSecurityError(expired);
+        assertErrorResponse(expired, ErrorCode.INTERNAL_CALLBACK_AUTHENTICATION_FAILED);
 
         String nonce = UUID.randomUUID().toString();
         MockHttpServletRequest request = request(nonce, "original".getBytes(StandardCharsets.UTF_8), NOW.getEpochSecond());
         request.setContent("tampered".getBytes(StandardCharsets.UTF_8));
         MockHttpServletResponse tampered = new MockHttpServletResponse();
         filter.doFilter(request, tampered, new MockFilterChain());
-        assertSecurityError(tampered);
+        assertErrorResponse(tampered, ErrorCode.INTERNAL_CALLBACK_AUTHENTICATION_FAILED);
+    }
+
+    @Test
+    void rejectsRequestWithUnavailableCallbackConfiguration() throws Exception {
+        InternalCallbackHmacFilter filter = filter("");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilter(
+                new MockHttpServletRequest("POST", "/internal/api/media-jobs/job/complete"),
+                response,
+                new MockFilterChain()
+        );
+
+        assertErrorResponse(response, ErrorCode.INTERNAL_CALLBACK_UNAVAILABLE);
+    }
+
+    @Test
+    void rejectsCallbackBodyLargerThanLimit() throws Exception {
+        InternalCallbackHmacFilter filter = filter();
+        byte[] oversizedBody = new byte[64 * 1024 + 1];
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilter(
+                request(UUID.randomUUID().toString(), oversizedBody, NOW.getEpochSecond()),
+                response,
+                new MockFilterChain()
+        );
+
+        assertErrorResponse(response, ErrorCode.PAYLOAD_TOO_LARGE);
     }
 
     private InternalCallbackHmacFilter filter() {
+        return filter(SECRET);
+    }
+
+    private InternalCallbackHmacFilter filter(String secret) {
         DefaultListableBeanFactory beans = new DefaultListableBeanFactory();
         beans.registerSingleton("clock", Clock.fixed(NOW, ZoneOffset.UTC));
         return new InternalCallbackHmacFilter(
-                SECRET,
+                secret,
                 beans.getBeanProvider(Clock.class),
                 new SecurityErrorResponseWriter(new ObjectMapper())
         );
@@ -92,8 +125,10 @@ class InternalCallbackHmacFilterTest {
         return HexFormat.of().formatHex(mac.doFinal(canonical.getBytes(StandardCharsets.UTF_8)));
     }
 
-    private static void assertSecurityError(MockHttpServletResponse response) throws Exception {
-        ErrorCode errorCode = ErrorCode.INTERNAL_CALLBACK_AUTHENTICATION_FAILED;
+    private static void assertErrorResponse(
+            MockHttpServletResponse response,
+            ErrorCode errorCode
+    ) throws Exception {
         JsonNode body = new ObjectMapper().readTree(response.getContentAsByteArray());
 
         assertThat(response.getStatus()).isEqualTo(errorCode.httpStatus().value());

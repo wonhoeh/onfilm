@@ -55,12 +55,12 @@ public class InternalCallbackHmacFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         if (secret.length < 32) {
-            response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "internal callback secret is not configured");
+            errorResponseWriter.write(response, ErrorCode.INTERNAL_CALLBACK_UNAVAILABLE);
             return;
         }
         byte[] body = request.getInputStream().readNBytes(MAX_BODY_BYTES + 1);
         if (body.length > MAX_BODY_BYTES) {
-            response.sendError(HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE);
+            errorResponseWriter.write(response, ErrorCode.PAYLOAD_TOO_LARGE);
             return;
         }
         if (!authenticate(request, body)) {
