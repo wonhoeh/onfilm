@@ -219,6 +219,7 @@ Movie와 Person의 관계에는 역할, 배역, 정렬 순서와 공개 범위�
 
 ### 구현과 검증 자료
 
+- [트랜잭션 경계 감사](docs/review/transaction/transaction-boundary-audit.md)
 - [내부 미디어 Callback API](docs/internal-media-callback-api.md)
 - [로컬 Producer·Consumer 실행](docs/local-producer-consumer-setup.md)
 - [k6 테스트 계획과 결과](docs/review/k6/)
