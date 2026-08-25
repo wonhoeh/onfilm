@@ -1,22 +1,13 @@
 package com.onfilm.domain.movie.service;
 
 import com.onfilm.domain.common.error.exception.EmptyFileException;
-import com.onfilm.domain.common.error.exception.ForbiddenMovieAccessException;
-import com.onfilm.domain.common.error.exception.MovieNotFoundException;
-import com.onfilm.domain.file.event.StorageFileDeletionPublisher;
 import com.onfilm.domain.file.service.MediaEncodingService;
 import com.onfilm.domain.file.service.StorageKeyFactory;
-import com.onfilm.domain.file.service.StorageKeyPolicy;
 import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.movie.dto.UploadResultResponse;
-import com.onfilm.domain.movie.entity.Movie;
-import com.onfilm.domain.movie.entity.Person;
-import com.onfilm.domain.movie.entity.Trailer;
-import com.onfilm.domain.movie.repository.MoviePersonRepository;
-import com.onfilm.domain.movie.repository.MovieRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -25,100 +16,75 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class MovieMediaService {
 
-    private final MovieRepository movieRepository;
-    private final MoviePersonRepository moviePersonRepository;
-    private final CurrentPersonProvider currentPersonProvider;
+    private final MovieMediaTransactionService transactionService;
     private final StorageService storageService;
     private final StorageKeyFactory storageKeyFactory;
-    private final StorageKeyPolicy storageKeyPolicy;
     private final MediaEncodingService mediaEncodingService;
-    private final StorageFileDeletionPublisher deletionPublisher;
 
     public void validateCanEdit(Long movieId) {
-        editableMovie(movieId);
+        transactionService.validateCanEdit(movieId);
     }
 
     public UploadResultResponse replaceThumbnail(Long movieId, MultipartFile file) {
-        Movie movie = editableMovie(movieId);
+        transactionService.validateCanEdit(movieId);
         String key = storageKeyFactory.movieThumbnail(movieId, ".jpg");
-        return encodeAndApply(file, key, true, () -> movie.changeThumbnailUrl(key), movie.getThumbnailUrl());
+        return encodeAndApply(
+                file,
+                key,
+                true,
+                () -> transactionService.replaceThumbnail(movieId, key)
+        );
     }
 
     public UploadResultResponse addTrailer(Long movieId, MultipartFile file) {
-        Movie movie = editableMovie(movieId);
+        transactionService.validateCanEdit(movieId);
         String key = storageKeyFactory.movieTrailer(movieId, ".mp4");
-        return encodeAndApply(file, key, false, () -> movie.addTrailer(key), null);
+        return encodeAndApply(
+                file,
+                key,
+                false,
+                () -> transactionService.addTrailer(movieId, key)
+        );
     }
 
     public UploadResultResponse replaceMovieFile(Long movieId, MultipartFile file) {
-        Movie movie = editableMovie(movieId);
+        transactionService.validateCanEdit(movieId);
         String key = storageKeyFactory.movieFile(movieId, ".mp4");
-        return encodeAndApply(file, key, false, () -> movie.changeMovieUrl(key), movie.getMovieUrl());
+        return encodeAndApply(
+                file,
+                key,
+                false,
+                () -> transactionService.replaceMovieFile(movieId, key)
+        );
     }
 
     public void deleteThumbnail(Long movieId) {
-        Movie movie = editableMovie(movieId);
-        String oldKey = movie.getThumbnailUrl();
-        movie.clearThumbnailUrl();
-        deletionPublisher.publish(oldKey);
+        transactionService.deleteThumbnail(movieId);
     }
 
     public void deleteTrailers(Long movieId) {
-        Movie movie = editableMovie(movieId);
-        List<String> keys = trailerKeys(movieId, movie);
-        movie.clearTrailers();
-        deletionPublisher.publish(keys);
+        transactionService.deleteTrailers(movieId);
     }
 
     public void deleteMovieFile(Long movieId) {
-        Movie movie = editableMovie(movieId);
-        String oldKey = movie.getMovieUrl();
-        movie.clearMovieUrl();
-        deletionPublisher.publish(oldKey);
+        transactionService.deleteMovieFile(movieId);
     }
 
     public void deleteAll(Long movieId) {
-        Movie movie = editableMovie(movieId);
-        List<String> keys = new ArrayList<>();
-        keys.add(movie.getThumbnailUrl());
-        keys.add(movie.getMovieUrl());
-        keys.addAll(trailerKeys(movieId, movie));
-        movie.clearThumbnailUrl();
-        movie.clearMovieUrl();
-        movie.clearTrailers();
-        deletionPublisher.publish(keys);
-    }
-
-    private Movie editableMovie(Long movieId) {
-        Person person = currentPersonProvider.getRequired();
-        if (moviePersonRepository.findByPersonIdAndMovieId(person.getId(), movieId) == null) {
-            throw new ForbiddenMovieAccessException();
-        }
-        return movieRepository.findById(movieId)
-                .orElseThrow(() -> new MovieNotFoundException(movieId));
-    }
-
-    private List<String> trailerKeys(Long movieId, Movie movie) {
-        return movie.getTrailers().stream()
-                .map(Trailer::getStorageKey)
-                .peek(key -> storageKeyPolicy.validateMovieTrailerKey(movieId, key))
-                .toList();
+        transactionService.deleteAll(movieId);
     }
 
     private UploadResultResponse encodeAndApply(
             MultipartFile file,
             String key,
             boolean image,
-            Runnable mutation,
-            String oldKey
+            Runnable mutation
     ) {
         Path source = toTempFile(file);
         Path encoded = null;
@@ -128,20 +94,25 @@ public class MovieMediaService {
                     : mediaEncodingService.encodeVideo(source, 720, 3000);
             storageService.save(key, encoded);
             try {
+                UploadResultResponse response =
+                        new UploadResultResponse(key, storageService.toPublicUrl(key));
                 mutation.run();
-                if (oldKey != null && !oldKey.equals(key)) deletionPublisher.publish(oldKey);
-                return new UploadResultResponse(key, storageService.toPublicUrl(key));
+                return response;
             } catch (RuntimeException exception) {
-                try {
-                    storageService.delete(key);
-                } catch (RuntimeException ignored) {
-                    // 새 파일 보상 삭제는 최선 노력으로 수행한다.
-                }
+                compensateNewFile(key);
                 throw exception;
             }
         } finally {
             deleteTemp(source);
             deleteTemp(encoded);
+        }
+    }
+
+    private void compensateNewFile(String key) {
+        try {
+            storageService.delete(key);
+        } catch (RuntimeException exception) {
+            log.error("Failed to compensate newly stored movie media. key={}", key, exception);
         }
     }
 
