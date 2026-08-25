@@ -2,7 +2,7 @@
 
 - 작업일: 2026-08-25
 - 문서 작성일: 2026-08-25
-- 관련 커밋: `b6044cc`, `7372ab2`, `b35a58e`, `b921b7b`, `32683ce`, `5ad5919`, `8602bbc`, `042c89e`, `cda5855`
+- 관련 커밋: `b6044cc`, `7372ab2`, `b35a58e`, `b921b7b`, `32683ce`, `5ad5919`, `8602bbc`, `042c89e`, `cda5855`, `f414b57`, `a4297ac`, `15529a2`, `7ea59b6`, `fa78ae5`, `2e8f23a`
 - 상태: 완료
 
 ## 문제
@@ -47,7 +47,10 @@ ErrorResponse { code, message, errors }
 - `GlobalExceptionHandler`의 예외별 handler를 단일 `DomainException` handler로 통합
 - API 응답은 예외의 동적 메시지가 아니라 `ErrorCode` 기본 메시지를 사용해 내부 정보 노출 방지
 - Bean Validation은 `422 VALIDATION_FAILED`, 일반 불변식 위반은 기존 `400 BAD_REQUEST` 정책 유지
-- 알 수 없는 DB 제약 위반과 낙관적 락 충돌은 각각 공통 409 응답으로 유지
+- Bean Validation, 요청 파싱, DB 제약 위반, 낙관적 락 충돌과 예상하지 못한 오류까지 `ErrorCode`가 HTTP 상태와 공개 메시지를 결정
+- `IllegalStateException`을 일괄 400으로 변환하지 않고 예상하지 못한 런타임 오류는 상세 내용을 로그에 남긴 뒤 `500 INTERNAL_SERVER_ERROR`로 응답
+- 잘못된 JSON, 필수 파라미터 누락과 파라미터 타입 불일치를 `400 BAD_REQUEST`로 통일
+- 필모그래피 파일 부재도 본문 없는 직접 404 대신 `FILMOGRAPHY_FILE_NOT_FOUND` 도메인 예외로 처리
 
 보안 필터에는 별도의 공통 작성기를 적용했다.
 
@@ -64,6 +67,12 @@ ErrorResponse { code, message, errors }
 - CSRF 검증 실패: `403 CSRF_VALIDATION_FAILED`
 - 내부 Callback HMAC 인증 실패: `401 INTERNAL_CALLBACK_AUTHENTICATION_FAILED`
 - HTML 요청의 `/login.html` 리다이렉트 정책은 유지
+
+내부 Callback 필터에서 MVC까지 도달하지 않는 요청 본문 초과와 설정 장애에도 같은 계약을 적용했다.
+
+- 요청 본문 크기 초과: `413 PAYLOAD_TOO_LARGE`
+- Callback 설정 또는 처리 기반 사용 불가: `503 INTERNAL_CALLBACK_UNAVAILABLE`
+- 필터의 원시 `sendError` 호출을 제거하고 공통 `ErrorResponse`로 직렬화
 
 마지막으로 새 오류를 추가할 때 따를 예외 선택 기준, 상태 코드, 메시지, 보안 로그, 트랜잭션과 테스트 규칙을 [예외 정책과 오류 코드 컨벤션](../convention/exception-and-error-code-convention.md)으로 문서화했다.
 
@@ -87,7 +96,7 @@ Spring Security 필터는 `GlobalExceptionHandler`의 적용 범위 밖이므로
 
 #### 단계적 전환
 
-기반 구조, 기존 예외, 조회, 인증·인가, 미디어 상태, 스토리지, 전역 처리기, 테스트, 보안 필터 순으로 작은 커밋을 남겼다. 각 단계에서 실패 범위와 HTTP 계약을 검증할 수 있고 리뷰 시 변경 목적이 분리된다.
+기반 구조, 기존 예외, 조회, 인증·인가, 미디어 상태, 스토리지, 전역 처리기, 테스트, 보안 필터 순으로 작은 커밋을 남겼다. 이후 공통 fallback, MVC 요청 오류, 예상하지 못한 500, 내부 Callback 413·503, 파일 조회 404까지 별도 커밋으로 확장했다. 각 단계에서 실패 범위와 HTTP 계약을 검증할 수 있고 리뷰 시 변경 목적이 분리된다.
 
 ### 검토한 대안
 
@@ -125,26 +134,29 @@ Spring Security 필터는 `GlobalExceptionHandler`의 적용 범위 밖이므로
 - 기존 및 신규 전용 예외의 `ErrorCode` 연결 테스트
 - 모든 `ErrorCode`가 HTTP 상태와 비어 있지 않은 기본 메시지를 가지는지 검증
 - Spring MVC에서 400, 401, 403, 404, 409, 410, 415 응답 계약 검증
+- 잘못된 JSON, 필수 파라미터 누락과 타입 불일치의 400 응답 검증
 - Bean Validation의 `422 VALIDATION_FAILED`와 필드 오류 응답 검증
+- 요청 본문 초과의 413, 예상하지 못한 런타임 오류의 500, 내부 Callback 장애의 503 응답 검증
 - User, Storyboard, Filmography, Media Job, Upload Request의 조회·인증·상태 실패 경로 테스트
 - Local/S3 스토리지의 동일한 키 검증 정책 테스트
 - CSRF와 내부 Callback HMAC 필터의 JSON 401·403 응답 테스트
 - HTML 요청의 로그인 페이지 리다이렉트 동작 유지 확인
-- `setStatus(401/403)`, `sendError(401/403)` 잔존 여부 검색 결과 없음
-- 최종 전체 Gradle 테스트 238개 통과, 실패 0개
+- API 오류 응답 경로의 원시 `sendError` 제거 확인
+- 처리되지 않은 런타임 예외가 내부 메시지를 노출하지 않고 stack trace를 서버 로그에 남기는지 검증
+- 최종 전체 Gradle 테스트 269개 통과, 실패·오류·건너뜀 0개
 - `git diff --check` 통과
 
-관련 구현 커밋 범위는 81개 파일에서 1,635줄 추가, 220줄 삭제로 확인했다. 이는 성능 지표가 아니라 예외 정책이 인증, 영화, 미디어, 스토리지와 테스트 전반에 걸쳐 적용된 범위를 나타낸다.
+기반 구조부터 후속 API 오류 정리까지의 변경 범위는 90개 파일에서 2,492줄 추가, 242줄 삭제로 확인했다. 이 수치에는 중간 정책 문서가 포함되며 성능 지표가 아니라 예외 정책이 인증, 영화, 미디어, 스토리지, MVC와 테스트 전반에 적용된 범위를 나타낸다.
 
 ## 결과
 
 변경 전에는 예외 타입과 메시지, handler 분기에 따라 같은 실패가 다른 응답으로 반환될 수 있었다. 변경 후에는 예측 가능한 업무 실패가 `DomainException → ErrorCode → ErrorResponse` 흐름을 따르고, HTTP 상태와 공개 메시지의 기준이 한곳에 모였다.
 
-문자열 비교와 내부 상세 메시지 노출을 제거해 문구 변경에 안전해졌으며, 서비스가 HTTP 예외에 의존하지 않게 되었다. MVC와 Security Filter 모두 `{ code, message, errors }` 형식을 반환하므로 클라이언트도 하나의 오류 처리 규칙을 사용할 수 있다. 단계별 커밋과 공통 테스트, 컨벤션 문서가 이후 오류 추가 시 회귀를 막는 기준으로 남았다.
+문자열 비교와 내부 상세 메시지 노출을 제거해 문구 변경에 안전해졌으며, 서비스가 HTTP 예외에 의존하지 않게 되었다. MVC, Security Filter와 내부 Callback Filter 모두 `{ code, message, errors }` 형식을 반환하므로 클라이언트도 하나의 오류 처리 규칙을 사용할 수 있다. 잘못된 요청부터 예상하지 못한 500까지 `ErrorCode`가 공개 정책의 단일 기준이 되었고, 단계별 커밋과 공통 테스트, 컨벤션 문서가 이후 오류 추가 시 회귀를 막는 기준으로 남았다.
 
 ## 후속 과제
 
-- 처리되지 않은 시스템 장애의 공통 500 응답과 로깅·trace ID 정책을 별도로 설계한다.
+- 운영 추적이 필요해지면 공통 500 로그에 요청 단위 trace ID를 연결한다.
 - DB 제약 이름을 안정적으로 식별해 알 수 있는 중복 위반을 더 구체적인 도메인 코드로 변환한다.
 - OpenAPI 또는 별도 오류 카탈로그에 공개 `ErrorCode` 목록과 endpoint별 오류를 연결한다.
 - 프론트엔드와 worker에서 메시지가 아닌 오류 코드로만 분기하는지 지속적으로 점검한다.
@@ -152,4 +164,4 @@ Spring Security 필터는 `GlobalExceptionHandler`의 적용 범위 밖이므로
 
 ## 포트폴리오 요약 후보
 
-서비스마다 혼재하던 전용 예외, HTTP 예외와 메시지 문자열 분기를 `DomainException–ErrorCode` 구조로 통합하고, 조회·인증·미디어 상태·스토리지 실패를 안정적인 API 코드로 표준화했습니다. Spring MVC 밖에서 동작하는 보안 필터에는 공통 응답 작성기를 적용해 401·403도 동일한 JSON 계약으로 맞췄으며, 전체 테스트 238개와 원시 상태 코드 검색으로 회귀와 누락을 검증했습니다.
+서비스마다 혼재하던 전용 예외, HTTP 예외와 메시지 문자열 분기를 `DomainException–ErrorCode` 구조로 통합하고, 요청 검증부터 예상하지 못한 500까지 오류 정책을 단일 기준으로 표준화했습니다. Spring MVC 밖에서 동작하는 보안·Callback 필터에도 공통 응답 작성기를 적용해 401·403·413·503을 동일한 JSON 계약으로 맞췄으며, 전체 테스트 269개로 회귀와 누락을 검증했습니다.
