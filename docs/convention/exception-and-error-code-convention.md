@@ -14,6 +14,7 @@ Onfilm은 예측 가능한 실패를 `DomainException`과 `ErrorCode`로 표현�
 
 관련 문서:
 
+- [주요 API Error Response 일관성 점검](../review/error/api-error-response-consistency.md)
 - [Onfilm 검증 흐름 컨벤션](validation-flow-convention.md)
 - [Onfilm DTO 스타일 컨벤션](dto-style-convention.md)
 - [Onfilm 엔티티 설계·리팩토링 가이드](entity-refactoring-style-guide.md)
@@ -157,7 +158,7 @@ try {
 
 ### 4.6 예상하지 못한 오류
 
-`NullPointerException`, 매핑 누락, 설정 오류 같은 프로그래밍·시스템 장애를 도메인 예외로 위장하지 않는다. 현재 전역 처리기가 구체적으로 다루지 않는 예외는 Spring의 기본 처리에 맡긴다. 공통 500 응답을 도입하더라도 Controller나 Service에서 개별 변환하지 않고 전역 경계에서 내부 구현을 숨기는 방식으로 처리한다.
+`NullPointerException`, 매핑 누락, 설정 오류 같은 프로그래밍·시스템 장애를 도메인 예외로 위장하지 않는다. 현재 `GlobalExceptionHandler`는 구체적으로 처리되지 않은 `RuntimeException`의 stack trace를 서버 로그에 남기고, 내부 상세를 노출하지 않는 `500 INTERNAL_SERVER_ERROR`로 변환한다.
 
 새로운 `catch (Exception)`으로 오류를 삼키거나 무조건 `BAD_REQUEST`로 바꾸지 않는다.
 
