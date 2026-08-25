@@ -46,6 +46,8 @@ UserQueryService
 
 기존 `PersonReadService`, `PersonService`, `MovieReadService`, `MovieService`는 제거하고 컨트롤러가 새 서비스를 사용하도록 변경했다. 공개 Gallery와 Filmography의 전체/개별 공개 범위 필터링도 Query 서비스 안에서 처리했다.
 
+현재 서비스별 단일 책임과 새 로직의 배치 기준은 [Service 단일 책임 지도](../review/service/service-responsibility-map.md)에 정리했다.
+
 ## 기술 선택과 트레이드오프
 
 ### Command/Query 분리
