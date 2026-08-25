@@ -17,6 +17,7 @@
 | 2026-08-22 | [DTO와 계층별 검증 흐름 정비](06-dto-and-validation-boundaries.md) | record, Bean Validation, 도메인 불변식, DB 제약 | `5da05d3` |
 | 2026-08-24 | [서비스 책임을 Command와 Query로 분리](07-service-command-query-separation.md) | 책임 분리, 소유권 검증, 미디어 워크플로 | `e1f3df3` |
 | 2026-08-25 | [도메인 예외와 API 오류 응답 표준화](08-domain-exception-and-api-error-standardization.md) | DomainException, ErrorCode, 공통 오류 응답, 보안 필터 | `b6044cc`~`cda5855` |
+| 2026-08-25 | [DB 트랜잭션과 외부 I/O 경계 분리](09-transaction-boundary-and-external-io.md) | 외부 I/O 분리, 잠금 최소화, 재검증, 보상 삭제, BCrypt | `0a5e93a`~`5808bdb` |
 
 ## 포트폴리오 작성 시 사용법
 
