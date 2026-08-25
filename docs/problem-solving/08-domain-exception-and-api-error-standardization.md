@@ -52,6 +52,57 @@ ErrorResponse { code, message, errors }
 - 잘못된 JSON, 필수 파라미터 누락과 파라미터 타입 불일치를 `400 BAD_REQUEST`로 통일
 - 필모그래피 파일 부재도 본문 없는 직접 404 대신 `FILMOGRAPHY_FILE_NOT_FOUND` 도메인 예외로 처리
 
+### `GlobalExceptionHandler` 정리 전후
+
+| 구분 | 정리 전 | 정리 후 |
+| --- | --- | --- |
+| 도메인 예외 처리 | `PersonNotFoundException`, `MovieNotFoundException` 등 예외별 handler 정의 | `DomainException` handler 하나로 통합 |
+| HTTP 상태와 코드 | handler마다 `NOT_FOUND`, `CONFLICT`와 문자열 코드를 직접 지정 | 예외가 가진 `ErrorCode`에서 상태·코드·공개 메시지 결정 |
+| 오류 메시지 | `exception.getMessage()`를 응답에 사용해 내부 ID와 상세 원인이 노출될 가능성 존재 | `ErrorCode.message()`의 안전하고 고정된 공개 메시지만 사용 |
+| 상태 판별 | `IllegalStateException` 메시지를 `switch`로 비교 | 업무 실패를 전용 타입으로 구분하고 문자열 비교 제거 |
+| 잘못된 요청 | Bean Validation 위주로 처리하고 JSON·파라미터 오류 경로가 분산 | Validation은 422, JSON 파싱·필수 파라미터·타입 불일치는 400으로 통일 |
+| 예상하지 못한 오류 | `IllegalStateException`을 대부분 400으로 처리해 서버 장애가 클라이언트 오류로 오분류될 수 있음 | 구체적인 handler에 해당하지 않는 `RuntimeException`은 로그를 남기고 안전한 500 반환 |
+| 확장 방식 | 새 도메인 예외마다 `GlobalExceptionHandler` 수정 필요 | 전용 예외와 `ErrorCode`를 추가하면 공통 handler 재사용 |
+
+정리 전에는 예외마다 응답 변환 코드가 반복되고 전역 처리기가 개별 업무 예외를 모두 알아야 했다.
+
+```java
+@ExceptionHandler(PersonNotFoundException.class)
+public ResponseEntity<ErrorResponse> handlePersonNotFound(PersonNotFoundException exception) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(ErrorResponse.of("PERSON_NOT_FOUND", exception.getMessage()));
+}
+
+@ExceptionHandler(IllegalStateException.class)
+public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException exception) {
+    HttpStatus status = switch (exception.getMessage()) {
+        case "FORBIDDEN_MEDIA_JOB_ACCESS" -> HttpStatus.FORBIDDEN;
+        default -> HttpStatus.BAD_REQUEST;
+    };
+    return ResponseEntity.status(status)
+            .body(ErrorResponse.of(exception.getMessage(), exception.getMessage()));
+}
+```
+
+정리 후에는 예측 가능한 업무 실패와 예상하지 못한 시스템 실패의 경계가 명확해졌다. 전역 처리기는 업무 예외의 세부 타입을 열거하지 않고 `ErrorCode`를 응답으로 변환한다.
+
+```java
+@ExceptionHandler(DomainException.class)
+public ResponseEntity<ErrorResponse> handleDomainException(DomainException exception) {
+    ErrorCode errorCode = exception.getErrorCode();
+    return ResponseEntity.status(errorCode.httpStatus())
+            .body(ErrorResponse.of(errorCode.name(), errorCode.message()));
+}
+
+@ExceptionHandler(RuntimeException.class)
+public ResponseEntity<ErrorResponse> handleUnexpectedRuntimeException(RuntimeException exception) {
+    log.error("Unhandled runtime exception", exception);
+    return response(ErrorCode.INTERNAL_SERVER_ERROR);
+}
+```
+
+따라서 새로운 업무 실패를 추가할 때 `GlobalExceptionHandler`에 handler를 늘리는 대신, 의미 있는 전용 `DomainException`과 해당 `ErrorCode`를 정의한다. 반대로 분류되지 않은 런타임 오류는 클라이언트 책임인 400으로 숨기지 않고 서버 장애인 500으로 기록한다.
+
 보안 필터에는 별도의 공통 작성기를 적용했다.
 
 ```text
