@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.method.annotation.ExceptionHandlerMethodResolver;
 
 import jakarta.validation.ConstraintViolationException;
 
@@ -57,14 +58,22 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void illegalStateMessageIsNotUsedAsAResponseCode() {
-        ResponseEntity<ErrorResponse> response = handler.handleIllegalState(
-                new IllegalStateException("INTERNAL_STATE_DETAIL")
+    void illegalArgumentDoesNotExposeInternalMessage() {
+        ResponseEntity<ErrorResponse> response = handler.handleIllegalArgument(
+                new IllegalArgumentException("INTERNAL_ARGUMENT_DETAIL")
         );
 
-        assertThat(response.getStatusCode()).isEqualTo(ErrorCode.BAD_REQUEST.httpStatus());
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().code()).isEqualTo(ErrorCode.BAD_REQUEST.name());
+        assertDomainError(response, ErrorCode.BAD_REQUEST);
+        assertThat(response.getBody().message()).doesNotContain("INTERNAL_ARGUMENT_DETAIL");
+    }
+
+    @Test
+    void illegalStateIsNotConvertedToClientBadRequest() {
+        ExceptionHandlerMethodResolver resolver =
+                new ExceptionHandlerMethodResolver(GlobalExceptionHandler.class);
+
+        assertThat(resolver.resolveMethod(new IllegalStateException("INTERNAL_STATE_DETAIL")))
+                .isNull();
     }
 
     @Test

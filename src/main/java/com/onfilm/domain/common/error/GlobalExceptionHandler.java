@@ -45,9 +45,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException e) {
-        ErrorCode errorCode = ErrorCode.BAD_REQUEST;
-        return ResponseEntity.status(errorCode.httpStatus())
-                .body(ErrorResponse.of(errorCode.name(), e.getMessage()));
+        return response(ErrorCode.BAD_REQUEST);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
@@ -60,13 +58,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(OptimisticLockingFailureException.class)
     public ResponseEntity<ErrorResponse> handleOptimisticLock(OptimisticLockingFailureException e) {
         return response(ErrorCode.CONCURRENT_MEDIA_JOB_UPDATE);
-    }
-
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException e) {
-        ErrorCode errorCode = ErrorCode.BAD_REQUEST;
-        return ResponseEntity.status(errorCode.httpStatus())
-                .body(ErrorResponse.of(errorCode.name(), e.getMessage()));
     }
 
     private ResponseEntity<ErrorResponse> response(ErrorCode errorCode) {
