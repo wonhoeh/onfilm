@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onfilm.domain.auth.config.AuthProperties;
 import com.onfilm.domain.auth.security.JwtProvider;
 import com.onfilm.domain.common.error.SecurityErrorResponseWriter;
+import com.onfilm.domain.common.error.ErrorCode;
+import com.onfilm.domain.common.error.exception.FilmographyFileNotFoundException;
 import com.onfilm.domain.movie.controller.PersonController;
 import com.onfilm.domain.movie.dto.*;
 import com.onfilm.domain.movie.entity.SnsType;
@@ -229,6 +231,30 @@ class PersonControllerTest {
                 .andExpect(jsonPath("$.snsList[0].type").value("INSTAGRAM"))
                 .andExpect(jsonPath("$.snsList[0].url").value("https://instagram.com/leo"))
                 .andExpect(jsonPath("$.rawTags[0].rawTag").value("헐리우드"));
+    }
+
+    @Test
+    void getFilmographyRedirectsToPublicUrl() throws Exception {
+        String publicId = UUID.randomUUID().toString();
+        when(personQueryService.findFilmographyPublicUrlByPublicId(publicId))
+                .thenReturn("https://cdn.test/filmography/person.pdf");
+
+        mockMvc.perform(get("/api/people/{publicId}/filmography", publicId))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", "https://cdn.test/filmography/person.pdf"));
+    }
+
+    @Test
+    void getFilmographyReturnsErrorResponseWhenFileIsMissing() throws Exception {
+        String publicId = UUID.randomUUID().toString();
+        when(personQueryService.findFilmographyPublicUrlByPublicId(publicId))
+                .thenThrow(new FilmographyFileNotFoundException(publicId));
+
+        mockMvc.perform(get("/api/people/{publicId}/filmography", publicId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(ErrorCode.FILMOGRAPHY_FILE_NOT_FOUND.name()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.FILMOGRAPHY_FILE_NOT_FOUND.message()))
+                .andExpect(jsonPath("$.errors").isEmpty());
     }
 
     @Test

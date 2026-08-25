@@ -182,7 +182,6 @@ public class PersonController {
     @GetMapping("/{publicId}/filmography")
     public ResponseEntity<Void> getFilmography(@PathVariable String publicId) {
         String publicUrl = personQueryService.findFilmographyPublicUrlByPublicId(publicId);
-        if (publicUrl == null || publicUrl.isBlank()) return ResponseEntity.notFound().build();
         return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(publicUrl)).build();
     }
 }

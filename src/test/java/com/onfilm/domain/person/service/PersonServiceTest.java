@@ -1,5 +1,7 @@
 package com.onfilm.domain.person.service;
 
+import com.onfilm.domain.common.error.ErrorCode;
+import com.onfilm.domain.common.error.exception.FilmographyFileNotFoundException;
 import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.movie.dto.CreatePersonRequest;
 import com.onfilm.domain.movie.dto.CreatePersonSnsRequest;
@@ -22,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,6 +48,31 @@ class PersonCommandQueryServiceTest {
         assertThat(result.profileImageUrl()).isEqualTo("https://cdn/profile.png");
         assertThat(result.snsList()).hasSize(1);
         assertThat(result.rawTags()).hasSize(1);
+    }
+
+    @Test
+    void queryReturnsFilmographyPublicUrl() {
+        Person person = person();
+        person.changeFilmographyFileKey("filmography/person.pdf");
+        given(personRepository.findByPublicId(person.getPublicId())).willReturn(Optional.of(person));
+        given(storageService.toPublicUrl("filmography/person.pdf"))
+                .willReturn("https://cdn/filmography/person.pdf");
+
+        String result = personQueryService.findFilmographyPublicUrlByPublicId(person.getPublicId());
+
+        assertThat(result).isEqualTo("https://cdn/filmography/person.pdf");
+    }
+
+    @Test
+    void queryRejectsMissingFilmographyFileWithDomainException() {
+        Person person = person();
+        given(personRepository.findByPublicId(person.getPublicId())).willReturn(Optional.of(person));
+
+        assertThatThrownBy(() ->
+                personQueryService.findFilmographyPublicUrlByPublicId(person.getPublicId())
+        ).isInstanceOfSatisfying(FilmographyFileNotFoundException.class, exception ->
+                assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.FILMOGRAPHY_FILE_NOT_FOUND)
+        );
     }
 
     @Test

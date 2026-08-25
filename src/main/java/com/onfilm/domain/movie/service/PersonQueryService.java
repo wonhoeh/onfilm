@@ -2,6 +2,7 @@ package com.onfilm.domain.movie.service;
 
 import com.onfilm.domain.common.error.exception.PersonNotFoundException;
 import com.onfilm.domain.common.error.exception.UserNotFoundException;
+import com.onfilm.domain.common.error.exception.FilmographyFileNotFoundException;
 import com.onfilm.domain.movie.dto.PublicIdByUsernameResponse;
 import com.onfilm.domain.movie.dto.ProfileResponse;
 import com.onfilm.domain.file.service.StorageService;
@@ -34,7 +35,10 @@ public class PersonQueryService {
 
     public String findFilmographyPublicUrlByPublicId(String publicId) {
         String key = findByPublicId(publicId).getFilmographyFileKey();
-        return key == null || key.isBlank() ? null : storageService.toPublicUrl(key);
+        if (key == null || key.isBlank()) {
+            throw new FilmographyFileNotFoundException(publicId);
+        }
+        return storageService.toPublicUrl(key);
     }
 
     public PublicIdByUsernameResponse findPublicIdByUsername(String username) {
