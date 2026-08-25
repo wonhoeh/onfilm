@@ -17,6 +17,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import javax.sql.DataSource;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -28,7 +29,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 class StorageFilesDeleteEventListenerTest {
 
     @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    private StorageFileDeletionPublisher deletionPublisher;
 
     @Autowired
     private PlatformTransactionManager transactionManager;
@@ -46,7 +47,7 @@ class StorageFilesDeleteEventListenerTest {
         String key = "storyboard/1/550e8400-e29b-41d4-a716-446655440000.jpg";
 
         new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
-            eventPublisher.publishEvent(new StorageFilesDeleteEvent(List.of(key)));
+            deletionPublisher.publish(key);
 
             verifyNoInteractions(storageService);
         });
@@ -59,7 +60,7 @@ class StorageFilesDeleteEventListenerTest {
         String key = "storyboard/1/550e8400-e29b-41d4-a716-446655440000.jpg";
 
         new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
-            eventPublisher.publishEvent(new StorageFilesDeleteEvent(List.of(key)));
+            deletionPublisher.publish(key);
             status.setRollbackOnly();
         });
 
@@ -75,13 +76,22 @@ class StorageFilesDeleteEventListenerTest {
                 .delete(failedKey);
 
         new TransactionTemplate(transactionManager).executeWithoutResult(status ->
-                eventPublisher.publishEvent(
-                        new StorageFilesDeleteEvent(List.of(failedKey, nextKey))
-                )
+                deletionPublisher.publish(List.of(failedKey, nextKey))
         );
 
         verify(storageService).delete(failedKey);
         verify(storageService).delete(nextKey);
+    }
+
+    @Test
+    void rejectsDeletionRequestOutsideTransaction() {
+        String key = "storyboard/1/550e8400-e29b-41d4-a716-446655440000.jpg";
+
+        assertThatThrownBy(() -> deletionPublisher.publish(key))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("storage file deletion must be published within an active transaction");
+
+        verifyNoInteractions(storageService);
     }
 
     @Configuration
@@ -98,6 +108,13 @@ class StorageFilesDeleteEventListenerTest {
                 StorageService storageService
         ) {
             return new StorageFilesDeleteEventListener(storageService);
+        }
+
+        @Bean
+        StorageFileDeletionPublisher storageFileDeletionPublisher(
+                ApplicationEventPublisher eventPublisher
+        ) {
+            return new StorageFileDeletionPublisher(eventPublisher);
         }
 
         @Bean
