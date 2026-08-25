@@ -9,6 +9,7 @@ import org.springframework.web.method.annotation.ExceptionHandlerMethodResolver;
 
 import jakarta.validation.ConstraintViolationException;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Set;
 
@@ -68,12 +69,15 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void illegalStateIsNotConvertedToClientBadRequest() {
+    void illegalStateIsMappedToServerErrorInsteadOfClientBadRequest() {
         ExceptionHandlerMethodResolver resolver =
                 new ExceptionHandlerMethodResolver(GlobalExceptionHandler.class);
+        Method handlerMethod = resolver.resolveMethod(
+                new IllegalStateException("INTERNAL_STATE_DETAIL")
+        );
 
-        assertThat(resolver.resolveMethod(new IllegalStateException("INTERNAL_STATE_DETAIL")))
-                .isNull();
+        assertThat(handlerMethod).isNotNull();
+        assertThat(handlerMethod.getName()).isEqualTo("handleUnexpectedRuntimeException");
     }
 
     @Test

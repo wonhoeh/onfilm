@@ -2,6 +2,7 @@ package com.onfilm.domain.common.error;
 
 import com.onfilm.domain.common.error.exception.DomainException;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import java.util.List;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -70,6 +72,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(OptimisticLockingFailureException.class)
     public ResponseEntity<ErrorResponse> handleOptimisticLock(OptimisticLockingFailureException e) {
         return response(ErrorCode.CONCURRENT_MEDIA_JOB_UPDATE);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleUnexpectedRuntimeException(RuntimeException exception) {
+        log.error("Unhandled runtime exception", exception);
+        return response(ErrorCode.INTERNAL_SERVER_ERROR);
     }
 
     private ResponseEntity<ErrorResponse> response(ErrorCode errorCode) {

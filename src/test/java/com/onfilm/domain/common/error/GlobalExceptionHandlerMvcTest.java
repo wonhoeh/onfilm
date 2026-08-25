@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.stream.Stream;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -89,6 +91,16 @@ class GlobalExceptionHandlerMvcTest {
                 .andExpect(jsonPath("$.errors").isEmpty());
     }
 
+    @Test
+    void unexpectedRuntimeExceptionUsesSafeInternalServerErrorResponse() throws Exception {
+        mockMvc.perform(get("/test/errors/internal"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code").value(ErrorCode.INTERNAL_SERVER_ERROR.name()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.INTERNAL_SERVER_ERROR.message()))
+                .andExpect(jsonPath("$.message").value(not(containsString("INTERNAL_SYSTEM_DETAIL"))))
+                .andExpect(jsonPath("$.errors").isEmpty());
+    }
+
     @RestController
     private static class ExceptionController {
 
@@ -110,6 +122,7 @@ class GlobalExceptionHandlerMvcTest {
                 case "conflict" -> new DuplicateEmailException();
                 case "gone" -> new MediaUploadRequestExpiredException();
                 case "unsupported-media" -> new UnsupportedMediaTypeException();
+                case "internal" -> new IllegalStateException("INTERNAL_SYSTEM_DETAIL");
                 default -> new IllegalArgumentException("unsupported test type");
             };
         }

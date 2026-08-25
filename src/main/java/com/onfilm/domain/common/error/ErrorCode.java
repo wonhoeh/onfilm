@@ -14,6 +14,7 @@ public enum ErrorCode {
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
     DATA_INTEGRITY_VIOLATION(HttpStatus.CONFLICT, "이미 등록된 값이거나 데이터 제약조건을 위반했습니다."),
     CONCURRENT_MEDIA_JOB_UPDATE(HttpStatus.CONFLICT, "작업 상태가 동시에 변경되었습니다. 현재 상태를 다시 확인해 주세요."),
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."),
 
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
     PERSON_NOT_FOUND(HttpStatus.NOT_FOUND, "인물 정보를 찾을 수 없습니다."),

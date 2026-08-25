@@ -31,7 +31,8 @@ class ErrorCodeTest {
                 ErrorCode.VALIDATION_FAILED, HttpStatus.UNPROCESSABLE_ENTITY,
                 ErrorCode.BAD_REQUEST, HttpStatus.BAD_REQUEST,
                 ErrorCode.DATA_INTEGRITY_VIOLATION, HttpStatus.CONFLICT,
-                ErrorCode.CONCURRENT_MEDIA_JOB_UPDATE, HttpStatus.CONFLICT
+                ErrorCode.CONCURRENT_MEDIA_JOB_UPDATE, HttpStatus.CONFLICT,
+                ErrorCode.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR
         )).allSatisfy((errorCode, httpStatus) ->
                 assertThat(errorCode.httpStatus()).isEqualTo(httpStatus)
         );
