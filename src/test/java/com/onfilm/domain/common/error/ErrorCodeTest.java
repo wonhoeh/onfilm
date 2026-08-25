@@ -3,6 +3,8 @@ package com.onfilm.domain.common.error;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ErrorCodeTest {
@@ -21,5 +23,17 @@ class ErrorCodeTest {
             assertThat(errorCode.httpStatus()).isNotNull();
             assertThat(errorCode.message()).isNotBlank();
         });
+    }
+
+    @Test
+    void 공통_오류도_ErrorCode에서_HTTP_정책을_제공한다() {
+        assertThat(Map.of(
+                ErrorCode.VALIDATION_FAILED, HttpStatus.UNPROCESSABLE_ENTITY,
+                ErrorCode.BAD_REQUEST, HttpStatus.BAD_REQUEST,
+                ErrorCode.DATA_INTEGRITY_VIOLATION, HttpStatus.CONFLICT,
+                ErrorCode.CONCURRENT_MEDIA_JOB_UPDATE, HttpStatus.CONFLICT
+        )).allSatisfy((errorCode, httpStatus) ->
+                assertThat(errorCode.httpStatus()).isEqualTo(httpStatus)
+        );
     }
 }

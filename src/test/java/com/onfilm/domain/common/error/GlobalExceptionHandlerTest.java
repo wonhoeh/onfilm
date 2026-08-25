@@ -2,10 +2,14 @@ package com.onfilm.domain.common.error;
 
 import com.onfilm.domain.common.error.exception.*;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.ResponseEntity;
 
+import jakarta.validation.ConstraintViolationException;
+
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -58,15 +62,51 @@ class GlobalExceptionHandlerTest {
                 new IllegalStateException("INTERNAL_STATE_DETAIL")
         );
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getStatusCode()).isEqualTo(ErrorCode.BAD_REQUEST.httpStatus());
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().code()).isEqualTo("BAD_REQUEST");
+        assertThat(response.getBody().code()).isEqualTo(ErrorCode.BAD_REQUEST.name());
+    }
+
+    @Test
+    void frameworkExceptionsUseErrorCodeAsTheSingleResponsePolicy() {
+        List<ExpectedResponseEntity> expectations = List.of(
+                expected(
+                        handler.handleConstraintViolation(new ConstraintViolationException(Set.of())),
+                        ErrorCode.VALIDATION_FAILED
+                ),
+                expected(
+                        handler.handleDataIntegrityViolation(new DataIntegrityViolationException("constraint")),
+                        ErrorCode.DATA_INTEGRITY_VIOLATION
+                ),
+                expected(
+                        handler.handleOptimisticLock(new OptimisticLockingFailureException("conflict")),
+                        ErrorCode.CONCURRENT_MEDIA_JOB_UPDATE
+                )
+        );
+
+        assertThat(expectations).allSatisfy(expectation -> assertDomainError(
+                expectation.response(),
+                expectation.errorCode()
+        ));
     }
 
     private static ExpectedResponse expected(DomainException exception, ErrorCode errorCode) {
         return new ExpectedResponse(exception, errorCode);
     }
 
+    private static ExpectedResponseEntity expected(
+            ResponseEntity<ErrorResponse> response,
+            ErrorCode errorCode
+    ) {
+        return new ExpectedResponseEntity(response, errorCode);
+    }
+
     private record ExpectedResponse(DomainException exception, ErrorCode errorCode) {
+    }
+
+    private record ExpectedResponseEntity(
+            ResponseEntity<ErrorResponse> response,
+            ErrorCode errorCode
+    ) {
     }
 }
