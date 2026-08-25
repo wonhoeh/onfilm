@@ -20,6 +20,7 @@ DB: 동시성까지 포함한 최종 데이터 무결성
 
 관련 문서:
 
+- [Domain Validation 위치 결정 가이드](../review/validation/domain-validation-location-guide.md)
 - [Onfilm DTO 스타일 컨벤션](dto-style-convention.md)
 - [Onfilm 엔티티 설계·리팩토링 가이드](entity-refactoring-style-guide.md)
 - [Entity 메서드 네이밍 컨벤션](entity-method-naming-convention.md)

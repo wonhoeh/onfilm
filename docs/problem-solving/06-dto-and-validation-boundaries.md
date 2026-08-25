@@ -5,6 +5,8 @@
 - 관련 커밋: `5da05d3`
 - 상태: 완료
 
+> 현재 검증 위치를 결정하는 기준과 대표 사례는 [Domain Validation 위치 결정 가이드](../review/validation/domain-validation-location-guide.md)를 참고한다.
+
 ## 문제
 
 요청·응답 DTO가 mutable class와 record로 혼재했고, `@NotNull` 같은 요청 형식 검증과 서비스의 수동 null 검사, 엔티티 검증, DB 제약의 역할이 불명확했다. 같은 검증이 여러 곳에 복사되거나 반대로 DTO 검증만 믿고 다른 호출 경로에서 잘못된 엔티티 상태를 만들 위험이 있었다.
