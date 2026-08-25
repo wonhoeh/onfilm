@@ -2,18 +2,24 @@ package com.onfilm.domain.common.error;
 
 import com.onfilm.domain.common.error.exception.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.stream.Stream;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -54,8 +60,45 @@ class GlobalExceptionHandlerMvcTest {
         );
     }
 
+    @Test
+    void malformedJsonUsesBadRequestErrorResponse() throws Exception {
+        mockMvc.perform(post("/test/request/body")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ErrorCode.BAD_REQUEST.name()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.BAD_REQUEST.message()))
+                .andExpect(jsonPath("$.errors").isEmpty());
+    }
+
+    @Test
+    void missingRequestParameterUsesBadRequestErrorResponse() throws Exception {
+        mockMvc.perform(get("/test/request/parameter"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ErrorCode.BAD_REQUEST.name()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.BAD_REQUEST.message()))
+                .andExpect(jsonPath("$.errors").isEmpty());
+    }
+
+    @Test
+    void requestParameterTypeMismatchUsesBadRequestErrorResponse() throws Exception {
+        mockMvc.perform(get("/test/request/parameter").param("id", "not-a-number"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ErrorCode.BAD_REQUEST.name()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.BAD_REQUEST.message()))
+                .andExpect(jsonPath("$.errors").isEmpty());
+    }
+
     @RestController
     private static class ExceptionController {
+
+        @PostMapping("/test/request/body")
+        void readBody(@RequestBody TestRequest request) {
+        }
+
+        @GetMapping("/test/request/parameter")
+        void readParameter(@RequestParam Long id) {
+        }
 
         @GetMapping("/test/errors/{type}")
         void throwDomainException(@PathVariable String type) {
@@ -70,5 +113,8 @@ class GlobalExceptionHandlerMvcTest {
                 default -> new IllegalArgumentException("unsupported test type");
             };
         }
+    }
+
+    private record TestRequest(Long id) {
     }
 }
