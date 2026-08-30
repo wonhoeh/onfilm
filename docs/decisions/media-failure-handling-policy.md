@@ -205,6 +205,8 @@ Outbox `DEAD`와 Kafka DLT는 서로 다른 실패 지점이다.
 - 작업자, 실행 시각, 사유, 원본 topic·partition·offset을 감사 로그로 기록
 - 이미 `DONE` 또는 `FAILED`인 Job은 상태 전이 정책을 먼저 확인하고 무조건 재처리하지 않음
 
+구체적인 상태 확인, 조건부 DB 변경, DLT 단건 재발행과 감사 항목은 [미디어 Outbox DEAD·Kafka DLT 재처리 절차](../operations/media-dead-letter-reprocessing.md)를 따른다. 현재 상태 정책상 API Job이 이미 `FAILED`라면 같은 `jobId`를 재실행하지 않고 새 업로드 요청으로 새 Job을 생성한다.
+
 ## 9. 로그와 메트릭
 
 ### 로그 필드
@@ -371,6 +373,6 @@ Prometheus rule 구현에서는 현재 수집 가능한 메트릭의 한계를 �
 | 외부 I/O와 DB 트랜잭션 분리 | 주요 흐름에 구현됨 | 신규 흐름의 코드 리뷰 체크리스트에 포함 |
 | 시간 제한 관계 | API Job timeout 4시간 30분 반영, Worker 일부 불일치 | Kafka `max.poll.interval`을 4시간으로 조정하여 2h < 3h < 4h < 4h30 관계 완성 |
 | 관측성 | API·Worker Prometheus endpoint, correlationId 전파, 구조화 로그, 미디어 메트릭, Prometheus·Grafana와 초기 Alert rule 구현 | 운영 Alertmanager 수신 채널 연결 및 임계값 보정 |
-| DLT 운영 | 발행 경로 존재 | 14일 보존, 조회·재처리 도구와 Runbook 작성 |
+| DLT 운영 | 원본 위치 구조화 로그, 14일 보존 설정과 단건 재처리 절차 문서화 | 승인된 일괄 복구 도구와 통합 Runbook 작성 |
 
 이 문서는 목표 동작의 기준이다. 후속 구현에서 값이 바뀌면 코드만 변경하지 않고 이 문서와 테스트를 함께 갱신한다.

@@ -1,8 +1,9 @@
 package com.onfilm.domain.kafka.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.onfilm.domain.kafka.message.*;
+import com.onfilm.domain.kafka.entity.MediaEncodeOutbox;
 import com.onfilm.domain.kafka.entity.MediaEncodeOutboxStatus;
+import com.onfilm.domain.kafka.message.*;
 import com.onfilm.domain.kafka.metrics.MediaEncodeMetrics;
 import com.onfilm.domain.kafka.producer.MediaEncodeJobProducer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
@@ -77,6 +78,27 @@ class MediaEncodeOutboxPublisherTest {
                 "media.encode.outbox.publish", "result", "failure").count()).isEqualTo(1);
         assertThat(meterRegistry.counter(
                 "media.encode.outbox.failure", "result", "retry_scheduled").count()).isEqualTo(1);
+    }
+
+    @Test
+    void recordsDeadMetricWhenPublishAttemptsAreExhausted() throws Exception {
+        MediaEncodeRequestedMessage message = message();
+        String payload = new ObjectMapper().findAndRegisterModules().writeValueAsString(message);
+        given(transactionService.claim(now, 50)).willReturn(List.of(
+                new MediaEncodeOutboxTransactionService.ClaimedOutbox(
+                        "outbox", message.jobId(), payload)));
+        given(producer.send(message)).willReturn(
+                CompletableFuture.failedFuture(new IllegalStateException("kafka unavailable")));
+        given(transactionService.markFailed(eq("outbox"), any(), eq(now))).willReturn(
+                new MediaEncodeOutboxTransactionService.FailedOutbox(
+                        MediaEncodeOutboxStatus.DEAD,
+                        MediaEncodeOutbox.MAX_ATTEMPTS
+                ));
+
+        publisher.publishPending();
+
+        assertThat(meterRegistry.counter(
+                "media.encode.outbox.failure", "result", "dead").count()).isEqualTo(1);
     }
 
     private MediaEncodeRequestedMessage message() {

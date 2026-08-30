@@ -79,9 +79,16 @@ public class MediaEncodeOutboxPublisher {
         MediaEncodeOutboxTransactionService.FailedOutbox failed =
                 transactionService.markFailed(outbox.id(), message, clock.instant());
         metrics.recordOutboxPublishFailed(failed.retryScheduled());
-        log.error("Media encode outbox publish failed. {} {}",
-                kv("eventType", "MEDIA_ENCODE_OUTBOX_PUBLISH_FAILED"),
+        String eventType = failed.retryScheduled()
+                ? "MEDIA_ENCODE_OUTBOX_PUBLISH_FAILED"
+                : "MEDIA_ENCODE_OUTBOX_DEAD";
+        log.error("Media encode outbox publish failed. {} {} {} {} {} {}",
+                kv("eventType", eventType),
                 kv("outboxId", outbox.id()),
+                kv("jobId", outbox.jobId()),
+                kv("status", failed.status()),
+                kv("attempt", failed.attempts()),
+                kv("retryable", failed.retryScheduled()),
                 exception);
     }
 
