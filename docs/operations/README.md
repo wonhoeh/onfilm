@@ -2,5 +2,5 @@
 
 장애 알림을 확인한 뒤 상태를 진단하고 제한적으로 복구할 때 사용하는 절차를 정리한다. 자동 복구 정책과 충돌하지 않도록 대상과 상태를 먼저 확인하고, 모든 수동 변경은 변경 티켓 또는 장애 기록에 남긴다.
 
+- [미디어 인코딩 장애 대응 Runbook](media-incident-runbook.md): Alert 확인부터 원인 진단, 즉시 조치, 정상화 판정과 사후 기록까지의 공통 절차
 - [미디어 Outbox DEAD·Kafka DLT 재처리 절차](media-dead-letter-reprocessing.md)
-

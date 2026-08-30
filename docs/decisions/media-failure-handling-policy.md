@@ -3,7 +3,7 @@
 - 작성일: 2026-08-29
 - 상태: 목표 정책 확정, 항목별 구현 예정
 - 적용 범위: Onfilm API 서버, Kafka, Encoding Worker, S3 호환 스토리지, Worker Callback
-- 관련 문서: [미디어 인코딩 Job·Outbox 정책](media-encode-job-outbox-policy.md)
+- 관련 문서: [미디어 인코딩 Job·Outbox 정책](media-encode-job-outbox-policy.md), [미디어 인코딩 장애 대응 Runbook](../operations/media-incident-runbook.md)
 
 ## 1. 목적
 
@@ -374,7 +374,7 @@ API와 Worker 저장소에서 각각 다음 명령으로 실행한다.
 ./gradlew integrationTest
 ```
 
-`check`도 `integrationTest`에 의존하므로 전체 검증에서 장애 시나리오가 자동으로 포함된다. 현재 자동화는 DB 상태·트랜잭션·lease·상태 전이 불변 조건을 빠르고 반복 가능하게 검증한다. 실제 Kafka broker 네트워크 단절, S3 지연, OS 수준 Worker 강제 종료는 로컬 장애 훈련에서 별도로 수행하고, 11단계 Runbook에 실행·복구 절차를 기록한다.
+`check`도 `integrationTest`에 의존하므로 전체 검증에서 장애 시나리오가 자동으로 포함된다. 현재 자동화는 DB 상태·트랜잭션·lease·상태 전이 불변 조건을 빠르고 반복 가능하게 검증한다. 실제 Kafka broker 네트워크 단절, S3 지연, OS 수준 Worker 강제 종료는 운영과 분리된 환경에서 훈련하고 [미디어 인코딩 장애 대응 Runbook](../operations/media-incident-runbook.md)의 실행·복구·기록 절차를 따른다.
 
 ## 11. 현재 구현과 후속 작업
 
@@ -391,6 +391,7 @@ API와 Worker 저장소에서 각각 다음 명령으로 실행한다.
 | 외부 I/O와 DB 트랜잭션 분리 | 주요 흐름에 구현됨 | 신규 흐름의 코드 리뷰 체크리스트에 포함 |
 | 시간 제한 관계 | API Job timeout 4시간 30분 반영, Worker 일부 불일치 | Kafka `max.poll.interval`을 4시간으로 조정하여 2h < 3h < 4h < 4h30 관계 완성 |
 | 관측성 | API·Worker Prometheus endpoint, correlationId 전파, 구조화 로그, 미디어 메트릭, Prometheus·Grafana와 초기 Alert rule 구현 | 운영 Alertmanager 수신 채널 연결 및 임계값 보정 |
-| DLT 운영 | 원본 위치 구조화 로그, 14일 보존 설정과 단건 재처리 절차 문서화 | 승인된 일괄 복구 도구와 통합 Runbook 작성 |
+| DLT 운영 | 원본 위치 구조화 로그, 14일 보존 설정, 단건 재처리 절차와 통합 Runbook 연결 | 승인된 일괄 복구 도구 검토 |
+| 장애 대응 Runbook | Alert·Dashboard·로그·상태 조회·복구·정상화·사후 기록 절차 문서화 | 실제 장애 훈련 결과를 반영해 임계값과 절차 보정 |
 
 이 문서는 목표 동작의 기준이다. 후속 구현에서 값이 바뀌면 코드만 변경하지 않고 이 문서와 테스트를 함께 갱신한다.

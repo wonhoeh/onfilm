@@ -99,6 +99,8 @@ Prometheus는 `prometheus/rules/onfilm-alerts.yml`을 15초마다 평가한다.
 
 현재 Kafka 기본 메트릭은 가장 오래된 레코드의 생성 시각을 제공하지 않는다. 따라서 Consumer 경보는 “oldest lag 15분”을 `record lag가 15분 동안 해소되지 않음`으로 근사한다. 또한 Counter만으로 연속 실패 순서를 판별할 수 없어 `5분 내 3건 실패`를 조기 경보로 사용한다.
 
+경보 발생 후 Dashboard·로그·DB 상태를 확인하고 복구 완료를 판정하는 순서는 [미디어 인코딩 장애 대응 Runbook](../../docs/operations/media-incident-runbook.md)을 따른다. Outbox `DEAD` 또는 Kafka DLT를 수동 재처리할 때는 Runbook에서 연결하는 단건 재처리 안전 조건을 먼저 확인한다.
+
 이 단계에서는 경보 판정과 Dashboard 표시까지 구성한다. 실제 Slack·이메일·PagerDuty 전송은 운영 환경의 수신 채널과 비밀값을 정한 뒤 Alertmanager에서 연결한다. 수신 채널 비밀값은 저장소에 커밋하지 않는다.
 
 ## 문제 해결
