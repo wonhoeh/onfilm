@@ -50,6 +50,7 @@ docker compose ps
 4. Grafana `http://localhost:3000`에 `.env`의 계정으로 로그인한다.
 5. `Onfilm / Onfilm Media Operations` Dashboard를 연다.
 6. 인코딩 Job을 실행한 뒤 Job·Outbox·Worker 패널의 값이 변하는지 확인한다.
+7. Prometheus `Alerts` 화면에서 `onfilm-*` rule group이 로드됐는지 확인한다.
 
 다음 PromQL로 수집 상태를 빠르게 확인할 수 있다.
 
@@ -74,8 +75,31 @@ media_encode_worker_inbox_records
 - Worker 단계·오류 코드·재시도 가능 여부별 실패
 - Inbox 상태·점유 결과·`FAILURE_PENDING` 체류 시간
 - stale recovery·Callback·DLT 결과
+- 현재 firing 상태인 Prometheus 경보 수
 
 Timer의 p95 계산을 위해 API와 Worker에서 Prometheus percentile histogram을 활성화한다.
+
+## Alert rule
+
+Prometheus는 `prometheus/rules/onfilm-alerts.yml`을 15초마다 평가한다.
+
+| 경보 | 조건 | 대기 | 심각도 |
+|---|---|---:|---|
+| API·Worker Down | scrape 실패 | 1분 | Critical |
+| Outbox DEAD | DEAD 1건 이상 | 1분 | Critical |
+| Outbox 적체 | oldest PENDING 2분 초과 | 1분 | Warning |
+| DLT 유입 | 5분 내 1건 이상 | 즉시 | Warning |
+| DLT 반복 | 15분 내 5건 이상 | 1분 | Critical |
+| Consumer lag 지속 | record lag가 0보다 큰 상태 지속 | 15분 | Warning |
+| 인코딩 실패율 | 15분 내 최소 10건이며 실패율 10% 초과 | 2분 | Warning |
+| 인코딩 실패 집중 | 5분 내 실패 3건 이상 | 즉시 | Warning |
+| 인코딩 timeout | 15분 내 1건 이상 | 즉시 | Warning |
+| Callback 미보고 | oldest FAILURE_PENDING 10분 초과 | 1분 | Warning |
+| API 5xx | 5분 내 최소 20건이며 5xx 5% 초과 | 2분 | Critical |
+
+현재 Kafka 기본 메트릭은 가장 오래된 레코드의 생성 시각을 제공하지 않는다. 따라서 Consumer 경보는 “oldest lag 15분”을 `record lag가 15분 동안 해소되지 않음`으로 근사한다. 또한 Counter만으로 연속 실패 순서를 판별할 수 없어 `5분 내 3건 실패`를 조기 경보로 사용한다.
+
+이 단계에서는 경보 판정과 Dashboard 표시까지 구성한다. 실제 Slack·이메일·PagerDuty 전송은 운영 환경의 수신 채널과 비밀값을 정한 뒤 Alertmanager에서 연결한다. 수신 채널 비밀값은 저장소에 커밋하지 않는다.
 
 ## 문제 해결
 
@@ -107,7 +131,7 @@ docker compose down -v
 - Worker의 Actuator 포트도 사설 네트워크에서만 접근하도록 제한한다.
 - 운영 Grafana에서는 기본 계정을 사용하지 않고 강한 비밀번호 또는 조직 인증을 사용한다.
 - Prometheus와 Grafana volume의 보존·백업 정책을 운영 환경에 맞게 별도로 설정한다.
-- Alert rule과 알림 채널은 8단계에서 추가한다.
+- Alert rule은 저장소에서 관리하지만 운영 알림 수신 채널은 Alertmanager와 비밀 관리 수단으로 별도 연결한다.
 
 ## 구성 검증
 
@@ -115,4 +139,11 @@ docker compose down -v
 docker compose config
 ```
 
-Dashboard JSON과 provisioning 파일은 애플리케이션 테스트에서도 파일 경로, datasource UID, 주요 메트릭 쿼리를 검증한다.
+Prometheus 컨테이너를 실행할 수 있다면 rule 문법까지 다음 명령으로 검증한다.
+
+```bash
+docker compose run --rm --no-deps prometheus \
+  promtool check rules /etc/prometheus/rules/onfilm-alerts.yml
+```
+
+Dashboard JSON과 provisioning 파일은 애플리케이션 테스트에서도 파일 경로, datasource UID, 주요 메트릭 쿼리와 Alert rule 연결을 검증한다.

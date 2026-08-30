@@ -1,0 +1,161 @@
+groups:
+  - name: onfilm-availability
+    rules:
+      - alert: OnfilmApiDown
+        expr: up{job="onfilm-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: onfilm-api
+          category: availability
+        annotations:
+          summary: Onfilm API 메트릭 수집이 중단되었습니다.
+          description: Prometheus가 Onfilm API를 1분 이상 수집하지 못하고 있습니다.
+          first_check: API 프로세스, 8080 포트와 /actuator/prometheus 응답을 확인합니다.
+
+      - alert: OnfilmEncodingWorkerDown
+        expr: up{job="onfilm-encoding-worker"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: onfilm-encoding-worker
+          category: availability
+        annotations:
+          summary: Encoding Worker 메트릭 수집이 중단되었습니다.
+          description: Prometheus가 Encoding Worker를 1분 이상 수집하지 못하고 있습니다.
+          first_check: Worker 프로세스, 8082 포트와 /actuator/prometheus 응답을 확인합니다.
+
+  - name: onfilm-media-pipeline
+    rules:
+      - alert: MediaOutboxDeadRecordsDetected
+        expr: max(media_encode_outbox_records{job="onfilm-api",status="dead"}) > 0
+        for: 1m
+        labels:
+          severity: critical
+          service: onfilm-api
+          category: outbox
+        annotations:
+          summary: 자동 발행 재시도를 소진한 Outbox가 있습니다.
+          description: DEAD Outbox가 {{ $value }}건 남아 있습니다.
+          first_check: Outbox 발행 실패 로그와 Kafka 연결 상태를 확인하고 자동 재발행하지 않습니다.
+
+      - alert: MediaOutboxPendingTooOld
+        expr: max(media_encode_outbox_oldest_pending_age_seconds{job="onfilm-api"}) > 120
+        for: 1m
+        labels:
+          severity: warning
+          service: onfilm-api
+          category: outbox
+        annotations:
+          summary: Outbox PENDING 적체가 2분을 초과했습니다.
+          description: 가장 오래된 PENDING Outbox가 {{ $value | humanizeDuration }} 동안 대기 중입니다.
+          first_check: Publisher 로그, Kafka 연결과 Outbox lease 상태를 확인합니다.
+
+      - alert: MediaWorkerDltReceived
+        expr: sum(increase(media_encode_worker_dlt_total{job="onfilm-encoding-worker",result="received"}[5m])) > 0
+        labels:
+          severity: warning
+          service: onfilm-encoding-worker
+          category: dlt
+        annotations:
+          summary: 최근 5분 동안 Kafka DLT 메시지가 유입되었습니다.
+          description: 최근 5분 동안 {{ $value }}건의 DLT 메시지가 유입되었습니다.
+          first_check: DLT 메시지의 jobId로 Worker 실패 로그와 현재 Job 상태를 확인합니다.
+
+      - alert: MediaWorkerDltBurst
+        expr: sum(increase(media_encode_worker_dlt_total{job="onfilm-encoding-worker",result="received"}[15m])) >= 5
+        for: 1m
+        labels:
+          severity: critical
+          service: onfilm-encoding-worker
+          category: dlt
+        annotations:
+          summary: Kafka DLT 유입이 지속되고 있습니다.
+          description: 최근 15분 동안 {{ $value }}건 이상의 DLT 메시지가 유입되었습니다.
+          first_check: 공통 실패 원인과 외부 시스템 장애 여부를 확인하고 재처리를 중단합니다.
+
+      - alert: MediaKafkaConsumerLagSustained
+        expr: max(kafka_consumer_records_lag_max{job="onfilm-encoding-worker"}) > 0
+        for: 15m
+        labels:
+          severity: warning
+          service: onfilm-encoding-worker
+          category: kafka
+        annotations:
+          summary: Kafka Consumer lag가 15분 동안 해소되지 않았습니다.
+          description: 최대 record lag가 {{ $value }}이며 15분 동안 0으로 복구되지 않았습니다.
+          first_check: Consumer 처리율, Worker 상태와 단계별 처리 시간을 확인합니다.
+
+      - alert: MediaEncodingFailureRateHigh
+        expr: |
+          (
+            sum(increase(media_encode_worker_attempt_total{job="onfilm-encoding-worker",result="failure"}[15m]))
+            /
+            clamp_min(sum(increase(media_encode_worker_attempt_total{job="onfilm-encoding-worker"}[15m])), 1)
+          ) > 0.10
+          and
+          sum(increase(media_encode_worker_attempt_total{job="onfilm-encoding-worker"}[15m])) >= 10
+        for: 2m
+        labels:
+          severity: warning
+          service: onfilm-encoding-worker
+          category: encoding
+        annotations:
+          summary: 영상 인코딩 실패율이 10%를 초과했습니다.
+          description: 최근 15분간 최소 10건 처리 구간의 실패율이 {{ $value | humanizePercentage }}입니다.
+          first_check: 실패 stage와 code별 메트릭, 같은 correlationId의 Worker 로그를 확인합니다.
+
+      - alert: MediaEncodingFailureBurst
+        expr: sum(increase(media_encode_worker_attempt_total{job="onfilm-encoding-worker",result="failure"}[5m])) >= 3
+        labels:
+          severity: warning
+          service: onfilm-encoding-worker
+          category: encoding
+        annotations:
+          summary: 짧은 시간에 영상 인코딩 실패가 반복되었습니다.
+          description: 최근 5분 동안 인코딩 실패가 {{ $value }}건 발생했습니다.
+          first_check: 실패 stage와 code에 공통 원인이 있는지 확인합니다.
+
+      - alert: MediaEncodingTimeoutDetected
+        expr: sum(increase(media_encode_job_timeout_total{job="onfilm-api"}[15m])) > 0
+        labels:
+          severity: warning
+          service: onfilm-api
+          category: encoding
+        annotations:
+          summary: 시간 제한을 초과한 인코딩 Job이 발생했습니다.
+          description: 최근 15분 동안 {{ $value }}건의 Job이 timeout 처리되었습니다.
+          first_check: jobId 로그, Worker 상태와 FFmpeg 처리 시간을 확인합니다.
+
+      - alert: MediaCallbackFailurePendingTooOld
+        expr: max(media_encode_worker_inbox_oldest_failure_pending_age_seconds{job="onfilm-encoding-worker"}) > 600
+        for: 1m
+        labels:
+          severity: warning
+          service: onfilm-encoding-worker
+          category: callback
+        annotations:
+          summary: 실패 Callback 미보고 상태가 10분을 초과했습니다.
+          description: 가장 오래된 FAILURE_PENDING 항목이 {{ $value | humanizeDuration }} 동안 대기 중입니다.
+          first_check: Core API 상태, Callback 응답 코드와 Worker 재시도 로그를 확인합니다.
+
+  - name: onfilm-http
+    rules:
+      - alert: OnfilmApiHighServerErrorRate
+        expr: |
+          (
+            sum(increase(http_server_requests_seconds_count{job="onfilm-api",status=~"5.."}[5m]))
+            /
+            clamp_min(sum(increase(http_server_requests_seconds_count{job="onfilm-api"}[5m])), 1)
+          ) > 0.05
+          and
+          sum(increase(http_server_requests_seconds_count{job="onfilm-api"}[5m])) >= 20
+        for: 2m
+        labels:
+          severity: critical
+          service: onfilm-api
+          category: http
+        annotations:
+          summary: Onfilm API의 HTTP 5xx 비율이 5%를 초과했습니다.
+          description: 최근 5분간 최소 20건 요청 구간의 5xx 비율이 {{ $value | humanizePercentage }}입니다.
+          first_check: errorCode별 로그, DB pool과 외부 시스템 상태를 확인합니다.

@@ -311,6 +311,13 @@ Worker는 인코딩 시도와 각 단계의 병목·실패 지점을 구분하�
 
 초기 기준은 운영 데이터를 수집한 뒤 정상 범위와 트래픽 규모에 맞게 조정한다.
 
+Prometheus rule 구현에서는 현재 수집 가능한 메트릭의 한계를 다음처럼 반영한다.
+
+- Kafka 레코드의 생성 시각을 제공하는 메트릭이 없으므로 Consumer 지연은 `record lag > 0`이 15분 동안 지속되는 조건으로 판정한다.
+- Counter만으로 실패의 정확한 연속 순서를 복원할 수 없으므로 3건 연속 실패 대신 `5분 내 실패 3건`을 조기 경보로 사용한다.
+- 비율 경보는 소량 트래픽의 우연한 1건 실패를 과대평가하지 않도록 인코딩 10건, HTTP 20건의 최소 표본 조건을 둔다.
+- 경보 labels에는 `severity`, `service`, `category`만 사용하고 고유 식별자는 구조화 로그 조회에 사용한다.
+
 ### Prometheus·Grafana 수집 구성
 
 로컬 관측 환경은 `infra/monitoring`의 Docker Compose와 provisioning 파일을 단일 기준으로 사용한다.
@@ -323,7 +330,7 @@ Worker는 인코딩 시도와 각 단계의 병목·실패 지점을 구분하�
 - 공통 태그는 `application`, `environment`로 제한한다. 개별 요청 식별자는 구조화 로그에서 조회한다.
 - 로컬 Prometheus와 Grafana 포트는 `127.0.0.1`에만 바인딩한다. 운영 Actuator는 인터넷에 공개하지 않고 사설망과 방화벽으로 수집 주체만 허용한다.
 
-실행·확인·초기화 방법은 [로컬 모니터링 실행 가이드](../../infra/monitoring/README.md)를 따른다. 경보 규칙과 알림 채널은 다음 단계에서 초기 경보 기준을 코드로 옮긴다.
+실행·확인·초기화 방법은 [로컬 모니터링 실행 가이드](../../infra/monitoring/README.md)를 따른다. 초기 경보 기준은 Prometheus rule로 구현했으며, 운영 알림 수신 채널과 비밀값은 배포 환경의 Alertmanager에서 연결한다.
 
 ## 10. 장애 주입과 검증 기준
 
@@ -354,7 +361,7 @@ Worker는 인코딩 시도와 각 단계의 병목·실패 지점을 구분하�
 | 항목 | 현재 상태 | 후속 작업 |
 |---|---|---|
 | Job과 Outbox 원자 저장 | 구현됨 | 장애 주입 회귀 테스트 유지 |
-| Outbox lease·8회 재시도·`DEAD` | 구현됨 | dead 메트릭, 경보, 수동 재처리 절차 추가 |
+| Outbox lease·8회 재시도·`DEAD` | 메트릭과 경보까지 구현됨 | 수동 재처리 절차 추가 |
 | Worker `jobId` Inbox 멱등 처리 | 구현됨 | 공유 DB 전환 전에는 단일 Worker 운영 제약 명시 |
 | 같은 `jobId`의 요청 내용 비교 | 미구현 | 정규화한 payload hash 저장 및 불일치 DLT 처리 |
 | Worker Retry Topic과 DLT | 공통 정책으로 구현됨 | 단계별 일반·Callback-only·인코딩 정책으로 분리 |
@@ -363,7 +370,7 @@ Worker는 인코딩 시도와 각 단계의 병목·실패 지점을 구분하�
 | Worker stale recovery | 구현됨 | lease heartbeat와 복구 테스트 보강 |
 | 외부 I/O와 DB 트랜잭션 분리 | 주요 흐름에 구현됨 | 신규 흐름의 코드 리뷰 체크리스트에 포함 |
 | 시간 제한 관계 | API Job timeout 4시간 30분 반영, Worker 일부 불일치 | Kafka `max.poll.interval`을 4시간으로 조정하여 2h < 3h < 4h < 4h30 관계 완성 |
-| 관측성 | API·Worker Prometheus endpoint, correlationId 종단 간 전파, 운영 JSON 구조화 로그, 미디어 메트릭, Prometheus 수집 구성과 Grafana Dashboard 구현 | Alert rule과 알림 채널 추가 |
+| 관측성 | API·Worker Prometheus endpoint, correlationId 전파, 구조화 로그, 미디어 메트릭, Prometheus·Grafana와 초기 Alert rule 구현 | 운영 Alertmanager 수신 채널 연결 및 임계값 보정 |
 | DLT 운영 | 발행 경로 존재 | 14일 보존, 조회·재처리 도구와 Runbook 작성 |
 
 이 문서는 목표 동작의 기준이다. 후속 구현에서 값이 바뀌면 코드만 변경하지 않고 이 문서와 테스트를 함께 갱신한다.

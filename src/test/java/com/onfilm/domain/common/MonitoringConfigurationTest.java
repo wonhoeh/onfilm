@@ -33,13 +33,43 @@ class MonitoringConfigurationTest {
         String prometheus = Files.readString(
                 MONITORING.resolve("prometheus/prometheus.yml")
         );
+        String compose = Files.readString(MONITORING.resolve("docker-compose.yml"));
 
         assertThat(prometheus)
+                .contains("/etc/prometheus/rules/*.yml")
                 .contains("job_name: onfilm-api")
                 .contains("host.docker.internal:8080")
                 .contains("job_name: onfilm-encoding-worker")
                 .contains("host.docker.internal:8082")
                 .contains("metrics_path: /actuator/prometheus");
+        assertThat(compose).contains("./prometheus/rules:/etc/prometheus/rules:ro");
+    }
+
+    @Test
+    void definesInitialOperationalAlertsWithoutHighCardinalityLabels() throws Exception {
+        String alerts = Files.readString(MONITORING.resolve(
+                "prometheus/rules/onfilm-alerts.yml"
+        ));
+
+        assertThat(alerts)
+                .contains("alert: OnfilmApiDown")
+                .contains("alert: OnfilmEncodingWorkerDown")
+                .contains("alert: MediaOutboxDeadRecordsDetected")
+                .contains("alert: MediaOutboxPendingTooOld")
+                .contains("alert: MediaWorkerDltReceived")
+                .contains("alert: MediaKafkaConsumerLagSustained")
+                .contains("alert: MediaEncodingFailureRateHigh")
+                .contains("alert: MediaEncodingTimeoutDetected")
+                .contains("alert: MediaCallbackFailurePendingTooOld")
+                .contains("alert: OnfilmApiHighServerErrorRate")
+                .contains("severity: critical")
+                .contains("severity: warning");
+        assertThat(alerts)
+                .doesNotContain("jobId:")
+                .doesNotContain("movieId:")
+                .doesNotContain("userId:")
+                .doesNotContain("requestId:")
+                .doesNotContain("correlationId:");
     }
 
     @Test
@@ -58,8 +88,9 @@ class MonitoringConfigurationTest {
                 .contains("uid: onfilm-prometheus")
                 .contains("url: http://prometheus:9090");
         assertThat(dashboard.path("uid").asText()).isEqualTo("onfilm-media-operations");
-        assertThat(dashboard.path("panels").size()).isGreaterThanOrEqualTo(16);
+        assertThat(dashboard.path("panels").size()).isGreaterThanOrEqualTo(17);
         assertThat(expressions)
+                .anyMatch(query -> query.contains("ALERTS{alertstate=\"firing\"}"))
                 .anyMatch(query -> query.contains("media_encode_job_records"))
                 .anyMatch(query -> query.contains("media_encode_outbox_records"))
                 .anyMatch(query -> query.contains("media_encode_worker_stage_duration_seconds_bucket"))
