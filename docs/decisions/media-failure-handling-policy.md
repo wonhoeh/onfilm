@@ -311,6 +311,20 @@ Worker는 인코딩 시도와 각 단계의 병목·실패 지점을 구분하�
 
 초기 기준은 운영 데이터를 수집한 뒤 정상 범위와 트래픽 규모에 맞게 조정한다.
 
+### Prometheus·Grafana 수집 구성
+
+로컬 관측 환경은 `infra/monitoring`의 Docker Compose와 provisioning 파일을 단일 기준으로 사용한다.
+
+- Prometheus는 15초마다 API `:8080/actuator/prometheus`와 Worker `:8082/actuator/prometheus`를 수집한다.
+- 개발 환경의 시계열 보존 기간은 기본 15일이며 환경 변수로 변경할 수 있다.
+- Grafana는 Prometheus datasource와 `Onfilm Media Operations` Dashboard를 시작 시 자동 등록한다.
+- Dashboard는 API Job·Outbox·Callback과 Worker 인코딩·단계별 지연·Inbox·stale recovery·DLT를 한 화면에서 확인한다.
+- 처리 시간 p95는 API와 Worker Timer에 활성화한 Prometheus histogram bucket으로 계산한다.
+- 공통 태그는 `application`, `environment`로 제한한다. 개별 요청 식별자는 구조화 로그에서 조회한다.
+- 로컬 Prometheus와 Grafana 포트는 `127.0.0.1`에만 바인딩한다. 운영 Actuator는 인터넷에 공개하지 않고 사설망과 방화벽으로 수집 주체만 허용한다.
+
+실행·확인·초기화 방법은 [로컬 모니터링 실행 가이드](../../infra/monitoring/README.md)를 따른다. 경보 규칙과 알림 채널은 다음 단계에서 초기 경보 기준을 코드로 옮긴다.
+
 ## 10. 장애 주입과 검증 기준
 
 다음 시나리오는 자동화 테스트 또는 로컬 장애 주입으로 검증한다.
@@ -349,7 +363,7 @@ Worker는 인코딩 시도와 각 단계의 병목·실패 지점을 구분하�
 | Worker stale recovery | 구현됨 | lease heartbeat와 복구 테스트 보강 |
 | 외부 I/O와 DB 트랜잭션 분리 | 주요 흐름에 구현됨 | 신규 흐름의 코드 리뷰 체크리스트에 포함 |
 | 시간 제한 관계 | API Job timeout 4시간 30분 반영, Worker 일부 불일치 | Kafka `max.poll.interval`을 4시간으로 조정하여 2h < 3h < 4h < 4h30 관계 완성 |
-| 관측성 | API·Worker Prometheus endpoint, correlationId 종단 간 전파, 운영 JSON 구조화 로그, API Outbox·Callback·Job 및 Worker 단계별 메트릭 구현 | Dashboard와 Alert 추가 |
+| 관측성 | API·Worker Prometheus endpoint, correlationId 종단 간 전파, 운영 JSON 구조화 로그, 미디어 메트릭, Prometheus 수집 구성과 Grafana Dashboard 구현 | Alert rule과 알림 채널 추가 |
 | DLT 운영 | 발행 경로 존재 | 14일 보존, 조회·재처리 도구와 Runbook 작성 |
 
 이 문서는 목표 동작의 기준이다. 후속 구현에서 값이 바뀌면 코드만 변경하지 않고 이 문서와 테스트를 함께 갱신한다.

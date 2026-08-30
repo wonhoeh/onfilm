@@ -72,3 +72,13 @@ management:
     tags:
       application: ${spring.application.name}
       environment: prod
+    distribution:
+      percentiles-histogram:
+        media.encode.callback.duration: true
+        media.encode.job.duration: true
+      minimum-expected-value:
+        media.encode.callback.duration: 1ms
+        media.encode.job.duration: 1s
+      maximum-expected-value:
+        media.encode.callback.duration: 1m
+        media.encode.job.duration: 6h
