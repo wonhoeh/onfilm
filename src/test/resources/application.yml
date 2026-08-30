@@ -54,6 +54,6 @@ app:
 
 media-encode:
   callback-secret: test-media-encode-callback-secret-32-bytes
-  job-timeout: PT2H
+  job-timeout: PT4H30M
   outbox-retention: P7D
   job-retention: P30D

@@ -28,7 +28,7 @@ public class MediaEncodeMaintenanceService {
     private final MediaUploadRequestRepository uploadRequestRepository;
     private final Clock clock;
 
-    @Value("${media-encode.job-timeout:PT2H}")
+    @Value("${media-encode.job-timeout:PT4H30M}")
     private Duration jobTimeout;
 
     @Value("${media-encode.outbox-retention:P7D}")

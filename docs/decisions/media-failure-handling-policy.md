@@ -169,7 +169,7 @@ FFmpeg timeout 2시간
     < API Job timeout 4시간 30분
 ```
 
-이 순서를 지켜 정상 인코딩이 진행 중인데 lease가 먼저 만료되거나 API가 먼저 작업을 실패 처리하는 일을 막는다. 현재 API Job timeout은 2시간이고 Worker의 Inbox lease와 Kafka `max.poll.interval`은 각각 3시간으로 동일하므로 목표값에 맞추는 작업이 필요하다.
+이 순서를 지켜 정상 인코딩이 진행 중인데 lease가 먼저 만료되거나 API가 먼저 작업을 실패 처리하는 일을 막는다. API Job timeout은 4시간 30분으로 조정했다. Worker의 Inbox lease와 Kafka `max.poll.interval`은 각각 3시간으로 동일하므로 Kafka `max.poll.interval`을 4시간으로 조정하는 작업은 별도로 필요하다.
 
 ## 7. 외부 시스템 타임아웃과 Circuit Breaker
 
@@ -294,7 +294,7 @@ Outbox `DEAD`와 Kafka DLT는 서로 다른 실패 지점이다.
 | Callback 상태 전이 검증 | 구현됨 | 충돌 전용 메트릭과 경보 추가 |
 | Worker stale recovery | 구현됨 | lease heartbeat와 복구 테스트 보강 |
 | 외부 I/O와 DB 트랜잭션 분리 | 주요 흐름에 구현됨 | 신규 흐름의 코드 리뷰 체크리스트에 포함 |
-| 시간 제한 관계 | 일부 불일치 | 2h < 3h < 4h < 4h30 관계로 조정 |
+| 시간 제한 관계 | API Job timeout 4시간 30분 반영, Worker 일부 불일치 | Kafka `max.poll.interval`을 4시간으로 조정하여 2h < 3h < 4h < 4h30 관계 완성 |
 | 관측성 | Worker 일부 메트릭 구현 | API Prometheus 연동, 공통 로그 필드, Dashboard와 Alert 추가 |
 | DLT 운영 | 발행 경로 존재 | 14일 보존, 조회·재처리 도구와 Runbook 작성 |
 

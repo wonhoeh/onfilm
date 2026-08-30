@@ -47,6 +47,6 @@ app:
 
 media-encode:
   callback-secret: ${MEDIA_ENCODE_CALLBACK_SECRET:}
-  job-timeout: ${MEDIA_ENCODE_JOB_TIMEOUT:PT2H}
+  job-timeout: ${MEDIA_ENCODE_JOB_TIMEOUT:PT4H30M}
   outbox-retention: ${MEDIA_ENCODE_OUTBOX_RETENTION:P7D}
   job-retention: ${MEDIA_ENCODE_JOB_RETENTION:P30D}

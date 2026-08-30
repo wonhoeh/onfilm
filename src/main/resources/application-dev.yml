@@ -49,6 +49,6 @@ app:
 
 media-encode:
   callback-secret: ${MEDIA_ENCODE_CALLBACK_SECRET:dev-media-encode-callback-secret-change-me}
-  job-timeout: PT2H
+  job-timeout: PT4H30M
   outbox-retention: P7D
   job-retention: P30D

@@ -56,7 +56,7 @@ Worker가 시작 콜백을 보내지 못할 수 있으므로 REQUESTED → DONE�
 수행한다.
 
 클라이언트 상태 조회에는 내부 failureReason을 노출하지 않고 안정적인 failureCode만 노출한다.
-REQUESTED 또는 PROCESSING 상태가 기본 2시간을 초과하면 ENCODE_TIMEOUT으로 종료한다.
+REQUESTED 또는 PROCESSING 상태가 기본 4시간 30분을 초과하면 ENCODE_TIMEOUT으로 종료한다.
 
 ## 내부 콜백 인증
 
