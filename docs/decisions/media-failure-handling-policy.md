@@ -253,6 +253,48 @@ Outbox `DEAD`와 Kafka DLT는 서로 다른 실패 지점이다.
 
 `jobId`, `movieId`, `requestId` 같은 고유 식별자는 메트릭 태그로 사용하지 않는다. 메트릭 시계열 폭증을 막고, 개별 추적은 로그에서 수행한다.
 
+### 미디어 처리 메트릭 명세
+
+애플리케이션에서 사용하는 Micrometer 이름과 저카디널리티 태그는 다음과 같다. Prometheus에 노출될 때 이름은 `_` 구분자로 변환되고 Counter에는 `_total` 접미사가 붙을 수 있다.
+
+| Micrometer 이름 | 종류 | 태그 | 의미 |
+|---|---|---|---|
+| `media.encode.outbox.publish` | Counter | `result=success\|failure` | Kafka 발행 성공·실패 횟수 |
+| `media.encode.outbox.failure` | Counter | `result=retry_scheduled\|dead` | 발행 실패 후 재시도 예약 또는 DEAD 전환 횟수 |
+| `media.encode.outbox.records` | Gauge | `status=pending\|publishing\|published\|dead` | 상태별 Outbox 현재 건수 |
+| `media.encode.outbox.oldest.pending.age` | Gauge | 없음 | 가장 오래된 PENDING Outbox의 체류 시간(초) |
+| `media.encode.callback` | Counter | `type=processing\|complete\|fail`, `result=applied\|duplicate\|conflict\|error` | Callback 처리 결과 횟수 |
+| `media.encode.callback.duration` | Timer | `type`, `result` | Callback 처리 시간 |
+| `media.encode.job.created` | Counter | `type=movie\|trailer\|thumbnail` | 새로 생성된 Job 횟수. 멱등 요청으로 기존 Job을 반환한 경우 제외 |
+| `media.encode.job.transition` | Counter | `type`, `status=processing\|done\|failed` | 실제로 적용된 Job 상태 전이 횟수 |
+| `media.encode.job.terminal` | Counter | `type`, `result=success\|failure\|timeout` | 최종 상태 도달 횟수 |
+| `media.encode.job.duration` | Timer | `type`, `result` | 요청 시각부터 최종 완료 시각까지 걸린 시간 |
+| `media.encode.job.timeout` | Counter | `type` | 유지보수 스케줄러가 timeout 처리한 Job 횟수 |
+| `media.encode.job.records` | Gauge | `status=requested\|processing\|done\|failed` | 상태별 Job 현재 건수 |
+
+Worker는 인코딩 시도와 각 단계의 병목·실패 지점을 구분하기 위해 다음 메트릭을 사용한다.
+
+| Micrometer 이름 | 종류 | 태그 | 의미 |
+|---|---|---|---|
+| `media.encode.worker.attempt` | Counter | `type`, `result=success\|failure` | Worker 인코딩 시도 결과 횟수 |
+| `media.encode.worker.attempt.duration` | Timer | `type`, `result` | 한 Worker 처리 시도의 전체 시간 |
+| `media.encode.worker.stage.duration` | Timer | `type`, `stage=validation\|download\|probe\|transcode\|upload\|callback`, `result=success\|failure` | 단계별 처리 시간과 실패 구간 |
+| `media.encode.worker.failure` | Counter | `type`, `stage`, `code`, `retryable` | 단계·내부 오류 코드·재시도 가능 여부별 실패 횟수 |
+| `media.encode.worker.inbox.claim` | Counter | `result=process\|callback_only\|busy\|terminal` | Inbox 점유 결과와 중복 처리 방지 결과 |
+| `media.encode.worker.inbox.records` | Gauge | `status` | Inbox 상태별 현재 건수 |
+| `media.encode.worker.inbox.oldest.failure.pending.age` | Gauge | 없음 | 가장 오래된 `FAILURE_PENDING` 체류 시간(초) |
+| `media.encode.worker.callback` | Counter | `type=complete\|failure`, `result=success\|retry\|permanent_failure\|error` | 완료·실패 Callback 결과 횟수 |
+| `media.encode.worker.callback.duration` | Timer | `type`, `result` | Worker Callback 처리 시간 |
+| `media.encode.worker.stale.recovery` | Counter | `result=started\|success\|failure` | lease 만료 작업 복구 시도와 결과 |
+| `media.encode.worker.dlt` | Counter | `result=received\|invalid` | DLT 유입 및 역직렬화 후 식별 불가능한 메시지 횟수 |
+
+- 현재 건수를 나타내는 Gauge는 Prometheus scrape마다 DB를 조회하지 않는다. 기본 30초 간격으로 DB 상태를 읽어 메모리 스냅샷을 갱신한다.
+- Counter와 Timer는 프로세스 재시작 시 초기화되므로 Prometheus의 시간 범위 함수로 증가량과 비율을 계산한다.
+- Callback의 `duplicate`는 동일한 최종 결과를 다시 받은 멱등 성공이고, `conflict`는 반대 최종 상태처럼 허용되지 않는 상태 전이다.
+- `failureCode`는 외부 Worker가 전달하는 문자열이므로 메트릭 태그로 사용하지 않는다. 구체적인 오류 분석은 `correlationId`, `jobId`, `errorCode`가 포함된 구조화 로그에서 수행한다.
+- Worker의 `media.encode.worker.failure`에 사용하는 `code`는 코드에 정의된 `FailureCode` enum으로 값의 범위가 제한되어 있어 태그로 허용한다. 외부 문자열을 그대로 태그로 변환하지 않는다.
+- `jobId`, `movieId`, `userId`, `requestId`, `correlationId`, storage key는 어떤 메트릭에도 태그로 추가하지 않는다.
+
 ### 초기 경보 기준
 
 | 경보 | 초기 기준 | 심각도 |
@@ -307,7 +349,7 @@ Outbox `DEAD`와 Kafka DLT는 서로 다른 실패 지점이다.
 | Worker stale recovery | 구현됨 | lease heartbeat와 복구 테스트 보강 |
 | 외부 I/O와 DB 트랜잭션 분리 | 주요 흐름에 구현됨 | 신규 흐름의 코드 리뷰 체크리스트에 포함 |
 | 시간 제한 관계 | API Job timeout 4시간 30분 반영, Worker 일부 불일치 | Kafka `max.poll.interval`을 4시간으로 조정하여 2h < 3h < 4h < 4h30 관계 완성 |
-| 관측성 | API·Worker Prometheus endpoint, correlationId 종단 간 전파, 운영 JSON 구조화 로그와 일부 Worker 메트릭 구현 | API 도메인 메트릭, Dashboard와 Alert 추가 |
+| 관측성 | API·Worker Prometheus endpoint, correlationId 종단 간 전파, 운영 JSON 구조화 로그, API Outbox·Callback·Job 및 Worker 단계별 메트릭 구현 | Dashboard와 Alert 추가 |
 | DLT 운영 | 발행 경로 존재 | 14일 보존, 조회·재처리 도구와 Runbook 작성 |
 
 이 문서는 목표 동작의 기준이다. 후속 구현에서 값이 바뀌면 코드만 변경하지 않고 이 문서와 테스트를 함께 갱신한다.
