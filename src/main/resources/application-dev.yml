@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: onfilm-api
   config:
     activate:
       on-profile: dev
@@ -52,3 +54,20 @@ media-encode:
   job-timeout: PT4H30M
   outbox-retention: P7D
   job-retention: P30D
+
+management:
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: never
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: dev

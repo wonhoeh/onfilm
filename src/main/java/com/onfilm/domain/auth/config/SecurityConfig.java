@@ -8,6 +8,7 @@ import com.onfilm.domain.common.error.ErrorCode;
 import com.onfilm.domain.common.error.SecurityErrorResponseWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -52,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers(staticMatchers()).permitAll()
                         .requestMatchers(userPageMatchers()).permitAll()
                         .requestMatchers(userAuthPageMatchers()).authenticated()
+                        .requestMatchers(EndpointRequest.to("health", "info", "prometheus")).permitAll()
                         .requestMatchers("/health", "/health/**").permitAll()
                         .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh", "/auth/logout",
                                          "/auth/check-email", "/auth/check-username").permitAll()
@@ -86,6 +88,7 @@ public class SecurityConfig {
                         .requestMatchers(staticMatchers()).permitAll()
                         .requestMatchers(userPageMatchers()).permitAll()
                         .requestMatchers(userAuthPageMatchers()).authenticated()
+                        .requestMatchers(EndpointRequest.to("health", "info", "prometheus")).permitAll()
                         .requestMatchers("/health", "/health/**").permitAll()
                         .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh", "/auth/logout",
                                          "/auth/check-email", "/auth/check-username").permitAll()

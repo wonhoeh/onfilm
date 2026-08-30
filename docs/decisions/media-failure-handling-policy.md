@@ -295,7 +295,7 @@ Outbox `DEAD`와 Kafka DLT는 서로 다른 실패 지점이다.
 | Worker stale recovery | 구현됨 | lease heartbeat와 복구 테스트 보강 |
 | 외부 I/O와 DB 트랜잭션 분리 | 주요 흐름에 구현됨 | 신규 흐름의 코드 리뷰 체크리스트에 포함 |
 | 시간 제한 관계 | API Job timeout 4시간 30분 반영, Worker 일부 불일치 | Kafka `max.poll.interval`을 4시간으로 조정하여 2h < 3h < 4h < 4h30 관계 완성 |
-| 관측성 | Worker 일부 메트릭 구현 | API Prometheus 연동, 공통 로그 필드, Dashboard와 Alert 추가 |
+| 관측성 | API·Worker Prometheus endpoint와 일부 Worker 메트릭 구현 | API 도메인 메트릭, 공통 로그 필드, Dashboard와 Alert 추가 |
 | DLT 운영 | 발행 경로 존재 | 14일 보존, 조회·재처리 도구와 Runbook 작성 |
 
 이 문서는 목표 동작의 기준이다. 후속 구현에서 값이 바뀌면 코드만 변경하지 않고 이 문서와 테스트를 함께 갱신한다.
