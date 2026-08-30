@@ -7,6 +7,7 @@ public record MediaEncodeRequestedMessage(
         int schemaVersion,
         String jobId,
         String requestId,
+        String correlationId,
         Long movieId,
         Long requestedByUserId,
         EncodeJobType jobType,

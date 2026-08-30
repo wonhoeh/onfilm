@@ -9,12 +9,14 @@ import com.onfilm.domain.file.service.StorageKeyPolicy;
 import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.kafka.entity.*;
 import com.onfilm.domain.kafka.message.EncodeJobType;
+import com.onfilm.domain.kafka.message.MediaEncodeRequestedMessage;
 import com.onfilm.domain.kafka.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.MDC;
 
 import java.time.*;
 import java.util.Optional;
@@ -71,6 +73,28 @@ class MediaEncodeJobCommandServiceTest {
         boundary.verify(uploadRepository).findById(requestId);
         boundary.verify(storageService).exists(source);
         boundary.verify(uploadRepository).findByIdForUpdate(requestId);
+    }
+
+    @Test
+    void propagatesCorrelationIdToOutboxMessage() throws Exception {
+        String requestId = UUID.randomUUID().toString();
+        String source = "movie/1/raw/file/" + requestId + ".mp4";
+        MediaUploadRequest upload = upload(requestId, source);
+        given(uploadRepository.findById(requestId)).willReturn(Optional.of(upload));
+        given(uploadRepository.findByIdForUpdate(requestId)).willReturn(Optional.of(upload));
+        given(storageService.exists(source)).willReturn(true);
+
+        try (MDC.MDCCloseable ignored = MDC.putCloseable("correlationId", "corr-123")) {
+            requestMovie(requestId, source);
+        }
+
+        ArgumentCaptor<MediaEncodeOutbox> captor = ArgumentCaptor.forClass(MediaEncodeOutbox.class);
+        verify(outboxRepository).save(captor.capture());
+        MediaEncodeRequestedMessage message = new ObjectMapper()
+                .findAndRegisterModules()
+                .readValue(captor.getValue().getPayload(), MediaEncodeRequestedMessage.class);
+        assertThat(message.correlationId()).isEqualTo("corr-123");
+        assertThat(message.requestId()).isEqualTo(requestId);
     }
 
     @Test

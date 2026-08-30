@@ -7,11 +7,13 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.MDC;
 
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -35,7 +37,12 @@ class MediaEncodeOutboxPublisherTest {
         String payload = new ObjectMapper().findAndRegisterModules().writeValueAsString(message);
         given(transactionService.claim(now, 50)).willReturn(List.of(
                 new MediaEncodeOutboxTransactionService.ClaimedOutbox("outbox", message.jobId(), payload)));
-        given(producer.send(message)).willReturn(CompletableFuture.completedFuture(null));
+        given(producer.send(message)).willAnswer(invocation -> {
+            assertThat(MDC.get("correlationId")).isEqualTo(message.correlationId());
+            assertThat(MDC.get("requestId")).isEqualTo(message.requestId());
+            assertThat(MDC.get("jobId")).isEqualTo(message.jobId());
+            return CompletableFuture.completedFuture(null);
+        });
 
         publisher.publishPending();
 
@@ -61,7 +68,7 @@ class MediaEncodeOutboxPublisherTest {
     private MediaEncodeRequestedMessage message() {
         String requestId = UUID.randomUUID().toString();
         return new MediaEncodeRequestedMessage(
-                1, UUID.randomUUID().toString(), requestId, 1L, 2L,
+                1, UUID.randomUUID().toString(), requestId, "corr-123", 1L, 2L,
                 EncodeJobType.MOVIE, EncodeJobPreset.VIDEO_HLS_720P_2500K_AAC_96K,
                 "bucket", "movie/1/raw/file/" + requestId + ".mp4",
                 "bucket", "movie/1/file/id/index.m3u8",

@@ -227,6 +227,18 @@ Outbox `DEAD`와 Kafka DLT는 서로 다른 실패 지점이다.
 - Presigned URL과 인증 헤더
 - 사용자가 올린 요청·응답 본문 전체
 
+### correlationId 전파 규칙
+
+- 외부 요청은 `X-Correlation-Id` 헤더를 받을 수 있다. 영문 대소문자, 숫자, `.`, `_`, `-`로 이루어진 1~64자 값만 사용한다.
+- 헤더가 없거나 허용 형식이 아니면 API가 UUID를 새로 생성한다. 확정된 값은 응답의 `X-Correlation-Id` 헤더에도 반환한다.
+- `correlationId`는 한 번의 분산 처리 흐름을 추적하는 관측 식별자다. 업로드 완료 요청의 멱등성을 식별하는 `requestId`와 역할을 섞지 않는다.
+- API는 Job과 함께 저장하는 Outbox payload에 `correlationId`를 기록한다. Publisher는 payload에서 값을 복원하여 Kafka 발행 로그에 사용한다.
+- Worker는 Kafka 메시지의 `correlationId`를 소비, 인코딩, stale recovery, 실패 보고 로그에 사용하고 모든 내부 Callback의 `X-Correlation-Id` 헤더로 전달한다.
+- 기존 schema version 1 메시지처럼 `correlationId`가 없는 메시지는 `requestId`를 대체값으로 사용한다. 선택 필드 추가이므로 schema version은 올리지 않는다.
+- MDC 값은 요청이나 작업 단위 범위를 벗어나지 않도록 자동 해제한다. 스레드 풀에서 이전 작업의 식별자가 다음 작업에 섞이지 않아야 한다.
+- 운영 `prod` 프로필은 검색 가능한 JSON 로그를 출력하고, 로컬·테스트 환경은 같은 핵심 필드를 `key=value` 형식으로 출력한다.
+- `jobId`, `movieId`, `userId`, `requestId`, `correlationId`는 로그 검색에만 사용하며 메트릭 태그로 사용하지 않는다.
+
 ### 필수 메트릭
 
 - Outbox pending·dead 개수와 가장 오래된 pending의 나이
@@ -295,7 +307,7 @@ Outbox `DEAD`와 Kafka DLT는 서로 다른 실패 지점이다.
 | Worker stale recovery | 구현됨 | lease heartbeat와 복구 테스트 보강 |
 | 외부 I/O와 DB 트랜잭션 분리 | 주요 흐름에 구현됨 | 신규 흐름의 코드 리뷰 체크리스트에 포함 |
 | 시간 제한 관계 | API Job timeout 4시간 30분 반영, Worker 일부 불일치 | Kafka `max.poll.interval`을 4시간으로 조정하여 2h < 3h < 4h < 4h30 관계 완성 |
-| 관측성 | API·Worker Prometheus endpoint와 일부 Worker 메트릭 구현 | API 도메인 메트릭, 공통 로그 필드, Dashboard와 Alert 추가 |
+| 관측성 | API·Worker Prometheus endpoint, correlationId 종단 간 전파, 운영 JSON 구조화 로그와 일부 Worker 메트릭 구현 | API 도메인 메트릭, Dashboard와 Alert 추가 |
 | DLT 운영 | 발행 경로 존재 | 14일 보존, 조회·재처리 도구와 Runbook 작성 |
 
 이 문서는 목표 동작의 기준이다. 후속 구현에서 값이 바뀌면 코드만 변경하지 않고 이 문서와 테스트를 함께 갱신한다.
