@@ -358,18 +358,36 @@ Prometheus rule 구현에서는 현재 수집 가능한 메트릭의 한계를 �
 - 재시도 대기 중 DB 커넥션과 요청 스레드를 점유하지 않는다.
 - 자동 재시도 소진 건은 추적 가능한 상태로 남는다.
 
+### 자동화된 장애 주입 통합 테스트
+
+단위 테스트와 분리된 `integrationTest` Gradle 작업에서 실제 JPA 트랜잭션과 H2 DB 상태를 사용해 다음 장애를 결정적으로 재현한다. 시간 경과는 테스트용 `Clock`을 이동시켜 검증하므로 실제 lease와 backoff 시간만큼 대기하지 않는다.
+
+| 테스트 | 주입하는 장애 | 검증하는 불변 조건 |
+|---|---|---|
+| API `MediaEncodeOutboxFailureInjectionIntegrationTest` | Outbox 점유 직후 Publisher 종료, Kafka 발행 8회 실패, Job·Outbox 저장 중 DB 예외 | lease 전 중복 점유 금지, lease 만료 후 재점유, 8회 후 `DEAD` 보존, Job·Outbox 동시 롤백 |
+| API `MediaEncodeCallbackFailureInjectionIntegrationTest` | 완료 Callback 중복, `DONE → FAILED`, `FAILED → DONE` 역순 Callback | 결과 한 번만 반영, 먼저 확정된 최종 상태 유지 |
+| Worker `MediaEncodeInboxFailureInjectionIntegrationTest` | Kafka 메시지 중복, 처리 중 Worker 종료 후 lease 만료, 업로드 후 Callback timeout, 동일 `jobId`의 payload 충돌, 영구 실패 | 중복 인코딩 방지, lease 복구, Callback-only 재개, 계약 위반 격리, `FAILED` 추적 보존 |
+
+API와 Worker 저장소에서 각각 다음 명령으로 실행한다.
+
+```bash
+./gradlew integrationTest
+```
+
+`check`도 `integrationTest`에 의존하므로 전체 검증에서 장애 시나리오가 자동으로 포함된다. 현재 자동화는 DB 상태·트랜잭션·lease·상태 전이 불변 조건을 빠르고 반복 가능하게 검증한다. 실제 Kafka broker 네트워크 단절, S3 지연, OS 수준 Worker 강제 종료는 로컬 장애 훈련에서 별도로 수행하고, 11단계 Runbook에 실행·복구 절차를 기록한다.
+
 ## 11. 현재 구현과 후속 작업
 
 | 항목 | 현재 상태 | 후속 작업 |
 |---|---|---|
 | Job과 Outbox 원자 저장 | 구현됨 | 장애 주입 회귀 테스트 유지 |
-| Outbox lease·8회 재시도·`DEAD` | 메트릭과 경보까지 구현됨 | 수동 재처리 절차 추가 |
+| Outbox lease·8회 재시도·`DEAD` | 메트릭·경보·수동 재처리 절차와 장애 주입 테스트 구현됨 | 운영 승인 흐름과 재처리 이력 저장 자동화 검토 |
 | Worker `jobId` Inbox 멱등 처리 | 구현됨 | 공유 DB 전환 전에는 단일 Worker 운영 제약 명시 |
-| 같은 `jobId`의 요청 내용 비교 | 미구현 | 정규화한 payload hash 저장 및 불일치 DLT 처리 |
+| 같은 `jobId`의 요청 내용 비교 | Kafka key와 직렬화 payload 일치 검증 및 불일치 DLT 처리 구현됨 | 메시지 포맷 변경이 잦아지면 정규화한 payload hash 저장 검토 |
 | Worker Retry Topic과 DLT | 공통 정책으로 구현됨 | 단계별 일반·Callback-only·인코딩 정책으로 분리 |
 | 출력 업로드 후 Callback-only 복구 | 구현됨 | 재시도 횟수와 42분 40초 일정을 명시적으로 제한 |
 | Callback 상태 전이 검증 | 구현됨 | 충돌 전용 메트릭과 경보 추가 |
-| Worker stale recovery | 구현됨 | lease heartbeat와 복구 테스트 보강 |
+| Worker stale recovery | 구현 및 lease 만료 복구 통합 테스트 보강됨 | 장시간 작업의 lease heartbeat 검토 |
 | 외부 I/O와 DB 트랜잭션 분리 | 주요 흐름에 구현됨 | 신규 흐름의 코드 리뷰 체크리스트에 포함 |
 | 시간 제한 관계 | API Job timeout 4시간 30분 반영, Worker 일부 불일치 | Kafka `max.poll.interval`을 4시간으로 조정하여 2h < 3h < 4h < 4h30 관계 완성 |
 | 관측성 | API·Worker Prometheus endpoint, correlationId 전파, 구조화 로그, 미디어 메트릭, Prometheus·Grafana와 초기 Alert rule 구현 | 운영 Alertmanager 수신 채널 연결 및 임계값 보정 |
