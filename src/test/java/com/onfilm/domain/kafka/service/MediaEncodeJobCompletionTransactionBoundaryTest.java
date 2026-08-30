@@ -127,14 +127,28 @@ class MediaEncodeJobCompletionTransactionBoundaryTest {
                 MediaEncodeJobRepository jobRepository,
                 StorageKeyPolicy storageKeyPolicy,
                 StorageService storageService,
-                MediaEncodeJobCompletionTransactionService completionTransactionService
+                MediaEncodeJobCompletionTransactionService completionTransactionService,
+                com.onfilm.domain.kafka.metrics.MediaEncodeMetrics metrics
         ) {
             return new MediaEncodeJobInternalService(
                     jobRepository,
                     storageKeyPolicy,
                     storageService,
-                    completionTransactionService
+                    completionTransactionService,
+                    metrics
             );
+        }
+
+        @Bean
+        io.micrometer.core.instrument.MeterRegistry meterRegistry() {
+            return new io.micrometer.core.instrument.simple.SimpleMeterRegistry();
+        }
+
+        @Bean
+        com.onfilm.domain.kafka.metrics.MediaEncodeMetrics mediaEncodeMetrics(
+                io.micrometer.core.instrument.MeterRegistry registry
+        ) {
+            return new com.onfilm.domain.kafka.metrics.MediaEncodeMetrics(registry);
         }
 
         @Bean

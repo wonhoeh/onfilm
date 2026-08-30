@@ -39,10 +39,18 @@ public class MediaEncodeOutboxTransactionService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void markFailed(String outboxId, String error, Instant now) {
-        repository.findById(outboxId).orElseThrow().failed(error, now);
+    public FailedOutbox markFailed(String outboxId, String error, Instant now) {
+        MediaEncodeOutbox outbox = repository.findById(outboxId).orElseThrow();
+        outbox.failed(error, now);
+        return new FailedOutbox(outbox.getStatus(), outbox.getAttempts());
     }
 
     public record ClaimedOutbox(String id, String jobId, String payload) {
+    }
+
+    public record FailedOutbox(MediaEncodeOutboxStatus status, int attempts) {
+        public boolean retryScheduled() {
+            return status == MediaEncodeOutboxStatus.PENDING;
+        }
     }
 }

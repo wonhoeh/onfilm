@@ -14,6 +14,7 @@ import java.util.Optional;
 public interface MediaEncodeJobRepository extends JpaRepository<MediaEncodeJob, String> {
     Optional<MediaEncodeJob> findByRequestId(String requestId);
     Optional<MediaEncodeJob> findByIdAndRequestedByUserId(String id, Long requestedByUserId);
+    long countByStatus(MediaEncodeJobStatus status);
     List<MediaEncodeJob> findTop100ByStatusInAndRequestedAtBefore(
             List<MediaEncodeJobStatus> statuses,
             Instant cutoff

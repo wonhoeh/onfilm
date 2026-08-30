@@ -2,7 +2,10 @@ package com.onfilm.domain.kafka.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onfilm.domain.kafka.message.*;
+import com.onfilm.domain.kafka.entity.MediaEncodeOutboxStatus;
+import com.onfilm.domain.kafka.metrics.MediaEncodeMetrics;
 import com.onfilm.domain.kafka.producer.MediaEncodeJobProducer;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -23,12 +26,14 @@ class MediaEncodeOutboxPublisherTest {
     @Mock MediaEncodeJobProducer producer;
     private final Instant now = Instant.parse("2026-01-01T00:00:00Z");
     private MediaEncodeOutboxPublisher publisher;
+    private SimpleMeterRegistry meterRegistry;
 
     @BeforeEach
     void setUp() {
+        meterRegistry = new SimpleMeterRegistry();
         publisher = new MediaEncodeOutboxPublisher(
                 transactionService, producer, new ObjectMapper().findAndRegisterModules(),
-                Clock.fixed(now, ZoneOffset.UTC));
+                Clock.fixed(now, ZoneOffset.UTC), new MediaEncodeMetrics(meterRegistry));
     }
 
     @Test
@@ -48,6 +53,8 @@ class MediaEncodeOutboxPublisherTest {
 
         verify(transactionService).markPublished("outbox", now);
         verify(transactionService, never()).markFailed(any(), any(), any());
+        assertThat(meterRegistry.counter(
+                "media.encode.outbox.publish", "result", "success").count()).isEqualTo(1);
     }
 
     @Test
@@ -58,11 +65,18 @@ class MediaEncodeOutboxPublisherTest {
                 new MediaEncodeOutboxTransactionService.ClaimedOutbox("outbox", message.jobId(), payload)));
         given(producer.send(message)).willReturn(
                 CompletableFuture.failedFuture(new IllegalStateException("kafka unavailable")));
+        given(transactionService.markFailed(eq("outbox"), any(), eq(now))).willReturn(
+                new MediaEncodeOutboxTransactionService.FailedOutbox(
+                        MediaEncodeOutboxStatus.PENDING, 1));
 
         publisher.publishPending();
 
         verify(transactionService).markFailed(eq("outbox"), contains("kafka unavailable"), eq(now));
         verify(transactionService, never()).markPublished(any(), any());
+        assertThat(meterRegistry.counter(
+                "media.encode.outbox.publish", "result", "failure").count()).isEqualTo(1);
+        assertThat(meterRegistry.counter(
+                "media.encode.outbox.failure", "result", "retry_scheduled").count()).isEqualTo(1);
     }
 
     private MediaEncodeRequestedMessage message() {

@@ -4,6 +4,7 @@ import com.onfilm.domain.common.error.exception.MediaSourceFileNotFoundException
 import com.onfilm.domain.file.service.StorageKeyPolicy;
 import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.kafka.message.*;
+import com.onfilm.domain.kafka.metrics.MediaEncodeMetrics;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ public class MediaEncodeJobCommandService {
     private final StorageService storageService;
     private final StorageKeyPolicy storageKeyPolicy;
     private final Clock clock;
+    private final MediaEncodeMetrics metrics;
 
     public String requestMovieEncoding(String requestId, Long movieId, Long userId,
                                        String sourceBucket, String sourceKey,
@@ -67,6 +69,11 @@ public class MediaEncodeJobCommandService {
         if (!storageService.exists(sourceKey)) {
             throw new MediaSourceFileNotFoundException();
         }
-        return transactionService.createJob(request, now);
+        MediaEncodeJobTransactionService.JobCreationResult result =
+                transactionService.createJob(request, now);
+        if (result.created()) {
+            metrics.recordJobCreated(jobType);
+        }
+        return result.jobId();
     }
 }

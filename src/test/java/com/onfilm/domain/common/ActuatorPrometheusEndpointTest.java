@@ -45,6 +45,8 @@ class ActuatorPrometheusEndpointTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_PLAIN))
                 .andExpect(content().string(containsString("jvm_memory_used_bytes")))
+                .andExpect(content().string(containsString("media_encode_outbox_records")))
+                .andExpect(content().string(containsString("media_encode_job_records")))
                 .andExpect(content().string(containsString("application=\"onfilm-api\"")))
                 .andExpect(content().string(containsString("environment=\"test\"")));
     }

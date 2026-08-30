@@ -10,7 +10,9 @@ import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.kafka.entity.*;
 import com.onfilm.domain.kafka.message.EncodeJobType;
 import com.onfilm.domain.kafka.message.MediaEncodeRequestedMessage;
+import com.onfilm.domain.kafka.metrics.MediaEncodeMetrics;
 import com.onfilm.domain.kafka.repository.*;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,17 +37,19 @@ class MediaEncodeJobCommandServiceTest {
     @Mock StorageKeyPolicy storageKeyPolicy;
     private MediaEncodeJobCommandService service;
     private MediaEncodeJobTransactionService transactionService;
+    private SimpleMeterRegistry meterRegistry;
     private final Instant now = Instant.parse("2026-01-01T00:00:00Z");
 
     @BeforeEach
     void setUp() {
+        meterRegistry = new SimpleMeterRegistry();
         transactionService = new MediaEncodeJobTransactionService(
                 jobRepository, uploadRepository, outboxRepository,
                 new ObjectMapper().findAndRegisterModules()
         );
         service = new MediaEncodeJobCommandService(
                 transactionService, storageService, storageKeyPolicy,
-                Clock.fixed(now, ZoneOffset.UTC)
+                Clock.fixed(now, ZoneOffset.UTC), new MediaEncodeMetrics(meterRegistry)
         );
     }
 
@@ -73,6 +77,8 @@ class MediaEncodeJobCommandServiceTest {
         boundary.verify(uploadRepository).findById(requestId);
         boundary.verify(storageService).exists(source);
         boundary.verify(uploadRepository).findByIdForUpdate(requestId);
+        assertThat(meterRegistry.counter(
+                "media.encode.job.created", "type", "movie").count()).isEqualTo(1);
     }
 
     @Test

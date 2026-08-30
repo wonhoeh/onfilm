@@ -50,14 +50,14 @@ public class MediaEncodeJobTransactionService {
     }
 
     @Transactional
-    public String createJob(JobRequest request, Instant now) {
+    public JobCreationResult createJob(JobRequest request, Instant now) {
         MediaUploadRequest upload = uploadRequestRepository.findByIdForUpdate(request.requestId())
                 .orElseThrow(() -> new MediaUploadRequestNotFoundException(request.requestId()));
         validateCompletion(upload, request, now);
 
         Optional<String> existingJobId = findExistingJob(upload);
         if (existingJobId.isPresent()) {
-            return existingJobId.get();
+            return new JobCreationResult(existingJobId.get(), false);
         }
         validateSourceBucket(upload, request);
 
@@ -92,7 +92,7 @@ public class MediaEncodeJobTransactionService {
                     kv("movieId", request.movieId()),
                     kv("jobType", request.jobType()),
                     kv("status", job.getStatus()));
-            return jobId;
+            return new JobCreationResult(jobId, true);
         }
     }
 
@@ -150,5 +150,8 @@ public class MediaEncodeJobTransactionService {
             String sourceContentType,
             String targetContentType
     ) {
+    }
+
+    public record JobCreationResult(String jobId, boolean created) {
     }
 }

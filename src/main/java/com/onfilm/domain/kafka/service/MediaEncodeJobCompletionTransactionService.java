@@ -33,17 +33,18 @@ public class MediaEncodeJobCompletionTransactionService {
                 job.getMovieId(),
                 job.getJobType(),
                 output.key(),
+                job.getRequestedAt(),
                 job.getStatus() == MediaEncodeJobStatus.DONE
         );
     }
 
     @Transactional
-    public void complete(String jobId, MediaEncodeCompletionRequest request) {
+    public boolean complete(String jobId, MediaEncodeCompletionRequest request) {
         MediaEncodeJob job = findJob(jobId);
         CompletionOutput output = validateOutput(job, request);
         validateCompletable(job);
         if (job.getStatus() == MediaEncodeJobStatus.DONE) {
-            return;
+            return false;
         }
 
         Movie movie = movieRepository.findById(job.getMovieId())
@@ -51,6 +52,7 @@ public class MediaEncodeJobCompletionTransactionService {
         applyOutput(movie, job.getJobType(), output.key());
         job.markDone(request.completedAt());
         jobRepository.saveAndFlush(job);
+        return true;
     }
 
     private MediaEncodeJob findJob(String jobId) {
@@ -97,6 +99,7 @@ public class MediaEncodeJobCompletionTransactionService {
             Long movieId,
             EncodeJobType jobType,
             String outputKey,
+            java.time.Instant requestedAt,
             boolean alreadyCompleted
     ) {
     }

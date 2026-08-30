@@ -28,6 +28,11 @@ public interface MediaEncodeOutboxRepository extends JpaRepository<MediaEncodeOu
 
     Optional<MediaEncodeOutbox> findByJobId(String jobId);
 
+    long countByStatus(MediaEncodeOutboxStatus status);
+
+    @Query("select min(o.createdAt) from MediaEncodeOutbox o where o.status = :status")
+    Optional<Instant> findOldestCreatedAtByStatus(@Param("status") MediaEncodeOutboxStatus status);
+
     @Modifying
     @Query("delete from MediaEncodeOutbox o where o.status = :status and o.publishedAt < :cutoff")
     int deletePublishedBefore(@Param("status") MediaEncodeOutboxStatus status, @Param("cutoff") Instant cutoff);

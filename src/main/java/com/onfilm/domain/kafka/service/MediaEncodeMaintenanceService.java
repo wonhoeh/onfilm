@@ -4,6 +4,7 @@ import com.onfilm.domain.kafka.entity.MediaEncodeJob;
 import com.onfilm.domain.kafka.entity.MediaEncodeJobStatus;
 import com.onfilm.domain.kafka.entity.MediaEncodeOutboxStatus;
 import com.onfilm.domain.kafka.entity.MediaUploadRequestStatus;
+import com.onfilm.domain.kafka.metrics.MediaEncodeMetrics;
 import com.onfilm.domain.kafka.repository.MediaEncodeJobRepository;
 import com.onfilm.domain.kafka.repository.MediaEncodeOutboxRepository;
 import com.onfilm.domain.kafka.repository.MediaUploadRequestRepository;
@@ -27,6 +28,7 @@ public class MediaEncodeMaintenanceService {
     private final MediaEncodeOutboxRepository outboxRepository;
     private final MediaUploadRequestRepository uploadRequestRepository;
     private final Clock clock;
+    private final MediaEncodeMetrics metrics;
 
     @Value("${media-encode.job-timeout:PT4H30M}")
     private Duration jobTimeout;
@@ -45,7 +47,13 @@ public class MediaEncodeMaintenanceService {
                 List.of(MediaEncodeJobStatus.REQUESTED, MediaEncodeJobStatus.PROCESSING),
                 now.minus(requirePositive(jobTimeout, "job timeout"))
         );
-        jobs.forEach(job -> job.markTimedOut(now));
+        jobs.forEach(job -> {
+            job.markTimedOut(now);
+            metrics.recordJobTimeout(
+                    job.getJobType(),
+                    Duration.between(job.getRequestedAt(), now)
+            );
+        });
         if (!jobs.isEmpty()) log.warn("Marked {} media encode jobs as timed out", jobs.size());
         return jobs.size();
     }

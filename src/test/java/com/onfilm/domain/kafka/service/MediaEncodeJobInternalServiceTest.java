@@ -11,6 +11,7 @@ import com.onfilm.domain.kafka.entity.MediaEncodeJob;
 import com.onfilm.domain.kafka.entity.MediaEncodeJobStatus;
 import com.onfilm.domain.kafka.message.EncodeJobPreset;
 import com.onfilm.domain.kafka.message.EncodeJobType;
+import com.onfilm.domain.kafka.metrics.MediaEncodeMetrics;
 import com.onfilm.domain.kafka.repository.MediaEncodeJobRepository;
 import com.onfilm.domain.movie.entity.AgeRating;
 import com.onfilm.domain.movie.entity.Movie;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -36,9 +38,11 @@ class MediaEncodeJobInternalServiceTest {
     @Mock StorageKeyPolicy storageKeyPolicy;
     @Mock StorageService storageService;
     private MediaEncodeJobInternalService service;
+    private SimpleMeterRegistry meterRegistry;
 
     @BeforeEach
     void setUp() {
+        meterRegistry = new SimpleMeterRegistry();
         MediaEncodeJobCompletionTransactionService completionTransactionService =
                 new MediaEncodeJobCompletionTransactionService(
                         jobRepository,
@@ -48,7 +52,8 @@ class MediaEncodeJobInternalServiceTest {
                 jobRepository,
                 storageKeyPolicy,
                 storageService,
-                completionTransactionService
+                completionTransactionService,
+                new MediaEncodeMetrics(meterRegistry)
         );
     }
 
@@ -70,6 +75,15 @@ class MediaEncodeJobInternalServiceTest {
         assertThat(job.getStatus()).isEqualTo(MediaEncodeJobStatus.DONE);
         assertThat(movie.getTrailers()).extracting(trailer -> trailer.getStorageKey()).containsExactly(target);
         verify(jobRepository).saveAndFlush(job);
+        assertThat(meterRegistry.counter(
+                "media.encode.callback", "type", "complete", "result", "applied").count())
+                .isEqualTo(1);
+        assertThat(meterRegistry.counter(
+                "media.encode.callback", "type", "complete", "result", "duplicate").count())
+                .isEqualTo(1);
+        assertThat(meterRegistry.counter(
+                "media.encode.job.terminal", "type", "trailer", "result", "success").count())
+                .isEqualTo(1);
     }
 
     @Test
@@ -101,6 +115,9 @@ class MediaEncodeJobInternalServiceTest {
                 .isInstanceOfSatisfying(InvalidMediaJobStatusTransitionException.class, exception ->
                         assertThat(exception.getErrorCode())
                                 .isEqualTo(ErrorCode.INVALID_MEDIA_JOB_STATUS_TRANSITION));
+        assertThat(meterRegistry.counter(
+                "media.encode.callback", "type", "complete", "result", "conflict").count())
+                .isEqualTo(1);
     }
 
     @Test

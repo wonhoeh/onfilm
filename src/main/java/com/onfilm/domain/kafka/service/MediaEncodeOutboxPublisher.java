@@ -2,6 +2,7 @@ package com.onfilm.domain.kafka.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onfilm.domain.common.logging.CorrelationIdContext;
+import com.onfilm.domain.kafka.metrics.MediaEncodeMetrics;
 import com.onfilm.domain.kafka.message.MediaEncodeRequestedMessage;
 import com.onfilm.domain.kafka.producer.MediaEncodeJobProducer;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class MediaEncodeOutboxPublisher {
     private final MediaEncodeJobProducer producer;
     private final ObjectMapper objectMapper;
     private final Clock clock;
+    private final MediaEncodeMetrics metrics;
 
     @Scheduled(fixedDelayString = "${media-encode.outbox-poll-delay:1000}")
     public void publishPending() {
@@ -58,6 +60,7 @@ public class MediaEncodeOutboxPublisher {
                 }
                 producer.send(message).get(30, TimeUnit.SECONDS);
                 transactionService.markPublished(outbox.id(), clock.instant());
+                metrics.recordOutboxPublished();
                 log.info("Media encode outbox published. {} {} {}",
                         kv("eventType", "MEDIA_ENCODE_OUTBOX_PUBLISHED"),
                         kv("outboxId", outbox.id()),
@@ -73,7 +76,9 @@ public class MediaEncodeOutboxPublisher {
             Exception exception
     ) {
         String message = rootMessage(exception);
-        transactionService.markFailed(outbox.id(), message, clock.instant());
+        MediaEncodeOutboxTransactionService.FailedOutbox failed =
+                transactionService.markFailed(outbox.id(), message, clock.instant());
+        metrics.recordOutboxPublishFailed(failed.retryScheduled());
         log.error("Media encode outbox publish failed. {} {}",
                 kv("eventType", "MEDIA_ENCODE_OUTBOX_PUBLISH_FAILED"),
                 kv("outboxId", outbox.id()),
