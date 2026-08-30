@@ -18,6 +18,7 @@
 | 2026-08-24 | [서비스 책임을 Command와 Query로 분리](07-service-command-query-separation.md) | 책임 분리, 소유권 검증, 미디어 워크플로 | `e1f3df3` |
 | 2026-08-25 | [도메인 예외와 API 오류 응답 표준화](08-domain-exception-and-api-error-standardization.md) | DomainException, ErrorCode, 공통 오류 응답, 보안·Callback 필터 | `b6044cc`~`2e8f23a` |
 | 2026-08-25 | [DB 트랜잭션과 외부 I/O 경계 분리](09-transaction-boundary-and-external-io.md) | 외부 I/O 분리, 잠금 최소화, 재검증, 보상 삭제, BCrypt | `0a5e93a`~`5808bdb` |
+| 2026-08-30~31 | [미디어 파이프라인의 장애 대응과 관측성 구축](10-media-failure-observability-and-runbook.md) | 실패 분류, correlationId, 메트릭, Prometheus·Grafana, Alert, 장애 주입, Runbook | API `1959c0f`~`1084835`, Worker `f8504b6`~`2d32e35` |
 
 ## 포트폴리오 작성 시 사용법
 
