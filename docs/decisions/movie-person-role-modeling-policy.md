@@ -208,3 +208,4 @@ MySQL 종속적인 인덱스로 중복만 막을 뿐 참여 정보와 역할 정
 - Testcontainers MySQL에서 Nullable·Unique·Check Constraint와 동시 등록 경쟁 조건을 검증한다.
 - 필모그래피 조회 SQL을 기준으로 `movie_person(person_id, sort_order, id)` 및 역할 조회 인덱스를 EXPLAIN 후 결정한다.
 - 한 배우가 같은 작품에서 복수 배역을 맡는 요구가 생기면 `ACTOR` 역할 아래 별도 배역 엔티티를 두는 방안을 검토한다.
+- 영상 이용 권한은 MVP 동안 수동으로 확인하고, 공개 서비스 전환 시 [Movie 영상 이용 권한 MVP 정책](movie-media-rights-mvp-policy.md)에 따라 전자서명과 권리 상태 모델을 검토한다.

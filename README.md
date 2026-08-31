@@ -209,6 +209,7 @@ Movie와 Person의 관계에는 정렬 순서와 공개 범위가 필요하므�
 - [Refresh Token 재사용 대응 정책](docs/decisions/refresh-token-reuse-policy.md)
 - [Trailer storage key 정책](docs/decisions/trailer-storage-key-policy.md)
 - [Movie 참여·복수 역할 모델링 정책](docs/decisions/movie-person-role-modeling-policy.md)
+- [Movie 영상 이용 권한 MVP 정책](docs/decisions/movie-media-rights-mvp-policy.md)
 
 ### 개발 컨벤션
 
