@@ -8,6 +8,8 @@ plugins {
 group = 'toyproject'
 version = '0.0.1-SNAPSHOT'
 
+ext['testcontainers.version'] = '1.21.4'
+
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(17)
@@ -66,6 +68,7 @@ dependencies {
         annotationProcessor 'org.projectlombok:lombok'
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
         testImplementation 'org.springframework.kafka:spring-kafka-test'
+        testImplementation 'org.testcontainers:mysql'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
         //testCode slf4j 사용
         testCompileOnly 'org.projectlombok:lombok'
@@ -80,11 +83,12 @@ tasks.named('test') {
 }
 
 tasks.register('integrationTest', Test) {
-	description = 'Runs failure-injection integration tests.'
+	description = 'Runs MySQL and failure-injection integration tests.'
 	group = 'verification'
 	testClassesDirs = sourceSets.integrationTest.output.classesDirs
 	classpath = sourceSets.integrationTest.runtimeClasspath
 	useJUnitPlatform()
+	maxParallelForks = 1
 	shouldRunAfter tasks.named('test')
 }
 

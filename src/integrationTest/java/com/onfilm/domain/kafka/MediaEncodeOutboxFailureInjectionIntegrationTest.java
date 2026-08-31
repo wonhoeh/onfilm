@@ -8,9 +8,11 @@ import com.onfilm.domain.kafka.message.EncodeJobType;
 import com.onfilm.domain.kafka.repository.MediaEncodeJobRepository;
 import com.onfilm.domain.kafka.repository.MediaEncodeOutboxRepository;
 import com.onfilm.domain.kafka.service.MediaEncodeOutboxTransactionService;
+import com.onfilm.support.MySqlContainerSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -25,9 +27,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest(properties = "spring.sql.init.mode=never")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(MediaEncodeOutboxTransactionService.class)
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-class MediaEncodeOutboxFailureInjectionIntegrationTest {
+class MediaEncodeOutboxFailureInjectionIntegrationTest extends MySqlContainerSupport {
 
     private static final Instant NOW = Instant.parse("2026-08-31T00:00:00Z");
 

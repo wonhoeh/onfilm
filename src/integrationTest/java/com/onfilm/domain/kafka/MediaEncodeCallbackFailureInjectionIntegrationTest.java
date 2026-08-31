@@ -11,9 +11,11 @@ import com.onfilm.domain.kafka.service.MediaEncodeJobCompletionTransactionServic
 import com.onfilm.domain.movie.entity.AgeRating;
 import com.onfilm.domain.movie.entity.Movie;
 import com.onfilm.domain.movie.repository.MovieRepository;
+import com.onfilm.support.MySqlContainerSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -28,9 +30,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest(properties = "spring.sql.init.mode=never")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(MediaEncodeJobCompletionTransactionService.class)
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-class MediaEncodeCallbackFailureInjectionIntegrationTest {
+class MediaEncodeCallbackFailureInjectionIntegrationTest extends MySqlContainerSupport {
 
     private static final Instant REQUESTED_AT = Instant.parse("2026-08-31T00:00:00Z");
 
