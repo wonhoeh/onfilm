@@ -4,18 +4,28 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
         uniqueConstraints = @UniqueConstraint(
-                name="uk_movie_person",
-                columnNames={"movie_id","person_id","role","cast_type","character_name"}
-        ))
+                name = "uk_movie_person_movie_id_person_id",
+                columnNames = {"movie_id", "person_id"}
+        )
+)
 public class MoviePerson {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -26,17 +36,10 @@ public class MoviePerson {
     @JoinColumn(name = "person_id", nullable = false)
     private Person person;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
-    private PersonRole role;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "cast_type")
-    private CastType castType;
-
-    // 배우일 때만 사용하는 필드 (감독/작가는 null)
-    @Column(name = "character_name")
-    private String characterName;
+    @OneToMany(mappedBy = "moviePerson", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderColumn(name = "sort_order")
+    @BatchSize(size = 100)
+    private List<MoviePersonRole> roles = new ArrayList<>();
 
     // 해당 인물의 필모그래피 표시 순서
     @Column(name = "sort_order", nullable = false)
@@ -46,23 +49,13 @@ public class MoviePerson {
     @Column(name = "is_private", nullable = false)
     private boolean isPrivate = false;
 
-    private MoviePerson(
-            Person person,
-            PersonRole role,
-            CastType castType,
-            String characterName) {
-
+    private MoviePerson(Person person, List<RoleRegistration> roleRegistrations) {
         this.person = require(person, "person");
-        applyRole(role, castType, characterName);
+        replaceRoles(roleRegistrations);
     }
 
-    static MoviePerson create(
-            Person person,
-            PersonRole role,
-            CastType castType,
-            String characterName) {
-
-        return new MoviePerson(person, role, castType, characterName);
+    static MoviePerson create(Person person, List<RoleRegistration> roleRegistrations) {
+        return new MoviePerson(person, roleRegistrations);
     }
 
     void attachMovie(Movie movie) {
@@ -79,12 +72,67 @@ public class MoviePerson {
         }
     }
 
-    public void changeRole(
+    public MoviePersonRole addRole(
             PersonRole role,
             CastType castType,
             String characterName
     ) {
-        applyRole(role, castType, characterName);
+        MoviePersonRole moviePersonRole = MoviePersonRole.create(role, castType, characterName);
+        addRole(moviePersonRole);
+        return moviePersonRole;
+    }
+
+    void addRole(MoviePersonRole moviePersonRole) {
+        MoviePersonRole requiredRole = require(moviePersonRole, "moviePersonRole");
+        if (hasRole(requiredRole.getRole())) {
+            throw new IllegalArgumentException("duplicate movie person role");
+        }
+
+        requiredRole.attachMoviePerson(this);
+        roles.add(requiredRole);
+    }
+
+    public void removeRole(MoviePersonRole moviePersonRole) {
+        MoviePersonRole requiredRole = require(moviePersonRole, "moviePersonRole");
+        if (!roles.contains(requiredRole)) {
+            throw new IllegalArgumentException("role does not belong to moviePerson");
+        }
+        if (roles.size() == 1) {
+            throw new IllegalStateException("moviePerson must have at least one role");
+        }
+
+        roles.remove(requiredRole);
+        requiredRole.detachMoviePerson(this);
+    }
+
+    public void replaceRoles(List<RoleRegistration> roleRegistrations) {
+        List<MoviePersonRole> replacements = createRoleReplacements(roleRegistrations);
+        Map<PersonRole, MoviePersonRole> existingByRole = new EnumMap<>(PersonRole.class);
+        for (MoviePersonRole existing : roles) {
+            existingByRole.put(existing.getRole(), existing);
+        }
+
+        List<MoviePersonRole> reordered = new ArrayList<>(replacements.size());
+        for (MoviePersonRole replacement : replacements) {
+            MoviePersonRole existing = existingByRole.remove(replacement.getRole());
+            if (existing != null) {
+                existing.changeDetails(replacement.getCastType(), replacement.getCharacterName());
+                reordered.add(existing);
+                continue;
+            }
+
+            replacement.attachMoviePerson(this);
+            reordered.add(replacement);
+        }
+
+        existingByRole.values().forEach(existing -> existing.detachMoviePerson(this));
+        roles.clear();
+        roles.addAll(reordered);
+    }
+
+    public boolean hasRole(PersonRole role) {
+        PersonRole requiredRole = require(role, "role");
+        return roles.stream().anyMatch(existing -> existing.getRole() == requiredRole);
     }
 
     public void changeSortOrder(int sortOrder) {
@@ -98,18 +146,31 @@ public class MoviePerson {
         this.isPrivate = isPrivate;
     }
 
-    private void applyRole(PersonRole role, CastType castType, String characterName) {
-        PersonRole requiredRole = require(role, "role");
-        this.role = requiredRole;
+    public List<MoviePersonRole> getRoles() {
+        return Collections.unmodifiableList(roles);
+    }
 
-        if (requiredRole == PersonRole.ACTOR) {
-            this.castType = require(castType, "castType");
-            this.characterName = normalizeCharacterName(characterName);
-            return;
+    private static List<MoviePersonRole> createRoleReplacements(
+            List<RoleRegistration> roleRegistrations
+    ) {
+        List<RoleRegistration> requiredRegistrations = require(roleRegistrations, "roles");
+        if (requiredRegistrations.isEmpty()) {
+            throw new IllegalArgumentException("at least one role is required");
         }
 
-        this.castType = null;
-        this.characterName = null;
+        Map<PersonRole, MoviePersonRole> uniqueRoles = new LinkedHashMap<>();
+        for (RoleRegistration registration : requiredRegistrations) {
+            RoleRegistration requiredRegistration = require(registration, "roleRegistration");
+            MoviePersonRole role = MoviePersonRole.create(
+                    requiredRegistration.role(),
+                    requiredRegistration.castType(),
+                    requiredRegistration.characterName()
+            );
+            if (uniqueRoles.putIfAbsent(role.getRole(), role) != null) {
+                throw new IllegalArgumentException("duplicate movie person role");
+            }
+        }
+        return List.copyOf(uniqueRoles.values());
     }
 
     private static <T> T require(T value, String fieldName) {
@@ -119,12 +180,10 @@ public class MoviePerson {
         return value;
     }
 
-    private static String normalizeCharacterName(String characterName) {
-        if (characterName == null) {
-            return null;
-        }
-
-        String trimmed = characterName.trim();
-        return trimmed.isEmpty() ? null : trimmed;
+    public record RoleRegistration(
+            PersonRole role,
+            CastType castType,
+            String characterName
+    ) {
     }
 }

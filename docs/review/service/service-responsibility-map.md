@@ -49,8 +49,8 @@
 | [`PersonQueryService`](../../../src/main/java/com/onfilm/domain/movie/service/PersonQueryService.java) | Person 공개 프로필과 공개 파일 위치 조회 | 조회 결과를 DTO 또는 공개 URL로 변환한다. Person 상태를 변경하지 않는다. |
 | [`GalleryCommandService`](../../../src/main/java/com/onfilm/domain/movie/service/GalleryCommandService.java) | Gallery 항목·순서·공개 범위 변경 | Person의 Gallery 상태를 변경하고 제거 파일의 커밋 후 삭제를 예약한다. 신규 파일 저장은 `PersonMediaService` 책임이다. |
 | [`GalleryQueryService`](../../../src/main/java/com/onfilm/domain/movie/service/GalleryQueryService.java) | 소유자 여부와 공개 정책을 적용한 Gallery 조회 | 비공개 Gallery와 항목을 필터링하고 storage key를 공개 URL로 변환한다. |
-| [`FilmographyCommandService`](../../../src/main/java/com/onfilm/domain/movie/service/FilmographyCommandService.java) | Person의 Filmography 구성 전체와 공개 범위 변경 | Movie·MoviePerson·Genre 관계를 생성·재사용·제거·정렬한다. 카드 조회와 영상 파일 처리는 하지 않는다. |
-| [`FilmographyQueryService`](../../../src/main/java/com/onfilm/domain/movie/service/FilmographyQueryService.java) | 공개 정책이 적용된 Filmography 카드 조회 | MoviePerson·Genre·Trailer를 일괄 조회해 응답을 조립한다. Filmography 상태는 변경하지 않는다. |
+| [`FilmographyCommandService`](../../../src/main/java/com/onfilm/domain/movie/service/FilmographyCommandService.java) | Person의 Filmography 구성 전체와 공개 범위 변경 | Movie·MoviePerson·MoviePersonRole·Genre 관계를 생성·재사용·제거·정렬한다. 카드 조회와 영상 파일 처리는 하지 않는다. |
+| [`FilmographyQueryService`](../../../src/main/java/com/onfilm/domain/movie/service/FilmographyQueryService.java) | 공개 정책이 적용된 Filmography 카드 조회 | MoviePerson과 복수 역할·Genre·Trailer를 일괄 조회해 응답을 조립한다. Filmography 상태는 변경하지 않는다. |
 | [`StoryboardCommandService`](../../../src/main/java/com/onfilm/domain/movie/service/StoryboardCommandService.java) | Storyboard Project·Scene·Card 생명주기와 순서 변경 | 소유권과 image key를 검증하고 삭제 대상 파일을 커밋 후 삭제로 예약한다. 이미지 업로드 자체는 하지 않는다. |
 | [`StoryboardQueryService`](../../../src/main/java/com/onfilm/domain/movie/service/StoryboardQueryService.java) | 소유자의 Storyboard 목록·상세 조회와 응답 조립 | Project preview와 Scene·Card 응답을 만든다. Storyboard 상태 변경은 하지 않는다. |
 
@@ -58,7 +58,7 @@
 
 | Service | 하나의 책임 | 경계와 제외 대상 |
 | --- | --- | --- |
-| [`MovieCommandService`](../../../src/main/java/com/onfilm/domain/movie/service/MovieCommandService.java) | 현재 Person의 Movie와 참여 관계 생성 | Movie·MoviePerson·MovieGenre의 초기 상태와 정렬 순서를 한 트랜잭션에서 만든다. 기존 Filmography 전체 교체는 담당하지 않는다. |
+| [`MovieCommandService`](../../../src/main/java/com/onfilm/domain/movie/service/MovieCommandService.java) | 현재 Person의 Movie와 참여 관계 생성 | Movie·MoviePerson·MoviePersonRole·MovieGenre의 초기 상태와 정렬 순서를 한 트랜잭션에서 만든다. 기존 Filmography 전체 교체는 담당하지 않는다. |
 | [`PersonMediaService`](../../../src/main/java/com/onfilm/domain/movie/service/PersonMediaService.java) | Person 소유 파일의 저장·공개 URL 변환·실패 보상 조정 | 스토리지 I/O를 DB 트랜잭션 밖에서 수행하고 최종 DB 변경은 `PersonMediaTransactionService`에 위임한다. |
 | [`PersonMediaTransactionService`](../../../src/main/java/com/onfilm/domain/movie/service/PersonMediaTransactionService.java) | Person 미디어 참조를 짧은 DB 트랜잭션에서 변경 | 최종 소유권을 다시 확인하고 기존 key의 커밋 후 삭제를 예약한다. 파일 저장·삭제 API를 직접 호출하지 않는다. |
 | [`MovieMediaService`](../../../src/main/java/com/onfilm/domain/movie/service/MovieMediaService.java) | Movie 파일의 인코딩·저장·실패 보상 조정 | ffmpeg와 스토리지 I/O를 트랜잭션 밖에서 실행한다. Movie 상태 반영은 `MovieMediaTransactionService`에 위임한다. |

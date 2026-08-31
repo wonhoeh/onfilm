@@ -325,6 +325,26 @@
         }
     }
 
+    function roleToKorean(role) {
+        switch ((role || "").toUpperCase()) {
+            case "ACTOR": return "배우";
+            case "DIRECTOR": return "감독";
+            case "WRITER": return "작가";
+            default: return "";
+        }
+    }
+
+    function roleDescription(role) {
+        const roleName = roleToKorean(role?.role);
+        if ((role?.role || "").toUpperCase() !== "ACTOR") return roleName;
+
+        const actorDetails = [
+            castTypeToKorean(role?.castType),
+            String(role?.characterName || "").trim()
+        ].filter(Boolean);
+        return actorDetails.length ? `${roleName}(${actorDetails.join(" · ")})` : roleName;
+    }
+
     function createFilmCard(item) {
         const article = document.createElement("article");
         article.className = "film-card";
@@ -343,13 +363,11 @@
         const movie = toPublicMediaUrl(item?.movieUrl || "");
 
         const releaseYear = (item?.releaseYear != null) ? String(item.releaseYear) : "";
-        const castLabel = castTypeToKorean(item?.castType);
-        const roleName = (item?.characterName || item?.roleName || item?.role || "").trim();
+        const roleLabels = Array.isArray(item?.roles)
+            ? item.roles.map(roleDescription).filter(Boolean)
+            : [];
 
-        let metaText = "";
-        if (releaseYear) metaText = releaseYear;
-        if (castLabel) metaText = metaText ? `${metaText} · ${castLabel}` : castLabel;
-        if (roleName) metaText = metaText ? `${metaText} · ${roleName}` : roleName;
+        const metaText = [releaseYear, ...roleLabels].filter(Boolean).join(" · ");
 
         article.dataset.title = title;
         article.dataset.genre = genre;

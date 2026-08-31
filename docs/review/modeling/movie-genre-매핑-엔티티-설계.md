@@ -127,7 +127,8 @@ public class Genre {
 
 | 매핑 엔티티 | 관계에 붙는 속성 | 도메인 의도 |
 |---|---|---|
-| `MoviePerson` | `role`, `castType`, `characterName`, `sortOrder`, `isPrivate` | "내 프로필에서 이 영화를 어떤 역할·순서로 보여줄지" |
+| `MoviePerson` | `sortOrder`, `isPrivate`, `MoviePersonRole` 목록 | "내 프로필에서 이 영화를 어떤 역할·순서로 보여줄지" |
+| `MoviePersonRole` | `role`, `castType`, `characterName` | "이 작품에서 맡은 하나의 역할과 배우 상세 정보" |
 | `MovieGenre` | `rawText`, `normalizedText`, `genre`(nullable) | "사용자가 적은 장르 표현 + 표준 매칭 결과" |
 
 > 공통 원칙: **관계 자체에 속성이 붙거나 도메인 의미가 있으면, 단순 `@ManyToMany`가 아니라 매핑 엔티티로 풀어 관계를 1급 도메인으로 다룬다.**

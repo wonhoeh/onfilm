@@ -80,7 +80,11 @@ public class FilmographyCommandService {
         movie.changeBasicInfo(item.title(), item.runtime(), item.releaseYear(), item.ageRating());
         movie.clearGenres();
         movieGenreNormalizer.attachGenre(movie, item.genres());
-        moviePerson.changeRole(item.role(), item.castType(), item.characterName());
+        moviePerson.replaceRoles(
+                item.roles().stream()
+                        .map(role -> role.toRegistration())
+                        .toList()
+        );
         moviePerson.changeSortOrder(sortOrder);
         moviePerson.changePrivacy(item.isPrivate());
     }
@@ -94,7 +98,10 @@ public class FilmographyCommandService {
                 item.title(), item.runtime(), item.releaseYear(), "pending", null, item.ageRating()
         );
         MoviePerson moviePerson = movie.addMoviePerson(
-                person, item.role(), item.castType(), item.characterName()
+                person,
+                item.roles().stream()
+                        .map(role -> role.toRegistration())
+                        .toList()
         );
         moviePerson.changeSortOrder(sortOrder);
         moviePerson.changePrivacy(item.isPrivate());

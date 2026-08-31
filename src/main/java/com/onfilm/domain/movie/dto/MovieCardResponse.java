@@ -1,9 +1,6 @@
 package com.onfilm.domain.movie.dto;
 
 import com.onfilm.domain.movie.entity.AgeRating;
-import com.onfilm.domain.movie.entity.CastType;
-import com.onfilm.domain.movie.entity.PersonRole;
-
 import java.util.List;
 
 public record MovieCardResponse(
@@ -17,11 +14,10 @@ public record MovieCardResponse(
         String thumbnailUrl,
         String trailerUrl,
 
-        PersonRole personRole,
-        CastType castType,
-        String characterName,
+        List<MovieRoleResponse> roles,
         boolean isPrivate) {
     public MovieCardResponse {
         genres = List.copyOf(genres);
+        roles = List.copyOf(roles);
     }
 }

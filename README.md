@@ -26,7 +26,7 @@
 |---|---|
 | 인증 | JWT Access Token, DB 기반 Refresh Token Rotation, CSRF 방어, HttpOnly 쿠키 |
 | 프로필 | 배우 기본 정보, 프로필 태그, SNS, 갤러리 순서 및 공개 범위 관리 |
-| 필모그래피 | 참여 영화와 역할·배역·정렬 순서·개별 공개 범위 관리 |
+| 필모그래피 | 참여 영화와 복수 역할·배역·정렬 순서·개별 공개 범위 관리 |
 | 스토리보드 | 프로젝트·Scene·Card 생성, 교체, 삭제와 순서 관리 |
 | 영화 메타데이터 | Movie–Person 참여 관계, 표준·사용자 Genre, Trailer 관리 |
 | 미디어 | S3 presigned URL 업로드, Kafka 비동기 인코딩, HLS 결과 반영 |
@@ -88,7 +88,7 @@ Outbox 전달 보장은 at-least-once입니다. Kafka 발행과 Outbox 상태 �
 
 ### 속성을 가진 관계는 조인 엔티티로 모델링
 
-Movie와 Person의 관계에는 역할, 배역, 정렬 순서와 공개 범위가 필요하므로 `@ManyToMany` 대신 `MoviePerson`을 사용합니다. Movie와 Genre도 표준 Genre 참조와 사용자 입력·정규화 값을 함께 관리하기 위해 `MovieGenre`로 모델링했습니다.
+Movie와 Person의 관계에는 정렬 순서와 공개 범위가 필요하므로 `@ManyToMany` 대신 `MoviePerson`을 사용합니다. 한 사람이 같은 작품에서 배우·감독·작가 역할을 함께 맡을 수 있도록 역할과 배우 상세 정보는 `MoviePersonRole` 자식 엔티티로 분리했습니다. Movie와 Genre도 표준 Genre 참조와 사용자 입력·정규화 값을 함께 관리하기 위해 `MovieGenre`로 모델링했습니다.
 
 ### Aggregate Root가 자식 생명주기 관리
 
@@ -208,6 +208,7 @@ Movie와 Person의 관계에는 역할, 배역, 정렬 순서와 공개 범위�
 - [Transactional Outbox 정책](docs/decisions/media-encode-job-outbox-policy.md)
 - [Refresh Token 재사용 대응 정책](docs/decisions/refresh-token-reuse-policy.md)
 - [Trailer storage key 정책](docs/decisions/trailer-storage-key-policy.md)
+- [Movie 참여·복수 역할 모델링 정책](docs/decisions/movie-person-role-modeling-policy.md)
 
 ### 개발 컨벤션
 

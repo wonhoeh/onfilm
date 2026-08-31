@@ -7,7 +7,7 @@
 주요 참고 구현:
 
 - Aggregate Root: `Person`, `Movie`, `StoryboardProject`, `StoryboardScene`, `User`
-- 자식·연결 엔티티: `PersonSns`, `ProfileTag`, `MoviePerson`, `MovieGenre`, `StoryboardCard`, `Trailer`
+- 자식·연결 엔티티: `PersonSns`, `ProfileTag`, `MoviePerson`, `MoviePersonRole`, `MovieGenre`, `StoryboardCard`, `Trailer`
 - 상태 머신 엔티티: `RefreshToken`, `MediaEncodeJob`, `MediaEncodeOutbox`, `MediaUploadRequest`
 - 트랜잭션 이후 외부 작업: `StorageFilesDeleteEvent`, `StorageFilesDeleteEventListener`
 

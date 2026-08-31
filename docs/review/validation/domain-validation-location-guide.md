@@ -180,7 +180,7 @@ Entity에 둘 규칙은 다음과 같다.
 - 자식 중복, 최대 개수와 순서
 - 재정렬 입력이 기존 자식의 정확한 순열인지
 
-예를 들어 `MoviePerson`에서 ACTOR 역할일 때만 cast type과 character name을 허용하는 규칙은 HTTP 요청 형식이 아니다. 어떤 경로로 MoviePerson을 생성해도 지켜야 하므로 Entity 불변식이다.
+예를 들어 `MoviePersonRole`에서 ACTOR 역할일 때 cast type을 필수로 하고, 감독·작가 역할에는 배우 상세 정보를 허용하지 않는 규칙은 HTTP 요청 형식이 아니다. 어떤 경로로 역할을 생성해도 지켜야 하므로 Entity 불변식이다.
 
 Value Object는 값 자체의 규칙과 정규화가 반복되거나 독립적인 도메인 의미를 가질 때 사용한다.
 
@@ -301,10 +301,11 @@ DTO: requestId·sourceKey·contentType 필수와 길이
 ### MoviePerson 역할과 배역
 
 ```text
-DTO: enum과 요청 필드 기본 형식
-  → Entity: ACTOR일 때 castType·characterName 조건
-  → Aggregate: 같은 Person 참여 중복 방지
-  → DB: Movie·Person 복합 UNIQUE와 FK
+DTO: roles 목록 필수·최대 개수·중복과 역할별 입력 조합
+  → MoviePersonRole: ACTOR일 때 castType 필수, 비배우 역할의 배우 정보 거부
+  → MoviePerson: 역할 최소 1개와 동일 역할 중복 방지
+  → Movie: 같은 Person 참여 중복 방지
+  → DB: Movie·Person 복합 UNIQUE, 참여·역할 복합 UNIQUE와 FK·CHECK
 ```
 
 ## 요청 종류별 주의점

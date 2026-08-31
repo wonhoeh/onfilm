@@ -1,6 +1,7 @@
 package com.onfilm.domain.movie.dto;
 
 import com.onfilm.domain.movie.entity.AgeRating;
+import com.onfilm.domain.movie.entity.CastType;
 import com.onfilm.domain.movie.entity.Movie;
 import com.onfilm.domain.movie.entity.PersonRole;
 import jakarta.validation.Validation;
@@ -22,19 +23,20 @@ class CreateMovieRequestTest {
     @Test
     void rejectsInvalidRequiredFieldsAndRanges() {
         CreateMovieRequest request = new CreateMovieRequest(
-                " ", 0, 1899, " ", null, null, null, null, null, null
+                " ", 0, 1899, " ", null, null, null, null
         );
 
         assertThat(validator.validate(request))
                 .extracting(violation -> violation.getPropertyPath().toString())
-                .contains("title", "runtime", "releaseYear", "movieUrl", "genres", "ageRating", "role");
+                .contains("title", "runtime", "releaseYear", "movieUrl", "genres", "ageRating", "roles");
     }
 
     @Test
     void rejectsTooLongStorageKeyAndInvalidNestedGenre() {
         CreateMovieRequest request = new CreateMovieRequest(
                 "영화", 120, 2020, "a".repeat(Movie.STORAGE_KEY_MAX_LENGTH + 1), null,
-                List.of(new MovieGenreRequest(null, null)), AgeRating.ALL, PersonRole.DIRECTOR, null, null
+                List.of(new MovieGenreRequest(null, null)), AgeRating.ALL,
+                List.of(new MovieRoleRequest(PersonRole.DIRECTOR, null, null))
         );
 
         assertThat(validator.validate(request))
@@ -42,10 +44,30 @@ class CreateMovieRequestTest {
                 .contains("movieUrl", "genres[0].sourceValid");
     }
 
+    @Test
+    void rejectsDuplicateRolesAndInvalidActorDetails() {
+        CreateMovieRequest request = new CreateMovieRequest(
+                "영화", 120, 2020, "movies/1/original.mp4", null, List.of(), AgeRating.ALL,
+                List.of(
+                        new MovieRoleRequest(PersonRole.DIRECTOR, null, null),
+                        new MovieRoleRequest(PersonRole.DIRECTOR, null, null),
+                        new MovieRoleRequest(PersonRole.ACTOR, null, "주인공")
+                )
+        );
+
+        assertThat(validator.validate(request))
+                .extracting(violation -> violation.getPropertyPath().toString())
+                .contains("rolesUnique", "roles[2].roleDetailsValid");
+    }
+
     private static CreateMovieRequest validRequest() {
         return new CreateMovieRequest(
                 "영화", 120, 2020, "movies/1/original.mp4", null,
-                List.of(), AgeRating.ALL, PersonRole.DIRECTOR, null, null
+                List.of(), AgeRating.ALL,
+                List.of(
+                        new MovieRoleRequest(PersonRole.ACTOR, CastType.LEAD, "주인공"),
+                        new MovieRoleRequest(PersonRole.DIRECTOR, null, null)
+                )
         );
     }
 }

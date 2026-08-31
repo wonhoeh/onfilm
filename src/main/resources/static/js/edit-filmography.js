@@ -172,8 +172,22 @@
       card.innerHTML = template(card, initial);
 
       if (initial.ageRating) card.querySelector(".film-age-input").value = initial.ageRating;
-      if (initial.personRole) card.querySelector(".mp-person-role").value = initial.personRole;
-      if (initial.castType) card.querySelector(".mp-cast-type").value = initial.castType;
+      const initialRoles = Array.isArray(initial.roles)
+              ? initial.roles
+              : (initial.personRole ? [{
+                role: initial.personRole,
+                castType: initial.castType,
+                characterName: initial.characterName
+              }] : []);
+      initialRoles.forEach((role) => {
+        const checkbox = card.querySelector(`.mp-role-option[value="${role.role}"]`);
+        if (checkbox) checkbox.checked = true;
+      });
+      const actorRole = initialRoles.find((role) => role.role === "ACTOR");
+      if (actorRole?.castType) card.querySelector(".mp-cast-type").value = actorRole.castType;
+      if (actorRole?.characterName) {
+        card.querySelector(".mp-character-name").value = actorRole.characterName;
+      }
 
       bindHeaderTitleSync(card);
       bindPrivacy(card);
@@ -258,15 +272,14 @@
             </div>
           </div>
 
-          <div class="film-meta-grid">
-            <div class="field-group">
-              <label class="field-label">역할</label>
-              <select class="select-input mp-person-role">
-                <option value="">선택</option>
-                <option value="ACTOR">배우</option>
-                <option value="DIRECTOR">감독</option>
-                <option value="WRITER">작가</option>
-              </select>
+          <div class="film-meta-grid role-fields">
+            <div class="field-group role-selection-field">
+              <label class="field-label">참여 역할</label>
+              <div class="role-option-list">
+                <label class="role-option"><input class="mp-role-option" type="checkbox" value="ACTOR"> 배우</label>
+                <label class="role-option"><input class="mp-role-option" type="checkbox" value="DIRECTOR"> 감독</label>
+                <label class="role-option"><input class="mp-role-option" type="checkbox" value="WRITER"> 작가</label>
+              </div>
             </div>
 
             <div class="field-group">
@@ -281,7 +294,7 @@
 
             <div class="field-group">
               <label class="field-label">극중 배역이름</label>
-              <input class="text-input mp-character-name" type="text" placeholder="배역 이름을 입력해주세요" value="${initial.characterName || ""}">
+              <input class="text-input mp-character-name" type="text" maxlength="100" placeholder="배역 이름을 입력해주세요">
             </div>
           </div>
         </div>
@@ -854,14 +867,14 @@
     }
 
     function bindRoleCharacterSync(card) {
-      const roleSelect = card.querySelector(".mp-person-role");
+      const roleOptions = [...card.querySelectorAll(".mp-role-option")];
+      const actorOption = roleOptions.find((option) => option.value === "ACTOR");
       const characterInput = card.querySelector(".mp-character-name");
       const castSelect = card.querySelector(".mp-cast-type");
-      if (!roleSelect || !characterInput) return;
+      if (!actorOption || !characterInput) return;
 
       const applyState = () => {
-        const role = roleSelect.value;
-        const isActor = role === "ACTOR";
+        const isActor = actorOption.checked;
         characterInput.disabled = !isActor;
         if (!isActor) characterInput.value = "";
         if (castSelect) {
@@ -870,7 +883,7 @@
         }
       };
 
-      roleSelect.addEventListener("change", applyState);
+      actorOption.addEventListener("change", applyState);
       applyState();
     }
 
@@ -880,18 +893,20 @@
       const runtimeStr = card.querySelector(".film-runtime-input").value.trim();
       const ageRate    = card.querySelector(".film-age-input").value;
 
-      const role          = card.querySelector(".mp-person-role").value || null;
       const castType      = card.querySelector(".mp-cast-type").value || null;
       const characterName = card.querySelector(".mp-character-name").value.trim() || null;
+      const roles = [...card.querySelectorAll(".mp-role-option:checked")].map((option) => ({
+        role: option.value,
+        castType: option.value === "ACTOR" ? castType : null,
+        characterName: option.value === "ACTOR" ? characterName : null
+      }));
 
       return {
         title,
         runtimeStr,
         yearStr,
         ageRate,
-        role,
-        castType,
-        characterName,
+        roles,
         genres: [...(card._genres || [])].map(toGenreRequest),
         thumbnailUrl: card._thumbnailUrl || null,
         movieUrl: card._movieUrl || ""
@@ -1283,6 +1298,11 @@
           if (!runtime || runtime <= 0) throw new Error(`(${i+1}번째 작품) 런타임은 1분 이상이어야 합니다.`);
           const releaseYear = data.yearStr ? Number(data.yearStr) : null;
           if (!data.ageRate) throw new Error(`(${i+1}번째 작품) 관람연령을 선택해주세요.`);
+          if (!data.roles.length) throw new Error(`(${i+1}번째 작품) 참여 역할을 하나 이상 선택해주세요.`);
+          const actorRole = data.roles.find((role) => role.role === "ACTOR");
+          if (actorRole && !actorRole.castType) {
+            throw new Error(`(${i+1}번째 작품) 배우의 캐스팅 구분을 선택해주세요.`);
+          }
           if (!card._videoFile && !data.movieUrl) {
             throw new Error(`(${i+1}번째 작품) 영상 파일을 선택해 주세요.`);
           }
@@ -1298,9 +1318,7 @@
             releaseYear,
             ageRating: data.ageRate,
             genres: data.genres,
-            role: data.role,
-            castType: data.castType,
-            characterName: data.characterName,
+            roles: data.roles,
             isPrivate: !!card._isPrivate
           });
         }
@@ -1534,9 +1552,7 @@
           trailerUrls: item?.trailerUrl ? [item.trailerUrl] : [],
           movieUrl: item?.movieUrl || "",
           genres,
-          personRole: item?.personRole || "",
-          castType: item?.castType || "",
-          characterName: item?.characterName || "",
+          roles: Array.isArray(item?.roles) ? item.roles : [],
           isPrivate: !!item?.isPrivate,
         });
       });

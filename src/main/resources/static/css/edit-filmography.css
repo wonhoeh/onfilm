@@ -209,6 +209,35 @@
       gap:12px;
     }
 
+    .role-selection-field{
+      grid-column:span 1;
+    }
+
+    .role-option-list{
+      min-height:34px;
+      padding:7px 9px;
+      border-radius:8px;
+      border:1px solid var(--line);
+      background:var(--panel-2);
+      display:flex;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+
+    .role-option{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      color:var(--text);
+      font-size:13px;
+      cursor:pointer;
+    }
+
+    .role-option input{
+      accent-color:var(--accent);
+    }
+
     .upload-block{
       display:flex;
       flex-direction:column;

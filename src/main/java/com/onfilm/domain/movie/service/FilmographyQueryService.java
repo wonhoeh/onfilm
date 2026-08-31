@@ -4,6 +4,7 @@ import com.onfilm.domain.common.error.exception.PersonNotFoundException;
 import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.movie.dto.MovieCardResponse;
 import com.onfilm.domain.movie.dto.MovieGenreResponse;
+import com.onfilm.domain.movie.dto.MovieRoleResponse;
 import com.onfilm.domain.movie.entity.Movie;
 import com.onfilm.domain.movie.entity.MovieGenre;
 import com.onfilm.domain.movie.entity.MoviePerson;
@@ -81,7 +82,9 @@ public class FilmographyQueryService {
         return new MovieCardResponse(
                 movie.getId(), movie.getTitle(), genres, movie.getRuntime(), movie.getReleaseYear(),
                 movie.getAgeRating(), movie.getMovieUrl(), movie.getThumbnailUrl(), trailerUrl,
-                moviePerson.getRole(), moviePerson.getCastType(), moviePerson.getCharacterName(),
+                moviePerson.getRoles().stream()
+                        .map(MovieRoleResponse::from)
+                        .toList(),
                 moviePerson.isPrivate()
         );
     }

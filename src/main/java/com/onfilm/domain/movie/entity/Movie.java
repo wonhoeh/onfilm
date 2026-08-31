@@ -142,11 +142,19 @@ public class Movie {
             CastType castType,
             String characterName
     ) {
+        return addMoviePerson(
+                person,
+                List.of(new MoviePerson.RoleRegistration(role, castType, characterName))
+        );
+    }
+
+    public MoviePerson addMoviePerson(
+            Person person,
+            List<MoviePerson.RoleRegistration> roles
+    ) {
         MoviePerson moviePerson = MoviePerson.create(
                 person,
-                role,
-                castType,
-                characterName
+                roles
         );
         addMoviePerson(moviePerson);
         return moviePerson;
@@ -155,8 +163,8 @@ public class Movie {
     void addMoviePerson(MoviePerson moviePerson) {
         MoviePerson requiredMoviePerson = require(moviePerson, "moviePerson");
 
-        if (hasSameCredit(requiredMoviePerson)) {
-            throw new IllegalArgumentException("duplicate movie credit");
+        if (hasSameParticipant(requiredMoviePerson.getPerson())) {
+            throw new IllegalArgumentException("duplicate movie participant");
         }
 
         requiredMoviePerson.attachMovie(this);
@@ -171,12 +179,9 @@ public class Movie {
         requiredMoviePerson.detachMovie(this);
     }
 
-    private boolean hasSameCredit(MoviePerson candidate) {
+    private boolean hasSameParticipant(Person candidate) {
         return moviePeople.stream().anyMatch(existing ->
-                isSamePerson(existing.getPerson(), candidate.getPerson())
-                        && existing.getRole() == candidate.getRole()
-                        && existing.getCastType() == candidate.getCastType()
-                        && Objects.equals(existing.getCharacterName(), candidate.getCharacterName())
+                isSamePerson(existing.getPerson(), candidate)
         );
     }
 

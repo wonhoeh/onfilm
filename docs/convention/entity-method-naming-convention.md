@@ -47,19 +47,14 @@ public void updateFilmographyItemPrivacy(Long movieId, boolean isPrivate) {
 
 - `Movie.changeBasicInfo()`
 - `Movie.changeMovieUrl()`
-- `MoviePerson.changeRole()`
 - `MoviePerson.changeSortOrder()`
 - `MoviePerson.changePrivacy()`
 - `StoryboardProject.changeTitle()`
 - `StoryboardScene.changeScriptHtml()`
 
 ```java
-public void changeRole(
-        PersonRole role,
-        CastType castType,
-        String characterName
-) {
-    applyRole(role, castType, characterName);
+public void changePrivacy(boolean isPrivate) {
+    this.isPrivate = isPrivate;
 }
 ```
 
@@ -234,7 +229,8 @@ MovieGenre requiredMovieGenre = require(movieGenre, "movieGenre");
 
 예:
 
-- `MoviePerson`: 같은 인물·역할·배역정보의 중복 참여를 예외로 처리
+- `MoviePerson`: 같은 Movie·Person 참여 중복을 예외로 처리
+- `MoviePersonRole`: 같은 참여 관계 안의 역할 중복을 예외로 처리
 - `MovieGenre`: 같은 영화의 정규화 장르 중복을 예외와 DB 제약으로 처리
 
 ---

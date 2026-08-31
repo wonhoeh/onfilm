@@ -1,16 +1,18 @@
 package com.onfilm.domain.movie.dto;
 
 import com.onfilm.domain.movie.entity.AgeRating;
-import com.onfilm.domain.movie.entity.CastType;
 import com.onfilm.domain.movie.entity.Movie;
 import com.onfilm.domain.movie.entity.PersonRole;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.HashSet;
 import java.util.List;
 
 public record CreateMovieRequest(
@@ -25,8 +27,19 @@ public record CreateMovieRequest(
         @NotNull(message = "장르 목록은 필수입니다.")
         List<@NotNull(message = "장르는 null일 수 없습니다.") @Valid MovieGenreRequest> genres,
         @NotNull(message = "관람 등급은 필수입니다.") AgeRating ageRating,
-        @NotNull(message = "참여 역할은 필수입니다.") PersonRole role,
-        CastType castType,
-        String characterName
+        @NotEmpty(message = "참여 역할은 하나 이상 필요합니다.")
+        @Size(max = 3, message = "참여 역할은 최대 3개까지 등록할 수 있습니다.")
+        List<@NotNull(message = "참여 역할은 null일 수 없습니다.") @Valid MovieRoleRequest> roles
 ) {
+    @AssertTrue(message = "동일한 참여 역할은 중복해서 등록할 수 없습니다.")
+    public boolean isRolesUnique() {
+        if (roles == null) {
+            return true;
+        }
+        List<PersonRole> roleTypes = roles.stream()
+                .filter(role -> role != null && role.role() != null)
+                .map(MovieRoleRequest::role)
+                .toList();
+        return new HashSet<>(roleTypes).size() == roleTypes.size();
+    }
 }

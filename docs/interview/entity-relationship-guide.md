@@ -2,7 +2,7 @@
 
 ## 면접 30초 답변 버전
 
-이 프로젝트는 `User - Person - Movie`를 중심으로 관계를 설계했고, 배우와 작품의 관계는 단순 다대다가 아니라 `MoviePerson` 매핑 엔티티로 풀었습니다. 이렇게 한 이유는 단순 연결뿐 아니라 역할, 배역명, 공개 여부, 정렬 순서 같은 속성을 함께 관리해야 했기 때문입니다. 미디어 인코딩 작업은 `MediaEncodeJob`으로 별도 관리하지만, 이쪽은 JPA 연관관계보다 작업 스냅샷 중심으로 `movieId`, `requestedByUserId`를 저장하는 구조를 택했습니다.
+이 프로젝트는 `User - Person - Movie`를 중심으로 관계를 설계했고, 인물과 작품의 관계는 단순 다대다가 아니라 `MoviePerson` 참여 엔티티로 풀었습니다. 작품 단위 정렬·공개 정보는 `MoviePerson`, 같은 작품에서 동시에 맡을 수 있는 배우·감독·작가 역할은 `MoviePersonRole`로 분리했습니다. 미디어 인코딩 작업은 `MediaEncodeJob`으로 별도 관리하고, 이쪽은 JPA 연관관계보다 작업 스냅샷 중심으로 `movieId`, `requestedByUserId`를 저장했습니다.
 
 ---
 
@@ -19,6 +19,7 @@ erDiagram
 
     PERSON ||--o{ MOVIE_PERSON : "1:N"
     MOVIE ||--o{ MOVIE_PERSON : "1:N"
+    MOVIE_PERSON ||--|{ MOVIE_PERSON_ROLE : "1:N"
     MOVIE ||--o{ TRAILER : "1:N"
     MOVIE ||--o{ MOVIE_GENRE : "1:N"
     GENRE ||--o{ MOVIE_GENRE : "1:N"
@@ -47,11 +48,17 @@ erDiagram
       Long id PK
       Long movie_id FK
       Long person_id FK
+      Integer sortOrder
+      boolean isPrivate
+    }
+
+    MOVIE_PERSON_ROLE {
+      Long id PK
+      Long movie_person_id FK
       String role
       String castType
       String characterName
       Integer sortOrder
-      boolean isPrivate
     }
 
     TRAILER {
@@ -99,6 +106,7 @@ erDiagram
 | `Person` | `StoryboardProject` | 1:N | 스토리보드 프로젝트 |
 | `Person` | `MoviePerson` | 1:N | 필모그래피 매핑 |
 | `Movie` | `MoviePerson` | 1:N | 작품 참여자 매핑 |
+| `MoviePerson` | `MoviePersonRole` | 1:N | 한 작품 참여에서 맡은 복수 역할 |
 | `Movie` | `Trailer` | 1:N | 트레일러 여러 개 가능 |
 | `Movie` | `MovieGenre` | 1:N | 장르 매핑 |
 | `MovieGenre` | `Genre` | N:1 | 표준 장르 연결 가능 |
@@ -125,22 +133,27 @@ erDiagram
 ### 3-2. 필모그래피
 
 - `Person`과 `Movie`는 직접 다대다로 연결하지 않음
-- 중간에 `MoviePerson`을 둠
+- 중간에 작품 참여를 나타내는 `MoviePerson`을 둠
+- 참여 아래에 역할별 `MoviePersonRole`을 둠
 
-이 구조 덕분에 아래 속성을 관계 자체에 저장할 수 있다.
+이 구조에서 참여 단위 정보는 `MoviePerson`에 저장한다.
+
+- `sortOrder`
+- `isPrivate`
+
+역할별 정보는 `MoviePersonRole`에 저장한다.
 
 - `role`
 - `castType`
 - `characterName`
-- `sortOrder`
-- `isPrivate`
 
-즉 “배우가 어떤 작품에 참여했다”는 사실만 저장하는 게 아니라, “어떤 역할로, 어떤 배역명으로, 어떤 순서로, 공개 여부는 어떤지”까지 관리할 수 있다.
+따라서 하나의 필모그래피 작품 항목에서 배우·감독·작가 역할을 동시에 표현하면서 정렬 순서와 공개 여부는 한 번만 관리한다.
 
 관련 코드:
 
 - [`Movie.java`](/Users/whheo/Desktop/onfilm/onfilm/src/main/java/com/onfilm/domain/movie/entity/Movie.java)
 - [`MoviePerson.java`](/Users/whheo/Desktop/onfilm/onfilm/src/main/java/com/onfilm/domain/movie/entity/MoviePerson.java)
+- [`MoviePersonRole.java`](/Users/whheo/Desktop/onfilm/onfilm/src/main/java/com/onfilm/domain/movie/entity/MoviePersonRole.java)
 
 ### 3-3. 작품 미디어
 
@@ -201,43 +214,38 @@ erDiagram
 ### 4-1. 단순 다대다로는 부족했기 때문
 
 `Person`과 `Movie`를 JPA `@ManyToMany`로 단순 연결하면, “이 사람이 이 영화에 참여했다” 정도는 표현할 수 있다.  
-하지만 이 프로젝트에서는 관계 자체가 아래 속성을 가져야 했다.
+하지만 이 프로젝트에서는 참여 관계와 역할이 아래 속성을 가져야 했다.
 
-- 배우/감독/작가 같은 `role`
-- 주연/조연/단역 같은 `castType`
-- 배우일 때의 `characterName`
-- 필모그래피 표시 순서인 `sortOrder`
-- 프로필 공개 여부인 `isPrivate`
+- `MoviePerson`: 필모그래피 표시 순서인 `sortOrder`, 프로필 공개 여부인 `isPrivate`
+- `MoviePersonRole`: 배우/감독/작가 `role`, 주연/조연/단역 `castType`, 배우의 `characterName`
 
-즉 이 관계는 단순 연결이 아니라 “속성을 가진 관계”이기 때문에, 별도 엔티티로 분리하는 것이 맞다.
+즉 단순 연결이 아니라 속성과 하위 역할을 가진 참여 관계이므로 별도 엔티티로 분리하는 것이 맞다.
 
 ### 4-2. 필모그래피 도메인의 중심이 관계 자체이기 때문
 
 이 프로젝트에서 사용자가 편집하는 것은 영화 자체만이 아니다.  
-실제로는 “내 프로필에서 이 영화를 어떤 순서로, 어떤 역할로 보여줄지”를 편집한다.
+실제로는 “내 프로필에서 이 영화를 어떤 순서로 보여주고, 작품 안에서 어떤 역할들을 맡았는지”를 편집한다.
 
 즉 필모그래피는 `Movie` 단독 엔티티보다 `Person - Movie 관계`가 더 중요하다.  
 그래서 `MoviePerson`이 필모그래피 도메인의 핵심 엔티티 역할을 한다.
 
 ### 4-3. 무결성 제약도 걸기 쉽기 때문
 
-현재 `MoviePerson`에는 아래 unique constraint가 있다.
+현재 모델은 다음 Unique Constraint를 사용한다.
 
-- `movie_id`
-- `person_id`
-- `role`
-- `cast_type`
-- `character_name`
+- `movie_person(movie_id, person_id)`: 같은 작품에 같은 사람이 참여 행을 두 개 만들지 못함
+- `movie_person_role(movie_person_id, role)`: 한 참여에서 같은 역할을 두 번 만들지 못함
 
-즉 동일한 조합의 참여 관계가 중복 생성되지 않도록 DB 레벨에서도 통제할 수 있다.
+기존처럼 nullable한 `cast_type`, `character_name`을 Unique Key에 포함하지 않아 MySQL의 Nullable Unique 동작에도 영향을 받지 않는다. 역할별 필드 조합은 Check Constraint로 보완한다.
 
 관련 코드:
 
 - [`MoviePerson.java`](/Users/whheo/Desktop/onfilm/onfilm/src/main/java/com/onfilm/domain/movie/entity/MoviePerson.java#L11)
+- [`MoviePersonRole.java`](/Users/whheo/Desktop/onfilm/onfilm/src/main/java/com/onfilm/domain/movie/entity/MoviePersonRole.java)
 
 ### 4-4. 면접에서 이렇게 말하면 된다
 
-`배우와 영화는 겉으로 보면 다대다 관계처럼 보이지만, 실제 서비스에서는 역할, 배역명, 공개 여부, 정렬 순서 같은 속성이 관계 자체에 붙어야 했습니다. 그래서 JPA의 단순 ManyToMany 대신 MoviePerson이라는 매핑 엔티티를 두고, 필모그래피 도메인을 관계 중심으로 설계했습니다.`
+`인물과 영화는 겉으로 보면 다대다지만 실제 서비스에서는 작품별 공개 여부와 정렬 순서가 필요했고, 한 사람이 같은 작품에서 배우·감독·작가 역할을 동시에 맡을 수 있었습니다. 그래서 참여 자체는 MoviePerson, 역할별 정보는 MoviePersonRole로 분리했습니다. 이를 통해 필모그래피 작품은 하나로 유지하면서 복수 역할을 표현하고, nullable 컬럼이 포함된 복합 Unique 제약 문제도 제거했습니다.`
 
 ---
 
@@ -299,4 +307,4 @@ erDiagram
 
 ## 7. 한 줄 정리
 
-이 프로젝트의 연관관계 설계 핵심은 `User - Person - Movie`를 단순 연결이 아니라, `MoviePerson` 같은 매핑 엔티티와 `MediaEncodeJob` 같은 상태 스냅샷 엔티티를 통해 도메인 성격에 맞게 분리했다는 점이다.
+이 프로젝트의 연관관계 설계 핵심은 `User - Person - Movie`를 단순 연결로 두지 않고, 작품 참여인 `MoviePerson`, 참여 역할인 `MoviePersonRole`, 작업 스냅샷인 `MediaEncodeJob`처럼 변경 이유와 생명주기에 따라 분리했다는 점이다.

@@ -40,9 +40,6 @@ draw.io / Excalidraw / Whimsical 등에서 그릴 때 참고하세요.
                                   │ id (PK)          │  │ person_id (FK)     │
                                   │ movie_id (FK)    │  │ title              │
                                   │ person_id (FK)   │  │ sort_order         │
-                                  │ role             │  └─────────┬──────────┘
-                                  │ cast_type        │            │ 1
-                                  │ character_name   │            │
                                   │ sort_order       │            │ N
                                   │ is_private       │            ▼
                                   └────────┬─────────┘  ┌────────────────────┐
@@ -76,10 +73,13 @@ draw.io / Excalidraw / Whimsical 등에서 그릴 때 참고하세요.
 | 2 | `User` ─ `RefreshToken` | **1 : N** | `RefreshToken.user_id` (컬럼만) | JPA 연관관계 X |
 | 3 | `Person` ─ `MoviePerson` | **1 : N** | `MoviePerson.person_id` (FK) | 필모그래피 매핑 |
 | 4 | `Movie` ─ `MoviePerson` | **1 : N** | `MoviePerson.movie_id` (FK) | 작품 참여자 매핑 |
-| 5 | `Person` ─ `Movie` | **N : M** | (`MoviePerson` 경유) | 속성을 가진 관계 |
-| 6 | `Movie` ─ `Genre` | **N : M** | (`MovieGenre` 경유, 도식 생략) | 점선 권장 |
-| 7 | `Person` ─ `StoryboardProject` | **1 : N** | `StoryboardProject.person_id` (FK) | 사람의 프로젝트 목록 |
-| 8 | `StoryboardProject` ─ `StoryboardScene` | **1 : N** | `StoryboardScene.project_id` (FK) | 프로젝트의 씬 목록 |
+| 5 | `MoviePerson` ─ `MoviePersonRole` | **1 : N** | `MoviePersonRole.movie_person_id` (FK) | 배우·감독·작가 복수 역할 |
+| 6 | `Person` ─ `Movie` | **N : M** | (`MoviePerson` 경유) | 속성을 가진 관계 |
+| 7 | `Movie` ─ `Genre` | **N : M** | (`MovieGenre` 경유, 도식 생략) | 점선 권장 |
+| 8 | `Person` ─ `StoryboardProject` | **1 : N** | `StoryboardProject.person_id` (FK) | 사람의 프로젝트 목록 |
+| 9 | `StoryboardProject` ─ `StoryboardScene` | **1 : N** | `StoryboardScene.project_id` (FK) | 프로젝트의 씬 목록 |
+
+`MoviePersonRole`은 도식의 `MoviePerson` 아래에 1:N 자식으로 추가하고 `role`, `cast_type`, `character_name`, `sort_order`를 표시한다.
 
 ### 그릴 때 배치 팁
 

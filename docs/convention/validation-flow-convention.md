@@ -236,12 +236,15 @@ if (role == PersonRole.ACTOR) {
     this.castType = require(castType, "castType");
     this.characterName = normalizeCharacterName(characterName);
 } else {
+    if (castType != null || normalizeCharacterName(characterName) != null) {
+        throw new IllegalArgumentException("actor details are only allowed for actor role");
+    }
     this.castType = null;
     this.characterName = null;
 }
 ```
 
-역할에 따라 다른 필드가 필요하다는 것은 HTTP 요청 형식이 아니라 `MoviePerson` 자체의 불변식이다.
+역할에 따라 다른 필드가 필요하다는 것은 HTTP 요청 형식이 아니라 `MoviePersonRole` 자체의 불변식이다. DTO도 빠른 오류 응답을 위해 같은 조합을 검사하지만 Entity 검증을 대체하지 않는다.
 
 ### 5.2 Value Object로 분리할 기준
 

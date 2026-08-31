@@ -2,6 +2,7 @@ package com.onfilm.domain.movie.service;
 
 import com.onfilm.domain.file.service.StorageService;
 import com.onfilm.domain.movie.dto.MovieCardResponse;
+import com.onfilm.domain.movie.dto.MovieRoleResponse;
 import com.onfilm.domain.movie.entity.*;
 import com.onfilm.domain.movie.repository.*;
 import org.junit.jupiter.api.Test;
@@ -45,5 +46,35 @@ class FilmographyQueryServiceTest {
         List<MovieCardResponse> result = queryService.findVisibleFilmography("person-id");
 
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    void queryReturnsAllRolesForOneFilmographyItem() {
+        Person person = mock(Person.class);
+        Movie movie = mock(Movie.class);
+        MoviePerson participation = mock(MoviePerson.class);
+        MoviePersonRole actor = mock(MoviePersonRole.class);
+        MoviePersonRole writer = mock(MoviePersonRole.class);
+        given(personRepository.findByPublicId("person-id")).willReturn(Optional.of(person));
+        given(person.getId()).willReturn(1L);
+        given(currentPersonProvider.isCurrentPerson(1L)).willReturn(true);
+        given(moviePersonRepository.findFilmographyByPersonId(1L))
+                .willReturn(List.of(participation));
+        given(participation.getMovie()).willReturn(movie);
+        given(participation.getRoles()).willReturn(List.of(actor, writer));
+        given(movie.getId()).willReturn(10L);
+        given(actor.getRole()).willReturn(PersonRole.ACTOR);
+        given(actor.getCastType()).willReturn(CastType.LEAD);
+        given(actor.getCharacterName()).willReturn("주인공");
+        given(writer.getRole()).willReturn(PersonRole.WRITER);
+        given(movieGenreRepository.findAllByMovieIds(List.of(10L))).willReturn(List.of());
+        given(trailerRepository.findAllByMovieIds(List.of(10L))).willReturn(List.of());
+
+        List<MovieCardResponse> result = queryService.findVisibleFilmography("person-id");
+
+        assertThat(result).singleElement().satisfies(response ->
+                assertThat(response.roles())
+                        .extracting(MovieRoleResponse::role)
+                        .containsExactly(PersonRole.ACTOR, PersonRole.WRITER));
     }
 }

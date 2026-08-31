@@ -1,6 +1,7 @@
 package com.onfilm.domain.person.service;
 
 import com.onfilm.domain.movie.dto.CreateMovieRequest;
+import com.onfilm.domain.movie.dto.MovieRoleRequest;
 import com.onfilm.domain.movie.entity.*;
 import com.onfilm.domain.movie.repository.MoviePersonRepository;
 import com.onfilm.domain.movie.repository.MovieRepository;
@@ -41,7 +42,10 @@ class MovieCommandServiceTest {
         });
         CreateMovieRequest request = new CreateMovieRequest(
                 "인셉션", 120, 2010, "movie/key", null, List.of(), AgeRating.ALL,
-                PersonRole.ACTOR, CastType.LEAD, "코브"
+                List.of(
+                        new MovieRoleRequest(PersonRole.ACTOR, CastType.LEAD, "코브"),
+                        new MovieRoleRequest(PersonRole.WRITER, null, null)
+                )
         );
 
         Long result = movieCommandService.createMovie(request);
@@ -52,6 +56,9 @@ class MovieCommandServiceTest {
         assertThat(captor.getValue().getMoviePeople()).singleElement().satisfies(credit -> {
             assertThat(credit.getPerson()).isSameAs(person);
             assertThat(credit.getSortOrder()).isEqualTo(4);
+            assertThat(credit.getRoles())
+                    .extracting(MoviePersonRole::getRole)
+                    .containsExactly(PersonRole.ACTOR, PersonRole.WRITER);
         });
     }
 

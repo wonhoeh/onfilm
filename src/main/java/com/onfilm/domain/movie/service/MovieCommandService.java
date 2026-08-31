@@ -27,7 +27,10 @@ public class MovieCommandService {
                 request.movieUrl(), request.thumbnailUrl(), request.ageRating()
         );
         MoviePerson moviePerson = movie.addMoviePerson(
-                person, request.role(), request.castType(), request.characterName()
+                person,
+                request.roles().stream()
+                        .map(role -> role.toRegistration())
+                        .toList()
         );
         Integer max = moviePersonRepository.findMaxSortOrderByPersonId(person.getId());
         moviePerson.changeSortOrder(max == null ? 0 : max + 1);
