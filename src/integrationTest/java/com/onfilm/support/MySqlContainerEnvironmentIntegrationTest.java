@@ -39,6 +39,6 @@ class MySqlContainerEnvironmentIntegrationTest extends MySqlContainerSupport {
         assertThat(version).startsWith("8.4.11");
         assertThat(characterSet).isEqualTo("utf8mb4");
         assertThat(collation).isEqualTo("utf8mb4_0900_ai_ci");
-        assertThat(migrationVersion).isEqualTo("2");
+        assertThat(migrationVersion).isEqualTo("3");
     }
 }

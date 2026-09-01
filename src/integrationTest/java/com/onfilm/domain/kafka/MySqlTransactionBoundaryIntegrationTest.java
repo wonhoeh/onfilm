@@ -9,6 +9,10 @@ import com.onfilm.domain.kafka.repository.MediaEncodeOutboxRepository;
 import com.onfilm.domain.token.entity.RefreshToken;
 import com.onfilm.domain.token.repository.RefreshTokenRepository;
 import com.onfilm.domain.token.service.RefreshTokenSecurityTransactionService;
+import com.onfilm.domain.user.entity.User;
+import com.onfilm.domain.user.entity.UserEmail;
+import com.onfilm.domain.user.entity.Username;
+import com.onfilm.domain.user.repository.UserRepository;
 import com.onfilm.support.MySqlContainerSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,6 +49,9 @@ class MySqlTransactionBoundaryIntegrationTest extends MySqlContainerSupport {
     private RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private RefreshTokenSecurityTransactionService securityTransactionService;
 
     @Autowired
@@ -55,6 +62,7 @@ class MySqlTransactionBoundaryIntegrationTest extends MySqlContainerSupport {
         outboxRepository.deleteAll();
         jobRepository.deleteAll();
         refreshTokenRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Test
@@ -85,9 +93,10 @@ class MySqlTransactionBoundaryIntegrationTest extends MySqlContainerSupport {
 
     @Test
     void requiresNewSecurityRecordSurvivesOuterTransactionRollback() {
+        User user = userRepository.saveAndFlush(createUser());
         RefreshToken expired = refreshTokenRepository.saveAndFlush(
                 RefreshToken.issue(
-                        1L,
+                        user.getId(),
                         "a".repeat(RefreshToken.TOKEN_HASH_LENGTH),
                         NOW.minusSeconds(7200),
                         NOW.minusSeconds(3600)
@@ -115,6 +124,16 @@ class MySqlTransactionBoundaryIntegrationTest extends MySqlContainerSupport {
                 "{\"schemaVersion\":1}",
                 NOW
         );
+    }
+
+    private static User createUser() {
+        User user = User.create(
+                UserEmail.from("transaction-token@example.com"),
+                "encoded-password",
+                Username.from("transaction-token")
+        );
+        user.createPerson("transaction-token");
+        return user;
     }
 
     private static MediaEncodeJob newJob() {

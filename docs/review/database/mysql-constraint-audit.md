@@ -177,11 +177,13 @@ DB 기본 `utf8mb4_0900_ai_ci`에서 `ci`는 대소문자를, `ai`는 악센트�
 
 후속 단계에서는 아래 우선순위에 따라 새 Migration과 MySQL 거부 테스트를 작성한다. 변경 범위와 rollback 영향을 분리하기 위해 P0 인증 제약과 P1 Aggregate 제약은 서로 다른 Migration으로 관리한다.
 
-### P0: 인증 무결성
+### P0: 인증 무결성 — V3 적용 완료
 
-1. V3에서 `refresh_tokens.token_hash`를 `ascii_bin` 정확 비교로 변경한다.
-2. `fk_refresh_tokens_user`를 `ON DELETE CASCADE`로 추가한다.
-3. 대소문자만 다른 token hash가 별개 값이며, 없는 User의 token이 거부되고 User 삭제 시 token이 제거되는지 검증한다.
+1. `refresh_tokens.token_hash`를 `ascii_bin` 정확 비교로 변경했다.
+2. `fk_refresh_tokens_user`를 `ON DELETE CASCADE`로 추가했다.
+3. 대소문자만 다른 token hash의 별도 저장, 없는 User의 token 거부, User 삭제 시 token 제거를 MySQL에서 검증했다.
+
+JPA에는 Collation을 이식성 있게 지정하는 표준 매핑이 없고 `user_id`는 의도적으로 ID-only 관계를 유지한다. 따라서 Java 필드의 표현과 서비스 탐색 방향은 바꾸지 않고, 정확 비교와 참조 무결성은 Flyway가 소유하는 DB 제약으로 보강했다.
 
 ### P1: 순서와 Aggregate 불변식
 
