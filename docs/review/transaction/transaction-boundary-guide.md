@@ -275,6 +275,8 @@ assertThat(
 | `StorageFilesDeleteEventListenerTest` | commit 후 삭제, rollback 시 미삭제, 개별 삭제 실패 격리 |
 | `MediaEncodeOutboxPersistenceTest` | Job과 Outbox가 함께 commit 또는 rollback |
 | `RefreshTokenExpirationPersistenceTest` | 외부 rollback과 무관한 만료 접근 기록 보존 |
+| `MySqlTransactionBoundaryIntegrationTest` | 실제 MySQL의 원자적 commit·rollback과 `REQUIRES_NEW` 독립 commit |
+| `MySqlPessimisticLockIntegrationTest` | UploadRequest 잠금 대기와 Outbox 중복 선점 방지 |
 
 테스트에서는 정상 경계뿐 아니라 DB 반영 실패 시 신규 파일 보상 삭제, 중복 완료 요청, 중복 Callback, rollback 시 기존 파일 미삭제도 함께 확인한다.
 
@@ -305,6 +307,7 @@ OnFilm에서는 트랜잭션을 서비스 메서드 전체가 아니라 DB에서
 - [Service 단일 책임 지도](../service/service-responsibility-map.md): 오케스트레이터와 Transaction Service의 책임
 - [미디어 Job Outbox 정책](../../decisions/media-encode-job-outbox-policy.md): DB 저장과 Kafka 발행의 정합성 정책
 - [Refresh Token 재사용 대응 정책](../../decisions/refresh-token-reuse-policy.md): 독립 보안 트랜잭션 사용 이유
+- [MySQL 트랜잭션과 잠금 통합 테스트](../../testing/mysql-transaction-and-locking.md): 두 DB 트랜잭션의 실제 잠금 순서와 검증 범위
 
 ## 유지 규칙
 

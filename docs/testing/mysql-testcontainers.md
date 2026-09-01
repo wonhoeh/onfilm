@@ -75,6 +75,9 @@ Spring Boot 3.3.4의 기본 의존성 관리가 제공하는 Testcontainers 1.19
 - Storyboard Scene·Card 재정렬의 `sort_order` 저장과 중첩 자식 삭제 확인
 - User 정규화 조회와 이메일·사용자명 UNIQUE, 필수값, Person FK 위반 거부 확인
 - User 삭제 시 생명주기를 공유하는 Person 삭제 확인
+- Job·Outbox의 commit·rollback 원자성과 `REQUIRES_NEW` 보안 기록 보존 확인
+- UploadRequest 비관적 잠금의 대기·커밋 후 최신 상태 조회 확인
+- Outbox 동시 선점 시 동일 행의 중복 claim 방지 확인
 - Outbox 선점 후 프로세스 종료를 가정한 lease 만료 복구
 - 반복 발행 실패 후 Outbox `DEAD` 전환
 - Job과 Outbox 저장 중 DB 오류가 발생했을 때 전체 rollback
@@ -93,3 +96,5 @@ MySQL 통합 테스트와 운영 프로필은 Flyway가 스키마를 생성하�
 `baselineOnMigrate`는 사용하지 않는다. 보존할 운영 데이터가 없는 현재 정책에 따라 항상 빈 DB에서 V1부터 전체 Migration을 적용한다.
 
 빠른 단위·슬라이스 테스트만 H2와 Hibernate `create-drop`을 보조적으로 사용하며 자동 `data.sql`은 로드하지 않는다. 개발 프로필은 로컬 MySQL에서 Flyway와 Hibernate `validate`를 사용한다. H2 결과를 MySQL 스키마 호환성의 증거로 사용하지 않는다.
+
+트랜잭션과 행 잠금의 동시 실행 방식은 [MySQL 트랜잭션과 잠금 통합 테스트](mysql-transaction-and-locking.md)에 정리한다.
