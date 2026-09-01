@@ -59,6 +59,8 @@ docker info
 
 Docker가 없거나 데몬에 접근할 수 없으면 통합 테스트를 성공으로 건너뛰지 않고 실패시킨다. CI가 MySQL 검증을 수행했다는 사실을 보장하기 위한 정책이다.
 
+Pull Request와 `main`·`test` 브랜치 Push에서는 별도의 `API CI / MySQL integration tests` 작업이 같은 명령을 실행한다. 실행 조건, 실패 보고서와 병합 정책은 [API CI 검증 정책](api-ci.md)을 따른다.
+
 Spring Boot 3.3.4의 기본 의존성 관리가 제공하는 Testcontainers 1.19.8은 최소 Docker API 1.40을 요구하는 최근 Docker Engine과 통신할 때 HTTP 400이 발생할 수 있다. 2.x는 모듈 artifact와 Java package가 변경되는 메이저 버전이므로, 현재는 기존 API와 호환되면서 최근 Docker Engine 변경을 지원하는 1.x 최신 유지보수 버전인 1.21.4를 명시적으로 고정한다.
 
 ## 현재 통합 테스트 범위

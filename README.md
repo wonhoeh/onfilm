@@ -225,6 +225,7 @@ DB_PASSWORD='<local-api-password>' ./gradlew bootRun --args='--spring.profiles.a
 
 - [로컬 MySQL 논리 DB·계정 분리 구성](infra/mysql/README.md)
 - [API MySQL Testcontainers 통합 테스트 환경](docs/testing/mysql-testcontainers.md)
+- [API CI 검증 정책](docs/testing/api-ci.md)
 - [미디어 Outbox DEAD·Kafka DLT 재처리 절차](docs/operations/media-dead-letter-reprocessing.md)
 - [Service 단일 책임 지도](docs/review/service/service-responsibility-map.md)
 - [Transaction Boundary 설계 가이드](docs/review/transaction/transaction-boundary-guide.md)
