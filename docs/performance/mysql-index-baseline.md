@@ -4,7 +4,7 @@
 - 대상: OnFilm API DB
 - DB: MySQL `8.4.11`, InnoDB
 - Schema: Flyway V1~V4
-- 상태: 현재 Index 기준선 기록 완료, 신규 Index 미적용
+- 상태: 현재 Index 기준선 기록 완료, V5 적용 대상 선정
 
 ## 목적
 
@@ -15,7 +15,7 @@ Repository 이름만 보고 Index를 추측하지 않고 실제 SQL, 데이터 �
 - 정렬과 임시 테이블 비용은 실제 병목인가?
 - 다음 Migration에서 추가할 Composite Index의 컬럼 순서는 무엇이어야 하는가?
 
-이번 단계에서는 비교 기준을 보존하기 위해 신규 Index를 추가하지 않는다. 다음 단계에서 후보 Index를 적용한 뒤 같은 MySQL 버전·데이터·SQL로 다시 측정한다.
+이 문서의 EXPLAIN 결과는 비교 기준을 보존하기 위해 신규 Index를 적용하지 않은 V1~V4 상태를 기록한다. 후보 Index는 같은 MySQL 버전·데이터·SQL을 사용한 별도 선택 실험을 거쳐 V5 적용 대상을 정했으며, 최종 적용 전후 수치는 다음 성능 비교 단계에서 기록한다.
 
 ## 측정 데이터
 
@@ -97,16 +97,18 @@ PENDING 분기는 기존 `(status, next_attempt_at)`를 사용하지만 PUBLISHI
 
 PENDING 2만 행을 모두 읽어 애플리케이션 요청 시점의 가장 오래된 `created_at`을 집계한다. `(status, created_at)`를 사용하면 status별 첫 Index entry에서 MIN을 결정할 가능성이 있으므로 적용 후 `rows=1` 또는 Min/Max optimization 여부를 확인한다.
 
-## 다음 단계 Index 후보
+## V5 Index 선택 결과
 
-| 우선순위 | 후보 | 근거 | 적용 전 주의점 |
-|---:|---|---|---|
-| 1 | `media_encode_outbox(status, published_at)` | Q5가 16만 행을 읽고 1초 이상 소요 | Outbox 상태 변경의 Index 갱신 비용 |
-| 2 | `media_encode_jobs(status, completed_at)` | Q3이 20만 행 table scan | Job 완료 시 Index 갱신 비용 |
-| 3 | `media_encode_outbox(status, lease_until)` | Q4의 lease 분기가 status만 사용 | OR Optimizer가 새 Index를 선택하는지 확인 |
-| 4 | `media_encode_outbox(status, created_at)` | Q6이 PENDING 2만 행 전체 집계 | Q4 ORDER BY에도 도움이 되는지 별도 확인 |
+| 후보 | 선택 실험 결과 | V5 반영 |
+|---|---|---|
+| `media_encode_outbox(status, published_at)` | Q5가 PUBLISHED 16만 행 후처리에서 8,064건 covering range scan으로 변경 | 반영 |
+| `media_encode_jobs(status, completed_at)` | Q3이 20만 행 table scan에서 7,056건 covering range scan으로 변경 | 반영 |
+| `media_encode_outbox(status, lease_until)` | Q4의 OR 쿼리가 새 Index를 선택하지 않고 기존 경로로 11,006행을 계속 읽음 | 제외 |
+| `media_encode_outbox(status, created_at)` | Q6이 PENDING 2만 행 집계에서 Min/Max optimization을 통한 단건 결정으로 변경 | 반영 |
 
-Index는 조회를 빠르게 하지만 INSERT와 status·시간 컬럼 UPDATE 비용, 디스크 사용량을 늘린다. 네 후보를 한꺼번에 정답으로 간주하지 않고 다음 단계에서 하나씩 적용한 실행 계획을 비교한다. 개선되지 않는 후보는 Migration에 넣지 않는다.
+Index는 조회를 빠르게 하지만 INSERT와 status·시간 컬럼 UPDATE 비용, 디스크 사용량을 늘린다. 따라서 현재 Repository SQL에서 개선이 확인된 세 개만 `V5__add_media_maintenance_indexes.sql`에 반영했다. `(status, lease_until)`는 PUBLISHING 분리 쿼리를 도입할 때 다시 검토하고, 사용되지 않는 현재 상태에서는 쓰기 비용을 늘리지 않도록 제외했다.
+
+기존 `(status, requested_at)`과 `(status, next_attempt_at)`는 각각 Job timeout과 PENDING 발행 대상 조회를 지원하므로 새 Index의 왼쪽 컬럼이 같더라도 중복이 아니다. 각 두 번째 컬럼이 서로 다른 범위 조건을 담당한다.
 
 ## 제외 범위
 

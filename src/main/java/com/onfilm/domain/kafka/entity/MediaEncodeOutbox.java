@@ -12,7 +12,11 @@ import java.util.UUID;
 @Entity
 @Table(name = "media_encode_outbox",
         uniqueConstraints = @UniqueConstraint(name = "uk_media_encode_outbox_job", columnNames = "job_id"),
-        indexes = @Index(name = "idx_media_outbox_dispatch", columnList = "status,next_attempt_at"))
+        indexes = {
+                @Index(name = "idx_media_outbox_dispatch", columnList = "status,next_attempt_at"),
+                @Index(name = "idx_media_outbox_status_published", columnList = "status,published_at"),
+                @Index(name = "idx_media_outbox_status_created", columnList = "status,created_at")
+        })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MediaEncodeOutbox {

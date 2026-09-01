@@ -16,7 +16,8 @@ import java.util.UUID;
         uniqueConstraints = @UniqueConstraint(name = "uk_media_encode_job_request", columnNames = "request_id"),
         indexes = {
                 @Index(name = "idx_media_encode_job_user_status", columnList = "requested_by_user_id,status"),
-                @Index(name = "idx_media_encode_job_status_requested", columnList = "status,requested_at")
+                @Index(name = "idx_media_encode_job_status_requested", columnList = "status,requested_at"),
+                @Index(name = "idx_media_encode_job_status_completed", columnList = "status,completed_at")
         })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
