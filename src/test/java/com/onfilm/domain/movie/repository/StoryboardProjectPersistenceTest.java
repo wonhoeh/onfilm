@@ -24,11 +24,8 @@ class StoryboardProjectPersistenceTest {
 
     @Test
     void 씬_순서를_저장하고_삭제된_씬을_orphanRemoval로_제거한다() {
-        Person person = personRepository.findById(1L).orElseThrow();
-        StoryboardProject project = person.getStoryboardProjects().stream()
-                .filter(candidate -> candidate.getId().equals(1L))
-                .findFirst()
-                .orElseThrow();
+        Person person = savePersonWithStoryboard();
+        StoryboardProject project = person.getStoryboardProjects().get(0);
         StoryboardScene first = project.getScenes().get(0);
         StoryboardScene second = project.getScenes().get(1);
         StoryboardScene third = project.getScenes().get(2);
@@ -56,7 +53,7 @@ class StoryboardProjectPersistenceTest {
 
     @Test
     void 카드_순서를_저장하고_삭제된_카드를_orphanRemoval로_제거한다() {
-        Person person = personRepository.findById(1L).orElseThrow();
+        Person person = savePersonWithStoryboard();
         StoryboardScene scene = person.getStoryboardProjects().get(0).getScenes().get(0);
         StoryboardCard first = scene.addCard("first.jpg");
         StoryboardCard second = scene.addCard(null);
@@ -76,5 +73,22 @@ class StoryboardProjectPersistenceTest {
         assertThat(foundScene.getCards()).extracting(StoryboardCard::getImageKey)
                 .containsExactly("third.jpg", null);
         assertThat(entityManager.find(StoryboardCard.class, removedCardId)).isNull();
+    }
+
+    private Person savePersonWithStoryboard() {
+        Person person = Person.create(
+                "테스트 배우",
+                null,
+                null,
+                null,
+                null,
+                List.of(),
+                List.of()
+        );
+        StoryboardProject project = person.addStoryboardProject("테스트 프로젝트");
+        project.addScene("씬 1", "<p>첫 번째 장면</p>");
+        project.addScene("씬 2", "<p>두 번째 장면</p>");
+        project.addScene("씬 3", "<p>세 번째 장면</p>");
+        return personRepository.saveAndFlush(person);
     }
 }

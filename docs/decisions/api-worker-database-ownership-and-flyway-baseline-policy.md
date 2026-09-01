@@ -155,12 +155,12 @@ Flyway 전환 후 스키마의 단일 변경 주체는 SQL Migration이다.
 
 - Hibernate: 엔티티와 스키마의 불일치를 탐지하는 `validate`만 수행
 - Flyway: 테이블, 컬럼, Constraint와 Index 생성·변경
-- 운영 Reference Data: 정책을 확정한 뒤 Flyway 또는 명시적인 초기화 방식으로 관리
+- 운영 Reference Data: API 표준 장르는 Flyway Versioned Migration으로 관리
 - 개발·테스트 Fixture: 운영 Migration과 분리
 - H2: 빠른 단위 테스트 보조 수단으로만 사용
 - MySQL Testcontainers: Migration, Repository, Constraint, Transaction과 Lock 검증 기준
 
-현재 `data.sql`과 개발 초기화 코드는 후속 Reference Data·Fixture 분리 단계에서 정리한다. 이 문서 작업에서는 실행 설정이나 데이터 초기화 코드를 변경하지 않는다.
+API의 전역 `data.sql`은 제거했다. 표준 장르는 `V2__seed_standard_genres.sql`, 로컬 예제 데이터는 `dev` 프로필 전용 `DevDataInitializer`, 자동화 테스트 데이터는 각 테스트가 관리한다. 상세 정책은 [운영 Reference Data와 개발·테스트 Fixture 정책](reference-data-and-fixture-policy.md)을 따른다.
 
 ## 환경변수 계약
 

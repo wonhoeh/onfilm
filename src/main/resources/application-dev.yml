@@ -5,27 +5,25 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+    url: ${DB_URL:jdbc:mysql://127.0.0.1:3306/onfilm_api}
+    username: ${DB_USER:onfilm_api_app}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: create
-    defer-datasource-initialization: true
+      ddl-auto: validate
+    defer-datasource-initialization: false
     properties:
       hibernate:
         format_sql: true
         show_sql: false
   sql:
     init:
-      mode: always
-  # 개발 fixture를 Flyway와 분리하는 다음 단계까지 H2/data.sql 구성을 유지한다.
+      mode: never
   flyway:
-    enabled: false
-  h2:
-    console:
-      enabled: true
+    enabled: true
+    baseline-on-migrate: false
+    validate-migration-naming: true
   kafka:
     bootstrap-servers: localhost:9092
     producer:

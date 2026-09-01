@@ -30,14 +30,14 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
-    defer-datasource-initialization: true
+    defer-datasource-initialization: false
     properties:
       hibernate:
         format_sql: false
         show_sql: false
   sql:
     init:
-      mode: always
+      mode: never
   flyway:
     enabled: false
   autoconfigure:

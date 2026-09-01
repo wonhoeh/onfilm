@@ -1,5 +1,8 @@
 package com.onfilm.domain.common.config;
 
+import com.onfilm.domain.movie.entity.Person;
+import com.onfilm.domain.movie.entity.SnsType;
+import com.onfilm.domain.movie.entity.StoryboardProject;
 import com.onfilm.domain.user.entity.User;
 import com.onfilm.domain.user.entity.UserEmail;
 import com.onfilm.domain.user.entity.Username;
@@ -13,7 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.persistence.EntityManager;
+import java.time.LocalDate;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -21,32 +25,64 @@ import jakarta.persistence.EntityManager;
 @RequiredArgsConstructor
 public class DevDataInitializer implements ApplicationRunner {
 
+    private static final String DEV_EMAIL = "test@test.com";
+    private static final String DEV_PASSWORD = "test1234";
+    private static final String DEV_USERNAME = "testactor";
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EntityManager em;
 
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
-        if (userRepository.existsByEmail("test@test.com")) {
-            return;
-        }
-
-        // data.sql로 생성된 person(id=1)에 연결
-        var person = em.find(com.onfilm.domain.movie.entity.Person.class, 1L);
-        if (person == null) {
-            log.warn("[DevDataInitializer] person id=1 not found. 스킵합니다.");
+        if (userRepository.existsByEmail(DEV_EMAIL)) {
             return;
         }
 
         User user = User.create(
-                UserEmail.from("test@test.com"),
-                passwordEncoder.encode("test1234"),
-                Username.from("testactor")
+                UserEmail.from(DEV_EMAIL),
+                passwordEncoder.encode(DEV_PASSWORD),
+                Username.from(DEV_USERNAME)
         );
-        user.attachPerson(person);
+        Person person = user.createPerson(
+                "테스트 배우",
+                LocalDate.of(1995, 3, 15),
+                "서울",
+                "독립영화를 사랑하는 배우입니다.",
+                null,
+                List.of(
+                        new Person.SnsRegistration(
+                                SnsType.INSTAGRAM,
+                                "https://instagram.com/testactor"
+                        ),
+                        new Person.SnsRegistration(
+                                SnsType.YOUTUBE,
+                                "https://youtube.com/testactor"
+                        )
+                ),
+                List.of("연기", "독립영화", "단편영화")
+        );
+        person.addGalleryImageKey("gallery/1/img1.jpg");
+        person.addGalleryImageKey("gallery/1/img2.jpg");
+        person.addGalleryImageKey("gallery/1/img3.jpg");
+
+        for (int projectNumber = 1; projectNumber <= 10; projectNumber++) {
+            StoryboardProject project = person.addStoryboardProject(
+                    "프로젝트 " + projectNumber
+            );
+            for (int sceneNumber = 1; sceneNumber <= 3; sceneNumber++) {
+                project.addScene(
+                        "씬 " + sceneNumber,
+                        "<p>대사 내용입니다.</p>"
+                );
+            }
+        }
+
         userRepository.save(user);
 
-        log.info("[DevDataInitializer] 테스트 계정 생성 완료: test@test.com / test1234");
+        log.info(
+                "[DevDataInitializer] 개발 fixture 생성 완료: email={}, projects=10, scenes=30",
+                DEV_EMAIL
+        );
     }
 }

@@ -63,9 +63,10 @@ Spring Boot 3.3.4의 기본 의존성 관리가 제공하는 Testcontainers 1.19
 
 ## 현재 통합 테스트 범위
 
-- 빈 MySQL에 Flyway `V1__create_initial_schema.sql` 적용
+- 빈 MySQL에 V1부터 모든 Flyway Versioned Migration 적용
 - `flyway_schema_history`의 성공한 Migration 버전 확인
 - Hibernate `ddl-auto: validate`를 통한 엔티티와 스키마 일치 검증
+- V2 표준 장르의 개수·고정 ID·정규화 값과 자동완성 조회 확인
 - MySQL 버전, 논리 DB, 계정, 문자 집합과 Collation 확인
 - Outbox 선점 후 프로세스 종료를 가정한 lease 만료 복구
 - 반복 발행 실패 후 Outbox `DEAD` 전환
@@ -78,10 +79,10 @@ Spring Boot 3.3.4의 기본 의존성 관리가 제공하는 Testcontainers 1.19
 MySQL 통합 테스트와 운영 프로필은 Flyway가 스키마를 생성하고 Hibernate가 매핑 일치 여부만 검증한다.
 
 1. Testcontainers가 빈 `onfilm_api` DB를 시작한다.
-2. Flyway가 `V1__create_initial_schema.sql`을 적용한다.
+2. Flyway가 V1 스키마와 이후 Versioned Migration을 순서대로 적용한다.
 3. Hibernate가 `ddl-auto: validate`로 전체 엔티티 매핑을 검증한다.
 4. Migration 또는 Validation이 실패하면 Spring Context가 시작되지 않아 테스트가 실패한다.
 
 `baselineOnMigrate`는 사용하지 않는다. 보존할 운영 데이터가 없는 현재 정책에 따라 항상 빈 DB에서 V1부터 전체 Migration을 적용한다.
 
-빠른 단위 테스트와 기존 개발 fixture는 다음 분리 단계까지 H2와 Hibernate 생성 방식을 유지한다. 이는 테스트 실행 속도를 위한 보조 환경이며, H2 결과를 MySQL 스키마 호환성의 증거로 사용하지 않는다.
+빠른 단위·슬라이스 테스트만 H2와 Hibernate `create-drop`을 보조적으로 사용하며 자동 `data.sql`은 로드하지 않는다. 개발 프로필은 로컬 MySQL에서 Flyway와 Hibernate `validate`를 사용한다. H2 결과를 MySQL 스키마 호환성의 증거로 사용하지 않는다.

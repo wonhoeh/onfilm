@@ -5,17 +5,28 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-class ProfileTagDataSqlPersistenceTest {
+@DataJpaTest(properties = "spring.sql.init.mode=never")
+class ProfileTagPersistenceTest {
 
     @Autowired
     private PersonRepository personRepository;
 
     @Test
-    void dataSql이_실행된_후에도_신규_프로필_태그를_저장할_수_있다() {
-        Person person = personRepository.findById(1L).orElseThrow();
+    void 기존_프로필_태그_뒤에_신규_태그를_저장한다() {
+        Person person = Person.create(
+                "테스트 배우",
+                null,
+                null,
+                null,
+                null,
+                List.of(),
+                List.of("연기", "독립영화", "단편영화")
+        );
+        personRepository.saveAndFlush(person);
 
         person.addProfileTag("신규 태그");
         personRepository.flush();

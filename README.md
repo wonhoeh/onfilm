@@ -160,19 +160,19 @@ Movie와 Person의 관계에는 정렬 순서와 공개 범위가 필요하므�
 
 ### 실행
 
-개발 환경의 파일 저장 경로를 프로젝트 내부로 덮어써 실행합니다.
+로컬 MySQL을 먼저 실행하고 `onfilm_api_app`에 설정한 비밀번호를 주입한다. 개발 환경의 파일 저장 경로는 프로젝트 내부로 덮어쓴다.
 
 ```bash
-./gradlew bootRun --args='--spring.profiles.active=dev --file.storage.root=./local-storage'
+DB_PASSWORD='<local-api-password>' ./gradlew bootRun --args='--spring.profiles.active=dev --file.storage.root=./local-storage'
 ```
 
 개발 프로파일 기본값:
 
-- DB: H2 in-memory, MySQL 호환 모드
+- DB: MySQL `onfilm_api`, Flyway Migration, Hibernate `validate`
 - 파일: Local Storage
 - 공개 파일 URL: `http://localhost:8080/files/{storageKey}`
 - Kafka: `localhost:9092`
-- H2 Console: `/h2-console`
+- 개발 Fixture: `test@test.com` 사용자와 N+1 확인용 프로젝트·씬
 
 테스트 실행:
 
@@ -211,6 +211,7 @@ Movie와 Person의 관계에는 정렬 순서와 공개 범위가 필요하므�
 - [Movie 참여·복수 역할 모델링 정책](docs/decisions/movie-person-role-modeling-policy.md)
 - [Movie 영상 이용 권한 MVP 정책](docs/decisions/movie-media-rights-mvp-policy.md)
 - [API·Worker DB 소유권과 Flyway 초기화 정책](docs/decisions/api-worker-database-ownership-and-flyway-baseline-policy.md)
+- [운영 Reference Data와 개발·테스트 Fixture 정책](docs/decisions/reference-data-and-fixture-policy.md)
 
 ### 개발 컨벤션
 
