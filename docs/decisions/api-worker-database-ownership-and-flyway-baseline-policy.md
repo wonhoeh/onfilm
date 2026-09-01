@@ -251,3 +251,4 @@ API와 Worker에 공통 메시지 필드가 추가되는 경우 DB를 공유하�
 - [미디어 장애 처리 정책](media-failure-handling-policy.md)
 - [Movie 참여와 역할 모델링 정책](movie-person-role-modeling-policy.md)
 - [Transaction Boundary 설계 가이드](../review/transaction/transaction-boundary-guide.md)
+- [MySQL Unique·Nullable·FK Constraint 감사](../review/database/mysql-constraint-audit.md)
