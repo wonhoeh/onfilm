@@ -38,6 +38,8 @@ spring:
   sql:
     init:
       mode: always
+  flyway:
+    enabled: false
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
 

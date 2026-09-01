@@ -20,6 +20,9 @@ spring:
   sql:
     init:
       mode: always
+  # 개발 fixture를 Flyway와 분리하는 다음 단계까지 H2/data.sql 구성을 유지한다.
+  flyway:
+    enabled: false
   h2:
     console:
       enabled: true

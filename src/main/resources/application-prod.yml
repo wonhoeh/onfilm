@@ -11,11 +11,18 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
         show_sql: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: false
+    validate-migration-naming: true
+  sql:
+    init:
+      mode: never
   kafka:
     bootstrap-servers: ${KAFKA_PRODUCER_IP:localhost}:9092
     producer:

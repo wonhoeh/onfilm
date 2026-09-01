@@ -99,6 +99,12 @@ docker compose down -v
 
 이 명령은 `onfilm_api`와 `onfilm_worker`의 로컬 데이터를 복구할 수 없게 삭제한다. 대상이 로컬 개발용 Volume인지 확인한 뒤 실행한다.
 
+## API Flyway V1 최초 적용
+
+API는 `V1__create_initial_schema.sql`부터 빈 `onfilm_api` DB에 적용하며 `baseline` 또는 `baselineOnMigrate`를 사용하지 않는다. 과거 Hibernate `create`로 테이블을 만든 로컬 Volume이 남아 있으면 Flyway가 이력 없는 비어 있지 않은 스키마를 거부하는 것이 정상이다.
+
+보존할 로컬 데이터가 없고 API V1을 처음 적용하는 경우에만 위의 `docker compose down -v`로 Volume을 초기화한 뒤 Compose를 다시 시작한다. 이후에는 적용된 Migration 파일을 수정하거나 Volume을 습관적으로 삭제하지 않고, 새 버전 Migration으로 변경한다.
+
 ## 보안 및 운영 주의사항
 
 - 이 Compose 구성은 로컬 개발용이며 그대로 운영 DB를 배포하는 템플릿이 아니다.

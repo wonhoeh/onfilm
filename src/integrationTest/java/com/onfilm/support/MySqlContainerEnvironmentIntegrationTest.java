@@ -28,11 +28,17 @@ class MySqlContainerEnvironmentIntegrationTest extends MySqlContainerSupport {
                 "SELECT @@collation_database",
                 String.class
         );
+        String migrationVersion = jdbcTemplate.queryForObject(
+                "SELECT version FROM flyway_schema_history " +
+                        "WHERE success = TRUE ORDER BY installed_rank DESC LIMIT 1",
+                String.class
+        );
 
         assertThat(database).isEqualTo("onfilm_api");
         assertThat(currentUser).startsWith("onfilm_api_app@");
         assertThat(version).startsWith("8.4.11");
         assertThat(characterSet).isEqualTo("utf8mb4");
         assertThat(collation).isEqualTo("utf8mb4_0900_ai_ci");
+        assertThat(migrationVersion).isEqualTo("1");
     }
 }

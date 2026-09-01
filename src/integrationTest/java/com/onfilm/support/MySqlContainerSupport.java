@@ -34,9 +34,10 @@ public abstract class MySqlContainerSupport {
         registry.add("spring.datasource.driver-class-name", MYSQL::getDriverClassName);
         registry.add("spring.jpa.database-platform", () -> "org.hibernate.dialect.MySQLDialect");
 
-        // Flyway V1 도입 전 기존 Hibernate 기반 통합 테스트를 MySQL로 옮기는 과도기 설정이다.
-        // V1 적용 단계에서 validate로 교체한다.
-        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.flyway.enabled", () -> "true");
+        registry.add("spring.flyway.baseline-on-migrate", () -> "false");
+        registry.add("spring.flyway.validate-migration-naming", () -> "true");
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
         registry.add("spring.jpa.defer-datasource-initialization", () -> "false");
         registry.add("spring.sql.init.mode", () -> "never");
     }
