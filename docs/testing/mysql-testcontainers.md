@@ -82,6 +82,8 @@ Spring Boot 3.3.4의 기본 의존성 관리가 제공하는 Testcontainers 1.19
 - Job·Outbox의 commit·rollback 원자성과 `REQUIRES_NEW` 보안 기록 보존 확인
 - UploadRequest 비관적 잠금의 대기·커밋 후 최신 상태 조회 확인
 - Outbox 동시 선점 시 동일 행의 중복 claim 방지 확인
+- 회원가입 사전 중복 조회 이후 동시 INSERT의 이메일·사용자명 UNIQUE 충돌 확인
+- Refresh Token 동시 소비와 Media Job 동시 최종 상태 변경의 낙관적 락 확인
 - Outbox 선점 후 프로세스 종료를 가정한 lease 만료 복구
 - 반복 발행 실패 후 Outbox `DEAD` 전환
 - Job과 Outbox 저장 중 DB 오류가 발생했을 때 전체 rollback

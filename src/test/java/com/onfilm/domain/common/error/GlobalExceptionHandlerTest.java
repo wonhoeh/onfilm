@@ -23,7 +23,15 @@ class GlobalExceptionHandlerTest {
     void domainExceptionsUseErrorCodeAsTheSingleResponsePolicy() {
         List<ExpectedResponse> expectations = List.of(
                 expected(new PersonNotFoundException(1L), ErrorCode.PERSON_NOT_FOUND),
+                expected(new DuplicateEmailException(), ErrorCode.DUPLICATE_EMAIL),
+                expected(new DuplicateUsernameException(), ErrorCode.DUPLICATE_USERNAME),
                 expected(new AuthenticationRequiredException(), ErrorCode.AUTHENTICATION_REQUIRED),
+                expected(
+                        new InvalidRefreshTokenException(
+                                new OptimisticLockingFailureException("concurrent rotation")
+                        ),
+                        ErrorCode.INVALID_REFRESH_TOKEN
+                ),
                 expected(new ForbiddenPersonAccessException(), ErrorCode.FORBIDDEN_PERSON_ACCESS),
                 expected(new InvalidMediaJobStatusTransitionException(), ErrorCode.INVALID_MEDIA_JOB_STATUS_TRANSITION),
                 expected(new MediaUploadRequestExpiredException(), ErrorCode.MEDIA_UPLOAD_REQUEST_EXPIRED),
