@@ -1,6 +1,7 @@
 # OnFilm 문제 해결 사례 기록
 
-- 문서 작성일: 2026-08-24
+- 최초 작성일: 2026-08-24
+- 최종 갱신일: 2026-09-01
 - 목적: 포트폴리오와 면접 답변을 만들 때 사용할 수 있는 기술적 근거와 의사결정 기록 보존
 
 이 디렉터리는 구현 기능을 나열하는 공간이 아니라, 리팩토링 과정에서 발견한 문제와 해결 과정, 선택하지 않은 대안 및 트레이드오프를 기록한다. 작업일은 Git 커밋 날짜를 기준으로 하며, 날짜를 확인할 수 없는 문서는 작성일을 사용한다.
@@ -19,6 +20,7 @@
 | 2026-08-25 | [도메인 예외와 API 오류 응답 표준화](08-domain-exception-and-api-error-standardization.md) | DomainException, ErrorCode, 공통 오류 응답, 보안·Callback 필터 | `b6044cc`~`2e8f23a` |
 | 2026-08-25 | [DB 트랜잭션과 외부 I/O 경계 분리](09-transaction-boundary-and-external-io.md) | 외부 I/O 분리, 잠금 최소화, 재검증, 보상 삭제, BCrypt | `0a5e93a`~`5808bdb` |
 | 2026-08-30~31 | [미디어 파이프라인의 장애 대응과 관측성 구축](10-media-failure-observability-and-runbook.md) | 실패 분류, correlationId, 메트릭, Prometheus·Grafana, Alert, 장애 주입, Runbook | API `1959c0f`~`1084835`, Worker `f8504b6`~`2d32e35` |
+| 2026-09-01 | [Flyway와 실제 MySQL 검증으로 DB·JPA 신뢰성 확보](11-database-jpa-reliability.md) | DB 소유권, Flyway, Testcontainers, Constraint, 동시성, EXPLAIN | `7caacc1`~`4b944d7` |
 
 ## 포트폴리오 작성 시 사용법
 

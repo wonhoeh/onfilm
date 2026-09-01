@@ -216,6 +216,7 @@ DB_PASSWORD='<local-api-password>' ./gradlew bootRun --args='--spring.profiles.a
 ### 문제 해결과 기술 선택
 
 - [문제 해결 사례 인덱스](docs/problem-solving/README.md)
+- [Flyway와 실제 MySQL 검증으로 DB·JPA 신뢰성 확보](docs/problem-solving/11-database-jpa-reliability.md)
 - [도메인 예외와 API 오류 응답 표준화](docs/problem-solving/08-domain-exception-and-api-error-standardization.md)
 - [Transactional Outbox 정책](docs/decisions/media-encode-job-outbox-policy.md)
 - [Refresh Token 재사용 대응 정책](docs/decisions/refresh-token-reuse-policy.md)
@@ -232,6 +233,7 @@ DB_PASSWORD='<local-api-password>' ./gradlew bootRun --args='--spring.profiles.a
 - [DTO 스타일](docs/convention/dto-style-convention.md)
 - [검증 흐름](docs/convention/validation-flow-convention.md)
 - [예외 정책과 오류 코드](docs/convention/exception-and-error-code-convention.md)
+- [DB·JPA 신뢰성](docs/convention/database-jpa-reliability-convention.md)
 
 ### 구현과 검증 자료
 
