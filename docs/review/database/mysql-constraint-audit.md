@@ -2,9 +2,9 @@
 
 - 감사일: 2026-09-01
 - 대상 DB: `onfilm_api`
-- 기준 Migration: `V1__create_initial_schema.sql`, `V2__seed_standard_genres.sql`
+- 기준 Migration: `V1__create_initial_schema.sql`부터 `V4__strengthen_aggregate_constraints.sql`까지
 - 기준 실행 환경: MySQL 8.4.11, `utf8mb4_0900_ai_ci`
-- 상태: 감사 완료, 변경 후보는 후속 Migration에서 검증 후 적용
+- 상태: 감사 완료, P0 인증 제약과 P1 Aggregate 제약 적용 완료
 
 ## 목적
 
@@ -16,7 +16,7 @@ JPA 엔티티와 Flyway 스키마를 대조해 다음 질문에 답한다.
 - JPA 연관관계가 없는 ID 컬럼에 DB FK를 둘 것인가?
 - Java의 문자열 비교 정책과 MySQL Collation이 같은 값을 동일하게 판단하는가?
 
-이번 단계는 감사와 정책 결정만 수행한다. 적용된 V1을 수정하지 않으며 실제 변경은 새 Migration과 거부 테스트를 같은 커밋에 추가한다.
+V1 기준 상태를 감사한 뒤 적용된 V1은 수정하지 않고, 결정된 변경을 V3·V4 Migration과 MySQL 거부 테스트로 추가했다. 상태 조합 제약인 P2는 별도 검증 단계로 보류한다.
 
 ## 전체 현황
 
@@ -31,9 +31,9 @@ V1의 명시적 제약조건은 다음과 같다.
 | Foreign Key | 14 | API 논리 DB 내부 관계만 존재 |
 | `ON DELETE CASCADE` | 12 | 부모와 생명주기를 공유하는 소유 자식 |
 | `ON DELETE RESTRICT` | 2 | `users → person`, `movie_genre → genre` |
-| nullable `sort_order` | 6 | 저장 후에는 값이 필요하므로 보강 후보 |
+| nullable `sort_order` | 6 | Hibernate INSERT 후 UPDATE 절차 때문에 유지 |
 
-핵심 Aggregate의 FK와 중복 방지는 대체로 의도와 일치한다. 우선 보완할 항목은 Refresh Token의 정확 비교와 사용자 생명주기, OrderColumn의 nullable, Gallery 중복, 그리고 제약 구조가 없는 `movie_likes`다.
+핵심 Aggregate의 FK와 중복 방지는 대체로 의도와 일치한다. Refresh Token의 정확 비교·사용자 생명주기, 순서 음수 방지, Gallery 중복은 V3·V4에서 보강했다. OrderColumn nullable은 Hibernate 저장 순서와의 호환성을 위해 유지하며, 제약 구조가 없는 `movie_likes`는 모델 결정 전까지 보류한다.
 
 ## 검증 책임의 경계
 
@@ -62,7 +62,7 @@ DB Constraint 위반은 정상적인 사용자 검증 수단이 아니라 최종
 
 `fk_users_person ON DELETE RESTRICT`는 User가 참조 중인 Person의 직접 삭제를 차단한다. 회원 탈퇴는 애플리케이션이 User를 먼저 삭제하고, JPA가 생명주기를 공유하는 Person을 삭제한다. Person 삭제는 SNS·태그·갤러리·스토리보드와 Movie 참여 관계를 제거하지만 Movie 자체는 삭제하지 않는다.
 
-Refresh Token은 JPA 연관관계를 두지 않는 것이 적절하지만 DB FK는 별개의 결정이다. 현재 token만 남으면 `rotate()`가 User 존재를 다시 조회하지 않고 해당 `userId`로 새 토큰을 만들 수 있다. 따라서 다음 Migration에서는 `refresh_tokens(user_id) → users(user_id) ON DELETE CASCADE`를 추가한다. ORM 결합은 늘리지 않으면서 다음을 보장한다.
+Refresh Token은 JPA 연관관계를 두지 않는 것이 적절하지만 DB FK는 별개의 결정이다. V1 상태에서는 token만 남으면 `rotate()`가 User 존재를 다시 조회하지 않고 해당 `userId`로 새 토큰을 만들 수 있었다. V3에서 `refresh_tokens(user_id) → users(user_id) ON DELETE CASCADE`를 추가해 ORM 결합을 늘리지 않으면서 다음을 보장한다.
 
 - 존재하지 않는 User의 Refresh Token 발급 거부
 - 회원 탈퇴 시 모든 인증 세션의 DB 수준 제거
@@ -103,7 +103,7 @@ Refresh Token은 JPA 연관관계를 두지 않는 것이 적절하지만 DB FK�
 | `storyboard_scene` | PK | 제목·스크립트는 선택, 순서 nullable | Project 삭제 시 CASCADE | 순서 보강 |
 | `storyboard_card` | PK | 빈 Card를 허용해 image key 선택, 순서 nullable | Scene 삭제 시 CASCADE | 순서 보강 |
 
-Scene 제목과 Card image key의 null은 편집 중인 빈 장면·빈 카드 상태를 지원하는 정책이므로 유지한다. 반면 JPA `@OrderColumn`이 관리하는 다음 6개 컬럼은 저장된 행에서 null일 이유가 없다.
+Scene 제목과 Card image key의 null은 편집 중인 빈 장면·빈 카드 상태를 지원하는 정책이므로 유지한다. JPA `@OrderColumn`이 관리하는 다음 6개 컬럼은 트랜잭션 완료 후에는 0부터 시작하는 순서를 가진다.
 
 - `movie_person_role.sort_order`
 - `trailer.sort_order`
@@ -112,11 +112,11 @@ Scene 제목과 Card image key의 null은 편집 중인 빈 장면·빈 카드 �
 - `storyboard_scene.sort_order`
 - `storyboard_card.sort_order`
 
-통합 테스트에서 Hibernate가 실제 MySQL에 0부터 시작하는 값을 저장하고 삭제 후 순서를 압축하는 동작을 확인했다. 후속 Migration에서 JPA `@OrderColumn(nullable = false)`와 DB NOT NULL을 함께 적용하고 음수 방지 CHECK를 추가한다.
+MySQL 통합 테스트에서 Hibernate는 자식 행을 `sort_order` 없이 먼저 INSERT하고 컬렉션 동기화 단계에서 순서를 UPDATE하는 것으로 확인됐다. 따라서 이 6개 컬럼에 DB NOT NULL을 적용하면 정상 Aggregate 저장이 `Field 'sort_order' doesn't have a default value`로 실패한다. 컬럼은 Hibernate 내부 저장 절차를 위해 nullable로 유지하되 음수 방지 CHECK를 적용하고, 트랜잭션 완료 후 순서 값은 Repository 통합 테스트로 검증한다. `person_gallery`는 ElementCollection INSERT 시 순서를 함께 기록하므로 기존 NOT NULL과 JPA `nullable = false`를 유지한다.
 
-부모별 `UNIQUE(parent_id, sort_order)`는 추가하지 않는다. JPA가 목록 재정렬 과정에서 여러 UPDATE를 순차 실행할 때 최종 상태는 유일해도 중간 상태에서 기존 순서와 충돌할 수 있기 때문이다. 순서의 완전한 순열은 Aggregate 메서드와 Repository 통합 테스트가 보장하고, DB는 NOT NULL·음수 방지만 담당한다.
+부모별 `UNIQUE(parent_id, sort_order)`는 추가하지 않는다. JPA가 목록 재정렬 과정에서 여러 UPDATE를 순차 실행할 때 최종 상태는 유일해도 중간 상태에서 기존 순서와 충돌할 수 있기 때문이다. 순서의 완전한 순열과 트랜잭션 완료 후 non-null은 Aggregate 메서드와 Repository 통합 테스트가 보장하고, DB CHECK는 음수만 차단한다. ElementCollection인 Gallery 순서는 DB NOT NULL도 함께 적용한다.
 
-Gallery는 Entity가 같은 image key의 중복을 거부하지만 DB에는 `(person_id, image_key)` UNIQUE가 없다. 동시 요청의 최종 방어선으로 `uk_person_gallery_image_key`를 추가한다. 현재 PK 순서 `(sort_order, person_id)`는 부모 중심 키인 `(person_id, sort_order)`보다 의미가 약하고 Person 조회용 FK 인덱스를 재사용하지 못할 수 있으므로 Index 감사 단계에서 PK 순서 변경을 함께 검토한다.
+Gallery는 Entity가 같은 image key의 중복을 거부하지만 V1에는 `(person_id, image_key)` UNIQUE가 없었다. V4에서 동시 요청의 최종 방어선으로 `uk_person_gallery_image_key`를 추가했다. 현재 PK 순서 `(sort_order, person_id)`는 부모 중심 키인 `(person_id, sort_order)`보다 의미가 약하고 Person 조회용 FK 인덱스를 재사용하지 못할 수 있으므로 Index 감사 단계에서 PK 순서 변경을 함께 검토한다.
 
 ### 미디어 작업·Outbox
 
@@ -185,12 +185,12 @@ DB 기본 `utf8mb4_0900_ai_ci`에서 `ci`는 대소문자를, `ai`는 악센트�
 
 JPA에는 Collation을 이식성 있게 지정하는 표준 매핑이 없고 `user_id`는 의도적으로 ID-only 관계를 유지한다. 따라서 Java 필드의 표현과 서비스 탐색 방향은 바꾸지 않고, 정확 비교와 참조 무결성은 Flyway가 소유하는 DB 제약으로 보강했다.
 
-### P1: 순서와 Aggregate 불변식
+### P1: 순서와 Aggregate 불변식 — V4 적용 완료
 
-1. V4에서 6개 OrderColumn을 NOT NULL로 변경하고 JPA 매핑도 일치시킨다.
-2. `movie_person.sort_order`, 6개 OrderColumn과 `person_gallery.sort_order`에 0 이상 CHECK를 추가한다.
-3. `uk_person_gallery_image_key(person_id, image_key)`를 추가한다.
-4. `ck_movie_runtime`으로 1~1000을, `ck_movie_release_year_min`으로 1900 이상을 보장한다. 현재 연도 + 1 상한은 시간 의존적이므로 Entity 검증에 유지한다.
+1. 6개 OneToMany OrderColumn은 Hibernate의 INSERT 후 UPDATE 절차 때문에 nullable을 유지했다.
+2. `movie_person.sort_order`, 6개 OrderColumn과 `person_gallery.sort_order`에 0 이상 CHECK를 추가했다.
+3. `uk_person_gallery_image_key(person_id, image_key)`를 추가했다.
+4. `ck_movie_runtime`으로 1~1000을, `ck_movie_release_year_min`으로 1900 이상을 보장했다. 현재 연도 + 1 상한은 시간 의존적이므로 Entity 검증에 유지한다.
 
 ### P2: 상태 조합
 

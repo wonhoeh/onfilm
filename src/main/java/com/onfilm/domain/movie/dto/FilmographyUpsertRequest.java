@@ -1,6 +1,7 @@
 package com.onfilm.domain.movie.dto;
 
 import com.onfilm.domain.movie.entity.AgeRating;
+import com.onfilm.domain.movie.entity.Movie;
 import com.onfilm.domain.movie.entity.PersonRole;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
@@ -23,10 +24,10 @@ public record FilmographyUpsertRequest(
             @NotBlank(message = "클라이언트 키는 필수입니다.") String clientKey,
             @Positive(message = "영화 ID는 양수여야 합니다.") Long movieId,
             @NotBlank(message = "영화 제목은 필수입니다.") String title,
-            @Min(value = 1, message = "상영 시간은 1분 이상이어야 합니다.")
-            @Max(value = 1000, message = "상영 시간은 1000분 이하여야 합니다.") int runtime,
+            @Min(value = Movie.RUNTIME_MIN, message = "상영 시간은 1분 이상이어야 합니다.")
+            @Max(value = Movie.RUNTIME_MAX, message = "상영 시간은 1000분 이하여야 합니다.") int runtime,
             @NotNull(message = "개봉 연도는 필수입니다.")
-            @Min(value = 1900, message = "개봉 연도는 1900년 이상이어야 합니다.") Integer releaseYear,
+            @Min(value = Movie.RELEASE_YEAR_MIN, message = "개봉 연도는 1900년 이상이어야 합니다.") Integer releaseYear,
             @NotNull(message = "관람 등급은 필수입니다.") AgeRating ageRating,
             @NotNull(message = "장르 목록은 필수입니다.")
             List<@NotNull(message = "장르는 null일 수 없습니다.") @Valid MovieGenreRequest> genres,

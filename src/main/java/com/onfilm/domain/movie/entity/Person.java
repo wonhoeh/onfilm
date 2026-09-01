@@ -83,9 +83,13 @@ public class Person {
     @ElementCollection
     @CollectionTable(
             name = "person_gallery",
-            joinColumns = @JoinColumn(name = "person_id")
+            joinColumns = @JoinColumn(name = "person_id"),
+            uniqueConstraints = @UniqueConstraint(
+                    name = "uk_person_gallery_image_key",
+                    columnNames = {"person_id", "image_key"}
+            )
     )
-    @OrderColumn(name = "sort_order") // ✅ 순서 보존(드래그 정렬 가능)
+    @OrderColumn(name = "sort_order", nullable = false)
     private List<GalleryItem> galleryItems = new ArrayList<>();
 
     // ======================================================================

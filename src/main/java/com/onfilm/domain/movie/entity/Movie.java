@@ -18,6 +18,9 @@ import java.util.Objects;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Movie {
     public static final int STORAGE_KEY_MAX_LENGTH = 512;
+    public static final int RUNTIME_MIN = 1;
+    public static final int RUNTIME_MAX = 1000;
+    public static final int RELEASE_YEAR_MIN = 1900;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,7 +33,7 @@ public class Movie {
     @Column(nullable = false)
     private int runtime;
 
-    @Column(nullable = false)
+    @Column(name = "release_year", nullable = false)
     private int releaseYear;
 
     @Column(length = STORAGE_KEY_MAX_LENGTH)
@@ -330,8 +333,10 @@ public class Movie {
     }
 
     private static int validateRuntime(int runtime) {
-        if (runtime <= 0 || runtime > 1000) {
-            throw new IllegalArgumentException("runtime must be between 1 and 1000");
+        if (runtime < RUNTIME_MIN || runtime > RUNTIME_MAX) {
+            throw new IllegalArgumentException(
+                    "runtime must be between " + RUNTIME_MIN + " and " + RUNTIME_MAX
+            );
         }
         return runtime;
     }
@@ -339,7 +344,7 @@ public class Movie {
     private static int validateReleaseYear(Integer releaseYear) {
         int year = require(releaseYear, "releaseYear");
         int maximumYear = LocalDate.now().getYear() + 1;
-        if (year < 1900 || year > maximumYear) {
+        if (year < RELEASE_YEAR_MIN || year > maximumYear) {
             throw new IllegalArgumentException("invalid releaseYear");
         }
         return year;

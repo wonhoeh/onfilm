@@ -17,10 +17,10 @@ import java.util.List;
 
 public record CreateMovieRequest(
         @NotBlank(message = "영화 제목은 필수입니다.") String title,
-        @Min(value = 1, message = "상영 시간은 1분 이상이어야 합니다.")
-        @Max(value = 1000, message = "상영 시간은 1000분 이하여야 합니다.") int runtime,
+        @Min(value = Movie.RUNTIME_MIN, message = "상영 시간은 1분 이상이어야 합니다.")
+        @Max(value = Movie.RUNTIME_MAX, message = "상영 시간은 1000분 이하여야 합니다.") int runtime,
         @NotNull(message = "개봉 연도는 필수입니다.")
-        @Min(value = 1900, message = "개봉 연도는 1900년 이상이어야 합니다.") Integer releaseYear,
+        @Min(value = Movie.RELEASE_YEAR_MIN, message = "개봉 연도는 1900년 이상이어야 합니다.") Integer releaseYear,
         @NotBlank(message = "영화 스토리지 키는 필수입니다.")
         @Size(max = Movie.STORAGE_KEY_MAX_LENGTH, message = "영화 스토리지 키는 512자 이하여야 합니다.") String movieUrl,
         @Size(max = Movie.STORAGE_KEY_MAX_LENGTH, message = "썸네일 스토리지 키는 512자 이하여야 합니다.") String thumbnailUrl,

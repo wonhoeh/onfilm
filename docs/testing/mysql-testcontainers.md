@@ -77,6 +77,8 @@ Spring Boot 3.3.4의 기본 의존성 관리가 제공하는 Testcontainers 1.19
 - User 삭제 시 생명주기를 공유하는 Person 삭제 확인
 - Refresh Token hash의 `ascii_bin` 정확 비교와 대소문자 구분 저장 확인
 - 없는 User의 Refresh Token 거부와 User 삭제 시 Token 연쇄 삭제 확인
+- Aggregate 순서 컬럼의 0 이상 CHECK와 트랜잭션 완료 후 순서 값 확인
+- Person Gallery 이미지 중복 거부와 Movie 상영 시간·개봉 연도 범위 확인
 - Job·Outbox의 commit·rollback 원자성과 `REQUIRES_NEW` 보안 기록 보존 확인
 - UploadRequest 비관적 잠금의 대기·커밋 후 최신 상태 조회 확인
 - Outbox 동시 선점 시 동일 행의 중복 claim 방지 확인
