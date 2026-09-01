@@ -70,6 +70,11 @@ Spring Boot 3.3.4의 기본 의존성 관리가 제공하는 Testcontainers 1.19
 - Hibernate `ddl-auto: validate`를 통한 엔티티와 스키마 일치 검증
 - V2 표준 장르의 개수·고정 ID·정규화 값과 자동완성 조회 확인
 - MySQL 버전, 논리 DB, 계정, 문자 집합과 Collation 확인
+- Movie 참여 이력의 복수 역할 fetch와 `sort_order` 기반 조회 순서 확인
+- Movie의 Trailer·Genre orphanRemoval과 Movie 삭제 cascade 확인
+- Storyboard Scene·Card 재정렬의 `sort_order` 저장과 중첩 자식 삭제 확인
+- User 정규화 조회와 이메일·사용자명 UNIQUE, 필수값, Person FK 위반 거부 확인
+- User 삭제 시 생명주기를 공유하는 Person 삭제 확인
 - Outbox 선점 후 프로세스 종료를 가정한 lease 만료 복구
 - 반복 발행 실패 후 Outbox `DEAD` 전환
 - Job과 Outbox 저장 중 DB 오류가 발생했을 때 전체 rollback
