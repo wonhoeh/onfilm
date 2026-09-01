@@ -228,6 +228,7 @@ DB_PASSWORD='<local-api-password>' ./gradlew bootRun --args='--spring.profiles.a
 - [API CI 검증 정책](docs/testing/api-ci.md)
 - [MySQL 트랜잭션과 잠금 통합 테스트](docs/testing/mysql-transaction-and-locking.md)
 - [MySQL Unique·Nullable·FK Constraint 감사](docs/review/database/mysql-constraint-audit.md)
+- [주요 SQL Index 적용 전 EXPLAIN 기준선](docs/performance/mysql-index-baseline.md)
 - [미디어 Outbox DEAD·Kafka DLT 재처리 절차](docs/operations/media-dead-letter-reprocessing.md)
 - [Service 단일 책임 지도](docs/review/service/service-responsibility-map.md)
 - [Transaction Boundary 설계 가이드](docs/review/transaction/transaction-boundary-guide.md)
