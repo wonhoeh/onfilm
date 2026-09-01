@@ -163,6 +163,7 @@ docker rm -f onfilm-index-baseline
 
 ## 관련 문서
 
+- [주요 SQL Index 적용 전후 비교](mysql-index-before-after-comparison.md)
 - [MySQL 트랜잭션과 잠금 통합 테스트](../testing/mysql-transaction-and-locking.md)
 - [MySQL Constraint 감사](../review/database/mysql-constraint-audit.md)
 - [Movie 참여·복수 역할 모델링 정책](../decisions/movie-person-role-modeling-policy.md)

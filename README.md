@@ -139,6 +139,18 @@ Movie와 Person의 관계에는 정렬 순서와 공개 범위가 필요하므�
 
 상세 측정 결과는 [k6 테스트 문서](docs/review/k6/)에서 확인할 수 있습니다.
 
+### 미디어 유지보수 Composite Index
+
+MySQL 8.4.11에서 Job·Outbox 각 20만 건을 적재하고 같은 컨테이너에서 Index 적용 전후 `EXPLAIN ANALYZE`를 비교했습니다.
+
+| 쿼리 | 적용 전 중앙값 | 적용 후 중앙값 | 변화 |
+|---|---:|---:|---:|
+| 완료 Job 정리 | 123ms | 3.40ms | -97.2% |
+| 발행 완료 Outbox 정리 | 1,357ms | 3.57ms | -99.7% |
+| oldest PENDING | 153ms | 실행 전 Index에서 결정 | 2만 행 집계 제거 |
+
+상세한 데이터 분포, 실행 계획과 Index 비용은 [적용 전후 비교 문서](docs/performance/mysql-index-before-after-comparison.md)에 기록했습니다.
+
 ## 인증과 보안
 
 - 로그인 시 Access Token과 Refresh Token을 HttpOnly 쿠키로 발급하고 CSRF 토큰은 읽을 수 있는 별도 쿠키로 제공합니다.
@@ -229,6 +241,7 @@ DB_PASSWORD='<local-api-password>' ./gradlew bootRun --args='--spring.profiles.a
 - [MySQL 트랜잭션과 잠금 통합 테스트](docs/testing/mysql-transaction-and-locking.md)
 - [MySQL Unique·Nullable·FK Constraint 감사](docs/review/database/mysql-constraint-audit.md)
 - [주요 SQL Index 적용 전 EXPLAIN 기준선](docs/performance/mysql-index-baseline.md)
+- [주요 SQL Index 적용 전후 비교](docs/performance/mysql-index-before-after-comparison.md)
 - [미디어 Outbox DEAD·Kafka DLT 재처리 절차](docs/operations/media-dead-letter-reprocessing.md)
 - [Service 단일 책임 지도](docs/review/service/service-responsibility-map.md)
 - [Transaction Boundary 설계 가이드](docs/review/transaction/transaction-boundary-guide.md)
