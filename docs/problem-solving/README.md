@@ -22,6 +22,10 @@
 | 2026-08-30~31 | [미디어 파이프라인의 장애 대응과 관측성 구축](10-media-failure-observability-and-runbook.md) | 실패 분류, correlationId, 메트릭, Prometheus·Grafana, Alert, 장애 주입, Runbook | API `1959c0f`~`1084835`, Worker `f8504b6`~`2d32e35` |
 | 2026-09-01~02 | [Flyway와 실제 MySQL 검증으로 DB·JPA 신뢰성 확보](11-database-jpa-reliability.md) | DB 소유권, Flyway, Testcontainers, Constraint, 동시성, EXPLAIN | API `7caacc1`~`4b944d7`, Worker `e7af0b9`~`e2e71bf` |
 
+## 주제별 요약
+
+- [OnFilm 주요 리팩토링 작업 요약](work-summary.md): 아키텍처·에러 정책, DB·JPA 신뢰성, 장애 대응·관측성 개선을 한 문서에서 연속해서 설명한다.
+
 ## 포트폴리오 작성 시 사용법
 
 각 사례에서 다음 항목을 골라 한 문단으로 압축한다.

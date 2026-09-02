@@ -216,6 +216,7 @@ DB_PASSWORD='<local-api-password>' ./gradlew bootRun --args='--spring.profiles.a
 ### 문제 해결과 기술 선택
 
 - [문제 해결 사례 인덱스](docs/problem-solving/README.md)
+- [주요 리팩토링 작업 요약](docs/problem-solving/work-summary.md)
 - [Flyway와 실제 MySQL 검증으로 API·Worker DB·JPA 신뢰성 확보](docs/problem-solving/11-database-jpa-reliability.md)
 - [도메인 예외와 API 오류 응답 표준화](docs/problem-solving/08-domain-exception-and-api-error-standardization.md)
 - [Transactional Outbox 정책](docs/decisions/media-encode-job-outbox-policy.md)
