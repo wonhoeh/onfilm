@@ -1,7 +1,7 @@
 # OnFilm DB·JPA 신뢰성 컨벤션
 
 - 제정일: 2026-09-01
-- 적용 대상: OnFilm API의 JPA Entity, Repository, Flyway Migration, MySQL 통합 테스트
+- 적용 대상: OnFilm API·Encoding Worker의 JPA Entity, Repository, Flyway Migration, MySQL 통합 테스트
 - Schema 기준: Flyway Versioned Migration
 
 ## 1. 목적
@@ -48,12 +48,21 @@ Flyway Versioned Migration을 스키마의 단일 정책원으로 사용한다.
 
 Hibernate의 `create`, `create-drop`, `update`를 공유 MySQL Schema 관리 수단으로 사용하지 않는다. 적용된 Migration은 수정하거나 이름을 바꾸지 않고, 이후 변경은 증가하는 새 버전으로 작성한다.
 
+API Migration 예시는 다음과 같다.
+
 ```text
 V1__create_initial_schema.sql
 V2__seed_standard_genres.sql
 V3__strengthen_refresh_token_constraints.sql
 V4__strengthen_aggregate_constraints.sql
 V5__add_media_maintenance_indexes.sql
+```
+
+Worker는 같은 이름의 독립적인 이력을 소유한다.
+
+```text
+V1__create_initial_schema.sql
+V2__strengthen_inbox_constraints.sql
 ```
 
 ## 4. Schema 변경 작업 흐름

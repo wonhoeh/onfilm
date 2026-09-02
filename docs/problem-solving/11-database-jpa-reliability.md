@@ -1,9 +1,9 @@
 # Flyway와 실제 MySQL 검증으로 DB·JPA 신뢰성 확보
 
-- 작업일: 2026-09-01
-- 문서 작성일: 2026-09-01
-- 관련 커밋: 첫 커밋 `7caacc1`, 마지막 커밋 `4b944d7`을 포함한 DB 신뢰성 작업 16개
-- 상태: API DB 적용·검증 완료, Worker DB 적용은 후속 과제
+- 작업일: 2026-09-01~2026-09-02
+- 문서 작성일: 2026-09-02
+- 관련 커밋: API `7caacc1`~`4b944d7` 16개, Worker `e7af0b9`~`e2e71bf` 11개
+- 상태: API·Worker DB 적용 및 검증 완료
 
 ## 문제
 
@@ -56,7 +56,7 @@ API 저장소는 `onfilm_api`만, Worker 저장소는 `onfilm_worker`만 소유�
 
 ### 2. Flyway를 Schema 단일 정책원으로 전환
 
-보존할 운영 데이터가 없다는 조건을 활용해 기존 Schema를 baseline 등록하지 않고 빈 DB용 `V1__create_initial_schema.sql`을 작성했다. API 소유 19개 테이블, 명시적인 PK·FK·UNIQUE·Index와 삭제 정책을 포함했다.
+보존할 운영 데이터가 없다는 조건을 활용해 기존 Schema를 baseline 등록하지 않고 두 저장소에 각각 빈 DB용 `V1__create_initial_schema.sql`을 작성했다. API V1에는 소유 테이블 19개와 명시적인 PK·FK·UNIQUE·Index 및 삭제 정책을, Worker V1에는 `media_encode_inbox`와 멱등 처리·lease 복구용 Index를 포함했다.
 
 이후 변경은 순서가 증가하는 Migration으로 분리했다.
 
@@ -68,7 +68,14 @@ API 저장소는 `onfilm_api`만, Worker 저장소는 `onfilm_worker`만 소유�
 | V4 | Aggregate CHECK·UNIQUE와 값 범위 강화 |
 | V5 | 근거가 확인된 미디어 유지보수 Composite Index 추가 |
 
-MySQL 환경의 Hibernate는 `ddl-auto: validate`만 수행한다. 애플리케이션 시작 시 Flyway 적용 또는 Mapping 검증이 실패하면 서비스도 시작하지 않는다.
+Worker는 독립적인 Migration 이력을 사용한다.
+
+| Migration | 역할 |
+|---|---|
+| V1 | Worker Inbox Schema와 claim·복구 Index 생성 |
+| V2 | 상태별 lease·실패 정보, 횟수·시간·JSON CHECK 10개 추가 |
+
+두 애플리케이션의 MySQL 환경에서 Hibernate는 `ddl-auto: validate`만 수행한다. 애플리케이션 시작 시 Flyway 적용 또는 Mapping 검증이 실패하면 서비스도 시작하지 않는다.
 
 ### 3. 운영 Reference Data와 Fixture 분리
 
@@ -83,7 +90,7 @@ MySQL 환경의 Hibernate는 `ddl-auto: validate`만 수행한다. 애플리케�
 
 ### 4. MySQL Testcontainers와 CI 구축
 
-`mysql:8.4.11`을 고정한 공통 Testcontainers 환경을 만들고 다음 항목을 자동으로 검증했다.
+`mysql:8.4.11`을 고정한 저장소별 Testcontainers 환경을 만들고 다음 항목을 자동으로 검증했다.
 
 - 빈 `onfilm_api`에 V1부터 최신 Migration 적용
 - Hibernate `validate` 통과
@@ -91,8 +98,9 @@ MySQL 환경의 Hibernate는 `ddl-auto: validate`만 수행한다. 애플리케�
 - Repository 저장·조회·삭제와 정렬
 - JPA cascade, orphanRemoval과 DB FK 삭제 결과
 - Constraint 거부, Transaction, Lock과 동시성
+- Worker `job_id`의 `VARCHAR(36)` 표현과 Kafka JSON용 `TEXT` payload
 
-H2 기반 단위 테스트와 MySQL 통합 테스트를 CI의 독립 작업으로 실행하고, Docker에 접근할 수 없으면 MySQL 검증을 건너뛰지 않고 실패하도록 했다.
+API와 Worker 모두 H2 기반 단위 테스트와 MySQL 통합 테스트를 CI의 독립 작업으로 실행하고, Docker에 접근할 수 없으면 MySQL 검증을 건너뛰지 않고 실패하도록 했다.
 
 ### 5. Constraint 전수 감사와 강화
 
@@ -110,6 +118,8 @@ API 소유 19개 테이블의 UNIQUE, Nullable과 FK를 JPA Mapping·V1 Schema·
 
 DB Constraint를 무조건 강하게 만드는 대신 ORM 저장 절차와 도메인 의미를 함께 확인했다.
 
+Worker Inbox는 `job_id` Primary Key를 Kafka 중복 전달의 최종 멱등성 방어선으로 유지했다. 별도 FK 없이 API Job과 메시지 계약으로만 연결하고, V2에는 횟수·시간 순서, JSON payload, 상태별 lease와 실패 정보 조합을 검증하는 CHECK 10개를 추가했다. 정상 상태 조합과 각 제약 위반을 실제 MySQL에서 함께 검증했다.
+
 ### 6. 실제 MySQL Transaction과 동시성 검증
 
 두 스레드와 독립 트랜잭션으로 다음 경쟁을 재현했다.
@@ -119,8 +129,12 @@ DB Constraint를 무조건 강하게 만드는 대신 ORM 저장 절차와 도�
 - 같은 Media Job의 `DONE`·`FAILED` 동시 전이
 - 같은 UploadRequest의 비관적 잠금 대기
 - 두 Publisher의 동일 Outbox 동시 선점
+- 같은 `jobId` Kafka 메시지의 Worker Inbox 동시 최초 claim
+- 같은 version을 읽은 두 Worker 상태 변경
 
 동시 회원가입은 MySQL UNIQUE가 하나만 commit하고 나머지를 실제 제약 이름으로 거부했다. Refresh Token과 Media Job은 `@Version`을 사용해 한 상태만 commit하고 충돌 요청을 도메인 오류로 변환했다. Outbox 잠금은 Kafka 발행까지 유지하지 않고 짧은 DB 선점 트랜잭션에서 끝냈다.
+
+Worker는 동일 `jobId`의 두 최초 INSERT가 모두 사전 조회를 통과하는 경쟁을 재현했다. Primary Key 충돌과 MySQL deadlock을 짧은 새 트랜잭션에서 한 번 재시도해 최종 결과를 `PROCESS`와 `BUSY`로 정리하고, 이미 존재하는 Inbox의 같은 version 상태 변경은 낙관적 락으로 하나만 commit되게 했다.
 
 ### 7. EXPLAIN 기반 Composite Index 적용
 
@@ -144,6 +158,18 @@ Person 1,000건, Movie 관계 각 10만 건, Job·Outbox 각 20만 건을 전용
 
 신규 Index 저장 공간은 20만 행 기준 합계 34.72MiB였다. 조회 개선만 기록하지 않고 쓰기 갱신과 저장 공간 비용도 함께 남겼다.
 
+Worker도 Inbox 20만 건을 상태와 lease 분포에 맞춰 적재했다. 기존 V1의 `(status, updated_at)`과 `(status, lease_until)`을 `INVISIBLE`·`VISIBLE`로 비교한 결과는 다음과 같았다.
+
+| Worker 쿼리 | Index 미적용 중앙값 | Index 적용 중앙값 | 읽은 행 변화 |
+|---|---:|---:|---:|
+| 실패 Callback 100건 | 129ms | 0.753ms | 200,000 → 100 |
+| 만료 `PROCESSING` 복구 | 124ms | 1.88ms | 200,000 → 200 |
+| 만료 `OUTPUT_UPLOADED` 복구 | 125ms | 0.932ms | 200,000 → 100 |
+| `PROCESSING` 상태 집계 | 51.0ms | 7.95ms | 200,000 → 20,000 |
+| oldest `FAILURE_PENDING` | 53.8ms | 0.001ms 미만 | 200,000 → 1 |
+
+기존 두 Index의 효과는 확인됐지만 세 번째 컬럼을 추가해도 lease 범위 뒤의 전체 정렬을 제거할 수 없었다. 측정 근거 없이 쓰기 비용을 늘리지 않기 위해 Worker V3 Index Migration은 만들지 않았다.
+
 ## 기술 선택과 트레이드오프
 
 ### 선택한 방법
@@ -164,9 +190,9 @@ H2는 빠른 테스트에 유지하고 DB 의미가 중요한 검증은 실제 M
 
 사전 검사는 사용자 친화적인 오류를, DB는 경쟁 조건의 최종 무결성을 담당하게 했다. 같은 규칙이 일부 겹치지만 실패 시점과 보호 범위가 다르다.
 
-#### 실행 계획이 개선된 Index만 적용
+#### 실행 계획이 개선된 Index만 적용하거나 유지
 
-후보를 모두 추가하지 않고 실제 읽은 행이 줄어든 세 개만 선택했다. 측정용 데이터와 실험 절차를 유지해야 하지만 사용되지 않는 Index의 지속적인 쓰기 비용을 피했다.
+API는 후보를 모두 추가하지 않고 실제 읽은 행이 줄어든 세 개만 선택했다. Worker는 기존 두 Index의 효과를 확인하되 새 후보의 이득이 없어 Migration을 생략했다. 측정용 데이터와 실험 절차를 유지해야 하지만 사용되지 않는 Index의 지속적인 쓰기 비용을 피했다.
 
 ### 검토한 대안
 
@@ -190,6 +216,10 @@ SQL 작성 비용은 적지만 변경 이력, 배포 순서와 예상 DDL을 검
 
 구현은 단순하지만 사용되지 않는 lease Index까지 모든 Outbox 쓰기에 비용을 추가한다. OR Optimizer가 선택하지 않는 것을 측정하고 제외했다.
 
+#### Worker lease 복구 Index에 정렬 컬럼 추가
+
+`(status, lease_until, updated_at)`는 lease 범위 조건 뒤의 `updated_at`으로 전체 정렬을 제거할 수 없고, `(status, updated_at, lease_until)`는 만료 작업이 드문 분포에서 상태 행을 많이 읽을 수 있다. 기존 `(status, lease_until)`이 만료 후보를 100~200건으로 줄이는 것을 확인했으므로 세 번째 컬럼을 추가하지 않았다.
+
 ### 감수한 비용
 
 - Schema 변경마다 Entity와 SQL Migration을 함께 관리해야 한다.
@@ -198,17 +228,20 @@ SQL 작성 비용은 적지만 변경 이력, 배포 순서와 예상 DDL을 검
 - DB 제약 위반을 안정적인 Domain Error로 변환하는 코드가 필요하다.
 - 실제 동시성 테스트는 순서 제어와 timeout 때문에 단위 테스트보다 복잡하다.
 - Composite Index 세 개가 benchmark 20만 행에서 34.72MiB를 추가로 사용하고 쓰기마다 갱신된다.
+- Worker의 기존 Composite Index 두 개도 Inbox INSERT와 `status`·`updated_at`·`lease_until` 변경 때 갱신된다.
 - H2와 MySQL 테스트가 공존하므로 각 테스트가 무엇을 증명하는지 구분해야 한다.
 
 ## 검증
 
-V5 적용 작업에서 `./gradlew check --rerun-tasks --no-daemon`을 실행해 다음 결과를 확인했다.
+API V5 적용 작업에서 전체 `check`를 실행했고, Worker는 2026-09-02에 `./gradlew clean check --no-daemon`을 실행해 다음 결과를 확인했다.
 
-| 구분 | 테스트 수 | 결과 |
+| 저장소·구분 | 테스트 수 | 결과 |
 |---|---:|---|
-| 단위·빠른 테스트 | 299 | 성공 |
-| MySQL 통합 테스트 | 43 | 성공 |
-| 합계 | 342 | 실패 0 |
+| API 단위·빠른 테스트 | 299 | 성공 |
+| API MySQL 통합 테스트 | 43 | 성공 |
+| Worker 단위·빠른 테스트 | 33 | 성공 |
+| Worker MySQL 통합 테스트 | 33 | 성공 |
+| 합계 | 408 | 실패 0 |
 
 주요 검증 범위는 다음과 같다.
 
@@ -222,6 +255,10 @@ V5 적용 작업에서 `./gradlew check --rerun-tasks --no-daemon`을 실행해 
 - 비관적 잠금 대기, Outbox 중복 선점 방지 확인
 - 동시 INSERT UNIQUE 충돌과 낙관적 락 충돌 확인
 - V5 Index의 존재와 복합 컬럼 순서 확인
+- 빈 Worker MySQL에 V1~V2 적용과 Hibernate validate 확인
+- Worker Inbox CHECK 10개의 정상·거부 상태 조합 확인
+- Worker commit·rollback, `REQUIRES_NEW`, 비관적 잠금과 낙관적 락 확인
+- 동일 `jobId` 최초 claim의 Primary Key·deadlock 경쟁과 재시도 확인
 - 동일 MySQL·데이터·SQL의 Index 전후 `EXPLAIN ANALYZE` 측정
 - `git diff --check` 통과
 
@@ -239,14 +276,15 @@ V5 적용 작업에서 `./gradlew check --rerun-tasks --no-daemon`을 실행해 
 | Cascade·Nullable·FK 정책을 부분적으로 확인 | API 19개 테이블 Constraint 전수 감사와 V3·V4 강화 |
 | Lock annotation 존재만 확인 | 두 스레드·독립 트랜잭션으로 commit 결과 검증 |
 | 추측으로 Index 후보 선정 | 20만 행 EXPLAIN 기준선, V5 적용과 paired 전후 비교 |
+| Worker Schema와 동시 처리 근거가 H2에 의존 | Worker Flyway V1~V2, MySQL CI와 Inbox 동시 claim 검증 |
+| Worker Index 필요성과 추가 후보가 추측에 의존 | 20만 Inbox Index 유무 비교 후 기존 2개 유지·신규 V3 생략 |
 
 이번 작업으로 Entity Mapping, SQL Schema, DB Constraint, Transaction·Lock, CI와 성능 근거가 하나의 변경 흐름으로 연결됐다. 새 Entity나 컬럼을 추가할 때 무엇을 함께 수정하고 어떤 테스트로 완료를 판단할지도 [DB·JPA 신뢰성 컨벤션](../convention/database-jpa-reliability-convention.md)에 남겼다.
 
 ## 후속 과제
 
-- Worker 저장소에 `onfilm_worker` Flyway V1, Hibernate validate와 MySQL Testcontainers를 적용한다.
 - 공개 운영 전 DDL Migration 계정과 DML Runtime 계정을 분리한다.
-- DB deadlock과 lock wait timeout 재시도 정책을 정하고 실제 MySQL에서 검증한다.
+- Worker 최초 claim 이외의 API·Worker 경로에 적용할 DB deadlock과 lock wait timeout 공통 정책을 정하고 실제 MySQL에서 검증한다.
 - Index 추가에 따른 Job·Outbox 쓰기 처리량과 페이지 분할 비용을 측정한다.
 - 실제 운영 데이터와 slow query log로 Index 선택성과 Alert 기준을 재감사한다.
 - Q4 Outbox claim이 병목으로 확인되면 PENDING 발행과 PUBLISHING lease 복구 쿼리 분리를 비교한다.
@@ -255,4 +293,4 @@ V5 적용 작업에서 `./gradlew check --rerun-tasks --no-daemon`을 실행해 
 
 ## 포트폴리오 요약 후보
 
-Hibernate 자동 Schema 생성과 H2 테스트만으로는 MySQL의 Constraint·Transaction·Lock을 보장할 수 없는 문제를 발견하고, Flyway V1~V5와 Hibernate validate, MySQL 8.4.11 Testcontainers 기반 CI로 DB 변경 흐름을 재설계했습니다. 19개 테이블의 무결성과 동시 요청을 43개 MySQL 통합 테스트로 검증하고, Job·Outbox 각 20만 건의 EXPLAIN 분석을 통해 완료 Job 정리 97.2%, 발행 완료 Outbox 정리 99.7%의 실행 시간 감소를 확인하면서 효과 없는 Index는 제외했습니다.
+Hibernate 자동 Schema 생성과 H2 테스트만으로는 MySQL의 Constraint·Transaction·Lock을 보장할 수 없는 문제를 발견하고, API와 Worker가 각각 소유하는 Flyway Migration, Hibernate validate와 MySQL 8.4.11 Testcontainers CI로 DB 변경 흐름을 재설계했습니다. 총 408개 테스트 중 76개 MySQL 통합 테스트로 무결성과 동시 요청을 검증하고, Job·Outbox·Inbox 각 20만 건의 EXPLAIN 분석을 통해 전체 스캔을 range scan으로 줄이면서 효과가 없거나 중복되는 Index는 제외했습니다.
