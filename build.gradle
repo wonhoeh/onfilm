@@ -84,6 +84,10 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
+tasks.named('processResources') {
+	exclude 'static/videos/**'
+}
+
 tasks.register('integrationTest', Test) {
 	description = 'Runs MySQL and failure-injection integration tests.'
 	group = 'verification'

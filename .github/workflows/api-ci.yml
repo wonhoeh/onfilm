@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: api-ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   unit-test:
@@ -85,3 +85,120 @@ jobs:
             build/test-results/integrationTest
           if-no-files-found: ignore
           retention-days: 7
+
+  deploy-performance:
+    name: Deploy API to performance EC2
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs:
+      - unit-test
+      - mysql-integration-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: performance
+    env:
+      API_EC2_HOST: ${{ vars.API_EC2_HOST }}
+      API_EC2_USER: ${{ vars.API_EC2_USER }}
+      API_DEPLOY_DIR: ${{ vars.API_DEPLOY_DIR }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Validate deployment configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          for variable_name in API_EC2_HOST API_EC2_USER API_DEPLOY_DIR; do
+            if [ -z "${!variable_name}" ]; then
+              echo "Missing GitHub Environment variable: ${variable_name}" >&2
+              exit 1
+            fi
+          done
+
+      - name: Build executable JAR
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew bootJar --no-daemon
+          artifact_path=$(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-plain.jar' -print -quit)
+          if [ -z "$artifact_path" ]; then
+            echo "Executable JAR was not created" >&2
+            exit 1
+          fi
+          install -m 644 "$artifact_path" "/tmp/onfilm-api-${GITHUB_SHA}.jar"
+
+      - name: Configure SSH host verification
+        shell: bash
+        env:
+          API_EC2_SSH_PRIVATE_KEY: ${{ secrets.API_EC2_SSH_PRIVATE_KEY }}
+          API_EC2_KNOWN_HOSTS: ${{ secrets.API_EC2_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          if [ -z "$API_EC2_SSH_PRIVATE_KEY" ] || [ -z "$API_EC2_KNOWN_HOSTS" ]; then
+            echo "Missing API EC2 SSH secret" >&2
+            exit 1
+          fi
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$API_EC2_SSH_PRIVATE_KEY" > "$HOME/.ssh/onfilm-api"
+          printf '%s\n' "$API_EC2_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/onfilm-api" "$HOME/.ssh/known_hosts"
+
+      - name: Upload release JAR
+        shell: bash
+        run: |
+          set -euo pipefail
+          scp \
+            -i "$HOME/.ssh/onfilm-api" \
+            -o IdentitiesOnly=yes \
+            "/tmp/onfilm-api-${GITHUB_SHA}.jar" \
+            "${API_EC2_USER}@${API_EC2_HOST}:${API_DEPLOY_DIR}/"
+
+      - name: Activate release and verify health
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_path="${API_DEPLOY_DIR}/onfilm-api-${GITHUB_SHA}.jar"
+          ssh \
+            -i "$HOME/.ssh/onfilm-api" \
+            -o IdentitiesOnly=yes \
+            "${API_EC2_USER}@${API_EC2_HOST}" \
+            "sudo /bin/bash -s -- '${release_path}'" <<'REMOTE_SCRIPT'
+          set -euo pipefail
+
+          release_path=$1
+          current_path=/opt/onfilm-api/current.jar
+          previous_path=$(readlink -f "$current_path" || true)
+
+          ln -sfn "$release_path" "$current_path"
+          systemctl enable onfilm-api
+          systemctl restart onfilm-api
+
+          for attempt in $(seq 1 36); do
+            if curl --fail --silent http://127.0.0.1:8081/actuator/health \
+              | grep --quiet '"status":"UP"'; then
+              echo "OnFilm API is healthy"
+              exit 0
+            fi
+            sleep 5
+          done
+
+          echo "OnFilm API health check failed" >&2
+          journalctl -u onfilm-api -n 100 --no-pager >&2 || true
+
+          if [ -n "$previous_path" ] && [ -f "$previous_path" ] && [ "$previous_path" != "$release_path" ]; then
+            echo "Rolling back to ${previous_path}" >&2
+            ln -sfn "$previous_path" "$current_path"
+            systemctl restart onfilm-api
+          fi
+
+          exit 1
+          REMOTE_SCRIPT

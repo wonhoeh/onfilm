@@ -31,6 +31,9 @@ spring:
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
 
+jwt:
+  secret: ${JWT_SECRET}
+
 file:
   storage:
     type: s3

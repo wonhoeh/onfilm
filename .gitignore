@@ -1,4 +1,5 @@
 HELP.md
+.DS_Store
 .gradle
 build/
 .env
@@ -16,6 +17,7 @@ build/
 *.gif
 *.mp4
 *.mov
+src/main/resources/static/videos/
 
 ### STS ###
 .apt_generated
@@ -48,6 +50,7 @@ out/
 ### VS Code ###
 .vscode/
 
-# application.properites
+# Application overrides containing local secrets
 application-*.properties
-src/main/resources/application.yml
+src/main/resources/application-local.yml
+src/main/resources/application-secret.yml
