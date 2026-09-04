@@ -4,3 +4,4 @@
 
 - [미디어 인코딩 장애 대응 Runbook](media-incident-runbook.md): Alert 확인부터 원인 진단, 즉시 조치, 정상화 판정과 사후 기록까지의 공통 절차
 - [미디어 Outbox DEAD·Kafka DLT 재처리 절차](media-dead-letter-reprocessing.md)
+- [AWS 단기 성능 측정 환경 구축 기록](aws-performance-environment-setup.md): RDS·S3·Kafka·API EC2와 GitHub Actions 배포를 실제 진행 순서대로 정리한 재현 절차
