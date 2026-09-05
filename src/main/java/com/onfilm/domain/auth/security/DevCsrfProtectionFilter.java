@@ -20,7 +20,6 @@ public class DevCsrfProtectionFilter extends CsrfProtectionFilter {
     @Override
     protected boolean shouldSkipByPath(String path) {
         return super.shouldSkipByPath(path)
-                || path.startsWith("/h2-console")
-                || path.startsWith("/internal/api/");
+                || path.startsWith("/h2-console");
     }
 }

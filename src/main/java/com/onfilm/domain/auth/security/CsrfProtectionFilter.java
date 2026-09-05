@@ -103,6 +103,7 @@ public class CsrfProtectionFilter extends OncePerRequestFilter {
         return path.startsWith("/auth/login")
                 || path.startsWith("/auth/signup")
                 || path.startsWith("/auth/refresh")
-                || path.startsWith("/auth/logout");
+                || path.startsWith("/auth/logout")
+                || path.startsWith("/internal/api/");
     }
 }

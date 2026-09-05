@@ -52,6 +52,22 @@ class CsrfProtectionFilterTest {
         assertThat(response.getStatus()).isEqualTo(200);
     }
 
+    @Test
+    void internalCallbackSkipsBrowserCsrfValidation() throws Exception {
+        CsrfProtectionFilter filter = filter();
+        MockHttpServletRequest request = new MockHttpServletRequest(
+                "POST",
+                "/internal/api/media-jobs/job-id/processing"
+        );
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        MockFilterChain filterChain = new MockFilterChain();
+
+        filter.doFilter(request, response, filterChain);
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        assertThat(filterChain.getRequest()).isSameAs(request);
+    }
+
     private CsrfProtectionFilter filter() {
         AuthProperties authProperties = mock(AuthProperties.class);
         given(authProperties.csrfCookieNameOrDefault()).willReturn("XSRF-TOKEN");
