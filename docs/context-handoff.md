@@ -153,10 +153,10 @@ DTO:
 
 분리된 문서:
 
-- `docs/interview/k6-guide.md`
-- `docs/interview/db-index-guide.md`
-- `docs/interview/transaction-lock-strategy.md`
-- `docs/interview/server-optimization-jpa-nplus1.md`
+- `docs/interview/03-k6-guide.md`
+- `docs/interview/01-db-index-guide.md`
+- `docs/interview/06-transaction-lock-strategy.md`
+- `docs/interview/05-server-optimization-jpa-nplus1.md`
 
 각 문서에는 `면접 30초 답변 버전` 포함됨
 
