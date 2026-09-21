@@ -1,7 +1,7 @@
 # OnFilm 문제 해결 사례 기록
 
 - 최초 작성일: 2026-08-24
-- 최종 갱신일: 2026-09-05
+- 최종 갱신일: 2026-09-09
 - 목적: 포트폴리오와 면접 답변을 만들 때 사용할 수 있는 기술적 근거와 의사결정 기록 보존
 
 이 디렉터리는 구현 기능을 나열하는 공간이 아니라, 리팩토링 과정에서 발견한 문제와 해결 과정, 선택하지 않은 대안 및 트레이드오프를 기록한다. 작업일은 Git 커밋 날짜를 기준으로 하며, 날짜를 확인할 수 없는 문서는 작성일을 사용한다.
@@ -22,6 +22,7 @@
 | 2026-08-30~31 | [미디어 파이프라인의 장애 대응과 관측성 구축](10-media-failure-observability-and-runbook.md) | 실패 분류, correlationId, 메트릭, Prometheus·Grafana, Alert, 장애 주입, Runbook | API `1959c0f`~`1084835`, Worker `f8504b6`~`2d32e35` |
 | 2026-09-01~02 | [Flyway와 실제 MySQL 검증으로 DB·JPA 신뢰성 확보](11-database-jpa-reliability.md) | DB 소유권, Flyway, Testcontainers, Constraint, 동시성, EXPLAIN | API `7caacc1`~`4b944d7`, Worker `e7af0b9`~`e2e71bf` |
 | 2026-09-05 | [운영 환경 Worker Callback과 CSRF 정책 충돌](12-production-callback-csrf-conflict.md) | Kafka Offset·DLT 진단, CSRF와 HMAC 책임 분리, 프로필 차이 | 커밋 전 |
+| 2026-03-28 / 2026-09-09 재측정 | [Storyboard 조회의 반복 DB 요청을 줄이고 AWS에서 성능 검증](13-storyboard-nplus1-fetchjoin-performance.md) | N+1, Fetch Join, 반복 측정, DB 연결 대기, 측정 한계 | `b2d81c4` |
 
 ## 주제별 요약
 
