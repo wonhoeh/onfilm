@@ -33,6 +33,11 @@ spring:
 jwt:
   secret: ${JWT_SECRET:dev-only-secret-key-dev-only-secret-key}
 
+logging:
+  level:
+    # Outbox polls every second. Enable INFO only when inspecting SQL.
+    p6spy: ${P6SPY_LOG_LEVEL:WARN}
+
 auth:
   refresh-token-retention: 30d
   refresh-token-cleanup-cron: "0 0 4 * * *"
