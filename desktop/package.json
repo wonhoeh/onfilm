@@ -9,6 +9,7 @@
   },
   "scripts": {
     "start": "electron .",
+    "start:local": "electron . --managed-api",
     "test": "node --test test/*.test.cjs",
     "test:smoke": "electron test/smoke.cjs"
   },

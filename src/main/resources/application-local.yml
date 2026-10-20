@@ -1,0 +1,72 @@
+# Desktop development profile. Never combine with dev: local keeps CSRF protection.
+server:
+  address: 127.0.0.1
+  port: ${ONFILM_API_PORT:8080}
+  shutdown: graceful
+
+spring:
+  application:
+    name: onfilm-api
+  lifecycle:
+    timeout-per-shutdown-phase: 10s
+  datasource:
+    url: ${DB_URL:jdbc:mysql://127.0.0.1:3306/onfilm_api}
+    username: ${DB_USER:onfilm_api_app}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    defer-datasource-initialization: false
+    properties:
+      hibernate:
+        show_sql: false
+  sql:
+    init:
+      mode: never
+  flyway:
+    enabled: true
+    baseline-on-migrate: false
+    validate-migration-naming: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+logging:
+  level:
+    p6spy: ${P6SPY_LOG_LEVEL:WARN}
+
+file:
+  public-base-url: http://127.0.0.1:${server.port}/files
+  storage:
+    type: local
+    bucket: onfilm-media
+    # Explicitly use the existing media root when reusing the existing database.
+    root: ${LOCAL_STORAGE_ROOT}
+    presign-expiration-minutes: 10
+
+app:
+  kafka:
+    topic:
+      media-encode-requested: media.encode.requested
+
+media-encode:
+  callback-secret: ${MEDIA_ENCODE_CALLBACK_SECRET}
+  job-timeout: PT4H30M
+  outbox-retention: P7D
+  job-retention: P30D
+
+onfilm:
+  desktop:
+    instance-id: ${ONFILM_INSTANCE_ID:standalone}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never

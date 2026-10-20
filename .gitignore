@@ -52,7 +52,7 @@ out/
 
 # Application overrides containing local secrets
 application-*.properties
-src/main/resources/application-local.yml
+# local profile defaults are tracked; secrets belong in ignored .env files.
 src/main/resources/application-secret.yml
 
 ### resume

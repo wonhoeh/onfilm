@@ -1,8 +1,38 @@
 # OnFilm Desktop — 첫 실행 프로토타입
 
-기존 OnFilm 웹 화면을 Electron 전용 창에서 사용한다. API·DB·Kafka·Worker를 자동 실행하거나 설치하지는 않는다. `local` 프로필 및 Windows 설치 파일은 후속 단계다.
+기존 OnFilm 웹 화면을 Electron 전용 창에서 사용한다. 기존 서버 연결 모드와 API 자동 실행 모드를 지원한다. DB·Kafka·Worker 자동 실행과 Windows 설치 파일은 아직 후속 단계다.
 
-## 실행
+## API 자동 실행 (`start:local`)
+
+현재는 개발용 자동화다. 기존 MySQL과 Kafka는 먼저 실행한다. 이 모드는 기존 DB를 그대로 사용하며 Flyway의 미적용 마이그레이션이 시작 시 적용될 수 있다. 기존 DB를 임의로 초기화하지 않는다.
+
+1. 프로젝트 루트에서 `./gradlew bootJar` 실행(Windows는 `gradlew.bat bootJar`). Java 코드·설정 변경 시 다시 빌드한다.
+2. `desktop/.env.example`을 `desktop/.env`로 복사해 값을 채운다. 이 파일은 Git에서 제외된다.
+3. `DB_PASSWORD`는 MySQL의 API 계정 비밀번호로 지정한다. IntelliJ 환경변수는 Electron에 자동 전달되지 않는다.
+4. `JWT_SECRET`은 32바이트 이상의 지속적인 비밀값, `MEDIA_ENCODE_CALLBACK_SECRET`은 Worker와 동일한 값으로 지정한다.
+5. `LOCAL_STORAGE_ROOT`는 기존 DB가 참조하는 미디어의 실제 루트 폴더를 지정한다. `onfilm-media` 하위 폴더를 제외한 경로다. 새 빈 폴더로 바꾸면 기존 이미지가 보이지 않을 수 있다. 앱은 폴더를 임의로 이동·삭제하지 않는다.
+6. IntelliJ에서 실행 중인 API와 기존 Electron 앱을 종료하고 `desktop/`에서 실행한다. macOS에서 기존 앱은 Cmd+Q로 완전히 종료한다(단일 인스턴스 잠금 때문에 모드 변경 시 필요).
+
+```sh
+npm run start:local
+```
+
+```text
+Electron 시작 → 설정 검사 → 포트 충돌 확인 → Java JAR(local) 실행
+→ 최대 90초 동안 실행 인스턴스 확인 → 준비되면 기존 화면 표시
+```
+
+Java 17 이상이 PATH에 없으면 `.env`의 `ONFILM_JAVA_PATH`에 `java`/`java.exe` 전체 경로를 지정한다. API JAR를 직접 실행하므로 Gradle 데몬을 API의 자식 프로세스로 만들지 않는다. 경로에 공백이 있어도 명령 문자열로 이어붙이지 않는다.
+
+`start:local`은 `ONFILM_SERVER_URL` 대신 `ONFILM_API_PORT`(기본 8080)를 사용하며 `127.0.0.1`에만 바인딩한다. 인스턴스 ID는 비밀 토큰이 아니라 다른 서버와 구분하기 위한 값이다. 기존 `dev`와 달리 CSRF 검증을 유지하므로 API·화면 기능을 별도 확인해야 한다. `local,dev`를 함께 활성화하지 않는다.
+
+포트가 사용 중이면 기존 프로세스를 종료하거나 그대로 접속하지 않고 오류를 안내한다. 시작 실패·제한 시간 초과 시 앱이 실행한 API만 정리한다. API가 비정상 종료되면 다시 연결로 재실행할 수 있다. `.env`를 수정했다면 앱을 재시작한다. 시스템 환경변수가 `.env`보다 우선한다.
+
+자동 실행 모드에서는 마지막 창을 닫으면 macOS에서도 앱과 소유 API를 종료한다. MySQL·Kafka·Worker는 종료하지 않는다. 서버 로그는 실행한 터미널로 출력한다. 운영체제 강제 종료·전원 차단까지 정리 완료를 보장하지 않는다. Windows에서는 프로세스 종료 신호가 Unix처럼 graceful shutdown을 보장하지 않으므로 실제 Windows 종료 검증이 필요하다.
+
+현재는 인코딩/게시 중 종료 확인, 전체 구성요소 자동화, 영구 로그 회전, 비밀값 자동 생성·OS 보안 저장, Java 번들링을 구현하지 않았다. 영상 처리 중에는 앱을 종료하지 않는다. Worker dev는 H2이므로 재시작 복구 검증은 아직 불가하다.
+
+## 기존 서버 연결 (`start`)
 
 개발용 Node.js는 22.12 이상이 필요하다(LTS 사용 권장). 최종 사용자가 Node.js를 설치하는 방식은 아니며, 지금은 개발 실행 단계다.
 
@@ -42,7 +72,7 @@ npm start
 - 카메라·마이크 등 권한 요청 거부. 일반 파일 선택은 기존 HTML 파일 입력을 이용한다.
 - 기존 웹 화면의 외부 CDN 의존성은 아직 제거하지 않았다. 지금은 오프라인 완성 버전이 아니다.
 - Electron은 Java·DB·Kafka·FFmpeg 설치 문제를 해결하지 않는다.
-- 최종 Windows 패키지·자동 서버 실행·게시 기능·CPU 사용 제한은 미구현이다.
+- 최종 Windows 패키지·DB/Kafka/Worker 자동 실행·게시 기능·CPU 사용 제한은 미구현이다.
 
 보안 설정 기준: [Electron security checklist](https://www.electronjs.org/docs/latest/tutorial/security).
 

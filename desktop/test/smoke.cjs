@@ -7,6 +7,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const { setTimeout: delay } = require('node:timers/promises');
 const { createWindow } = require('../src/window.cjs');
+const { ApiProcess } = require('../src/api-process.cjs');
 
 const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'onfilm-electron-smoke-'));
 app.setPath('userData', dataDir);
@@ -87,6 +88,34 @@ app.whenReady().then(async () => {
     second?.destroy();
     hanging.closeAllConnections();
     await new Promise((resolve) => hanging.close(resolve));
+  }
+
+  const probe = http.createServer();
+  await new Promise((resolve) => probe.listen(0, '127.0.0.1', resolve));
+  const managedPort = probe.address().port;
+  await new Promise((resolve) => probe.close(resolve));
+  const backend = new ApiProcess({
+    command: process.execPath, args: [path.join(__dirname, 'fixtures/api.cjs')], cwd: __dirname,
+    origin: `http://127.0.0.1:${managedPort}`,
+    env: { ...process.env, ELECTRON_RUN_AS_NODE: '1', ONFILM_API_PORT: String(managedPort), ONFILM_INSTANCE_ID: 'smoke-managed' },
+  }, { timeoutMs: 5000 });
+  try {
+    second = createWindow({ origin: backend.config.origin, backend, show: false, partition: 'managed-smoke' });
+    await waitFor(() => second.webContents.executeJavaScript(
+      "document.getElementById('managed')?.textContent === 'Managed API fixture'"), 'managed API ready');
+    assert.equal(backend.ready, true);
+    console.log('PASS: Electron waits for owned API readiness before opening page');
+    backend.child.kill();
+    await waitFor(() => second.webContents.executeJavaScript(
+      "document.getElementById('help')?.hidden === false"), 'managed API crashed');
+    await second.webContents.executeJavaScript("document.getElementById('retry').click()");
+    await waitFor(() => second.webContents.executeJavaScript(
+      "document.getElementById('managed')?.textContent === 'Managed API fixture'"), 'managed API restarted');
+    console.log('PASS: unexpected API exit shows retry UI and restarts owned process');
+  } finally {
+    second?.destroy();
+    await backend.stop();
+    assert.equal(backend.child, null);
   }
 }).then(() => finish(0), (error) => {
   console.error(error);
